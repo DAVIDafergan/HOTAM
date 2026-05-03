@@ -3,14 +3,9 @@
 /**
  * @fileOverview Supabase query-builder API with a Firestore-compatible surface (backed by PostgREST).
  *
- * Drop-in replacement for the Supabase query-builder API used by this app:
+ * Provides collection/query/doc helpers used throughout the app:
  *   collection, query, where, orderBy, doc, serverTimestamp, increment,
  *   arrayUnion, arrayRemove, documentId, getDoc
- *
- * Pages only need to change their import from:
- *   import { ... } from '@/lib/supabase-compat'
- * to:
- *   import { ... } from '@/lib/supabase-compat'
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';

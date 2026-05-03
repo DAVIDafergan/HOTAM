@@ -58,6 +58,10 @@ export function useDoc<T = any>(
         setIsLoading(false);
       } catch (err: any) {
         if (!isMounted) return;
+        console.error(
+          `[useDoc] Supabase error on table '${docRefRef.current?.table}' id '${docRefRef.current?.id}':`,
+          err?.message ?? err,
+        );
         const contextualError = new FirestorePermissionError({
           operation: 'get',
           path: docRefRef.current?.path ?? 'unknown',

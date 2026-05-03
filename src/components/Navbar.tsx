@@ -69,7 +69,9 @@ export function Navbar() {
     setMounted(true);
   }, []);
 
-  const isSeller = profile?.role === 'seller';
+  // Use profile (DB lookup, more up-to-date) as primary source; fall back to
+  // JWT user_metadata role so the bell renders even when the DB is unavailable.
+  const isSeller = profile?.role === 'seller' || user?.role === 'seller';
   
   const adminEmails = ["admin@hotam.co.il", "davidafergan999@gmail.com", "davidafergan@gmail.com", "da@101.org.il", "DA@101.ORG.IL"];
   const isSuperAdmin = user?.uid === "f9hcxiHpzKYMzw7UNpi5II2F13l1" || 

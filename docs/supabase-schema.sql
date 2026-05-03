@@ -9,6 +9,15 @@
 -- it always succeeds, even if the database already has stale table definitions
 -- from a previous partial run.  All data will be lost on re-run — only use
 -- in development or for a clean initial setup.
+--
+-- TROUBLESHOOTING — "400 Bad Request" on REST queries (e.g. orders table):
+--   If the frontend logs a 400 error like
+--     GET /rest/v1/orders?select=*&buyerId=eq.<uid>  400 Bad Request
+--   it almost always means this SQL file has not been applied to the Supabase
+--   project yet, OR was applied before a recent schema change.
+--   Fix: paste the entire file into Supabase → SQL Editor and run it.
+--   NOTE: running this script drops all tables and deletes all data — backup
+--   production data first.
 -- =============================================================================
 
 -- Enable UUID extension (usually already enabled on Supabase)

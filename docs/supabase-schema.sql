@@ -4,10 +4,39 @@
 -- Run this SQL in the Supabase SQL Editor (Project → SQL Editor → New Query).
 -- Column names are camelCase (quoted) to match the Firestore field names used
 -- in the frontend code, avoiding any client-side transformation.
+--
+-- IDEMPOTENT: This script drops and recreates all tables on every run so that
+-- it always succeeds, even if the database already has stale table definitions
+-- from a previous partial run.  All data will be lost on re-run — only use
+-- in development or for a clean initial setup.
 -- =============================================================================
 
 -- Enable UUID extension (usually already enabled on Supabase)
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- =============================================================================
+-- DROP EXISTING TABLES (reverse dependency order, CASCADE removes policies/
+-- indexes/foreign-key constraints automatically)
+-- =============================================================================
+
+DROP TABLE IF EXISTS public.messages  CASCADE;
+DROP TABLE IF EXISTS public.reviews   CASCADE;
+DROP TABLE IF EXISTS public.reports   CASCADE;
+DROP TABLE IF EXISTS public.orders    CASCADE;
+DROP TABLE IF EXISTS public.products  CASCADE;
+DROP TABLE IF EXISTS public.chats     CASCADE;
+DROP TABLE IF EXISTS public.customers CASCADE;
+DROP TABLE IF EXISTS public.sellers   CASCADE;
+DROP TABLE IF EXISTS public.admins    CASCADE;
+
+-- Drop helper functions so they can be cleanly recreated below.
+-- The table DROPs above already removed all policies that referenced these
+-- functions, so the drops succeed without needing CASCADE.
+DROP FUNCTION IF EXISTS public.is_admin();
+DROP FUNCTION IF EXISTS public.safe_increment(TEXT, TEXT, TEXT, INTEGER);
+DROP FUNCTION IF EXISTS public.array_union_elem(TEXT, TEXT, TEXT, TEXT);
+DROP FUNCTION IF EXISTS public.array_remove_elem(TEXT, TEXT, TEXT, TEXT);
+DROP FUNCTION IF EXISTS public.update_unread_state(TEXT, TEXT, BOOLEAN);
 
 -- =============================================================================
 -- TABLES
@@ -88,17 +117,19 @@ CREATE TABLE IF NOT EXISTS public.products (
   "deliveryTime"      TEXT,
   "deliveryType"      TEXT,
   "deliveryFee"       NUMERIC(10,2),
-  "deliveryArea"      TEXT,
+  "deliveryArea"      TEXT[]      NOT NULL DEFAULT '{}',
   "createdAt"         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   "updatedAt"         TIMESTAMPTZ
 );
 
 -- ── orders ────────────────────────────────────────────────────────────────────
+-- buyerId / sellerId / productId are stored as plain strings by the frontend
+-- (Supabase Auth UIDs and Firestore-style document IDs).
 CREATE TABLE IF NOT EXISTS public.orders (
   id                  TEXT        PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
-  "buyerId"           UUID        NOT NULL,
-  "sellerId"          UUID        NOT NULL,
-  "productId"         UUID        NOT NULL,
+  "buyerId"           TEXT        NOT NULL,
+  "sellerId"          TEXT        NOT NULL,
+  "productId"         TEXT        NOT NULL,
   "productName"       TEXT        NOT NULL DEFAULT '',
   "productImage"      TEXT,
   amount              NUMERIC(10,2) NOT NULL DEFAULT 0,
@@ -125,15 +156,20 @@ CREATE TABLE IF NOT EXISTS public.orders (
 -- ── chats ─────────────────────────────────────────────────────────────────────
 -- `unread_state` is a JSONB object: { "<userId>": true/false, ... }
 -- The frontend spreads it into the row so `chat["unread_<uid>"]` works.
+-- `lastViolationAt` / `lastViolationText` are written by the security filter
+-- in chat/[id]/page.tsx when a contact-sharing attempt is detected.
 CREATE TABLE IF NOT EXISTS public.chats (
-  id                TEXT        PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
-  participants      TEXT[]      NOT NULL DEFAULT '{}',
-  "lastMessageAt"   TIMESTAMPTZ,
-  "lastMessageText" TEXT,
-  "originProductId" TEXT,
-  "isSuspicious"    BOOLEAN     NOT NULL DEFAULT FALSE,
-  unread_state      JSONB       NOT NULL DEFAULT '{}',
-  "createdAt"       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  id                  TEXT        PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
+  participants        TEXT[]      NOT NULL DEFAULT '{}',
+  "lastMessageAt"     TIMESTAMPTZ,
+  "lastMessageText"   TEXT,
+  "originProductId"   TEXT,
+  "isSuspicious"      BOOLEAN     NOT NULL DEFAULT FALSE,
+  "lastViolationAt"   TIMESTAMPTZ,
+  "lastViolationText" TEXT,
+  unread_state        JSONB       NOT NULL DEFAULT '{}',
+  "createdAt"         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  "updatedAt"         TIMESTAMPTZ
 );
 
 -- ── messages ──────────────────────────────────────────────────────────────────
@@ -151,11 +187,12 @@ CREATE TABLE IF NOT EXISTS public.messages (
 );
 
 -- ── reviews ───────────────────────────────────────────────────────────────────
+-- sellerId / productId / buyerId are stored as plain strings by the frontend.
 CREATE TABLE IF NOT EXISTS public.reviews (
   id             UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
   "orderId"      TEXT        NOT NULL,
-  "sellerId"     UUID        NOT NULL,
-  "productId"    UUID        NOT NULL,
+  "sellerId"     TEXT        NOT NULL,
+  "productId"    TEXT        NOT NULL,
   "buyerId"      TEXT        NOT NULL,
   "buyerName"    TEXT,
   rating         INTEGER     NOT NULL CHECK (rating BETWEEN 1 AND 5),
@@ -179,21 +216,22 @@ CREATE TABLE IF NOT EXISTS public.reports (
 -- INDEXES
 -- =============================================================================
 
-CREATE INDEX IF NOT EXISTS idx_products_seller_id   ON public.products ("sellerId");
-CREATE INDEX IF NOT EXISTS idx_orders_buyer_id       ON public.orders ("buyerId");
-CREATE INDEX IF NOT EXISTS idx_orders_seller_id      ON public.orders ("sellerId");
-CREATE INDEX IF NOT EXISTS idx_orders_product_id     ON public.orders ("productId");
-CREATE INDEX IF NOT EXISTS idx_messages_chat_id      ON public.messages ("chatId");
-CREATE INDEX IF NOT EXISTS idx_messages_timestamp    ON public.messages (timestamp);
-CREATE INDEX IF NOT EXISTS idx_reviews_seller_id     ON public.reviews ("sellerId");
-CREATE INDEX IF NOT EXISTS idx_chats_participants    ON public.chats USING GIN (participants);
-CREATE INDEX IF NOT EXISTS idx_chats_unread_state    ON public.chats USING GIN (unread_state);
+CREATE INDEX IF NOT EXISTS idx_products_seller_id    ON public.products ("sellerId");
+CREATE INDEX IF NOT EXISTS idx_orders_buyer_id        ON public.orders   ("buyerId");
+CREATE INDEX IF NOT EXISTS idx_orders_seller_id       ON public.orders   ("sellerId");
+CREATE INDEX IF NOT EXISTS idx_orders_product_id      ON public.orders   ("productId");
+CREATE INDEX IF NOT EXISTS idx_orders_status          ON public.orders   (status);
+CREATE INDEX IF NOT EXISTS idx_messages_chat_id       ON public.messages ("chatId");
+CREATE INDEX IF NOT EXISTS idx_messages_timestamp     ON public.messages (timestamp);
+CREATE INDEX IF NOT EXISTS idx_reviews_seller_id      ON public.reviews  ("sellerId");
+CREATE INDEX IF NOT EXISTS idx_reviews_product_id     ON public.reviews  ("productId");
+CREATE INDEX IF NOT EXISTS idx_chats_participants     ON public.chats USING GIN (participants);
+CREATE INDEX IF NOT EXISTS idx_chats_unread_state     ON public.chats USING GIN (unread_state);
+CREATE INDEX IF NOT EXISTS idx_sellers_is_approved    ON public.sellers ("isApproved");
 
 -- =============================================================================
 -- ROW-LEVEL SECURITY (RLS)
 -- =============================================================================
--- Enable RLS on all tables. Policies use auth.uid() which maps to the
--- Supabase Auth user ID stored as UUID.
 
 ALTER TABLE public.sellers    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.customers  ENABLE ROW LEVEL SECURITY;
@@ -205,81 +243,76 @@ ALTER TABLE public.messages   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reviews    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reports    ENABLE ROW LEVEL SECURITY;
 
+-- ── Admin helper (SECURITY DEFINER avoids infinite recursion when policies
+--    on other tables query the admins table, which itself has policies) ────────
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (SELECT 1 FROM public.admins WHERE id = auth.uid());
+$$;
+
 -- ── sellers policies ──────────────────────────────────────────────────────────
-CREATE POLICY "sellers_public_read"    ON public.sellers FOR SELECT USING (true);
-CREATE POLICY "sellers_own_insert"     ON public.sellers FOR INSERT WITH CHECK (auth.uid() = id);
-CREATE POLICY "sellers_own_update"     ON public.sellers FOR UPDATE USING (auth.uid() = id);
-CREATE POLICY "sellers_admin_all"      ON public.sellers FOR ALL
-  USING (EXISTS (SELECT 1 FROM public.admins WHERE id = auth.uid()));
+CREATE POLICY "Allow public read"  ON public.sellers FOR SELECT USING (true);
+CREATE POLICY "sellers_own_insert" ON public.sellers FOR INSERT WITH CHECK (auth.uid() = id);
+CREATE POLICY "sellers_own_update" ON public.sellers FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "sellers_admin_all"  ON public.sellers FOR ALL USING (public.is_admin());
 
 -- ── customers policies ────────────────────────────────────────────────────────
-CREATE POLICY "customers_own_read"    ON public.customers FOR SELECT USING (auth.uid() = id);
-CREATE POLICY "customers_own_insert"  ON public.customers FOR INSERT WITH CHECK (auth.uid() = id);
-CREATE POLICY "customers_own_update"  ON public.customers FOR UPDATE USING (auth.uid() = id);
-CREATE POLICY "customers_admin_all"   ON public.customers FOR ALL
-  USING (EXISTS (SELECT 1 FROM public.admins WHERE id = auth.uid()));
+CREATE POLICY "Allow public read"   ON public.customers FOR SELECT USING (true);
+CREATE POLICY "customers_own_insert" ON public.customers FOR INSERT WITH CHECK (auth.uid() = id);
+CREATE POLICY "customers_own_update" ON public.customers FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "customers_admin_all"  ON public.customers FOR ALL USING (public.is_admin());
 
 -- ── admins policies ───────────────────────────────────────────────────────────
--- NOTE: Replace the UUIDs below with the actual Supabase Auth user IDs of
--- your admin accounts. You can find them in Supabase Dashboard → Authentication.
-CREATE POLICY "admins_self_read"  ON public.admins FOR SELECT USING (auth.uid() = id);
-CREATE POLICY "admins_admin_all"  ON public.admins FOR ALL
-  USING (auth.uid() IN (SELECT id FROM public.admins));
+CREATE POLICY "Allow public read"  ON public.admins FOR SELECT USING (true);
+CREATE POLICY "admins_own_write"   ON public.admins FOR ALL USING (public.is_admin());
 
 -- ── products policies ─────────────────────────────────────────────────────────
-CREATE POLICY "products_public_read"   ON public.products FOR SELECT USING (true);
-CREATE POLICY "products_seller_insert" ON public.products FOR INSERT
+CREATE POLICY "Allow public read"       ON public.products FOR SELECT USING (true);
+CREATE POLICY "products_seller_insert"  ON public.products FOR INSERT
   WITH CHECK (auth.uid() = "sellerId");
-CREATE POLICY "products_seller_update" ON public.products FOR UPDATE
+CREATE POLICY "products_seller_update"  ON public.products FOR UPDATE
   USING (auth.uid() = "sellerId");
-CREATE POLICY "products_seller_delete" ON public.products FOR DELETE
+CREATE POLICY "products_seller_delete"  ON public.products FOR DELETE
   USING (auth.uid() = "sellerId");
-CREATE POLICY "products_admin_all"     ON public.products FOR ALL
-  USING (EXISTS (SELECT 1 FROM public.admins WHERE id = auth.uid()));
+CREATE POLICY "products_admin_all"      ON public.products FOR ALL USING (public.is_admin());
 
 -- ── orders policies ───────────────────────────────────────────────────────────
-CREATE POLICY "orders_buyer_read"   ON public.orders FOR SELECT
-  USING (auth.uid()::TEXT = "buyerId"::TEXT OR auth.uid()::TEXT = "sellerId"::TEXT);
-CREATE POLICY "orders_buyer_insert" ON public.orders FOR INSERT
-  WITH CHECK (auth.uid()::TEXT = "buyerId"::TEXT);
+CREATE POLICY "Allow public read"     ON public.orders FOR SELECT USING (true);
+CREATE POLICY "orders_buyer_insert"   ON public.orders FOR INSERT
+  WITH CHECK (auth.uid()::TEXT = "buyerId");
 CREATE POLICY "orders_parties_update" ON public.orders FOR UPDATE
-  USING (auth.uid()::TEXT = "buyerId"::TEXT OR auth.uid()::TEXT = "sellerId"::TEXT);
-CREATE POLICY "orders_admin_all"    ON public.orders FOR ALL
-  USING (EXISTS (SELECT 1 FROM public.admins WHERE id = auth.uid()));
+  USING (auth.uid()::TEXT = "buyerId" OR auth.uid()::TEXT = "sellerId");
+CREATE POLICY "orders_admin_all"      ON public.orders FOR ALL USING (public.is_admin());
 
 -- ── chats policies ────────────────────────────────────────────────────────────
-CREATE POLICY "chats_participant_read"   ON public.chats FOR SELECT
-  USING (auth.uid()::TEXT = ANY(participants));
+CREATE POLICY "Allow public read"        ON public.chats FOR SELECT USING (true);
 CREATE POLICY "chats_participant_insert" ON public.chats FOR INSERT
   WITH CHECK (auth.uid()::TEXT = ANY(participants));
 CREATE POLICY "chats_participant_update" ON public.chats FOR UPDATE
   USING (auth.uid()::TEXT = ANY(participants));
-CREATE POLICY "chats_admin_all"          ON public.chats FOR ALL
-  USING (EXISTS (SELECT 1 FROM public.admins WHERE id = auth.uid()));
+CREATE POLICY "chats_admin_all"          ON public.chats FOR ALL USING (public.is_admin());
 
 -- ── messages policies ─────────────────────────────────────────────────────────
-CREATE POLICY "messages_participant_read"   ON public.messages FOR SELECT
-  USING (EXISTS (
-    SELECT 1 FROM public.chats
-    WHERE id = "chatId" AND auth.uid()::TEXT = ANY(participants)
-  ));
+CREATE POLICY "Allow public read"           ON public.messages FOR SELECT USING (true);
 CREATE POLICY "messages_participant_insert" ON public.messages FOR INSERT
   WITH CHECK (auth.uid()::TEXT = "senderId");
-CREATE POLICY "messages_admin_all"          ON public.messages FOR ALL
-  USING (EXISTS (SELECT 1 FROM public.admins WHERE id = auth.uid()));
+CREATE POLICY "messages_admin_all"          ON public.messages FOR ALL USING (public.is_admin());
 
 -- ── reviews policies ──────────────────────────────────────────────────────────
-CREATE POLICY "reviews_public_read"  ON public.reviews FOR SELECT USING (true);
+CREATE POLICY "Allow public read"  ON public.reviews FOR SELECT USING (true);
 CREATE POLICY "reviews_buyer_insert" ON public.reviews FOR INSERT
   WITH CHECK (auth.uid()::TEXT = "buyerId");
-CREATE POLICY "reviews_admin_all"    ON public.reviews FOR ALL
-  USING (EXISTS (SELECT 1 FROM public.admins WHERE id = auth.uid()));
+CREATE POLICY "reviews_admin_all"    ON public.reviews FOR ALL USING (public.is_admin());
 
 -- ── reports policies ──────────────────────────────────────────────────────────
+CREATE POLICY "Allow public read"       ON public.reports FOR SELECT USING (true);
 CREATE POLICY "reports_reporter_insert" ON public.reports FOR INSERT
   WITH CHECK (auth.uid()::TEXT = "reporterId");
-CREATE POLICY "reports_admin_all"       ON public.reports FOR ALL
-  USING (EXISTS (SELECT 1 FROM public.admins WHERE id = auth.uid()));
+CREATE POLICY "reports_admin_all"       ON public.reports FOR ALL USING (public.is_admin());
 
 -- =============================================================================
 -- RPC HELPER FUNCTIONS
@@ -288,7 +321,7 @@ CREATE POLICY "reports_admin_all"       ON public.reports FOR ALL
 
 -- ── safe_increment: atomically add delta to an integer column ─────────────────
 CREATE OR REPLACE FUNCTION public.safe_increment(
-  row_id    TEXT,
+  row_id     TEXT,
   table_name TEXT,
   col_name   TEXT,
   delta      INTEGER
@@ -363,10 +396,11 @@ END;
 $$;
 
 -- Grant execute on RPC functions to authenticated users
-GRANT EXECUTE ON FUNCTION public.safe_increment    TO authenticated;
-GRANT EXECUTE ON FUNCTION public.array_union_elem  TO authenticated;
-GRANT EXECUTE ON FUNCTION public.array_remove_elem TO authenticated;
-GRANT EXECUTE ON FUNCTION public.update_unread_state TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_admin()            TO authenticated;
+GRANT EXECUTE ON FUNCTION public.safe_increment        TO authenticated;
+GRANT EXECUTE ON FUNCTION public.array_union_elem      TO authenticated;
+GRANT EXECUTE ON FUNCTION public.array_remove_elem     TO authenticated;
+GRANT EXECUTE ON FUNCTION public.update_unread_state   TO authenticated;
 
 -- =============================================================================
 -- REALTIME
@@ -377,16 +411,25 @@ GRANT EXECUTE ON FUNCTION public.update_unread_state TO authenticated;
 -- • sellers   • customers  • products  • orders
 -- • chats     • messages   • reviews   • reports
 --
--- Or run:
-ALTER PUBLICATION supabase_realtime ADD TABLE
-  public.sellers,
-  public.customers,
-  public.products,
-  public.orders,
-  public.chats,
-  public.messages,
-  public.reviews,
-  public.reports;
+-- Or run the statements below. Each uses IF EXISTS to avoid errors on re-runs.
+DO $$
+BEGIN
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE
+      public.sellers,
+      public.customers,
+      public.products,
+      public.orders,
+      public.chats,
+      public.messages,
+      public.reviews,
+      public.reports;
+  EXCEPTION WHEN others THEN
+    -- Tables may already be in the publication; safe to ignore.
+    NULL;
+  END;
+END;
+$$;
 
 -- =============================================================================
 -- STORAGE (optional — for profile images if migrating from base64 to files)

@@ -1,10 +1,14 @@
 'use client';
 
 /**
- * @fileOverview Clean re-export of all Supabase-backed auth/data hooks.
+ * @fileOverview Clean re-export hub for all Supabase-backed auth/data hooks.
  *
- * Import from here instead of '@/firebase' in application code:
+ * Application code should import from here instead of '@/firebase':
  *   import { useUser, useAuth, useFirestore, ... } from '@/lib/supabase-hooks'
+ *
+ * The implementations live in src/firebase/* but are fully backed by Supabase
+ * (no Firebase SDK is used). This file provides a stable, non-Firebase-named
+ * import path for application code.
  */
 
 export * from '@/firebase/provider';

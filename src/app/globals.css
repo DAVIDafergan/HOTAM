@@ -51,10 +51,10 @@
     box-shadow: 0 24px 64px -12px rgba(0, 0, 0, 0.08), 0 8px 20px -4px rgba(0, 0, 0, 0.04), inset 0 0 0 1px rgba(255, 255, 255, 0.75);
   }
 
-  .no-scrollbar::-webkit-scrollbar { display: none; }
-  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
+  /* Scrollbar hiding utilities (both class names used across the codebase) */
+  .no-scrollbar::-webkit-scrollbar,
   .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .no-scrollbar,
   .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
   /* Accessibility Modes */

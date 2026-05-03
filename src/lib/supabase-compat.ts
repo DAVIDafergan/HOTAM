@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * @fileOverview Supabase query-builder API with a Firestore-compatible surface (backed by PostgREST).
+ * @fileOverview Supabase query-builder API backed by PostgREST.
  *
  * Provides collection/query/doc helpers used throughout the app:
  *   collection, query, where, orderBy, doc, serverTimestamp, increment,

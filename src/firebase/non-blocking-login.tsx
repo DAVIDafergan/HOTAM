@@ -1,36 +1,62 @@
 'use client';
-import {
-  Auth,
-  signInAnonymously,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  GoogleAuthProvider,
-  signInWithPopup,
-  sendPasswordResetEmail,
-} from 'firebase/auth';
 
-/** Initiate anonymous sign-in. */
-export function initiateAnonymousSignIn(authInstance: Auth) {
-  return signInAnonymously(authInstance);
-}
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 /** Initiate email/password sign-up. */
-export function initiateEmailSignUp(authInstance: Auth, email: string, password: string) {
-  return createUserWithEmailAndPassword(authInstance, email, password);
+export function initiateEmailSignUp(client: SupabaseClient, email: string, password: string) {
+  return client.auth.signUp({ email, password }).then(({ data, error }) => {
+    if (error) {
+      // Map Supabase error codes to Firebase-compatible error codes so existing
+      // error-handling UI strings keep working.
+      const mappedError: any = new Error(error.message);
+      if (error.message.toLowerCase().includes('already registered')) {
+        mappedError.code = 'auth/email-already-in-use';
+      } else {
+        mappedError.code = 'auth/unknown';
+      }
+      throw mappedError;
+    }
+    return data;
+  });
 }
 
 /** Initiate email/password sign-in. */
-export function initiateEmailSignIn(authInstance: Auth, email: string, password: string) {
-  return signInWithEmailAndPassword(authInstance, email, password);
+export function initiateEmailSignIn(client: SupabaseClient, email: string, password: string) {
+  return client.auth.signInWithPassword({ email, password }).then(({ data, error }) => {
+    if (error) {
+      const mappedError: any = new Error(error.message);
+      mappedError.code = 'auth/invalid-credential';
+      throw mappedError;
+    }
+    return data;
+  });
 }
 
-/** Initiate Google sign-in. */
-export function initiateGoogleSignIn(authInstance: Auth) {
-  const provider = new GoogleAuthProvider();
-  return signInWithPopup(authInstance, provider);
+/** Initiate Google OAuth sign-in (redirect flow). */
+export function initiateGoogleSignIn(client: SupabaseClient) {
+  return client.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: typeof window !== 'undefined' ? window.location.origin : undefined },
+  }).then(({ data, error }) => {
+    if (error) {
+      const mappedError: any = new Error(error.message);
+      mappedError.code = 'auth/popup-closed-by-user';
+      throw mappedError;
+    }
+    return data;
+  });
 }
 
-/** Initiate password reset. */
-export function initiatePasswordReset(authInstance: Auth, email: string) {
-  return sendPasswordResetEmail(authInstance, email);
+/** Initiate password reset email. */
+export function initiatePasswordReset(client: SupabaseClient, email: string) {
+  return client.auth.resetPasswordForEmail(email, {
+    redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/reset-password` : undefined,
+  }).then(({ error }) => {
+    if (error) throw new Error(error.message);
+  });
+}
+
+/** @deprecated Anonymous sign-in is not used in this app. */
+export function initiateAnonymousSignIn(_client: SupabaseClient) {
+  return Promise.reject(new Error('Anonymous sign-in is not supported with Supabase.'));
 }

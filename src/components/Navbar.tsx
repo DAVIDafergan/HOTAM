@@ -51,6 +51,7 @@ import {
   updateDocumentNonBlocking
 } from '@/lib/supabase-hooks';
 import { doc, collection, query, where } from '@/lib/supabase-compat';
+import { supabase } from '@/lib/supabase';
 import { useRouter, usePathname } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -115,15 +116,16 @@ export function Navbar() {
 
   const adminNotificationCount = (pendingSellers?.length || 0) + (allReports?.length || 0);
 
-  const sellerOrdersQuery = useMemoFirebase(() => {
-    if (!isSeller || !user || !mounted) return null;
-    return query(
-      collection(db, 'orders'), 
-      where('sellerId', '==', user.uid),
-      where('isSeenBySeller', '==', false)
-    );
-  }, [db, isSeller, user?.uid, mounted]);
-  const { data: sellerOrders } = useCollection<any>(sellerOrdersQuery);
+  const [sellerOrders, setSellerOrders] = useState<any[]>([]);
+  useEffect(() => {
+    if (!isSeller || !user || !mounted) return;
+    supabase
+      .from('orders')
+      .select('*')
+      .eq('seller_id', user.uid)
+      .eq('is_seen_by_seller', false)
+      .then(({ data }) => setSellerOrders(data ?? []));
+  }, [isSeller, user?.uid, mounted]);
 
   const activeUnreadOrders = (sellerOrders || []).filter(o => o.status === 'paid' || o.status === 'torah_request');
   const sellerNotificationCount = activeUnreadOrders.length + unreadCount;
@@ -381,7 +383,7 @@ export function Navbar() {
                            <DropdownMenuItem 
                               key={order.id} 
                               onClick={() => {
-                                updateDocumentNonBlocking(doc(db, 'orders', order.id), { isSeenBySeller: true });
+                                updateDocumentNonBlocking(doc(db, 'orders', order.id), { is_seen_by_seller: true });
                                 router.push('/seller/dashboard?tab=sales');
                               }}
                               className="rounded-xl p-3 cursor-pointer hover:bg-primary/5 transition-colors flex items-center justify-between w-full"

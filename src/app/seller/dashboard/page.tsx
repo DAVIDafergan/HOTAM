@@ -130,7 +130,7 @@ function SellerDashboardContent() {
 
   const ordersQuery = useMemoFirebase(() => {
     if (!canLoadData) return null;
-    return query(collection(db, 'orders'), where('sellerId', '==', user.uid));
+    return query(collection(db, 'orders'), where('seller_id', '==', user.uid));
   }, [db, user?.uid, canLoadData]);
   const { data: ordersData } = useCollection<any>(ordersQuery);
   const orders = (ordersData || []).sort((a: any, b: any) => {
@@ -239,7 +239,7 @@ function SellerDashboardContent() {
       platformFee,
       sellerNet,
       verifiedBySeller: true,
-      isSeenBySeller: true
+      is_seen_by_seller: true
     });
 
     updateDocumentNonBlocking(doc(db, 'sellers', user!.uid), {
@@ -483,8 +483,8 @@ function SellerDashboardContent() {
                          className="p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 cursor-pointer group"
                          onClick={() => {
                            setExpandedOrderId(isExpanded ? null : o.id);
-                           if (!o.isSeenBySeller) {
-                             updateDocumentNonBlocking(doc(db, 'orders', o.id), { isSeenBySeller: true });
+                           if (!o.is_seen_by_seller) {
+                             updateDocumentNonBlocking(doc(db, 'orders', o.id), { is_seen_by_seller: true });
                            }
                          }}
                        >
@@ -499,7 +499,7 @@ function SellerDashboardContent() {
                                    {o.status === 'completed' ? 'הושלם ושולם' : isTorahRequest ? 'בקשת תיאום והתרשמות' : 'ממתין למסירה'}
                                  </Badge>
                                  <span className="text-[10px] text-muted-foreground font-bold">#{o.id?.slice(0, 8)}</span>
-                                 {!o.isSeenBySeller && <Badge className="bg-accent text-primary border-none text-[8px] font-black uppercase">חדש!</Badge>}
+                                 {!o.is_seen_by_seller && <Badge className="bg-accent text-primary border-none text-[8px] font-black uppercase">חדש!</Badge>}
                                </div>
                             </div>
                          </div>

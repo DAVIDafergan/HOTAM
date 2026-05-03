@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ShieldCheck, Loader2, UserPlus, Heart, Mail, CheckCircle2, Sparkles } from 'lucide-react';
+import { ShieldCheck, Loader2, Heart, Mail, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
@@ -14,11 +14,8 @@ import {
   useUser, 
   initiateEmailSignUp, 
   initiateGoogleSignIn, 
-  setDocumentNonBlocking,
   initiatePasswordReset
 } from '@/lib/supabase-hooks';
-import { useFirestore } from '@/lib/supabase-hooks';
-import { doc, getDoc } from '@/lib/supabase-compat';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Dialog, 
@@ -35,6 +32,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   
   const [resetEmail, setResetEmail] = useState('');
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
@@ -42,48 +40,40 @@ export default function RegisterPage() {
 
   const router = useRouter();
   const auth = useAuth();
-  const db = useFirestore();
   const { user, isUserLoading } = useUser();
   const { toast } = useToast();
 
+  // If the user is already authenticated (e.g. returning from Google OAuth),
+  // route them to the correct dashboard by role.
   useEffect(() => {
-    if (user && !isUserLoading && loading) {
-      handlePostRegistration(user);
+    if (user && !isUserLoading) {
+      const role = user.role;
+      if (role === 'seller') router.push('/seller/dashboard');
+      else if (role === 'admin') router.push('/admin');
+      else router.push('/customer/dashboard');
     }
-  }, [user, isUserLoading, loading]);
+  }, [user, isUserLoading]);
 
-  const handlePostRegistration = async (authUser: any) => {
-    const sellerRef = doc(db, 'sellers', authUser.uid);
-    const sellDoc = await getDoc(sellerRef);
-    
-    if (sellDoc.exists()) {
-      router.push('/seller/dashboard');
-      return;
-    }
-
-    const customerRef = doc(db, 'customers', authUser.uid);
-    const custDoc = await getDoc(customerRef);
-
-    if (!custDoc.exists()) {
-      const names = authUser.displayName?.split(' ') || [];
-      setDocumentNonBlocking(customerRef, {
-        id: authUser.uid,
-        firstName: firstName || names[0] || 'משתמש',
-        lastName: lastName || names.slice(1).join(' ') || 'חדש',
-        email: authUser.email || email,
-        createdAt: new Date().toISOString(),
-        favoriteProductIds: []
-      }, { merge: true });
-    }
-    
-    router.push('/customer/dashboard');
-  };
-
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!firstName || !lastName || !email || !password) return;
     setLoading(true);
-    initiateEmailSignUp(auth, email, password).catch((error: any) => {
+    try {
+      // The DB trigger creates the customers row automatically.
+      // We pass firstName/lastName and role so the trigger populates the profile correctly.
+      const data = await initiateEmailSignUp(auth, email, password, {
+        role: 'customer',
+        firstName,
+        lastName,
+      });
+
+      if (!data.session) {
+        // Email confirmation is required — show the confirmation screen.
+        setEmailSent(true);
+        setLoading(false);
+      }
+      // If data.session is present, onAuthStateChange fires → useEffect above handles redirect.
+    } catch (error: any) {
       setLoading(false);
       if (error.code === 'auth/email-already-in-use') {
         toast({
@@ -104,12 +94,12 @@ export default function RegisterPage() {
           description: "חלה שגיאה בתהליך ההרשמה. וודא שהסיסמה מכילה לפחות 6 תווים.",
         });
       }
-    });
+    }
   };
 
   const handleGoogleRegister = () => {
     setLoading(true);
-    initiateGoogleSignIn(auth).catch((error: any) => {
+    initiateGoogleSignIn(auth).catch(() => {
       setLoading(false);
       toast({
         variant: "destructive",
@@ -129,12 +119,44 @@ export default function RegisterPage() {
       await initiatePasswordReset(auth, resetEmail);
       toast({ title: "נשלח מייל לאיפוס", description: "בדוק את תיבת הדואר הנכנס שלך להמשך התהליך." });
       setIsResetDialogOpen(false);
-    } catch (error: any) {
+    } catch {
       toast({ variant: "destructive", title: "שגיאה", description: "לא ניתן היה לשלוח מייל לאיפוס. וודא שהכתובת נכונה." });
     } finally {
       setIsResetting(false);
     }
   };
+
+  // ── Email-sent confirmation screen ──────────────────────────────────────────
+  if (emailSent) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center p-4">
+          <Card className="w-full max-w-md shadow-premium border-none rounded-[2.5rem] overflow-hidden bg-white">
+            <CardContent className="p-10 text-center space-y-6">
+              <div className="w-20 h-20 bg-primary/5 rounded-full flex items-center justify-center mx-auto">
+                <Mail className="w-10 h-10 text-primary" />
+              </div>
+              <div className="space-y-2">
+                <h2 className="text-2xl font-black text-primary">בדוק את תיבת הדואר שלך</h2>
+                <p className="text-muted-foreground font-medium text-sm leading-relaxed">
+                  שלחנו קישור אישור לכתובת <span className="font-black text-primary">{email}</span>.<br />
+                  לחץ על הקישור כדי להשלים את ההרשמה ולהיכנס לאתר.
+                </p>
+              </div>
+              <div className="p-4 bg-accent/5 rounded-2xl border border-accent/10 flex items-start gap-3 text-right">
+                <CheckCircle2 className="w-5 h-5 text-accent shrink-0 mt-0.5" />
+                <p className="text-xs font-bold text-primary/70">לא קיבלת? בדוק את תיקיית הספאם, או חזור לדף זה ונסה שנית.</p>
+              </div>
+              <Button variant="outline" asChild className="w-full h-12 rounded-full font-black border-primary/10">
+                <Link href="/login">חזרה לדף הכניסה</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -239,7 +261,7 @@ export default function RegisterPage() {
                       >
                         שכחת סיסמה?
                       </button>
-                      <Label htmlFor="password" stroke="bold" className="font-black text-[10px] uppercase text-primary/60 tracking-wider">סיסמה</Label>
+                      <Label htmlFor="password" className="font-black text-[10px] uppercase text-primary/60 tracking-wider">סיסמה</Label>
                     </div>
                     <Input 
                       id="password" 

@@ -10,9 +10,25 @@ function getClient(auth: AuthLike): SupabaseClient {
   return auth as SupabaseClient;
 }
 
+export interface SignUpMetadata {
+  role?: 'customer' | 'seller' | 'admin';
+  firstName?: string;
+  lastName?: string;
+  [key: string]: any;
+}
+
 /** Initiate email/password sign-up. */
-export function initiateEmailSignUp(auth: AuthLike, email: string, password: string) {
-  return getClient(auth).auth.signUp({ email, password }).then(({ data, error }) => {
+export function initiateEmailSignUp(
+  auth: AuthLike,
+  email: string,
+  password: string,
+  metadata?: SignUpMetadata,
+) {
+  return getClient(auth).auth.signUp({
+    email,
+    password,
+    options: metadata ? { data: metadata } : undefined,
+  }).then(({ data, error }) => {
     if (error) {
       const mappedError: any = new Error(error.message);
       if (error.message.toLowerCase().includes('already registered')) {

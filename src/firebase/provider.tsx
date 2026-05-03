@@ -23,6 +23,8 @@ export interface AppUser {
   photoURL: string | null;
   emailVerified: boolean;
   phoneNumber: string | null;
+  /** Role from user_metadata set at signup: 'customer' | 'seller' | 'admin' */
+  role: 'customer' | 'seller' | 'admin' | null;
   /** Raw Supabase user for advanced use-cases */
   _raw: SupabaseUser;
 }
@@ -38,6 +40,7 @@ function toAppUser(u: SupabaseUser): AppUser {
     photoURL: u.user_metadata?.avatar_url ?? null,
     emailVerified: u.email_confirmed_at != null,
     phoneNumber: u.phone ?? null,
+    role: (u.user_metadata?.role as 'customer' | 'seller' | 'admin') ?? null,
     _raw: u,
   };
 }

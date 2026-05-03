@@ -432,6 +432,81 @@ END;
 $$;
 
 -- =============================================================================
+-- AUTH TRIGGER — auto-create profile row on new user signup
+-- =============================================================================
+-- This trigger fires immediately after Supabase inserts a row in auth.users,
+-- regardless of whether email confirmation is required.
+-- The frontend must NOT manually insert into sellers/customers; the trigger
+-- is the single source of truth for row creation.
+--
+-- Routing rules (driven by raw_user_meta_data->>'role'):
+--   'seller' → public.sellers (minimal row; frontend updates with full data)
+--   'admin'  → public.admins
+--   default  → public.customers
+-- =============================================================================
+
+DROP FUNCTION IF EXISTS public.handle_new_user() CASCADE;
+
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_role      TEXT;
+  v_first     TEXT;
+  v_last      TEXT;
+BEGIN
+  v_role  := NEW.raw_user_meta_data->>'role';
+  v_first := COALESCE(NEW.raw_user_meta_data->>'firstName',
+                      split_part(COALESCE(NEW.raw_user_meta_data->>'full_name',
+                                          NEW.raw_user_meta_data->>'name', ''), ' ', 1),
+                      '');
+  v_last  := COALESCE(NEW.raw_user_meta_data->>'lastName',
+                      NULLIF(
+                        substring(COALESCE(NEW.raw_user_meta_data->>'full_name',
+                                           NEW.raw_user_meta_data->>'name', '')
+                                  FROM position(' ' IN COALESCE(NEW.raw_user_meta_data->>'full_name',
+                                                                 NEW.raw_user_meta_data->>'name', '')) + 1),
+                        ''
+                      ),
+                      '');
+
+  IF v_role = 'seller' THEN
+    INSERT INTO public.sellers (
+      id, email, "firstName", "lastName"
+    ) VALUES (
+      NEW.id, NEW.email, v_first, v_last
+    )
+    ON CONFLICT (id) DO NOTHING;
+
+  ELSIF v_role = 'admin' THEN
+    INSERT INTO public.admins (id, email)
+    VALUES (NEW.id, NEW.email)
+    ON CONFLICT (id) DO NOTHING;
+
+  ELSE
+    -- Default: customer
+    INSERT INTO public.customers (
+      id, email, "firstName", "lastName"
+    ) VALUES (
+      NEW.id, NEW.email, v_first, v_last
+    )
+    ON CONFLICT (id) DO NOTHING;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+-- Attach trigger to auth.users
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+
+-- =============================================================================
 -- STORAGE (optional — for profile images if migrating from base64 to files)
 -- =============================================================================
 -- INSERT INTO storage.buckets (id, name, public) VALUES ('images', 'images', true);

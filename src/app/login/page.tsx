@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ShieldCheck, Loader2, Sparkles, LogIn as LogInIcon, Mail, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, Loader2, LogIn as LogInIcon, Mail, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
@@ -15,10 +15,7 @@ import {
   initiateEmailSignIn, 
   initiateGoogleSignIn, 
   initiatePasswordReset,
-  setDocumentNonBlocking 
 } from '@/lib/supabase-hooks';
-import { doc, getDoc } from '@/lib/supabase-compat';
-import { useFirestore } from '@/lib/supabase-hooks';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Dialog, 
@@ -39,59 +36,28 @@ export default function LoginPage() {
   
   const router = useRouter();
   const auth = useAuth();
-  const db = useFirestore();
   const { user, isUserLoading } = useUser();
   const { toast } = useToast();
 
+  // Route by role stored in user_metadata — no DB lookups needed.
   useEffect(() => {
     if (user && !isUserLoading) {
-      checkUserRoleAndRedirect(user.uid);
+      const adminEmails = ["admin@hotam.co.il", "davidafergan999@gmail.com", "davidafergan@gmail.com", "da@101.org.il"];
+      const adminUids  = ["f9hcxiHpzKYMzw7UNpi5II2F13l1", "aMqKTe1Y4NSQdupLPupviiyrdyj2"];
+
+      const isSuperAdmin =
+        adminUids.includes(user.uid) ||
+        (user.email != null && adminEmails.includes(user.email.toLowerCase()));
+
+      if (isSuperAdmin || user.role === 'admin') {
+        router.push('/admin');
+      } else if (user.role === 'seller') {
+        router.push('/seller/dashboard');
+      } else {
+        router.push('/customer/dashboard');
+      }
     }
   }, [user, isUserLoading]);
-
-  const checkUserRoleAndRedirect = async (uid: string) => {
-    try {
-      const adminEmails = ["admin@hotam.co.il", "davidafergan999@gmail.com", "davidafergan@gmail.com", "DA@101.ORG.IL"];
-      const adminUids = ["f9hcxiHpzKYMzw7UNpi5II2F13l1", "aMqKTe1Y4NSQdupLPupviiyrdyj2"];
-      
-      if (adminUids.includes(uid) || (user?.email && adminEmails.map(e => e.toLowerCase()).includes(user.email.toLowerCase()))) {
-        router.push('/admin');
-        return;
-      }
-
-      const adminDoc = await getDoc(doc(db, 'admins', uid));
-      if (adminDoc.exists()) {
-        router.push('/admin');
-        return;
-      }
-
-      const sellerDoc = await getDoc(doc(db, 'sellers', uid));
-      if (sellerDoc.exists()) {
-        router.push('/seller/dashboard');
-        return;
-      }
-
-      const customerDoc = await getDoc(doc(db, 'customers', uid));
-      if (customerDoc.exists()) {
-        router.push('/customer/dashboard');
-        return;
-      }
-
-      const names = user?.displayName?.split(' ') || [];
-      setDocumentNonBlocking(doc(db, 'customers', uid), {
-        id: uid,
-        firstName: names[0] || 'משתמש',
-        lastName: names.slice(1).join(' ') || 'חדש',
-        email: user?.email || '',
-        createdAt: new Date().toISOString()
-      }, { merge: true });
-
-      router.push('/customer/dashboard');
-    } catch (error) {
-      console.error("Error checking user role:", error);
-      router.push('/customer/dashboard');
-    }
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -220,7 +186,7 @@ export default function LoginPage() {
                         >
                           שכחת סיסמה?
                         </button>
-                        <Label htmlFor="password" stroke="bold" className="font-black text-[10px] uppercase text-primary/60 tracking-wider">סיסמה</Label>
+                        <Label htmlFor="password" className="font-black text-[10px] uppercase text-primary/60 tracking-wider">סיסמה</Label>
                       </div>
                       <Input 
                         id="password" 

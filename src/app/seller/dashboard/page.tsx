@@ -83,6 +83,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 const PRODUCT_SUBTYPES: Record<string, string[]> = {
   'מזוזה': ['קלף', 'קלף + בית'],
@@ -96,6 +97,7 @@ function SellerDashboardContent() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
   const { toast } = useToast();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const logoImg = PlaceHolderImages.find(img => img.id === 'site-logo')?.imageUrl || 'https://picsum.photos/seed/hotam-logo/400/400';
 
@@ -104,6 +106,18 @@ function SellerDashboardContent() {
     return doc(db, 'sellers', user.uid);
   }, [db, user?.uid]);
   const { data: seller, isLoading: isSellerLoading } = useDoc<any>(sellerRef);
+
+  // Route guard — redirect non-sellers and unauthenticated users.
+  useEffect(() => {
+    if (isUserLoading || isSellerLoading) return;
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    if (user.role && user.role !== 'seller') {
+      router.push(user.role === 'admin' ? '/admin' : '/customer/dashboard');
+    }
+  }, [user, isUserLoading, isSellerLoading, router]);
 
   const canLoadData = !!user && !!seller;
 
@@ -368,6 +382,10 @@ function SellerDashboardContent() {
     { id: 'settings', label: 'הגדרות ופרופיל', icon: <Settings className="w-5 h-5" /> },
   ];
 
+  if (isUserLoading || isSellerLoading) {
+    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>;
+  }
+
   return (
     <div className="flex flex-col w-full">
       <div className="md:hidden flex items-center justify-between mb-6">
@@ -580,9 +598,9 @@ function SellerDashboardContent() {
              {chats.length > 0 ? (
                <div className="grid gap-4">
                  {paginatedChats.map((c: any) => {
-                   const otherId = c.participants?.find((p: string) => p !== user.uid);
+                   const otherId = c.participants?.find((p: string) => p !== user?.uid);
                    if (!otherId) return null;
-                   return <SellerChatListItem key={c.id} chat={c} otherUserId={otherId} userId={user.uid} />;
+                   return <SellerChatListItem key={c.id} chat={c} otherUserId={otherId} userId={user?.uid ?? ''} />;
                  })}
                  <Pagination current={chatsPage} total={chats.length} onChange={setChatsPage} />
                </div>

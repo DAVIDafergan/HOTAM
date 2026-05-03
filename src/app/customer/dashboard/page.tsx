@@ -35,6 +35,7 @@ import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection, updateDo
 import { doc, collection, query, where, documentId, serverTimestamp } from '@/lib/supabase-compat';
 import { ProductCard } from '@/components/ProductCard';
 import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 import { 
   Dialog, 
   DialogContent, 
@@ -51,8 +52,23 @@ export default function CustomerDashboard() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
   const { toast } = useToast();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('orders');
   const [isSaving, setIsSaving] = useState(false);
+
+  // Route guard — redirect non-customers and unauthenticated users.
+  useEffect(() => {
+    if (isUserLoading) return;
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    if (user.role === 'seller') {
+      router.push('/seller/dashboard');
+    } else if (user.role === 'admin') {
+      router.push('/admin');
+    }
+  }, [user, isUserLoading, router]);
 
   // Review state
   const [ratingOrderId, setRatingOrderId] = useState<any>(null);
@@ -236,7 +252,7 @@ export default function CustomerDashboard() {
             {chats && chats.length > 0 ? (
               <div className="grid gap-4">
                 {chats.map((chat: any) => {
-                  const otherId = chat.participants.find((p: string) => p !== user.uid);
+                  const otherId = chat.participants.find((p: string) => p !== user?.uid);
                   return otherId ? <CustomerChatListItem key={chat.id} otherUserId={otherId} chat={chat} /> : null;
                 })}
               </div>

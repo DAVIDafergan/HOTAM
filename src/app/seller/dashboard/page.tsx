@@ -135,8 +135,8 @@ function SellerDashboardContent() {
       .then(({ data, error }) => {
         if (error) console.error('products fetch error:', error.message);
         else setProductsData(data || []);
-        setIsProductsLoading(false);
-      });
+      })
+      .finally(() => setIsProductsLoading(false));
   }, [canLoadData, user?.uid]);
 
   const products = (productsData || []).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());

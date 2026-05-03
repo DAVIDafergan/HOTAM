@@ -74,8 +74,8 @@ export default function SellerProfile() {
       .then(({ data, error }) => {
         if (error) console.error('products fetch error:', error.message);
         else setProducts(data || []);
-        setIsProductsLoading(false);
-      });
+      })
+      .finally(() => setIsProductsLoading(false));
   }, [id]);
 
   // Fetch Reviews

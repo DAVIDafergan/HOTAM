@@ -31,7 +31,8 @@ import {
   setDocumentNonBlocking,
   updateDocumentNonBlocking
 } from '@/lib/supabase-hooks';
-import { doc, collection, query, orderBy, serverTimestamp, where } from '@/lib/supabase-compat';
+import { doc, collection, query, orderBy, serverTimestamp } from '@/lib/supabase-compat';
+import { supabase } from '@/lib/supabase';
 import { 
   Dialog, 
   DialogContent, 
@@ -112,13 +113,21 @@ function ChatContent() {
 
   const otherUserData = otherSellerData || otherCustomerData;
 
-  const canCreatePaymentRequest = user && originProduct && originProduct.sellerId === user.uid;
+  const canCreatePaymentRequest = user && originProduct && originProduct.seller_id === user.uid;
 
-  const sellerProductsQuery = useMemoFirebase(() => {
-    if (!user || !canCreatePaymentRequest) return null;
-    return query(collection(db, 'products'), where('sellerId', '==', user.uid));
-  }, [db, user?.uid, canCreatePaymentRequest]);
-  const { data: sellerProducts } = useCollection<any>(sellerProductsQuery);
+  const [sellerProducts, setSellerProducts] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!user || !canCreatePaymentRequest) return;
+    supabase
+      .from('products')
+      .select('*')
+      .eq('seller_id', user.uid)
+      .then(({ data, error }) => {
+        if (error) console.error('sellerProducts fetch error:', error.message);
+        else setSellerProducts(data || []);
+      });
+  }, [user?.uid, canCreatePaymentRequest]);
 
   const messagesQuery = useMemoFirebase(() => {
     if (!chatId) return null;

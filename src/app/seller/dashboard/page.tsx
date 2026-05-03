@@ -74,6 +74,7 @@ import {
   deleteDocumentNonBlocking
 } from '@/lib/supabase-hooks';
 import { collection, query, where, doc, increment } from '@/lib/supabase-compat';
+import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -121,12 +122,24 @@ function SellerDashboardContent() {
 
   const canLoadData = !!user && !!seller;
 
-  const productsQuery = useMemoFirebase(() => {
-    if (!canLoadData) return null;
-    return query(collection(db, 'products'), where('sellerId', '==', user.uid));
-  }, [db, user?.uid, canLoadData]);
-  const { data: productsData, isLoading: isProductsLoading } = useCollection<any>(productsQuery);
-  const products = (productsData || []).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const [productsData, setProductsData] = useState<any[]>([]);
+  const [isProductsLoading, setIsProductsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!canLoadData || !user) return;
+    setIsProductsLoading(true);
+    supabase
+      .from('products')
+      .select('*')
+      .eq('seller_id', user.uid)
+      .then(({ data, error }) => {
+        if (error) console.error('products fetch error:', error.message);
+        else setProductsData(data || []);
+        setIsProductsLoading(false);
+      });
+  }, [canLoadData, user?.uid]);
+
+  const products = (productsData || []).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   const ordersQuery = useMemoFirebase(() => {
     if (!canLoadData) return null;
@@ -337,7 +350,7 @@ function SellerDashboardContent() {
     }
 
     const data = {
-      sellerId: user.uid,
+      seller_id: user.uid,
       productType: formType,
       subType: formType === 'תפילין' ? 'כללי' : formSubType,
       description: formDescription,
@@ -356,7 +369,7 @@ function SellerDashboardContent() {
     };
 
     if (editingProduct) updateDocumentNonBlocking(doc(db, 'products', editingProduct.id), data);
-    else addDocumentNonBlocking(collection(db, 'products'), { ...data, createdAt: new Date().toISOString() });
+    else addDocumentNonBlocking(collection(db, 'products'), { ...data, created_at: new Date().toISOString() });
     
     setIsDialogOpen(false); 
     resetForm();

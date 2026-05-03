@@ -139,11 +139,11 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      <main className="flex-1 flex items-center justify-center p-4 pt-32 pb-12">
+      <main className="flex-1 flex items-center justify-center p-4 pt-20 sm:pt-28 pb-8 sm:pb-12">
         <Card className="w-full max-w-5xl shadow-premium border-none rounded-[2.5rem] overflow-hidden bg-white">
           <div className="grid md:grid-cols-5 min-h-[550px]">
             {/* Left/Info Side */}
-            <div className="md:col-span-2 bg-primary text-white p-8 md:p-10 flex flex-col justify-center text-right relative overflow-hidden">
+            <div className="order-2 md:order-1 md:col-span-2 bg-primary text-white p-5 sm:p-8 md:p-10 flex flex-col justify-center text-right relative overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl" />
               <div className="relative z-10 space-y-6">
                 <div className="space-y-4">
@@ -166,7 +166,7 @@ export default function RegisterPage() {
             </div>
 
             {/* Right/Form Side */}
-            <CardContent className="md:col-span-3 p-8 md:p-14 space-y-6 text-right flex flex-col justify-center">
+            <CardContent className="order-1 md:order-2 md:col-span-3 p-6 sm:p-8 md:p-14 space-y-6 text-right flex flex-col justify-center">
               <div className="space-y-1">
                 <h2 className="text-2xl md:text-3xl font-black text-primary">יצירת חשבון חדש</h2>
                 <p className="text-muted-foreground text-sm font-black">הצטרפו לקהילת חותם עוד היום</p>

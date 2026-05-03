@@ -1,0 +1,100 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 45 30% 97%; /* Parchment-like background */
+    --foreground: 220 40% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 40% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 40% 10%;
+    --primary: 220 60% 18%; /* Deep Royal Blue */
+    --primary-foreground: 45 30% 98%;
+    --secondary: 45 20% 90%;
+    --secondary-foreground: 220 60% 18%;
+    --muted: 45 10% 92%;
+    --muted-foreground: 220 10% 40%;
+    --accent: 38 75% 55%; /* Rich Gold */
+    --accent-foreground: 220 60% 10%;
+    --border: 220 20% 90%;
+    --input: 220 20% 90%;
+    --ring: 38 75% 55%;
+    --radius: 1rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-body;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-headline;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/70 backdrop-blur-md border border-white/20;
+  }
+
+  .shadow-premium {
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 4px 10px -2px rgba(0, 0, 0, 0.02);
+  }
+
+  /* Accessibility Modes */
+  .high-contrast {
+    filter: contrast(1.5) saturate(1.2) !important;
+  }
+  .high-contrast body {
+    background-color: #fff !important;
+    color: #000 !important;
+  }
+  
+  .grayscale-mode {
+    filter: grayscale(1) !important;
+  }
+  
+  .readable-font {
+    --font-frank: var(--font-assistant) !important;
+    font-weight: 500 !important;
+  }
+  
+  .highlight-links a {
+    text-decoration: underline !important;
+    text-decoration-thickness: 2px !important;
+    text-underline-offset: 4px !important;
+    background-color: rgba(212, 175, 55, 0.1) !important;
+    color: #000 !important;
+  }
+
+  /* Animations */
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-in {
+    animation: fade-in 1s ease-out forwards;
+  }
+  .animate-fade-in-delayed {
+    animation: fade-in 1s ease-out 0.4s forwards;
+    opacity: 0;
+  }
+  .animate-fade-in-delayed-more {
+    animation: fade-in 1s ease-out 0.8s forwards;
+    opacity: 0;
+  }
+
+  @keyframes floating {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  .animate-floating {
+    animation: floating 4s ease-in-out infinite;
+  }
+}

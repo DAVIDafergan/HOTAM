@@ -1,0 +1,101 @@
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- Helper Functions ---
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isExistingOwner(userId) {
+      return resource != null && isOwner(userId);
+    }
+
+    function isParticipant(buyerId, sellerId) {
+      return isSignedIn() && (request.auth.uid == buyerId || request.auth.uid == sellerId);
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.uid == "f9hcxiHpzKYMzw7UNpi5II2F13l1" || 
+        request.auth.uid == "aMqKTe1Y4NSQdupLPupviiyrdyj2" ||
+        (request.auth.token.email != null && request.auth.token.email.lower() in ["admin@hotam.co.il", "davidafergan999@gmail.com", "davidafergan@gmail.com", "da@101.org.il"])
+      );
+    }
+
+    // --- Collection Rules ---
+
+    match /orders/{document=**} {
+      allow read, write: if isSignedIn();
+    }
+
+    match /customers/{customerId} {
+      // Allow any signed-in user to 'get' a customer profile (to see names/images in chat)
+      allow get: if isSignedIn();
+      // Only the owner or admin can list or manage profiles
+      allow list: if isOwner(customerId) || isAdmin();
+      allow create: if isOwner(customerId);
+      allow update: if isExistingOwner(customerId) || isAdmin();
+      allow delete: if false;
+
+      match /addresses/{addressId} {
+        allow read, write: if isOwner(customerId);
+      }
+
+      match /wishlistItems/{wishlistItemId} {
+        allow read, write: if isOwner(customerId);
+      }
+
+      match /mezuzahDiagnoses/{diagnosisId} {
+        allow read, write: if isOwner(customerId);
+      }
+    }
+
+    match /sellers/{sellerId} {
+      allow get, list: if true; // Public profiles
+      allow create: if isOwner(sellerId);
+      allow update: if isExistingOwner(sellerId) || isAdmin();
+      allow delete: if false;
+
+      match /addresses/{addressId} {
+        allow read, write: if isOwner(sellerId);
+      }
+    }
+
+    match /products/{productId} {
+      allow get, list: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && (resource.data.sellerId == request.auth.uid || isAdmin());
+    }
+
+    match /reviews/{reviewId} {
+      allow get, list: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && (resource.data.buyerId == request.auth.uid || isAdmin());
+    }
+
+    match /chats/{chatId} {
+      allow read, write: if isSignedIn(); // Participants checked at query level
+
+      match /messages/{messageId} {
+        allow read, write: if isSignedIn();
+      }
+    }
+
+    match /reports/{reportId} {
+      allow create: if isSignedIn();
+      allow read, delete: if isAdmin();
+    }
+    
+    match /admins/{adminId} {
+      allow get: if isSignedIn();
+    }
+
+  }
+}

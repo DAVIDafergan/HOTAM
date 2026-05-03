@@ -1,0 +1,758 @@
+{
+  "entities": {
+    "Customer": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Customer",
+      "type": "object",
+      "description": "Represents a customer user account within the Ketav Connection platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Customer entity."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The customer's first name."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The customer's last name."
+        },
+        "email": {
+          "type": "string",
+          "description": "The customer's email address, used for communication and potentially login (handled by external auth).",
+          "format": "email"
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "The customer's phone number, used for communication and potentially login (handled by external auth). Optional if email is provided."
+        },
+        "addressId": {
+          "type": "string",
+          "description": "Reference to the customer's primary Address. (Relationship: Address 1:N Customer)"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the customer account was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the customer account was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "firstName",
+        "lastName",
+        "email",
+        "addressId",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Seller": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Seller",
+      "type": "object",
+      "description": "Represents a seller (scribe) user account, including their qualifications and profile details.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Seller entity."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The seller's first name."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The seller's last name."
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "The seller's phone number, used for communication."
+        },
+        "email": {
+          "type": "string",
+          "description": "The seller's email address, used for communication and login (handled by external auth).",
+          "format": "email"
+        },
+        "addressId": {
+          "type": "string",
+          "description": "Reference to the seller's primary Address. (Relationship: Address 1:N Seller)"
+        },
+        "age": {
+          "type": "number",
+          "description": "The seller's age."
+        },
+        "maritalStatus": {
+          "type": "string",
+          "description": "The seller's marital status. Possible values: 'married' (נשוי), 'single' (רווק)."
+        },
+        "photoIdImageUrl": {
+          "type": "string",
+          "description": "URL to an image of the seller's identification document for verification.",
+          "format": "uri"
+        },
+        "hasScribeCertificate": {
+          "type": "string",
+          "description": "Indicates if the seller has a scribe certificate. Possible values: 'valid' (תעודה בתוקף), 'past' (תעודה בעבר), 'none' (אין תעודה בכלל)."
+        },
+        "torahStudyCommitment": {
+          "type": "string",
+          "description": "The seller's commitment to daily Torah study. Possible values: 'fixed_times' (קובע עיתים), 'half_day_avrech' (אברך חצי יום), 'full_day_avrech' (אברך יום שלם)."
+        },
+        "mikvehImmersionHabit": {
+          "type": "string",
+          "description": "The seller's habit regarding mikveh immersion. Possible values: 'never' (לא טובל בכלל), 'ezra_immersion' (טבילת עזרא), 'before_writing' (טבילה לפני הכתיבה), 'daily' (טובל כל יום)."
+        },
+        "additionalNotes": {
+          "type": "string",
+          "description": "Any additional comments or notes from the seller (optional)."
+        },
+        "scribeScriptTypes": {
+          "type": "array",
+          "description": "An array of script types the seller is proficient in. Possible values: 'Sephardi', 'Ashkenazi_BeitYosef', 'Ashkenazi_ARI', 'AdmorHazaken'.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "scribeScriptQualityLevel": {
+          "type": "string",
+          "description": "The seller's overall level of script quality. Possible values: 'beginner_kosher' (מתחיל-כשר), 'standard_letters' (צורת אותיות תקינה), 'standard_letters_order' (צורת אותיות תקינה + סדר האותיות), 'mehudar_beauty' (מהודר - יופי האותיות)."
+        },
+        "sampleImages": {
+          "type": "array",
+          "description": "URLs to images showcasing examples of the seller's calligraphy work. Minimum two examples required.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "profileImageUrl": {
+          "type": "string",
+          "description": "URL to the seller's profile picture (optional).",
+          "format": "uri"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the seller account was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the seller account was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "firstName",
+        "lastName",
+        "phoneNumber",
+        "email",
+        "addressId",
+        "age",
+        "maritalStatus",
+        "photoIdImageUrl",
+        "hasScribeCertificate",
+        "torahStudyCommitment",
+        "mikvehImmersionHabit",
+        "scribeScriptTypes",
+        "scribeScriptQualityLevel",
+        "sampleImages",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Address": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Address",
+      "type": "object",
+      "description": "Represents a physical address for customers or sellers.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Address entity."
+        },
+        "street": {
+          "type": "string",
+          "description": "The street name and house number."
+        },
+        "city": {
+          "type": "string",
+          "description": "The city of the address."
+        },
+        "state": {
+          "type": "string",
+          "description": "The state or province of the address (optional)."
+        },
+        "zipCode": {
+          "type": "string",
+          "description": "The postal or zip code of the address."
+        },
+        "country": {
+          "type": "string",
+          "description": "The country of the address."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the address record was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the address record was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "street",
+        "city",
+        "zipCode",
+        "country",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Product": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Product",
+      "type": "object",
+      "description": "Represents a religious scribe product available for sale, such as a Mezuzah, Tefillin, or Megillah.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Product entity."
+        },
+        "sellerId": {
+          "type": "string",
+          "description": "Reference to the Seller who created and owns this product. (Relationship: Seller 1:N Product)"
+        },
+        "productType": {
+          "type": "string",
+          "description": "The main category of the product. Possible values: 'Mezuzah', 'Tefillin', 'Megillah', 'SeferTorah', 'JudaicaItem'."
+        },
+        "productSubType": {
+          "type": "string",
+          "description": "A more specific sub-type of the product, dependent on the productType (e.g., 'Klaf' for Mezuzah, 'Esther' for Megillah, 'IncludesBatim' for Tefillin). This field is required if the selected product type has sub-types."
+        },
+        "quantityAvailable": {
+          "type": "number",
+          "description": "The number of units of this product currently in stock."
+        },
+        "scriptType": {
+          "type": "string",
+          "description": "The type of script used in the product. Possible values: 'Sephardi', 'Ashkenazi_BeitYosef', 'Ashkenazi_ARI', 'AdmorHazaken'."
+        },
+        "scriptQualityLevel": {
+          "type": "string",
+          "description": "The level of quality or 'hiddur' of the script. Possible values: 'simple_kosher' (פשוט-כשר), 'standard_letters' (צורת אותיות תקינה), 'mehudar_order_form' (מהודר-סדר וצורה), 'very_mehudar' (מהודר מאד)."
+        },
+        "parchmentSize": {
+          "type": "string",
+          "description": "The size description of the parchment, e.g., 'average' or specific dimensions."
+        },
+        "proofreadingLevel": {
+          "type": "string",
+          "description": "The level of proofreading performed on the product. Possible values: 'gavra_proofreading' (הגהה גברא), 'additional_gavra_proofreading' (הגהה גברא נוספת), 'computer_proofreading' (הגהה מחשב)."
+        },
+        "price": {
+          "type": "number",
+          "description": "The price of a single unit of the product."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title or name of the product."
+        },
+        "description": {
+          "type": "string",
+          "description": "A full description of the product."
+        },
+        "city": {
+          "type": "string",
+          "description": "The city where the seller is located, for display and search purposes. This data may be denormalized from the Seller's address for performance."
+        },
+        "images": {
+          "type": "array",
+          "description": "An array of URLs to images showcasing the product.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "isPublished": {
+          "type": "boolean",
+          "description": "Indicates if the product is currently visible and available for sale on the platform."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the product record was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the product record was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "sellerId",
+        "productType",
+        "productSubType",
+        "quantityAvailable",
+        "scriptType",
+        "scriptQualityLevel",
+        "parchmentSize",
+        "proofreadingLevel",
+        "price",
+        "title",
+        "description",
+        "city",
+        "images",
+        "isPublished",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Order": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Order",
+      "type": "object",
+      "description": "Represents a customer's order for a product from a seller.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Order entity."
+        },
+        "customerId": {
+          "type": "string",
+          "description": "Reference to the Customer who placed the order. (Relationship: Customer 1:N Order)"
+        },
+        "sellerId": {
+          "type": "string",
+          "description": "Reference to the Seller from whom the product was ordered. (Relationship: Seller 1:N Order)"
+        },
+        "productId": {
+          "type": "string",
+          "description": "Reference to the Product that was ordered. (Relationship: Product 1:N Order)"
+        },
+        "quantity": {
+          "type": "number",
+          "description": "The quantity of the product ordered."
+        },
+        "totalPrice": {
+          "type": "number",
+          "description": "The total price of the order, including quantity and any applicable taxes/shipping."
+        },
+        "orderStatus": {
+          "type": "string",
+          "description": "The current status of the order. Possible values: 'pending', 'processing', 'shipped', 'delivered', 'cancelled'."
+        },
+        "orderDate": {
+          "type": "string",
+          "description": "The date and time when the order was placed.",
+          "format": "date-time"
+        },
+        "shippingAddressId": {
+          "type": "string",
+          "description": "Reference to the Address where the order should be shipped. (Relationship: Address 1:N Order)"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the order record was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the order record was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "customerId",
+        "sellerId",
+        "productId",
+        "quantity",
+        "totalPrice",
+        "orderStatus",
+        "orderDate",
+        "shippingAddressId",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Review": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Review",
+      "type": "object",
+      "description": "Represents a customer's review and rating for a seller.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Review entity."
+        },
+        "customerId": {
+          "type": "string",
+          "description": "Reference to the Customer who wrote the review. (Relationship: Customer 1:N Review)"
+        },
+        "sellerId": {
+          "type": "string",
+          "description": "Reference to the Seller being reviewed. (Relationship: Seller 1:N Review)"
+        },
+        "orderId": {
+          "type": "string",
+          "description": "Reference to the Order associated with this review (optional, but recommended for context). (Relationship: Order 1:N Review)"
+        },
+        "rating": {
+          "type": "number",
+          "description": "The rating given to the seller, typically on a scale of 1 to 5."
+        },
+        "comment": {
+          "type": "string",
+          "description": "The textual comment provided by the customer."
+        },
+        "reviewDate": {
+          "type": "string",
+          "description": "The date and time when the review was submitted.",
+          "format": "date-time"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the review record was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the review record was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "customerId",
+        "sellerId",
+        "rating",
+        "comment",
+        "reviewDate",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Chat": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Chat",
+      "type": "object",
+      "description": "Represents a conversation thread between a customer and a seller.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Chat entity."
+        },
+        "customerId": {
+          "type": "string",
+          "description": "Reference to the Customer participating in the chat. (Relationship: Customer 1:N Chat)"
+        },
+        "sellerId": {
+          "type": "string",
+          "description": "Reference to the Seller participating in the chat. (Relationship: Seller 1:N Chat)"
+        },
+        "lastMessageId": {
+          "type": "string",
+          "description": "Reference to the most recent ChatMessage in this conversation (optional). Useful for displaying chat previews. (Relationship: ChatMessage 1:N Chat)"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the chat conversation was initiated.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the chat conversation last had a message or update.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "customerId",
+        "sellerId",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ChatMessage": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ChatMessage",
+      "type": "object",
+      "description": "Represents an individual message within a chat conversation.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the ChatMessage entity."
+        },
+        "chatId": {
+          "type": "string",
+          "description": "Reference to the Chat conversation this message belongs to. (Relationship: Chat 1:N ChatMessage)"
+        },
+        "senderId": {
+          "type": "string",
+          "description": "The ID of the user (Customer or Seller) who sent this message."
+        },
+        "messageContent": {
+          "type": "string",
+          "description": "The text content of the message."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "The date and time when the message was sent.",
+          "format": "date-time"
+        },
+        "isRead": {
+          "type": "boolean",
+          "description": "Indicates if the message has been read by the recipient."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the chat message record was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the chat message record was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "chatId",
+        "senderId",
+        "messageContent",
+        "timestamp",
+        "isRead",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "WishlistItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "WishlistItem",
+      "type": "object",
+      "description": "Represents a product that a customer has marked as a favorite or added to a wishlist.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the WishlistItem entity."
+        },
+        "customerId": {
+          "type": "string",
+          "description": "Reference to the Customer who added the product to their wishlist. (Relationship: Customer 1:N WishlistItem)"
+        },
+        "productId": {
+          "type": "string",
+          "description": "Reference to the Product added to the wishlist. (Relationship: Product 1:N WishlistItem)"
+        },
+        "addedDate": {
+          "type": "string",
+          "description": "The date and time when the product was added to the wishlist.",
+          "format": "date-time"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the wishlist item record was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the wishlist item record was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "customerId",
+        "productId",
+        "addedDate",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "MezuzahDiagnosis": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "MezuzahDiagnosis",
+      "type": "object",
+      "description": "Stores the results of an AI-powered Mezuzah scroll diagnosis.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the MezuzahDiagnosis entity."
+        },
+        "customerId": {
+          "type": "string",
+          "description": "Reference to the Customer who submitted the Mezuzah for diagnosis. (Relationship: Customer 1:N MezuzahDiagnosis)"
+        },
+        "mezuzahImageUrl": {
+          "type": "string",
+          "description": "URL to the image of the Mezuzah scroll submitted for diagnosis.",
+          "format": "uri"
+        },
+        "diagnosisResult": {
+          "type": "string",
+          "description": "The high-level result of the AI diagnosis (e.g., 'Kosher', 'Problematic', 'Invalid')."
+        },
+        "detailedReport": {
+          "type": "string",
+          "description": "A detailed report or explanation of the AI diagnosis, potentially in JSON or text format."
+        },
+        "diagnosisDate": {
+          "type": "string",
+          "description": "The date and time when the diagnosis was performed.",
+          "format": "date-time"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the diagnosis record was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the diagnosis record was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "customerId",
+        "mezuzahImageUrl",
+        "diagnosisResult",
+        "detailedReport",
+        "diagnosisDate",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/customers/{customerId}",
+        "definition": {
+          "entityName": "Customer",
+          "schema": {
+            "$ref": "#/backend/entities/Customer"
+          },
+          "description": "Collection for customer user profiles. Authorization relies on path-based ownership, where the customerId in the path must match request.auth.uid."
+        }
+      },
+      {
+        "path": "/customers/{customerId}/addresses/{addressId}",
+        "definition": {
+          "entityName": "Address",
+          "schema": {
+            "$ref": "#/backend/entities/Address"
+          },
+          "description": "Subcollection for addresses belonging to a specific customer. Authorization relies on path-based ownership, where the parent customerId must match request.auth.uid."
+        }
+      },
+      {
+        "path": "/customers/{customerId}/wishlistItems/{wishlistItemId}",
+        "definition": {
+          "entityName": "WishlistItem",
+          "schema": {
+            "$ref": "#/backend/entities/WishlistItem"
+          },
+          "description": "Subcollection for wishlist items belonging to a specific customer. Authorization relies on path-based ownership, where the parent customerId must match request.auth.uid."
+        }
+      },
+      {
+        "path": "/customers/{customerId}/mezuzahDiagnoses/{diagnosisId}",
+        "definition": {
+          "entityName": "MezuzahDiagnosis",
+          "schema": {
+            "$ref": "#/backend/entities/MezuzahDiagnosis"
+          },
+          "description": "Subcollection for Mezuzah diagnosis records submitted by a specific customer. Authorization relies on path-based ownership, where the parent customerId must match request.auth.uid."
+        }
+      },
+      {
+        "path": "/sellers/{sellerId}",
+        "definition": {
+          "entityName": "Seller",
+          "schema": {
+            "$ref": "#/backend/entities/Seller"
+          },
+          "description": "Collection for seller user profiles. Authorization relies on path-based ownership, where the sellerId in the path must match request.auth.uid."
+        }
+      },
+      {
+        "path": "/sellers/{sellerId}/addresses/{addressId}",
+        "definition": {
+          "entityName": "Address",
+          "schema": {
+            "$ref": "#/backend/entities/Address"
+          },
+          "description": "Subcollection for addresses belonging to a specific seller. Authorization relies on path-based ownership, where the parent sellerId must match request.auth.uid."
+        }
+      },
+      {
+        "path": "/products/{productId}",
+        "definition": {
+          "entityName": "Product",
+          "schema": {
+            "$ref": "#/backend/entities/Product"
+          },
+          "description": "Top-level collection for products available for sale. Includes denormalized 'sellerId' for authorization independence. Read access can be public if 'isPublished' is true, write access restricted to 'sellerId'."
+        }
+      },
+      {
+        "path": "/orders/{orderId}",
+        "definition": {
+          "entityName": "Order",
+          "schema": {
+            "$ref": "#/backend/entities/Order"
+          },
+          "description": "Top-level collection for customer orders. Includes denormalized 'customerId' and 'sellerId' for authorization independence. Access is granted if request.auth.uid matches either the customerId or sellerId."
+        }
+      },
+      {
+        "path": "/reviews/{reviewId}",
+        "definition": {
+          "entityName": "Review",
+          "schema": {
+            "$ref": "#/backend/entities/Review"
+          },
+          "description": "Top-level collection for customer reviews of sellers. Includes denormalized 'customerId' (who wrote the review) and 'sellerId' (who is being reviewed) for authorization independence. Read access might be public for reviews, write access restricted to the customer who placed the associated order."
+        }
+      },
+      {
+        "path": "/chats/{chatId}",
+        "definition": {
+          "entityName": "Chat",
+          "schema": {
+            "$ref": "#/backend/entities/Chat"
+          },
+          "description": "Top-level collection for chat conversations between a customer and a seller. Includes denormalized 'customerId' and 'sellerId' for authorization independence. Access is granted if request.auth.uid matches either ID."
+        }
+      },
+      {
+        "path": "/chats/{chatId}/messages/{messageId}",
+        "definition": {
+          "entityName": "ChatMessage",
+          "schema": {
+            "$ref": "#/backend/entities/ChatMessage"
+          },
+          "description": "Subcollection for individual messages within a chat conversation. Includes denormalized 'customerId', 'sellerId' (from the parent Chat), and 'senderId' for authorization independence."
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure prioritizes secure, scalable, and debuggable authorization by strictly adhering to the core design principles. The primary strategy for authorization independence and enabling QAPs (Queries as Authorization Primitives) is a combination of denormalization of authorization context and structural segregation.\n\n**Authorization Independence (CRITICAL):**\nTo avoid complex and brittle security rules that rely on `get()` calls, authorization-relevant IDs are denormalized directly into the documents or inferred from the document's path:\n1.  **Denormalized IDs in Top-Level Collections:** Documents in shared top-level collections like `/products`, `/orders`, `/reviews`, and `/chats` explicitly include `sellerId` and/or `customerId` fields. For instance, an `Order` document contains both `customerId` (the buyer) and `sellerId` (the vendor). A `Product` document includes its `sellerId`. Similarly, `Review` and `Chat` documents contain `customerId` and `sellerId`. This means that any request to read or write these documents can be authorized by checking `request.auth.uid` against the relevant `resource.data` field without needing to fetch a parent or related document.\n2.  **Denormalized IDs in Subcollections (Explicit for Messages):** `ChatMessage` documents, nested under `/chats/{chatId}/messages/{messageId}`, also require `customerId` and `sellerId` (denormalized from their parent `Chat`) in addition to `senderId`. This ensures that access to an individual message can be validated without performing a `get()` call on the parent `Chat` document, maintaining atomic authorization checks.\n3.  **Path-Based Ownership for Private Data:** For data purely owned by a single user, a hierarchical path structure is used. Collections like `/customers/{customerId}`, `/sellers/{sellerId}`, and their direct subcollections (e.g., `/customers/{customerId}/wishlistItems`, `/customers/{customerId}/mezuzahDiagnoses`, and user-specific `/addresses`) inherently tie the document's ownership to the `customerId` or `sellerId` in the path. This allows security rules to simply compare `request.auth.uid` with the wildcard in the path, making authorization explicit and independent.\n\n**QAPs (Queries as Authorization Primitives):**\nThis structure enables secure `list` operations without security rules acting as filters:\n1.  **Structural Segregation:** User-specific data (e.g., wishlist items, Mezuzah diagnoses, personal addresses) is housed within subcollections under `/customers/{customerId}` or `/sellers/{sellerId}`. When a client requests data from `/customers/myUid/wishlistItems`, the query is naturally scoped to items belonging to `myUid`. The security rule then simply validates that `request.auth.uid` matches `myUid` from the path, ensuring only the authenticated user's data is accessed.\n2.  **Query Filtering on Denormalized Fields:** For top-level, shared collections like `/products`, `/orders`, `/reviews`, and `/chats`, clients are expected to include `where` clauses in their `list` queries that filter by the denormalized authorization IDs (e.g., `db.collection('orders').where('customerId', '==', request.auth.uid)`). The security rules then validate that the `request.auth.uid` matches the `customerId` (or `sellerId`) field used in the query filter. This allows for efficient indexed queries while ensuring that only authorized data is returned, preventing rules from acting as inefficient filters over large datasets.\n    *   For `products`, public read access to published items is allowed (`resource.data.isPublished == true`), while write access is restricted to the `sellerId` owner, enabling both public browsing and secure seller management. \n\nThis approach simplifies security rules significantly, making them easier to write, understand, and debug, while supporting the application's core features securely and scalably."
+  }
+}

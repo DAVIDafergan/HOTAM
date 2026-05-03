@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /seller/dashboard/
+Disallow: /customer/dashboard/
+Disallow: /chat/
+Disallow: /api/
+
+Sitemap: https://hotam.shop/sitemap.xml

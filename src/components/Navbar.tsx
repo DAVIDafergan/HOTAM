@@ -43,9 +43,9 @@ import {
 import { useState, useEffect, useMemo } from 'react';
 import { 
   useUser, 
-  useFirestore, 
-  useFirebase,
-  useMemoFirebase, 
+  useSupabaseClient, 
+  useApp,
+  useMemoStable, 
   useAuth,
   useCollection,
   updateDocumentNonBlocking
@@ -60,8 +60,8 @@ import { cn } from '@/lib/utils';
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const { user, isUserLoading, profile } = useFirebase();
-  const db = useFirestore();
+  const { user, isUserLoading, profile } = useApp();
+  const db = useSupabaseClient();
   const auth = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -90,7 +90,7 @@ export function Navbar() {
     return 'לילה טוב';
   }, []);
 
-  const unreadChatsQuery = useMemoFirebase(() => {
+  const unreadChatsQuery = useMemoStable(() => {
     if (!user || !mounted) return null;
     return query(
       collection(db, 'chats'), 
@@ -102,13 +102,13 @@ export function Navbar() {
   const unreadCount = (unreadChats || []).length;
   const hasUnreadMessages = unreadCount > 0;
 
-  const pendingSellersQuery = useMemoFirebase(() => {
+  const pendingSellersQuery = useMemoStable(() => {
     if (!isSuperAdmin || !mounted) return null;
     return query(collection(db, 'sellers'), where('isApproved', '==', false));
   }, [db, isSuperAdmin, mounted]);
   const { data: pendingSellers } = useCollection<any>(pendingSellersQuery);
 
-  const reportsQuery = useMemoFirebase(() => {
+  const reportsQuery = useMemoStable(() => {
     if (!isSuperAdmin || !mounted) return null;
     return query(collection(db, 'reports'));
   }, [db, isSuperAdmin, mounted]);

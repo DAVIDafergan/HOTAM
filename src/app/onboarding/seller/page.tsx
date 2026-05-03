@@ -29,7 +29,7 @@ import {
   Info
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useAuth, useUser, initiateEmailSignUp, useFirestore } from '@/lib/supabase-hooks';
+import { useAuth, useUser, initiateEmailSignUp, useSupabaseClient } from '@/lib/supabase-hooks';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -51,7 +51,7 @@ export default function SellerOnboarding() {
   const totalSteps = 3;
   const router = useRouter();
   const auth = useAuth();
-  const db = useFirestore();
+  const db = useSupabaseClient();
   useUser(); // keep provider warm so auth state updates propagate
   const { toast } = useToast();
 

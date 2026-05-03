@@ -51,10 +51,10 @@ import {
 } from 'lucide-react';
 import { 
   useUser, 
-  useFirestore, 
+  useSupabaseClient, 
   useCollection, 
   useDoc, 
-  useMemoFirebase,
+  useMemoStable,
   updateDocumentNonBlocking,
   deleteDocumentNonBlocking
 } from '@/lib/supabase-hooks';
@@ -85,7 +85,7 @@ const certLabels: Record<string, string> = {
 
 export default function AdminDashboard() {
   const { user, isUserLoading } = useUser();
-  const db = useFirestore();
+  const db = useSupabaseClient();
   const router = useRouter();
   const { toast } = useToast();
   
@@ -107,7 +107,7 @@ export default function AdminDashboard() {
                        (user?.email && adminEmails.map(e => e.toLowerCase()).includes(user.email.toLowerCase())) ||
                        user?.role === 'admin';
   
-  const adminRef = useMemoFirebase(() => {
+  const adminRef = useMemoStable(() => {
     if (!user) return null;
     return doc(db, 'admins', user.uid);
   }, [db, user?.uid]);
@@ -123,25 +123,25 @@ export default function AdminDashboard() {
 
   const canLoadData = !!user && !isUserLoading && !isAdminCheckLoading && (isSuperAdmin || !!adminData);
 
-  const sellersQuery = useMemoFirebase(() => {
+  const sellersQuery = useMemoStable(() => {
     if (!canLoadData) return null;
     return query(collection(db, 'sellers'));
   }, [db, canLoadData]);
   const { data: allSellers, isLoading: isSellersLoading } = useCollection<any>(sellersQuery);
 
-  const customersQuery = useMemoFirebase(() => {
+  const customersQuery = useMemoStable(() => {
     if (!canLoadData) return null;
     return query(collection(db, 'customers'));
   }, [db, canLoadData]);
   const { data: allCustomers } = useCollection<any>(customersQuery);
 
-  const ordersQuery = useMemoFirebase(() => {
+  const ordersQuery = useMemoStable(() => {
     if (!canLoadData) return null;
     return query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
   }, [db, canLoadData]);
   const { data: allOrders } = useCollection<any>(ordersQuery);
 
-  const reportsQuery = useMemoFirebase(() => {
+  const reportsQuery = useMemoStable(() => {
     if (!canLoadData) return null;
     return query(collection(db, 'reports'), orderBy('createdAt', 'desc'));
   }, [db, canLoadData]);
@@ -394,7 +394,7 @@ function StatCard({ label, value, icon, color, highlight = false }: any) {
 }
 
 function ScribeTable({ scribes, onApprove, onDelete, isLoading, orders, page, setPage }: any) {
-  const db = useFirestore();
+  const db = useSupabaseClient();
   const logoImg = PlaceHolderImages.find(img => img.id === 'site-logo')?.imageUrl || 'https://picsum.photos/seed/hotam-logo/400/400';
 
   const paginatedData = scribes.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
@@ -684,7 +684,7 @@ function ReportsTable({ reports, onDelete, page, setPage }: any) {
 }
 
 function VerifyScribeDialog({ scribe, db }: any) {
-  const reviewsQuery = useMemoFirebase(() => query(collection(db, 'reviews'), where('sellerId', '==', scribe.id)), [db, scribe.id]);
+  const reviewsQuery = useMemoStable(() => query(collection(db, 'reviews'), where('sellerId', '==', scribe.id)), [db, scribe.id]);
   const { data: reviews } = useCollection<any>(reviewsQuery);
 
   const averageRating = useMemo(() => {

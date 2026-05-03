@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import dynamic from 'next/dynamic';
-import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/lib/supabase-hooks';
+import { useUser, useSupabaseClient, useDoc, useMemoStable, useCollection } from '@/lib/supabase-hooks';
 import { collection, query, where, orderBy, doc } from '@/lib/supabase-compat';
 import unsplashLoader from '@/lib/unsplashLoader';
 import { motion } from 'framer-motion';
@@ -40,13 +40,13 @@ const WorkFlow = dynamic(() => import('@/components/WorkFlow').then(mod => mod.W
 
 export default function Home() {
   const { user } = useUser();
-  const db = useFirestore();
+  const db = useSupabaseClient();
   
-  const sellerRef = useMemoFirebase(() => (user?.uid ? doc(db, 'sellers', user.uid) : null), [db, user?.uid]);
+  const sellerRef = useMemoStable(() => (user?.uid ? doc(db, 'sellers', user.uid) : null), [db, user?.uid]);
   const { data: sellerData } = useDoc<any>(sellerRef);
   const isSeller = !!sellerData;
 
-  const sellersQuery = useMemoFirebase(() => query(collection(db, 'sellers'), where('isApproved', '==', true)), [db]);
+  const sellersQuery = useMemoStable(() => query(collection(db, 'sellers'), where('isApproved', '==', true)), [db]);
   const { data: allSellers } = useCollection<any>(sellersQuery);
 
   const topScribes = useMemo(() => {

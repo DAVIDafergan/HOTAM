@@ -32,7 +32,7 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useFirestore, useDoc, useCollection, useMemoFirebase, useUser, addDocumentNonBlocking } from '@/lib/supabase-hooks';
+import { useSupabaseClient, useDoc, useCollection, useMemoStable, useUser, addDocumentNonBlocking } from '@/lib/supabase-hooks';
 import { doc, collection, query, where, serverTimestamp } from '@/lib/supabase-compat';
 import { supabase } from '@/lib/supabase';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -45,7 +45,7 @@ export default function SellerProfile() {
   const params = useParams();
   const id = params?.id as string;
   const { user } = useUser();
-  const db = useFirestore();
+  const db = useSupabaseClient();
   const { toast } = useToast();
   const logoImg = PlaceHolderImages.find(img => img.id === 'site-logo')?.imageUrl || 'https://picsum.photos/seed/hotam-logo/400/400';
 
@@ -54,7 +54,7 @@ export default function SellerProfile() {
   const [isReporting, setIsReporting] = useState(false);
 
   // Fetch Seller Info
-  const sellerRef = useMemoFirebase(() => {
+  const sellerRef = useMemoStable(() => {
     if (!id) return null;
     return doc(db, 'sellers', id);
   }, [db, id]);
@@ -79,7 +79,7 @@ export default function SellerProfile() {
   }, [id]);
 
   // Fetch Reviews
-  const reviewsQuery = useMemoFirebase(() => {
+  const reviewsQuery = useMemoStable(() => {
     if (!id) return null;
     return query(collection(db, 'reviews'), where('sellerId', '==', id));
   }, [db, id]);

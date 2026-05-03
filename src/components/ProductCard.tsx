@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { useUser, useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/lib/supabase-hooks';
+import { useUser, useSupabaseClient, useDoc, useMemoStable, setDocumentNonBlocking } from '@/lib/supabase-hooks';
 import { doc, arrayUnion, arrayRemove } from '@/lib/supabase-compat';
 import { useToast } from '@/hooks/use-toast';
 import unsplashLoader from '@/lib/unsplashLoader';
@@ -14,11 +14,11 @@ import { cn } from '@/lib/utils';
 
 export function ProductCard({ product }: { product: any }) {
   const { user } = useUser();
-  const db = useFirestore();
+  const db = useSupabaseClient();
   const { toast } = useToast();
   
-  const customerRef = useMemoFirebase(() => user ? doc(db, 'customers', user.uid) : null, [db, user?.uid]);
-  const sellerOwnRef = useMemoFirebase(() => user ? doc(db, 'sellers', user.uid) : null, [db, user?.uid]);
+  const customerRef = useMemoStable(() => user ? doc(db, 'customers', user.uid) : null, [db, user?.uid]);
+  const sellerOwnRef = useMemoStable(() => user ? doc(db, 'sellers', user.uid) : null, [db, user?.uid]);
   
   const { data: customerData } = useDoc<any>(customerRef);
   const { data: sellerOwnData } = useDoc<any>(sellerOwnRef);

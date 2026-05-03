@@ -1,25 +1,24 @@
 'use client';
 
 /**
- * @fileOverview Clean re-export hub for all Supabase-backed auth/data hooks.
+ * @fileOverview Re-export hub for all Supabase-backed auth/data hooks.
  *
- * Application code should import from here instead of '@/firebase':
- *   import { useUser, useAuth, useFirestore, ... } from '@/lib/supabase-hooks'
- *
- * The implementations live in src/firebase/* but are fully backed by Supabase
- * (no Firebase SDK is used). This file provides a stable, non-Firebase-named
- * import path for application code.
+ * Application code should import from here:
+ *   import { useUser, useAuth, useSupabaseClient, ... } from '@/lib/supabase-hooks'
  */
 
-export * from '@/firebase/provider';
-export * from '@/firebase/client-provider';
-export * from '@/firebase/firestore/use-doc';
-export * from '@/firebase/firestore/use-collection';
-export * from '@/firebase/non-blocking-updates';
-export * from '@/firebase/non-blocking-login';
-export * from '@/firebase/errors';
-export * from '@/firebase/error-emitter';
+export * from '@/lib/app-provider';
+export * from '@/lib/supabase-client-provider';
+export * from '@/lib/use-doc';
+export * from '@/lib/use-collection';
+export * from '@/lib/db-helpers';
+export * from '@/lib/auth-helpers';
+export * from '@/lib/errors';
+export * from '@/lib/error-emitter';
 
-// Semantic aliases — preferred names going forward
-export { FirebaseClientProvider as SupabaseClientProvider } from '@/firebase/client-provider';
-export { useFirestore as useSupabaseClient } from '@/firebase/provider';
+// Backward-compatible aliases for old Firebase-named identifiers
+export { useApp as useFirebase } from '@/lib/app-provider';
+export { useSupabaseClient as useFirestore } from '@/lib/app-provider';
+export { useMemoStable as useMemoFirebase } from '@/lib/app-provider';
+export { SupabaseClientProvider as FirebaseClientProvider } from '@/lib/supabase-client-provider';
+export { DatabasePermissionError as FirestorePermissionError } from '@/lib/errors';

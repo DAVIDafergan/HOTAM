@@ -5,7 +5,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 /**
  * Singleton Supabase client for browser-side usage.
- * Used throughout the app as the replacement for Firebase Firestore + Auth.
+ * Used throughout the app for database access and authentication.
  */
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {

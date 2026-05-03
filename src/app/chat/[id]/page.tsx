@@ -23,10 +23,10 @@ import Link from 'next/link';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { 
   useUser, 
-  useFirestore, 
+  useSupabaseClient, 
   useCollection, 
   useDoc, 
-  useMemoFirebase,
+  useMemoStable,
   addDocumentNonBlocking,
   setDocumentNonBlocking,
   updateDocumentNonBlocking
@@ -62,7 +62,7 @@ function ChatContent() {
   const originProductIdFromUrl = searchParams.get('productId');
   
   const { user, isUserLoading } = useUser();
-  const db = useFirestore();
+  const db = useSupabaseClient();
   const router = useRouter();
   const { toast } = useToast();
   
@@ -83,7 +83,7 @@ function ChatContent() {
     return [user.uid, otherUserId].sort().join('_');
   }, [user?.uid, otherUserId]);
 
-  const chatRef = useMemoFirebase(() => {
+  const chatRef = useMemoStable(() => {
     if (!chatId) return null;
     return doc(db, 'chats', chatId);
   }, [db, chatId]);
@@ -99,16 +99,16 @@ function ChatContent() {
   }, [chatData, user?.uid, chatId, db]);
 
   const effectiveOriginProductId = chatData?.originProductId || originProductIdFromUrl;
-  const originProductRef = useMemoFirebase(() => 
+  const originProductRef = useMemoStable(() => 
     effectiveOriginProductId ? doc(db, 'products', effectiveOriginProductId) : null, 
     [db, effectiveOriginProductId]
   );
   const { data: originProduct } = useDoc<any>(originProductRef);
 
-  const otherSellerRef = useMemoFirebase(() => otherUserId ? doc(db, 'sellers', otherUserId) : null, [db, otherUserId]);
+  const otherSellerRef = useMemoStable(() => otherUserId ? doc(db, 'sellers', otherUserId) : null, [db, otherUserId]);
   const { data: otherSellerData } = useDoc<any>(otherSellerRef);
 
-  const otherCustomerRef = useMemoFirebase(() => otherUserId ? doc(db, 'customers', otherUserId) : null, [db, otherUserId]);
+  const otherCustomerRef = useMemoStable(() => otherUserId ? doc(db, 'customers', otherUserId) : null, [db, otherUserId]);
   const { data: otherCustomerData } = useDoc<any>(otherCustomerRef);
 
   const otherUserData = otherSellerData || otherCustomerData;
@@ -129,7 +129,7 @@ function ChatContent() {
       });
   }, [user?.uid, canCreatePaymentRequest]);
 
-  const messagesQuery = useMemoFirebase(() => {
+  const messagesQuery = useMemoStable(() => {
     if (!chatId) return null;
     return query(
       collection(db, 'chats', chatId, 'messages'),

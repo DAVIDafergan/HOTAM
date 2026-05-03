@@ -31,7 +31,7 @@ import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { useUser, useFirebase, useFirestore, useDoc, useMemoFirebase, useCollection, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/lib/supabase-hooks';
+import { useUser, useApp, useSupabaseClient, useDoc, useMemoStable, useCollection, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/lib/supabase-hooks';
 import { doc, collection, query, where, documentId, serverTimestamp } from '@/lib/supabase-compat';
 import { supabase } from '@/lib/supabase';
 import { ProductCard } from '@/components/ProductCard';
@@ -51,8 +51,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function CustomerDashboard() {
   const { user, isUserLoading } = useUser();
-  const { profile, isProfileLoading } = useFirebase();
-  const db = useFirestore();
+  const { profile, isProfileLoading } = useApp();
+  const db = useSupabaseClient();
   const { toast } = useToast();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('orders');
@@ -82,7 +82,7 @@ export default function CustomerDashboard() {
   const [ratingComment, setRatingComment] = useState('');
   const [isRatingSubmitting, setIsRatingSubmitting] = useState(false);
 
-  const customerRef = useMemoFirebase(() => {
+  const customerRef = useMemoStable(() => {
     if (!user) return null;
     return doc(db, 'customers', user.uid);
   }, [db, user?.uid]);
@@ -138,13 +138,13 @@ export default function CustomerDashboard() {
       });
   }, [user?.uid]);
 
-  const chatsQuery = useMemoFirebase(() => {
+  const chatsQuery = useMemoStable(() => {
     if (!canLoadData) return null;
     return query(collection(db, 'chats'), where('participants', 'array-contains', user.uid));
   }, [db, user?.uid, canLoadData]);
   const { data: chats, isLoading: isChatsLoading } = useCollection<any>(chatsQuery);
 
-  const favoritesQuery = useMemoFirebase(() => {
+  const favoritesQuery = useMemoStable(() => {
     if (!canLoadData || !customer?.favoriteProductIds || customer.favoriteProductIds.length === 0) return null;
     return query(collection(db, 'products'), where(documentId(), 'in', customer.favoriteProductIds.slice(0, 30)));
   }, [db, canLoadData, customer?.favoriteProductIds]);
@@ -356,7 +356,7 @@ export default function CustomerDashboard() {
 }
 
 function CustomerChatListItem({ chat, otherUserId }: any) {
-  const db = useFirestore();
+  const db = useSupabaseClient();
   const { data: otherUser } = useDoc<any>(doc(db, 'sellers', otherUserId));
   return (
     <Link href={`/chat/${otherUserId}`}>

@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useFirestore, useDoc, useMemoFirebase, useUser, setDocumentNonBlocking, useCollection, addDocumentNonBlocking } from '@/lib/supabase-hooks';
+import { useSupabaseClient, useDoc, useMemoStable, useUser, setDocumentNonBlocking, useCollection, addDocumentNonBlocking } from '@/lib/supabase-hooks';
 import { doc, arrayUnion, arrayRemove, collection, serverTimestamp, query, where } from '@/lib/supabase-compat';
 import { useRouter } from 'next/navigation';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -47,7 +47,7 @@ import { cn } from '@/lib/utils';
 
 export function ProductDetailsClient({ productId }: { productId: string }) {
   const { user } = useUser();
-  const db = useFirestore();
+  const db = useSupabaseClient();
   const router = useRouter();
   const { toast } = useToast();
   const [selectedImageIdx, setSelectedImageIdx] = useState(0);
@@ -55,15 +55,15 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
 
   const logoImg = PlaceHolderImages.find(img => img.id === 'site-logo')?.imageUrl || 'https://picsum.photos/seed/hotam-logo/400/400';
 
-  const productRef = useMemoFirebase(() => {
+  const productRef = useMemoStable(() => {
     if (!productId) return null;
     return doc(db, 'products', productId);
   }, [db, productId]);
 
   const { data: product, isLoading: isProductLoading } = useDoc<any>(productRef);
 
-  const customerRef = useMemoFirebase(() => user ? doc(db, 'customers', user.uid) : null, [db, user?.uid]);
-  const sellerOwnRef = useMemoFirebase(() => user ? doc(db, 'sellers', user.uid) : null, [db, user?.uid]);
+  const customerRef = useMemoStable(() => user ? doc(db, 'customers', user.uid) : null, [db, user?.uid]);
+  const sellerOwnRef = useMemoStable(() => user ? doc(db, 'sellers', user.uid) : null, [db, user?.uid]);
   
   const { data: customerData } = useDoc<any>(customerRef);
   const { data: sellerOwnData } = useDoc<any>(sellerOwnRef);
@@ -72,14 +72,14 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
   const profileRef = customerData ? customerRef : (sellerOwnData ? sellerOwnRef : null);
   const isFavorite = profileData?.favoriteProductIds?.includes(productId);
 
-  const sellerRef = useMemoFirebase(() => {
+  const sellerRef = useMemoStable(() => {
     if (!product?.sellerId) return null;
     return doc(db, 'sellers', product.sellerId);
   }, [db, product?.sellerId]);
 
   const { data: seller, isLoading: isSellerLoading } = useDoc<any>(sellerRef);
 
-  const reviewsQuery = useMemoFirebase(() => {
+  const reviewsQuery = useMemoStable(() => {
     if (!productId) return null;
     return query(collection(db, 'reviews'), where('productId', '==', productId));
   }, [db, productId]);

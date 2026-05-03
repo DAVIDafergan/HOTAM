@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 /**
- * Invoice4u success webhook — replaces the Firebase Cloud Function.
+ * Invoice4u success webhook — server-side route handler.
  * Updates the order to 'paid' (marketplace escrow) when payment succeeds.
  *
  * Configure the Invoice4u callback URL to:

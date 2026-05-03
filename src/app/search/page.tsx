@@ -43,7 +43,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useFirestore, useCollection, useMemoFirebase } from '@/lib/supabase-hooks';
+import { useSupabaseClient, useCollection, useMemoStable } from '@/lib/supabase-hooks';
 import { collection, query, where } from '@/lib/supabase-compat';
 import { ProductCard } from '@/components/ProductCard';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -67,7 +67,7 @@ function SearchContent() {
   const [shippingOnly, setShippingOnly] = useState(false);
   const [sortOrder, setSortOrder] = useState('newest');
   const searchParams = useSearchParams();
-  const db = useFirestore();
+  const db = useSupabaseClient();
   
   const isViewingAll = searchParams.get('view') === 'all';
 
@@ -91,16 +91,16 @@ function SearchContent() {
   const [detectedCity, setDetectedCity] = useState<string | null>(null);
   const [userCoords, setUserCoords] = useState<{lat: number, lng: number} | null>(null);
 
-  const productsQuery = useMemoFirebase(() => {
+  const productsQuery = useMemoStable(() => {
     return query(collection(db, 'products'), where('quantity', '>', 0));
   }, [db]);
 
   const { data: allProducts, isLoading } = useCollection<any>(productsQuery);
 
-  const sellersQuery = useMemoFirebase(() => query(collection(db, 'sellers')), [db]);
+  const sellersQuery = useMemoStable(() => query(collection(db, 'sellers')), [db]);
   const { data: allSellers } = useCollection<any>(sellersQuery);
 
-  const reviewsQuery = useMemoFirebase(() => query(collection(db, 'reviews')), [db]);
+  const reviewsQuery = useMemoStable(() => query(collection(db, 'reviews')), [db]);
   const { data: allReviews } = useCollection<any>(reviewsQuery);
 
   useEffect(() => {

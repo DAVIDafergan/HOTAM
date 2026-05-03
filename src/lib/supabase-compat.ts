@@ -1,14 +1,14 @@
 'use client';
 
 /**
- * @fileOverview Firebase-compatible query-builder API backed by Supabase/PostgREST.
+ * @fileOverview Supabase query-builder API with a Firestore-compatible surface (backed by PostgREST).
  *
- * Drop-in replacement for the subset of 'firebase/firestore' used by this app:
+ * Drop-in replacement for the Supabase query-builder API used by this app:
  *   collection, query, where, orderBy, doc, serverTimestamp, increment,
  *   arrayUnion, arrayRemove, documentId, getDoc
  *
  * Pages only need to change their import from:
- *   import { ... } from 'firebase/firestore'
+ *   import { ... } from '@/lib/supabase-compat'
  * to:
  *   import { ... } from '@/lib/supabase-compat'
  */
@@ -68,22 +68,22 @@ export interface ArrayRemoveValue {
   elements: any[];
 }
 
-/** Mirrors firebase/firestore increment() */
+/** Mirrors the increment() API sentinel */
 export function increment(n: number): IncrementValue {
   return { __special: 'increment', amount: n };
 }
 
-/** Mirrors firebase/firestore arrayUnion() */
+/** Mirrors the arrayUnion() API sentinel */
 export function arrayUnion(...elements: any[]): ArrayUnionValue {
   return { __special: 'arrayUnion', elements };
 }
 
-/** Mirrors firebase/firestore arrayRemove() */
+/** Mirrors the arrayRemove() API sentinel */
 export function arrayRemove(...elements: any[]): ArrayRemoveValue {
   return { __special: 'arrayRemove', elements };
 }
 
-/** Mirrors firebase/firestore serverTimestamp() — uses client time for non-blocking writes. */
+/** Returns an ISO timestamp string — used as serverTimestamp() equivalent for non-blocking writes. */
 export function serverTimestamp(): string {
   return new Date().toISOString();
 }
@@ -94,7 +94,7 @@ class DocumentIdPath {
   readonly __isDocumentId = true;
 }
 
-/** Mirrors firebase/firestore documentId() */
+/** Returns a sentinel for filtering by document ID */
 export function documentId(): DocumentIdPath {
   return new DocumentIdPath();
 }
@@ -105,7 +105,7 @@ export interface QueryConstraint {
   apply(q: SupabaseQuery): void;
 }
 
-/** Mirrors firebase/firestore where() */
+/** Builds a filter constraint for query() */
 export function where(
   field: string | DocumentIdPath,
   op: '==' | 'in' | 'array-contains' | '!=' | 'not-in' | '>' | '>=' | '<' | '<=',
@@ -153,7 +153,7 @@ export function where(
   };
 }
 
-/** Mirrors firebase/firestore orderBy() */
+/** Builds an ordering constraint for query() */
 export function orderBy(field: string, direction: 'asc' | 'desc' = 'asc'): QueryConstraint {
   return {
     apply(q: SupabaseQuery) {
@@ -165,7 +165,7 @@ export function orderBy(field: string, direction: 'asc' | 'desc' = 'asc'): Query
 // ─── collection() / query() / doc() ──────────────────────────────────────────
 
 /**
- * Mirrors firebase/firestore collection().
+ * Builds a CollectionRef for a Supabase table.
  *
  * Also handles sub-collection syntax:
  *   collection(db, 'chats', chatId, 'messages')
@@ -184,7 +184,7 @@ export function collection(client: SupabaseClient, ...pathSegments: string[]): C
   return { client, table: pathSegments[0] };
 }
 
-/** Mirrors firebase/firestore query() */
+/** Builds a SupabaseQuery descriptor from a CollectionRef and constraints */
 export function query(ref: CollectionRef, ...constraints: QueryConstraint[]): SupabaseQuery {
   const q: SupabaseQuery = {
     __type: 'collection',
@@ -197,7 +197,7 @@ export function query(ref: CollectionRef, ...constraints: QueryConstraint[]): Su
   return q;
 }
 
-/** Mirrors firebase/firestore doc() */
+/** Creates a SupabaseDocRef for a specific row */
 export function doc(client: SupabaseClient, table: string, id: string): SupabaseDocRef {
   return {
     __type: 'doc',
@@ -217,7 +217,7 @@ export interface DocSnapshot {
 }
 
 /**
- * Mirrors firebase/firestore getDoc() – one-time fetch, returns a snapshot object.
+ * One-time fetch for a single row — returns a snapshot object.
  */
 export async function getDoc(ref: SupabaseDocRef): Promise<DocSnapshot> {
   const { data, error } = await ref.client
@@ -285,7 +285,7 @@ export function applyFilters(
   return b;
 }
 
-/** Wrap an ISO timestamp string to mimic a Firestore Timestamp object. */
+/** Wrap an ISO timestamp string into a Timestamp-compatible object { toDate(), seconds, nanoseconds }. */
 export function wrapTimestamp(isoString: string): { toDate(): Date; seconds: number; nanoseconds: number } {
   const date = new Date(isoString);
   return {
@@ -299,7 +299,7 @@ const ISO_RE = /^\d{4}-\d{2}-\d{2}T[\d:.Z+-]+$/;
 
 /**
  * Transform a raw Supabase row so that:
- *  - ISO timestamp strings become Firestore-Timestamp-compatible objects { toDate() }
+ *  - ISO timestamp strings become Timestamp-compatible objects { toDate() }
  *  - `unread_state` JSONB is spread into the row (gives chat.`unread_<uid>` keys)
  */
 export function transformRow(row: Record<string, any>): Record<string, any> {

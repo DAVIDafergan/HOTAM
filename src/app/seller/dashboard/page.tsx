@@ -65,10 +65,10 @@ import {
 import Image from 'next/image';
 import { 
   useUser, 
-  useFirestore, 
+  useSupabaseClient, 
   useCollection, 
   useDoc,
-  useMemoFirebase,
+  useMemoStable,
   updateDocumentNonBlocking,
   deleteDocumentNonBlocking
 } from '@/lib/supabase-hooks';
@@ -95,13 +95,13 @@ const ITEMS_PER_PAGE = 7;
 
 function SellerDashboardContent() {
   const { user, isUserLoading } = useUser();
-  const db = useFirestore();
+  const db = useSupabaseClient();
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const logoImg = PlaceHolderImages.find(img => img.id === 'site-logo')?.imageUrl || 'https://picsum.photos/seed/hotam-logo/400/400';
 
-  const sellerRef = useMemoFirebase(() => {
+  const sellerRef = useMemoStable(() => {
     if (!user) return null;
     return doc(db, 'sellers', user.uid);
   }, [db, user?.uid]);
@@ -140,7 +140,7 @@ function SellerDashboardContent() {
 
   const products = (productsData || []).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-  const ordersQuery = useMemoFirebase(() => {
+  const ordersQuery = useMemoStable(() => {
     if (!canLoadData) return null;
     return query(collection(db, 'orders'), where('seller_id', '==', user.uid));
   }, [db, user?.uid, canLoadData]);
@@ -151,7 +151,7 @@ function SellerDashboardContent() {
     return timeB - timeA;
   });
 
-  const chatsQuery = useMemoFirebase(() => {
+  const chatsQuery = useMemoStable(() => {
     if (!canLoadData) return null;
     return query(collection(db, 'chats'), where('participants', 'array-contains', user.uid));
   }, [db, user?.uid, canLoadData]);
@@ -1124,8 +1124,8 @@ function Pagination({ current, total, onChange }: { current: number, total: numb
 }
 
 function SellerChatListItem({ chat, otherUserId, userId }: any) {
-  const db = useFirestore();
-  const otherUserRef = useMemoFirebase(() => (db && otherUserId) ? doc(db, 'customers', otherUserId) : null, [db, otherUserId]);
+  const db = useSupabaseClient();
+  const otherUserRef = useMemoStable(() => (db && otherUserId) ? doc(db, 'customers', otherUserId) : null, [db, otherUserId]);
   const { data: otherUser } = useDoc<any>(otherUserRef);
   const isUnread = chat[`unread_${userId}`] === true;
 

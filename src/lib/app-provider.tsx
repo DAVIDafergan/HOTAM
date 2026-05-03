@@ -10,11 +10,11 @@ import React, {
   useEffect,
 } from 'react';
 import type { SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js';
-import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
-import { useDoc } from './firestore/use-doc';
+import { ErrorBoundaryListener } from '@/components/ErrorBoundaryListener';
+import { useDoc } from '@/lib/use-doc';
 import { doc } from '@/lib/supabase-compat';
 
-// ─── Auth-compatible user shape (mirrors the Firebase User interface) ─────────
+// ─── Auth-compatible user shape ───────────────────────────────────────────────
 
 export interface AppUser {
   uid: string;
@@ -45,7 +45,7 @@ function toAppUser(u: SupabaseUser): AppUser {
   };
 }
 
-// ─── Auth proxy — same surface the app uses from useAuth() ───────────────────
+// ─── Auth proxy ───────────────────────────────────────────────────────────────
 
 export interface AuthProxy {
   signOut(): Promise<void>;
@@ -60,11 +60,11 @@ interface ProviderProps {
   client: SupabaseClient;
 }
 
-export interface FirebaseContextState {
+export interface AppContextState {
   areServicesAvailable: boolean;
   /** The Supabase client — used everywhere as `db` (passed to collection/doc/query) */
-  firestore: SupabaseClient | null;
-  /** Auth proxy used by Navbar's signOut() and the non-blocking-login helpers */
+  client: SupabaseClient | null;
+  /** Auth proxy used by Navbar's signOut() and the auth helpers */
   auth: AuthProxy | null;
   user: AppUser | null;
   isUserLoading: boolean;
@@ -73,8 +73,8 @@ export interface FirebaseContextState {
   isProfileLoading: boolean;
 }
 
-export interface FirebaseServicesAndUser {
-  firestore: SupabaseClient;
+export interface AppServicesAndUser {
+  client: SupabaseClient;
   auth: AuthProxy;
   user: AppUser | null;
   isUserLoading: boolean;
@@ -83,9 +83,9 @@ export interface FirebaseServicesAndUser {
   isProfileLoading: boolean;
 }
 
-export const FirebaseContext = createContext<FirebaseContextState | undefined>(undefined);
+export const AppContext = createContext<AppContextState | undefined>(undefined);
 
-export const FirebaseProvider: React.FC<ProviderProps> = ({ children, client }) => {
+export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
   const [user, setUser] = useState<AppUser | null>(null);
   const [isUserLoading, setIsUserLoading] = useState(true);
   const [userError, setUserError] = useState<Error | null>(null);
@@ -108,14 +108,14 @@ export const FirebaseProvider: React.FC<ProviderProps> = ({ children, client }) 
   }, [client]);
 
   // ── Profile fetching ───────────────────────────────────────────────────────
-  const customerRef = useMemoFirebase(() => {
+  const customerRef = useMemoStable(() => {
     if (!user?.uid) return null;
     return doc(client, 'customers', user.uid);
   }, [user?.uid]);
 
   const { data: customerData, isLoading: isCustLoading } = useDoc<any>(customerRef);
 
-  const sellerRef = useMemoFirebase(() => {
+  const sellerRef = useMemoStable(() => {
     if (!user?.uid || customerData) return null;
     return doc(client, 'sellers', user.uid);
   }, [user?.uid, !!customerData]);
@@ -136,9 +136,9 @@ export const FirebaseProvider: React.FC<ProviderProps> = ({ children, client }) 
     _client: client,
   }), [client]);
 
-  const contextValue = useMemo((): FirebaseContextState => ({
+  const contextValue = useMemo((): AppContextState => ({
     areServicesAvailable: true,
-    firestore: client,
+    client,
     auth,
     user,
     isUserLoading,
@@ -148,22 +148,22 @@ export const FirebaseProvider: React.FC<ProviderProps> = ({ children, client }) 
   }), [client, auth, user, isUserLoading, userError, profile, isProfileLoading]);
 
   return (
-    <FirebaseContext.Provider value={contextValue}>
-      <FirebaseErrorListener />
+    <AppContext.Provider value={contextValue}>
+      <ErrorBoundaryListener />
       {children}
-    </FirebaseContext.Provider>
+    </AppContext.Provider>
   );
 };
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────
 
-export const useFirebase = (): FirebaseServicesAndUser => {
-  const context = useContext(FirebaseContext);
+export const useApp = (): AppServicesAndUser => {
+  const context = useContext(AppContext);
   if (!context || !context.areServicesAvailable) {
-    throw new Error('useFirebase must be used within a FirebaseProvider.');
+    throw new Error('useApp must be used within an AppProvider.');
   }
   return {
-    firestore: context.firestore!,
+    client: context.client!,
     auth: context.auth!,
     user: context.user,
     isUserLoading: context.isUserLoading,
@@ -173,16 +173,14 @@ export const useFirebase = (): FirebaseServicesAndUser => {
   };
 };
 
-export const useAuth = () => useFirebase().auth;
-export const useFirestore = () => useFirebase().firestore;
-/** @deprecated Use useFirestore() */
-export const useFirebaseApp = () => useFirebase().firestore;
+export const useAuth = () => useApp().auth;
+export const useSupabaseClient = () => useApp().client;
 export const useUser = () => {
-  const { user, isUserLoading, userError } = useFirebase();
+  const { user, isUserLoading, userError } = useApp();
   return { user, isUserLoading, userError };
 };
 
-export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T & { __memo?: boolean } {
+export function useMemoStable<T>(factory: () => T, deps: DependencyList): T & { __memo?: boolean } {
   const memoized = useMemo(factory, deps) as any;
   if (memoized && typeof memoized === 'object') {
     memoized.__memo = true;

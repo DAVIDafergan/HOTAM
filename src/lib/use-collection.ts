@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { errorEmitter } from '@/lib/error-emitter';
+import { DatabasePermissionError } from '@/lib/errors';
 import { applyFilters, transformRow, type SupabaseQuery } from '@/lib/supabase-compat';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
@@ -19,7 +19,7 @@ export interface UseCollectionResult<T> {
  * Subscribe to a Supabase table query in real-time.
  *
  * Accepts a SupabaseQuery descriptor created by the query() compat helper.
- * Must be memoized with useMemoFirebase() (same contract as the old Firebase hook).
+ * Must be memoized with useMemoStable() to ensure referential stability.
  */
 export function useCollection<T = any>(
   memoizedQuery: (SupabaseQuery & { __memo?: boolean }) | null | undefined,
@@ -66,7 +66,7 @@ export function useCollection<T = any>(
           `[useCollection] Supabase error on table '${queryRef.current?.table}':`,
           err?.message ?? err,
         );
-        const contextualError = new FirestorePermissionError({
+        const contextualError = new DatabasePermissionError({
           operation: 'list',
           path: queryRef.current?.path ?? queryRef.current?.table ?? 'unknown',
         });

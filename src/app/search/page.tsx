@@ -351,11 +351,11 @@ function SearchContent() {
       <Navbar />
       <main className="w-full pt-20">
         <Dialog open={isWizardOpen} onOpenChange={setIsWizardOpen}>
-          <DialogContent className="max-w-[550px] rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white max-h-[90vh] flex flex-col" dir="rtl">
+          <DialogContent className="max-w-[550px] rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white max-h-[90vh] flex flex-col ring-1 ring-primary/5" dir="rtl">
             <div className="bg-primary p-5 text-white text-right relative shrink-0">
               <div className="absolute top-4 left-6 flex gap-1">
                 {[1, 2, 3].map(s => (
-                  <div key={s} className={cn("h-1 rounded-full transition-all", step === s ? "w-6 bg-accent" : "w-2 bg-white/20")} />
+                  <div key={s} className={cn("h-1.5 rounded-full transition-all duration-500", step === s ? "w-7 bg-accent shadow-sm" : "w-2.5 bg-white/25")} />
                 ))}
               </div>
               <DialogHeader>
@@ -392,7 +392,7 @@ function SearchContent() {
           </div>
         ) : !showResults ? (
           <div className="container mx-auto px-4 pt-12 pb-12">
-            <section className="bg-white/50 backdrop-blur-xl p-6 sm:p-10 md:p-20 rounded-[2.5rem] md:rounded-[4rem] shadow-premium text-center relative overflow-hidden max-w-5xl mx-auto border border-white/50">
+            <section className="bg-white/60 backdrop-blur-2xl p-6 sm:p-10 md:p-20 rounded-[2.5rem] md:rounded-[4rem] shadow-premium-lg text-center relative overflow-hidden max-w-5xl mx-auto border border-white/70 ring-1 ring-primary/5">
               <div className="absolute -top-20 -right-20 w-64 h-64 bg-accent/5 rounded-full blur-3xl" />
               <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
               
@@ -400,10 +400,10 @@ function SearchContent() {
               <p className="text-primary/60 text-lg md:text-xl mb-12 font-medium max-w-2xl mx-auto leading-relaxed">הגדירו את המפרט המדויק וקבלו את כלי הקודש המושלם עבורכם ישירות מהסופר המאומת.</p>
               
               <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
-                <Button onClick={() => setIsWizardOpen(true)} size="lg" className="w-full sm:w-auto bg-primary hover:bg-primary/90 rounded-full px-10 sm:px-16 h-16 sm:h-20 font-black text-base sm:text-lg uppercase tracking-[0.2em] shadow-2xl hover:scale-105 transition-all group">
+                <Button onClick={() => setIsWizardOpen(true)} size="lg" className="w-full sm:w-auto bg-primary hover:bg-primary/90 rounded-full px-10 sm:px-16 h-16 sm:h-20 font-black text-base sm:text-lg uppercase tracking-[0.2em] shadow-2xl hover:scale-105 active:scale-95 focus:ring-4 focus:ring-primary/30 transition-all duration-300 group">
                   <SearchIcon className="ml-4 w-6 h-6 group-hover:rotate-12 transition-transform" /> התחל חיפוש מותאם
                 </Button>
-                <Button onClick={() => setShowResults(true)} variant="outline" size="lg" className="w-full sm:w-auto rounded-full px-8 sm:px-12 h-14 sm:h-20 font-black uppercase text-sm tracking-widest border-primary/10 bg-white shadow-premium">צפה בכל הקטלוג</Button>
+                <Button onClick={() => setShowResults(true)} variant="outline" size="lg" className="w-full sm:w-auto rounded-full px-8 sm:px-12 h-14 sm:h-20 font-black uppercase text-sm tracking-widest border-primary/10 bg-white shadow-premium hover:border-primary/20 hover:shadow-lg active:scale-95 transition-all duration-300">צפה בכל הקטלוג</Button>
               </div>
             </section>
           </div>
@@ -413,10 +413,10 @@ function SearchContent() {
               <div className="flex flex-col md:flex-row justify-between items-end gap-4 md:gap-6 border-b border-primary/5 pb-6 md:pb-8">
                 <div className="w-full overflow-x-auto pb-2 -mb-2 no-scrollbar">
                   <div className="flex items-center gap-2 md:gap-4 min-w-max px-1">
-                    <Button onClick={() => setIsWizardOpen(true)} className="rounded-xl md:rounded-2xl h-10 md:h-14 px-4 md:px-8 text-[10px] md:text-xs font-black uppercase tracking-widest border-2 border-primary/5 bg-white text-primary hover:bg-primary hover:text-white transition-all shadow-sm group">
+                    <Button onClick={() => setIsWizardOpen(true)} className="rounded-xl md:rounded-2xl h-10 md:h-14 px-4 md:px-8 text-[10px] md:text-xs font-black uppercase tracking-widest border-2 border-primary/5 bg-white text-primary hover:bg-primary hover:text-white active:scale-95 transition-all duration-200 shadow-sm group">
                       <SlidersHorizontal className="w-4 h-4 md:w-5 md:h-5 ml-2 md:ml-3 text-accent group-hover:text-white transition-colors" /> סינון מותאם
                     </Button>
-                    <Button variant={shippingOnly ? "default" : "outline"} onClick={() => setShippingOnly(!shippingOnly)} className={cn("rounded-xl md:rounded-2xl h-10 md:h-14 px-4 md:px-8 text-[10px] md:text-xs font-black uppercase tracking-widest shrink-0 shadow-sm transition-all", shippingOnly ? 'bg-primary text-white border-none' : 'bg-white border-2 border-primary/5 text-primary/60 hover:border-primary/10')}>
+                    <Button variant={shippingOnly ? "default" : "outline"} onClick={() => setShippingOnly(!shippingOnly)} className={cn("rounded-xl md:rounded-2xl h-10 md:h-14 px-4 md:px-8 text-[10px] md:text-xs font-black uppercase tracking-widest shrink-0 shadow-sm transition-all duration-200 active:scale-95", shippingOnly ? 'bg-primary text-white border-none' : 'bg-white border-2 border-primary/5 text-primary/60 hover:border-primary/15 hover:text-primary/80')}>
                       <Truck className="w-4 h-4 md:w-5 md:h-5 ml-2 md:ml-3" /> משלוח
                     </Button>
                     
@@ -505,19 +505,19 @@ export default function SearchPage() {
 function WizardSmallCard({ value, selected, icon, label }: any) {
   return (
     <Label className={cn(
-      "group p-4 rounded-[1.5rem] border-2 transition-all cursor-pointer flex flex-col items-center justify-center gap-2",
+      "group p-4 rounded-[1.5rem] border-2 transition-all duration-200 cursor-pointer flex flex-col items-center justify-center gap-2",
       selected 
         ? "border-primary bg-primary/5 shadow-xl scale-105 z-10" 
-        : "border-primary/5 hover:border-accent/30 bg-white shadow-sm"
+        : "border-primary/5 hover:border-accent/30 hover:shadow-md bg-white shadow-sm"
     )}>
       <div className={cn(
-        "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-500",
-        selected ? "bg-primary text-white shadow-lg" : "bg-primary/5 text-primary group-hover:bg-accent/10"
+        "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300",
+        selected ? "bg-primary text-white shadow-lg" : "bg-primary/5 text-primary group-hover:bg-accent/10 group-hover:scale-110"
       )}>
         {React.cloneElement(icon as React.ReactElement, { className: "w-5 h-5" })}
       </div>
       <div className="text-center">
-        <h4 className={cn("font-black text-[10px] tracking-tight transition-colors", selected ? "text-primary" : "text-primary/60")}>
+        <h4 className={cn("font-black text-[10px] tracking-tight transition-colors", selected ? "text-primary" : "text-primary/60 group-hover:text-primary/80")}>
           {label}
         </h4>
       </div>
@@ -529,13 +529,13 @@ function WizardSmallCard({ value, selected, icon, label }: any) {
 function CustomFilterTile({ value, label, active }: any) {
   return (
     <Label className={cn(
-      "flex items-center justify-between rounded-xl border-2 transition-all cursor-pointer group px-4 py-3",
-      active ? "border-primary bg-primary/5 shadow-sm scale-[1.01]" : "border-primary/5 bg-white hover:bg-slate-50"
+      "flex items-center justify-between rounded-xl border-2 transition-all duration-200 cursor-pointer group px-4 py-3",
+      active ? "border-primary bg-primary/5 shadow-sm scale-[1.01]" : "border-primary/5 bg-white hover:bg-slate-50 hover:border-primary/15"
     )}>
       <RadioGroupItem value={value} className="hidden" />
-      <span className={cn("font-bold text-[10px] transition-colors", active ? "text-primary" : "text-primary/50")}>{label}</span>
+      <span className={cn("font-bold text-[10px] transition-colors", active ? "text-primary" : "text-primary/50 group-hover:text-primary/70")}>{label}</span>
       <div className={cn(
-        "w-3 h-3 rounded-full border-2 transition-all",
+        "w-3 h-3 rounded-full border-2 transition-all duration-200",
         active ? "bg-primary border-primary scale-110 shadow-sm" : "border-primary/10 group-hover:border-primary/30"
       )} />
     </Label>

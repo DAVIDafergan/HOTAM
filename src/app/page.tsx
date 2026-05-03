@@ -100,7 +100,7 @@ export default function Home() {
                     transition={{ delay: i * 0.1 }}
                   >
                     <Link href={`/sellers/${scribe.id}`}>
-                      <Card className="group overflow-hidden border-none shadow-premium rounded-[2.5rem] bg-white hover:shadow-2xl transition-all duration-500 text-center p-5 sm:p-8">
+                      <Card className="group overflow-hidden border-none shadow-premium rounded-[2.5rem] bg-white hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 text-center p-5 sm:p-8">
                         <div className="relative w-24 h-24 mx-auto mb-6">
                            <div className="absolute inset-0 rounded-full border-4 border-accent/10 group-hover:scale-110 transition-transform duration-500" />
                            <div className="w-full h-full rounded-full border-4 border-white shadow-lg overflow-hidden relative bg-muted flex items-center justify-center">
@@ -182,7 +182,7 @@ export default function Home() {
             </div>
 
             <div className="mt-12 md:mt-20 text-center">
-              <Button size="lg" asChild className="rounded-full gap-3 font-black text-white bg-primary hover:bg-primary/90 transition-all px-12 h-16 shadow-xl">
+              <Button size="lg" asChild className="rounded-full gap-3 font-black text-white bg-primary hover:bg-primary/90 hover:scale-105 active:scale-95 focus:ring-4 focus:ring-primary/30 transition-all duration-300 px-12 h-16 shadow-xl">
                 <Link href="/search?view=all">
                   <Search className="w-5 h-5" />
                   צפה בכל המוצרים באתר
@@ -217,7 +217,7 @@ export default function Home() {
                 </p>
               </div>
               <div className="flex justify-center pt-4">
-                <Button size="lg" asChild className="bg-accent text-primary hover:bg-accent/90 px-12 rounded-full font-black uppercase tracking-widest h-16 shadow-2xl transition-all hover:scale-105 active:scale-95">
+                <Button size="lg" asChild className="bg-accent text-primary hover:bg-accent/90 px-12 rounded-full font-black uppercase tracking-widest h-16 shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95">
                   <Link href="/onboarding/seller">הצטרף כסופר למערכת</Link>
                 </Button>
               </div>
@@ -263,7 +263,7 @@ function AboutCard({ icon, title, desc }: { icon: React.ReactNode, title: string
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className="p-6 md:p-10 rounded-[2.5rem] bg-white shadow-premium border border-primary/5 hover:border-accent/20 transition-all hover:-translate-y-2 group text-right"
+      className="p-6 md:p-10 rounded-[2.5rem] bg-white shadow-premium border border-primary/5 hover:border-accent/20 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group text-right"
     >
       <div className="w-16 h-16 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-accent group-hover:text-primary transition-all mb-6">
         {icon}

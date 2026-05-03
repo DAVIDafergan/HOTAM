@@ -19,9 +19,8 @@ function buildErrorMessage(req: SecurityRuleRequest): string {
 
 /**
  * Custom error class for database permission errors.
- * Kept structurally identical to the original for compatibility with FirebaseErrorListener.
  */
-export class FirestorePermissionError extends Error {
+export class DatabasePermissionError extends Error {
   public readonly request: SecurityRuleRequest;
 
   constructor(context: SecurityRuleContext) {

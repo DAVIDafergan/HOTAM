@@ -1,8 +1,8 @@
 'use client';
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { errorEmitter } from '@/lib/error-emitter';
+import { DatabasePermissionError } from '@/lib/errors';
 import type { SupabaseDocRef } from '@/lib/supabase-compat';
 
 // ─── Type helpers ─────────────────────────────────────────────────────────────
@@ -104,7 +104,7 @@ export function setDocumentNonBlocking(
   ops.push(...buildRpcOps(docRef.client, docRef.id, docRef.table, increments, unions, removes, unreadUpdates));
 
   Promise.all(ops).catch(() => {
-    errorEmitter.emit('permission-error', new FirestorePermissionError({
+    errorEmitter.emit('permission-error', new DatabasePermissionError({
       path: docRef.path, operation: 'write', requestResourceData: data,
     }));
   });
@@ -122,7 +122,7 @@ export function addDocumentNonBlocking(
     if (error) throw error;
     return row;
   }).catch(() => {
-    errorEmitter.emit('permission-error', new FirestorePermissionError({
+    errorEmitter.emit('permission-error', new DatabasePermissionError({
       path: colRef.table, operation: 'create', requestResourceData: data,
     }));
   });
@@ -149,7 +149,7 @@ export function updateDocumentNonBlocking(
   ops.push(...buildRpcOps(docRef.client, docRef.id, docRef.table, increments, unions, removes, unreadUpdates));
 
   Promise.all(ops).catch(() => {
-    errorEmitter.emit('permission-error', new FirestorePermissionError({
+    errorEmitter.emit('permission-error', new DatabasePermissionError({
       path: docRef.path, operation: 'update', requestResourceData: data,
     }));
   });
@@ -163,7 +163,7 @@ export function deleteDocumentNonBlocking(docRef: SupabaseDocRef) {
   ).then(({ error }) => {
     if (error) throw error;
   }).catch(() => {
-    errorEmitter.emit('permission-error', new FirestorePermissionError({
+    errorEmitter.emit('permission-error', new DatabasePermissionError({
       path: docRef.path, operation: 'delete',
     }));
   });

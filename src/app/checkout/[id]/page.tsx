@@ -19,7 +19,7 @@ import {
   ShieldAlert
 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
-import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking, setDocumentNonBlocking } from '@/lib/supabase-hooks';
+import { useUser, useSupabaseClient, useDoc, useMemoStable, updateDocumentNonBlocking, setDocumentNonBlocking } from '@/lib/supabase-hooks';
 import { doc, collection, serverTimestamp, increment } from '@/lib/supabase-compat';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
@@ -40,7 +40,7 @@ export default function CheckoutPage() {
   const params = useParams();
   const productId = params?.id as string;
   const { user, isUserLoading } = useUser();
-  const db = useFirestore();
+  const db = useSupabaseClient();
   const router = useRouter();
   const { toast } = useToast();
 
@@ -53,10 +53,10 @@ export default function CheckoutPage() {
   const [recipientAddress, setRecipientAddress] = useState('');
   const [recipientCity, setRecipientCity] = useState('');
 
-  const productRef = useMemoFirebase(() => productId ? doc(db, 'products', productId) : null, [db, productId]);
+  const productRef = useMemoStable(() => productId ? doc(db, 'products', productId) : null, [db, productId]);
   const { data: product, isLoading: isProductLoading } = useDoc<any>(productRef);
 
-  const customerRef = useMemoFirebase(() => user ? doc(db, 'customers', user.uid) : null, [db, user?.uid]);
+  const customerRef = useMemoStable(() => user ? doc(db, 'customers', user.uid) : null, [db, user?.uid]);
   const { data: customer } = useDoc<any>(customerRef);
 
   useEffect(() => {

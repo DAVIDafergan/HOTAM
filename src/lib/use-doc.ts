@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { errorEmitter } from '@/lib/error-emitter';
+import { DatabasePermissionError } from '@/lib/errors';
 import { transformRow, type SupabaseDocRef } from '@/lib/supabase-compat';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
@@ -19,7 +19,7 @@ export interface UseDocResult<T> {
  * Subscribe to a single Supabase row in real-time.
  *
  * Accepts a SupabaseDocRef created by the doc() compat helper.
- * Must be memoized with useMemoFirebase() (same contract as the old Firebase hook).
+ * Must be memoized with useMemoStable() to ensure referential stability.
  */
 export function useDoc<T = any>(
   memoizedDocRef: (SupabaseDocRef & { __memo?: boolean }) | null | undefined,
@@ -62,7 +62,7 @@ export function useDoc<T = any>(
           `[useDoc] Supabase error on table '${docRefRef.current?.table}' id '${docRefRef.current?.id}':`,
           err?.message ?? err,
         );
-        const contextualError = new FirestorePermissionError({
+        const contextualError = new DatabasePermissionError({
           operation: 'get',
           path: docRefRef.current?.path ?? 'unknown',
         });

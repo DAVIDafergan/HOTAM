@@ -1,20 +1,20 @@
 'use client';
 
 import React, { useMemo, type ReactNode } from 'react';
-import { FirebaseProvider } from '@/firebase/provider';
+import { AppProvider } from '@/lib/app-provider';
 import { supabase } from '@/lib/supabase';
 
-interface FirebaseClientProviderProps {
+interface SupabaseClientProviderProps {
   children: ReactNode;
 }
 
-export function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
+export function SupabaseClientProvider({ children }: SupabaseClientProviderProps) {
   // The Supabase client is already a singleton; just pass it to the provider.
   const client = useMemo(() => supabase, []);
 
   return (
-    <FirebaseProvider client={client}>
+    <AppProvider client={client}>
       {children}
-    </FirebaseProvider>
+    </AppProvider>
   );
 }

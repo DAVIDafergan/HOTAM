@@ -1,7 +1,7 @@
 'use client';
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { AuthProxy } from '@/firebase/provider';
+import type { AuthProxy } from '@/lib/app-provider';
 
 type AuthLike = SupabaseClient | AuthProxy;
 

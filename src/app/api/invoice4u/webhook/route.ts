@@ -53,7 +53,7 @@ async function handleWebhook(req: Request) {
       // Fetch the order
       const { data: order, error: fetchError } = await supabase
         .from('orders')
-        .select('status, verificationCode, buyerPhone')
+        .select('status, verification_code, buyer_phone')
         .eq('id', ApiIdentifier)
         .single();
 
@@ -71,9 +71,9 @@ async function handleWebhook(req: Request) {
         .from('orders')
         .update({
           status: 'paid',
-          paidAt: new Date().toISOString(),
-          invoiceGenerated: true,
-          paymentProvider: 'invoice4u',
+          paid_at: new Date().toISOString(),
+          invoice_generated: true,
+          payment_provider: 'invoice4u',
         })
         .eq('id', ApiIdentifier);
 
@@ -83,7 +83,7 @@ async function handleWebhook(req: Request) {
       }
 
       console.log(
-        `ORDER CONFIRMED: Order ${ApiIdentifier}. Code ${order.verificationCode} generated for buyer ${order.buyerPhone}`,
+        `ORDER CONFIRMED: Order ${ApiIdentifier}. Code ${order.verification_code} generated for buyer ${order.buyer_phone}`,
       );
     }
 

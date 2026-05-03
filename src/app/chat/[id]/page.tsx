@@ -45,14 +45,14 @@ import { useToast } from '@/hooks/use-toast';
 
 interface Message {
   id: string;
-  senderId: string;
+  sender_id: string;
   text: string;
   timestamp: any;
-  isPaymentRequest?: boolean;
+  is_payment_request?: boolean;
   amount?: number;
-  productName?: string;
-  productImage?: string;
-  productId?: string;
+  product_name?: string;
+  product_image?: string;
+  product_id?: string;
 }
 
 function ChatContent() {
@@ -98,7 +98,7 @@ function ChatContent() {
     }
   }, [chatData, user?.uid, chatId, db]);
 
-  const effectiveOriginProductId = chatData?.originProductId || originProductIdFromUrl;
+  const effectiveOriginProductId = chatData?.origin_product_id || originProductIdFromUrl;
   const originProductRef = useMemoStable(() => 
     effectiveOriginProductId ? doc(db, 'products', effectiveOriginProductId) : null, 
     [db, effectiveOriginProductId]
@@ -144,11 +144,11 @@ function ChatContent() {
       const metadata = {
         id: chatId,
         participants: [user.uid, otherUserId],
-        lastMessageAt: serverTimestamp(),
-        lastMessageText: 'תחילת שיחה',
+        last_message_at: serverTimestamp(),
+        last_message_text: 'תחילת שיחה',
         updatedAt: serverTimestamp(),
-        isSuspicious: false,
-        originProductId: originProductIdFromUrl || null,
+        is_suspicious: false,
+        origin_product_id: originProductIdFromUrl || null,
         [`unread_${otherUserId}`]: false,
         [`unread_${user.uid}`]: false
       };
@@ -180,9 +180,9 @@ function ChatContent() {
       setSecurityViolation(true);
       if (chatId) {
         updateDocumentNonBlocking(doc(db, 'chats', chatId), { 
-          isSuspicious: true,
-          lastViolationAt: serverTimestamp(),
-          lastViolationText: text
+          is_suspicious: true,
+          last_violation_at: serverTimestamp(),
+          last_violation_text: text
         });
       }
       toast({ 
@@ -200,15 +200,15 @@ function ChatContent() {
     if (!validateMessage(newMessage)) return;
 
     const msgData = {
-      senderId: user.uid,
+      sender_id: user.uid,
       text: newMessage,
       timestamp: serverTimestamp(),
     };
 
     addDocumentNonBlocking(collection(db, 'chats', chatId, 'messages'), msgData);
     updateDocumentNonBlocking(doc(db, 'chats', chatId), { 
-      lastMessageAt: serverTimestamp(),
-      lastMessageText: newMessage,
+      last_message_at: serverTimestamp(),
+      last_message_text: newMessage,
       updatedAt: serverTimestamp(),
       [`unread_${otherUserId}`]: true
     });
@@ -219,22 +219,22 @@ function ChatContent() {
 
   const sendPaymentRequest = (product: any) => {
     if (!user || !chatId || !otherUserId) return;
-    const text = `בקשת רכישה עבור: ${product.productType}. אנא פנה אלי לתיאום התשלום.`;
+    const text = `בקשת רכישה עבור: ${product.product_type}. אנא פנה אלי לתיאום התשלום.`;
     const msgData = {
-      senderId: user.uid,
+      sender_id: user.uid,
       text: text,
       timestamp: serverTimestamp(),
-      isPaymentRequest: true,
+      is_payment_request: true,
       amount: product.price,
-      productName: product.productType,
-      productImage: product.images?.[0] || '',
-      productId: product.id
+      product_name: product.product_type,
+      product_image: product.images?.[0] || '',
+      product_id: product.id
     };
     
     addDocumentNonBlocking(collection(db, 'chats', chatId, 'messages'), msgData);
     updateDocumentNonBlocking(doc(db, 'chats', chatId), { 
-      lastMessageAt: serverTimestamp(),
-      lastMessageText: text,
+      last_message_at: serverTimestamp(),
+      last_message_text: text,
       updatedAt: serverTimestamp(),
       [`unread_${otherUserId}`]: true
     });
@@ -245,7 +245,7 @@ function ChatContent() {
     return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>;
   }
 
-  const displayName = otherUserData ? `${otherUserData.firstName} ${otherUserData.lastName}` : 'טוען...';
+  const displayName = otherUserData ? `${otherUserData.first_name} ${otherUserData.last_name}` : 'טוען...';
 
   return (
     <div className="flex flex-col h-[100dvh] bg-[#F8F9FA] overflow-hidden" dir="rtl">
@@ -257,7 +257,7 @@ function ChatContent() {
           <CardHeader className="border-b p-4 flex flex-row items-center justify-between bg-primary text-white shrink-0">
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10 border-2 border-white/20 shadow-sm">
-                <AvatarImage src={otherUserData?.profileImage} />
+                <AvatarImage src={otherUserData?.profile_image} />
                 <AvatarFallback><User className="w-5 h-5 text-primary/20" /></AvatarFallback>
               </Avatar>
               <div className="text-right">
@@ -266,7 +266,7 @@ function ChatContent() {
                   <span className="text-[9px] font-bold uppercase tracking-widest">
                     {otherSellerData ? 'סופר מוסמך' : 'לקוח'}
                   </span>
-                  {otherSellerData?.isApproved && <ShieldCheck className="w-3 h-3 text-accent" aria-label="מאומת" />}
+                  {otherSellerData?.is_approved && <ShieldCheck className="w-3 h-3 text-accent" aria-label="מאומת" />}
                 </div>
               </div>
             </div>
@@ -285,7 +285,7 @@ function ChatContent() {
             aria-live="polite"
           >
             {messages.map((msg) => {
-              const isMine = msg.senderId === user.uid;
+              const isMine = msg.sender_id === user.uid;
               return (
                 <div key={msg.id} className={`flex ${isMine ? 'justify-start' : 'justify-end'} animate-in fade-in slide-in-from-bottom-1`}>
                   <div className={`max-w-[85%] p-3.5 sm:p-4 rounded-2xl text-base shadow-sm transition-all ${
@@ -293,25 +293,25 @@ function ChatContent() {
                       ? 'bg-primary text-white rounded-tr-none' 
                       : 'bg-white text-primary border border-slate-100 rounded-tl-none'
                   }`}>
-                    {msg.isPaymentRequest ? (
+                    {msg.is_payment_request ? (
                       <div className="space-y-3 min-w-[220px]">
                         <div className="flex items-center gap-2 border-b border-white/10 pb-2">
                           <PackageCheck className="w-4 h-4 text-accent" />
                           <span className="font-black text-[10px] uppercase tracking-tight">בקשת רכישה</span>
                         </div>
                         <div className="flex gap-3 items-center">
-                          {msg.productImage && (
+                          {msg.product_image && (
                             <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 border border-white/10">
-                              <Image src={msg.productImage} alt="Product" fill className="object-cover" />
+                              <Image src={msg.product_image} alt="Product" fill className="object-cover" />
                             </div>
                           )}
                           <div className="space-y-0.5 text-right">
-                            <p className="text-[10px] opacity-80 leading-tight">מוצר: <span className="font-bold">{msg.productName}</span></p>
+                            <p className="text-[10px] opacity-80 leading-tight">מוצר: <span className="font-bold">{msg.product_name}</span></p>
                             <p className="text-xl font-black leading-none">₪{msg.amount}</p>
                           </div>
                         </div>
                         <Button variant="outline" asChild className="w-full h-9 rounded-xl bg-white/10 border-white/20 text-white hover:bg-white/20 text-[10px] font-black">
-                          <Link href={`/checkout/${msg.productId}`}>מעבר לתשלום מאובטח</Link>
+                          <Link href={`/checkout/${msg.product_id}`}>מעבר לתשלום מאובטח</Link>
                         </Button>
                       </div>
                     ) : (
@@ -443,11 +443,11 @@ function PaymentProductItem({ product, onSelect, highlight = false }: any) {
       className={`flex items-center gap-4 p-3 rounded-2xl border transition-all text-right group ${highlight ? 'border-accent bg-accent/5' : 'border-slate-100 hover:border-accent hover:bg-accent/5'}`}
     >
       <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 border bg-muted">
-        {product.images?.[0] && <Image src={product.images[0]} alt={product.productType} fill className="object-cover" />}
+        {product.images?.[0] && <Image src={product.images[0]} alt={product.product_type} fill className="object-cover" />}
       </div>
       <div className="flex-1 space-y-0.5">
-        <h4 className="font-bold text-sm text-primary group-hover:text-accent transition-colors">{product.productType}</h4>
-        <p className="text-[10px] text-muted-foreground font-medium">{product.scriptType}</p>
+        <h4 className="font-bold text-sm text-primary group-hover:text-accent transition-colors">{product.product_type}</h4>
+        <p className="text-[10px] text-muted-foreground font-medium">{product.script_type}</p>
         <p className="text-sm font-black text-primary">₪{product.price}</p>
       </div>
       <Plus className="w-5 h-5 text-accent opacity-0 group-hover:opacity-100 transition-all" />

@@ -146,8 +146,8 @@ function SellerDashboardContent() {
   }, [db, user?.uid, canLoadData]);
   const { data: ordersData } = useCollection<any>(ordersQuery);
   const orders = (ordersData || []).sort((a: any, b: any) => {
-    const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
-    const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+    const timeA = a.created_at?.toDate ? a.created_at.toDate().getTime() : 0;
+    const timeB = b.created_at?.toDate ? b.created_at.toDate().getTime() : 0;
     return timeB - timeA;
   });
 
@@ -200,29 +200,29 @@ function SellerDashboardContent() {
   
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [profileData, setProfileData] = useState({
-    firstName: '', 
-    lastName: '', 
+    first_name: '', 
+    last_name: '', 
     phone: '', 
     address: '', 
-    profileImage: '', 
+    profile_image: '', 
     notes: '',
-    notificationEmail: true,
-    notificationSMS: true,
-    notificationVoice: false
+    notification_email: true,
+    notification_sms: true,
+    notification_voice: false
   });
 
   useEffect(() => {
     if (seller) {
       setProfileData({
-        firstName: seller.firstName || '',
-        lastName: seller.lastName || '',
+        first_name: seller.first_name || '',
+        last_name: seller.last_name || '',
         phone: seller.phone || '',
         address: seller.address || '',
-        profileImage: seller.profileImage || '',
+        profile_image: seller.profile_image || '',
         notes: seller.notes || '',
-        notificationEmail: seller.notificationEmail ?? true,
-        notificationSMS: seller.notificationSMS ?? true,
-        notificationVoice: seller.notificationVoice ?? false
+        notification_email: seller.notification_email ?? true,
+        notification_sms: seller.notification_sms ?? true,
+        notification_voice: seller.notification_voice ?? false
       });
     }
   }, [seller]);
@@ -236,7 +236,7 @@ function SellerDashboardContent() {
 
   const handleVerifyOrder = (order: any) => {
     const inputCode = verificationCodes[order.id];
-    if (!inputCode || inputCode !== order.verificationCode) {
+    if (!inputCode || inputCode !== order.verification_code) {
       toast({ variant: "destructive", title: "קוד שגוי", description: "הקוד אינו תואם." });
       return;
     }
@@ -247,15 +247,15 @@ function SellerDashboardContent() {
 
     updateDocumentNonBlocking(doc(db, 'orders', order.id), {
       status: 'completed',
-      completedAt: new Date().toISOString(),
-      platformFee,
-      sellerNet,
-      verifiedBySeller: true,
+      completed_at: new Date().toISOString(),
+      platform_fee: platformFee,
+      seller_net: sellerNet,
+      verified_by_seller: true,
       is_seen_by_seller: true
     });
 
     updateDocumentNonBlocking(doc(db, 'sellers', user!.uid), {
-      salesCount: increment(1)
+      sales_count: increment(1)
     });
 
     setTimeout(() => { setIsVerifying(null); toast({ title: "העסקה הושלמה!" }); }, 1000);
@@ -268,7 +268,7 @@ function SellerDashboardContent() {
       const reader = new FileReader();
       reader.onloadend = () => {
         if (target === 'product') setFormImages(prev => [...prev, reader.result as string]);
-        else setProfileData(prev => ({ ...prev, profileImage: reader.result as string }));
+        else setProfileData(prev => ({ ...prev, profile_image: reader.result as string }));
       };
       reader.readAsDataURL(file);
     });
@@ -276,24 +276,24 @@ function SellerDashboardContent() {
 
   const openEditDialog = (p: any) => {
     setEditingProduct(p);
-    setFormType(p.productType || '');
+    setFormType(p.product_type || '');
     setFormSubType(p.subType || '');
     setFormDescription(p.description || '');
     setFormQuantity(p.quantity || 1);
-    setFormScript(p.scriptType || '');
-    setFormQuality(p.scriptLevel || '');
+    setFormScript(p.script_type || '');
+    setFormQuality(p.script_level || '');
     setFormPrice(p.price || 0);
     setFormImages(p.images || []);
-    setFormParchmentSize(p.parchmentSize || '');
+    setFormParchmentSize(p.parchment_size || '');
     setFormProofreading(p.proofreadingLevel || '');
     setFormDeliveryTime(p.deliveryTime || '3');
     setFormDeliveryType(p.deliveryType || 'pickup');
-    setFormDeliveryFee(p.deliveryFee || 0);
+    setFormDeliveryFee(p.delivery_fee || 0);
     setFormDeliveryArea(Array.isArray(p.deliveryArea) ? p.deliveryArea : [p.deliveryArea || 'כל הארץ']);
     setFormStep(1);
     
-    if (p.productType === 'מגילה' && p.parchmentSize) {
-      const parts = p.parchmentSize.split(', ');
+    if (p.product_type === 'מגילה' && p.parchment_size) {
+      const parts = p.parchment_size.split(', ');
       if (parts[0]) setMegRows(parts[0].replace(' שורות', ''));
       if (parts[1]) setMegHeight(parts[1]);
     } else {
@@ -350,28 +350,28 @@ function SellerDashboardContent() {
 
     const now = new Date().toISOString();
     const data = {
-      sellerId: user.uid,
-      productType: formType,
+      seller_id: user.uid,
+      product_type: formType,
       subType: formType === 'תפילין' ? 'כללי' : formSubType,
       description: formDescription,
       quantity: formQuantity,
-      scriptType: formScript,
-      scriptLevel: formQuality,
+      script_type: formScript,
+      script_level: formQuality,
       price: formPrice,
       images: formImages,
-      parchmentSize: finalSize,
+      parchment_size: finalSize,
       proofreadingLevel: formProofreading,
       deliveryTime: formDeliveryTime,
       deliveryType: formDeliveryType,
-      deliveryFee: formDeliveryType === 'pickup' ? 0 : Number(formDeliveryFee),
+      delivery_fee: formDeliveryType === 'pickup' ? 0 : Number(formDeliveryFee),
       deliveryArea: formDeliveryArea,
-      updatedAt: now
+      updated_at: now
     };
 
     if (editingProduct) {
       updateDocumentNonBlocking(doc(db, 'products', editingProduct.id), data);
     } else {
-      const { error } = await supabase.from('products').insert([{ ...data, createdAt: now }]);
+      const { error } = await supabase.from('products').insert([{ ...data, created_at: now }]);
       if (error) {
         console.error("Supabase insert error:", error);
         toast({ variant: "destructive", title: "שגיאה בהוספת המוצר", description: error.message });
@@ -390,7 +390,7 @@ function SellerDashboardContent() {
     });
   };
 
-  const totalNetEarnings = useMemo(() => orders.filter(o => o.status === 'completed').reduce((acc: number, o: any) => acc + (Number(o.sellerNet) || 0), 0), [orders]);
+  const totalNetEarnings = useMemo(() => orders.filter(o => o.status === 'completed').reduce((acc: number, o: any) => acc + (Number(o.seller_net) || 0), 0), [orders]);
 
   const paginatedProducts = products.slice((inventoryPage - 1) * ITEMS_PER_PAGE, inventoryPage * ITEMS_PER_PAGE);
   const paginatedOrders = orders.slice((salesPage - 1) * ITEMS_PER_PAGE, salesPage * ITEMS_PER_PAGE);
@@ -445,7 +445,7 @@ function SellerDashboardContent() {
         <div className="hidden md:flex flex-col md:flex-row items-center justify-between mb-10 md:mb-12 gap-6 text-right">
           <Button onClick={() => { resetForm(); setIsDialogOpen(true); }} className="bg-accent text-primary hover:bg-accent/90 rounded-full px-8 py-6 font-black uppercase tracking-wider shadow-xl transition-all"><Plus className="w-5 h-5 ml-2" /> העלאת מוצר חדש</Button>
           <div className="text-right">
-            <h1 className="text-3xl font-headline font-black text-primary tracking-tight">שלום, {seller?.firstName}</h1>
+            <h1 className="text-3xl font-headline font-black text-primary tracking-tight">שלום, {seller?.first_name}</h1>
             <div className="flex items-center justify-end gap-2 text-emerald-600 font-bold text-xs"><CheckCircle2 className="w-4 h-4" /><span>סופר מאומת</span></div>
           </div>
         </div>
@@ -472,8 +472,8 @@ function SellerDashboardContent() {
                <Card key={p.id} className="border-none shadow-premium rounded-[2rem] bg-white p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
                  <div className="w-20 h-20 bg-muted rounded-2xl shrink-0 overflow-hidden relative border"><Image src={p.images?.[0] || logoImg} alt="product" fill className="object-cover" /></div>
                  <div className="flex-1 text-right w-full">
-                    <h4 className="font-black text-lg text-primary">{p.productType}</h4>
-                    <p className="text-[10px] text-muted-foreground font-bold">{p.scriptType} | {p.scriptLevel}</p>
+                    <h4 className="font-black text-lg text-primary">{p.product_type}</h4>
+                    <p className="text-[10px] text-muted-foreground font-bold">{p.script_type} | {p.script_level}</p>
                     <div className="flex items-center justify-end gap-3 mt-2">
                        <Badge variant="secondary" className="font-black text-xs">₪{p.price}</Badge>
                        <div className="flex items-center bg-muted/30 rounded-full px-2 py-1 gap-2 border">
@@ -514,7 +514,7 @@ function SellerDashboardContent() {
                               {isTorahRequest ? <Scroll className="w-6 h-6" /> : <ShoppingBag className="w-6 h-6" />}
                             </div>
                             <div className="text-right flex-1">
-                               <p className="font-black text-primary text-base leading-tight group-hover:text-accent transition-colors">{o.productName}</p>
+                               <p className="font-black text-primary text-base leading-tight group-hover:text-accent transition-colors">{o.product_name}</p>
                                <div className="flex items-center gap-2 mt-1">
                                  <Badge className={cn("border-none font-black text-[8px] uppercase px-2 py-0.5", o.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : isTorahRequest ? 'bg-accent/10 text-accent' : 'bg-blue-100 text-blue-700')}>
                                    {o.status === 'completed' ? 'הושלם ושולם' : isTorahRequest ? 'בקשת תיאום והתרשמות' : 'ממתין למסירה'}
@@ -592,13 +592,13 @@ function SellerDashboardContent() {
                                  </div>
                                  <div className="px-8 pb-8 flex flex-col md:flex-row items-center justify-between gap-4 border-t border-primary/5 pt-6 bg-white/40">
                                     <div className="flex items-center gap-6 text-[10px] font-bold text-primary/40">
-                                       <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> נוצר ב: {o.createdAt?.toDate ? o.createdAt.toDate().toLocaleDateString('he-IL') : '-'}</span>
+                                       <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> נוצר ב: {o.created_at?.toDate ? o.created_at.toDate().toLocaleDateString('he-IL') : '-'}</span>
                                        {o.completedAt && <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> הושלם ב: {new Date(o.completedAt).toLocaleDateString('he-IL')}</span>}
                                     </div>
                                     <div className="flex items-center gap-4">
                                        <div className="text-right">
                                           <p className="text-[9px] font-black text-muted-foreground uppercase leading-none">הכנסה נטו לסופר (לאחר עמלת אתר):</p>
-                                          <p className="text-xl font-black text-emerald-600">₪{o.sellerNet?.toFixed(0) || (o.amount * 0.80).toFixed(0)}</p>
+                                          <p className="text-xl font-black text-emerald-600">₪{o.seller_net?.toFixed(0) || (o.amount * 0.80).toFixed(0)}</p>
                                        </div>
                                     </div>
                                  </div>
@@ -636,7 +636,7 @@ function SellerDashboardContent() {
                    <div className="space-y-8">
                       <div className="flex flex-col items-center gap-4">
                         <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-accent/20 bg-muted flex items-center justify-center">
-                          {profileData.profileImage ? <Image src={profileData.profileImage} alt="profile" fill className="object-cover" /> : <UserRound className="w-12 h-12 text-primary/10" />}
+                          {profileData.profile_image ? <Image src={profileData.profile_image} alt="profile" fill className="object-cover" /> : <UserRound className="w-12 h-12 text-primary/10" />}
                           <button onClick={() => document.getElementById('profile-img-up')?.click()} className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center text-white"><Camera className="w-6 h-6" /></button>
                         </div>
                         <input id="profile-img-up" type="file" onChange={(e) => handleImageUpload(e, 'profile')} className="hidden" accept="image/*" />
@@ -663,8 +663,8 @@ function SellerDashboardContent() {
                                 <span className="text-xs font-bold text-primary">התראות במייל</span>
                               </div>
                               <Switch 
-                                checked={profileData.notificationEmail} 
-                                onCheckedChange={v => setProfileData({...profileData, notificationEmail: v})} 
+                                checked={profileData.notification_email} 
+                                onCheckedChange={v => setProfileData({...profileData, notification_email: v})} 
                               />
                            </div>
                            <div className="flex items-center justify-between">
@@ -673,8 +673,8 @@ function SellerDashboardContent() {
                                 <span className="text-xs font-bold text-primary">התראות ב-SMS</span>
                               </div>
                               <Switch 
-                                checked={profileData.notificationSMS} 
-                                onCheckedChange={v => setProfileData({...profileData, notificationSMS: v})} 
+                                checked={profileData.notification_sms} 
+                                onCheckedChange={v => setProfileData({...profileData, notification_sms: v})} 
                               />
                            </div>
                            <div className="flex items-center justify-between">
@@ -683,8 +683,8 @@ function SellerDashboardContent() {
                                 <span className="text-xs font-bold text-primary">שיחה קולית אוטומטית</span>
                               </div>
                               <Switch 
-                                checked={profileData.notificationVoice} 
-                                onCheckedChange={v => setProfileData({...profileData, notificationVoice: v})} 
+                                checked={profileData.notification_voice} 
+                                onCheckedChange={v => setProfileData({...profileData, notification_voice: v})} 
                               />
                            </div>
                         </div>
@@ -694,8 +694,8 @@ function SellerDashboardContent() {
                    <div className="md:col-span-2 space-y-10">
                       <div className="space-y-6">
                         <div className="grid grid-cols-2 gap-4">
-                           <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/40">שם פרטי</Label><Input value={profileData.firstName} onChange={e => setProfileData({...profileData, firstName: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
-                           <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/40">שם משפחה</Label><Input value={profileData.lastName} onChange={e => setProfileData({...profileData, lastName: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
+                           <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/40">שם פרטי</Label><Input value={profileData.first_name} onChange={e => setProfileData({...profileData, first_name: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
+                           <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/40">שם משפחה</Label><Input value={profileData.last_name} onChange={e => setProfileData({...profileData, last_name: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
                         </div>
                         <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/40">כתובת</Label><Input value={profileData.address} onChange={e => setProfileData({...profileData, address: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
                         <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/40">אודותיך (יוצג ללקוח)</Label><Textarea value={profileData.notes} onChange={e => setProfileData({...profileData, notes: e.target.value})} className="rounded-2xl min-h-[100px] font-medium" placeholder="ספר ללקוחות על ההנהגה שלך..." /></div>
@@ -713,18 +713,18 @@ function SellerDashboardContent() {
                             <div className="space-y-4 p-6 bg-muted/30 rounded-2xl border">
                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">פרטי עסק רשמיים</p>
                                <div className="space-y-3">
-                                  <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.businessName}</span><span className="text-[10px] font-black uppercase text-primary/40">שם עסק</span></div>
-                                  <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.businessId}</span><span className="text-[10px] font-black uppercase text-primary/40">ח.פ / עוסק</span></div>
-                                  <div className="flex justify-between"><span className="text-sm font-bold opacity-60">{seller?.businessType === 'osek_patur' ? 'עוסק פטור' : 'עוסק מורשה/חברה'}</span><span className="text-[10px] font-black uppercase text-primary/40">סוג</span></div>
+                                  <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.business_name}</span><span className="text-[10px] font-black uppercase text-primary/40">שם עסק</span></div>
+                                  <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.business_id}</span><span className="text-[10px] font-black uppercase text-primary/40">ח.פ / עוסק</span></div>
+                                  <div className="flex justify-between"><span className="text-sm font-bold opacity-60">{seller?.business_type === 'osek_patur' ? 'עוסק פטור' : 'עוסק מורשה/חברה'}</span><span className="text-[10px] font-black uppercase text-primary/40">סוג</span></div>
                                </div>
                             </div>
 
                             <div className="space-y-4 p-6 bg-muted/30 rounded-2xl border">
                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">פרטי חשבון בנק</p>
                                <div className="space-y-3">
-                                  <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.bankName}</span><span className="text-[10px] font-black uppercase text-primary/40">בנק</span></div>
-                                  <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.bankBranch}</span><span className="text-[10px] font-black uppercase text-primary/40">סניף</span></div>
-                                  <div className="flex justify-between"><span className="text-sm font-bold opacity-60">{seller?.bankAccountNumber}</span><span className="text-[10px] font-black uppercase text-primary/40">חשבון</span></div>
+                                  <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.bank_name}</span><span className="text-[10px] font-black uppercase text-primary/40">בנק</span></div>
+                                  <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.bank_branch}</span><span className="text-[10px] font-black uppercase text-primary/40">סניף</span></div>
+                                  <div className="flex justify-between"><span className="text-sm font-bold opacity-60">{seller?.bank_account_number}</span><span className="text-[10px] font-black uppercase text-primary/40">חשבון</span></div>
                                </div>
                             </div>
                          </div>
@@ -1134,13 +1134,13 @@ function SellerChatListItem({ chat, otherUserId, userId }: any) {
       <Card className={cn("p-5 bg-white rounded-3xl shadow-premium hover:shadow-xl transition-all border border-transparent hover:border-accent/10", isUnread && "ring-2 ring-accent/20")}>
         <div className="flex items-center gap-5 text-right">
           <Avatar className="h-14 w-14 border-2 border-primary/5 shadow-sm relative">
-            <AvatarImage src={otherUser?.profileImage} />
-            <AvatarFallback className="bg-primary/5 text-primary font-black">{otherUser?.firstName?.charAt(0) || '?'}</AvatarFallback>
+            <AvatarImage src={otherUser?.profile_image} />
+            <AvatarFallback className="bg-primary/5 text-primary font-black">{otherUser?.first_name?.charAt(0) || '?'}</AvatarFallback>
             {isUnread && <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-destructive rounded-full border-2 border-white" />}
           </Avatar>
           <div className="flex-1 overflow-hidden">
             <div className="flex justify-between items-baseline">
-              <h4 className="font-black text-primary text-base truncate">{otherUser ? `${otherUser.firstName} ${otherUser.lastName}` : 'טוען...'}</h4>
+              <h4 className="font-black text-primary text-base truncate">{otherUser ? `${otherUser.first_name} ${otherUser.last_name}` : 'טוען...'}</h4>
               <span className="text-[9px] text-muted-foreground font-bold whitespace-nowrap bg-muted/30 px-2 py-0.5 rounded-full">{chat.lastMessageAt?.toDate ? chat.lastMessageAt.toDate().toLocaleDateString('he-IL') : ''}</span>
             </div>
             <p className={cn("text-xs truncate mt-1", isUnread ? "font-black text-primary" : "text-muted-foreground font-medium")}>{chat.lastMessageText || 'תחילת שיחה'}</p>

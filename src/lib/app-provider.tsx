@@ -109,16 +109,16 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
 
   // ── Profile fetching ───────────────────────────────────────────────────────
   const customerRef = useMemoStable(() => {
-    if (!user?.uid) return null;
+    if (!user?.uid || user.role === 'seller') return null;
     return doc(client, 'customers', user.uid);
-  }, [user?.uid]);
+  }, [user?.uid, user?.role]);
 
   const { data: customerData, isLoading: isCustLoading } = useDoc<any>(customerRef);
 
   const sellerRef = useMemoStable(() => {
-    if (!user?.uid || customerData) return null;
+    if (!user?.uid || user.role === 'customer') return null;
     return doc(client, 'sellers', user.uid);
-  }, [user?.uid, !!customerData]);
+  }, [user?.uid, user?.role]);
 
   const { data: sellerData, isLoading: isSellLoading } = useDoc<any>(sellerRef);
 

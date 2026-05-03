@@ -25,7 +25,7 @@ export function ProductCard({ product }: { product: any }) {
 
   const profileData = customerData || sellerOwnData;
   const profileRef = customerData ? customerRef : (sellerOwnData ? sellerOwnRef : null);
-  const isFavorite = profileData?.favoriteProductIds?.includes(product.id);
+  const isFavorite = profileData?.favorite_product_ids?.includes(product.id);
 
   const logoImg = PlaceHolderImages.find(img => img.id === 'site-logo')?.imageUrl || 'https://picsum.photos/seed/hotam-logo/400/400';
   const mainImage = product.images?.[0] || logoImg;
@@ -36,7 +36,7 @@ export function ProductCard({ product }: { product: any }) {
     if (!profileRef) { toast({ variant: "destructive", title: "פרופיל לא מוכן" }); return; }
 
     setDocumentNonBlocking(profileRef, {
-      favoriteProductIds: isFavorite ? arrayRemove(product.id) : arrayUnion(product.id)
+      favorite_product_ids: isFavorite ? arrayRemove(product.id) : arrayUnion(product.id)
     }, { merge: true });
 
     toast({ 
@@ -47,8 +47,8 @@ export function ProductCard({ product }: { product: any }) {
   const finalPrice = (Number(product.price) * 1.18).toFixed(0); 
 
   // Logic for displaying title for Judaica
-  const displayTitle = product.productType === 'מוצרי יודאיקה שונים' ? (product.subType || 'מוצר יודאיקה') : product.productType;
-  const displayBadge = product.productType === 'מוצרי יודאיקה שונים' ? 'יודאיקה' : product.productType;
+  const displayTitle = product.product_type === 'מוצרי יודאיקה שונים' ? (product.subType || 'מוצר יודאיקה') : product.product_type;
+  const displayBadge = product.product_type === 'מוצרי יודאיקה שונים' ? 'יודאיקה' : product.product_type;
 
   return (
     <Link href={`/products/${product.id}`}>
@@ -79,7 +79,7 @@ export function ProductCard({ product }: { product: any }) {
             {displayTitle}
           </h3>
           <p className="text-[8px] sm:text-[10px] text-primary/40 font-bold">
-            {product.scriptType}
+            {product.script_type}
           </p>
           
           <div className="flex flex-col items-end pt-2 sm:pt-4 border-t border-muted/50 mt-1 sm:mt-2">
@@ -100,7 +100,7 @@ export function ProductCard({ product }: { product: any }) {
                <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4" />
              </div>
              <div className="flex items-center gap-1 sm:gap-2 text-[8px] sm:text-[10px] font-black text-primary/60">
-               <span>{product.scriptLevel}</span>
+               <span>{product.script_level}</span>
                <CheckCircle2 className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-accent" />
              </div>
           </div>

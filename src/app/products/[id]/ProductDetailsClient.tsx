@@ -70,18 +70,18 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
 
   const profileData = customerData || sellerOwnData;
   const profileRef = customerData ? customerRef : (sellerOwnData ? sellerOwnRef : null);
-  const isFavorite = profileData?.favoriteProductIds?.includes(productId);
+  const isFavorite = profileData?.favorite_product_ids?.includes(productId);
 
   const sellerRef = useMemoStable(() => {
-    if (!product?.sellerId) return null;
-    return doc(db, 'sellers', product.sellerId);
-  }, [db, product?.sellerId]);
+    if (!product?.seller_id) return null;
+    return doc(db, 'sellers', product.seller_id);
+  }, [db, product?.seller_id]);
 
   const { data: seller, isLoading: isSellerLoading } = useDoc<any>(sellerRef);
 
   const reviewsQuery = useMemoStable(() => {
     if (!productId) return null;
-    return query(collection(db, 'reviews'), where('productId', '==', productId));
+    return query(collection(db, 'reviews'), where('product_id', '==', productId));
   }, [db, productId]);
   const { data: reviews } = useCollection<any>(reviewsQuery);
 
@@ -91,7 +91,7 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
       return;
     }
     setDocumentNonBlocking(profileRef, {
-      favoriteProductIds: isFavorite ? arrayRemove(productId) : arrayUnion(productId)
+      favorite_product_ids: isFavorite ? arrayRemove(productId) : arrayUnion(productId)
     }, { merge: true });
     
     toast({ 
@@ -110,14 +110,14 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
     setIsProcessingRequest(true);
 
     const requestData = {
-      sellerId: product.sellerId,
-      productId: productId,
-      productName: 'ספר תורה',
-      productImage: product.images?.[0] || '',
+      seller_id: product.seller_id,
+      product_id: productId,
+      product_name: 'ספר תורה',
+      product_image: product.images?.[0] || '',
       amount: product.price,
       status: 'torah_request',
-      buyerId: user.uid,
-      createdAt: serverTimestamp(),
+      buyer_id: user.uid,
+      created_at: serverTimestamp(),
       isTorahRequest: true,
       deliveryMethod: 'תיאום מול האתר'
     };
@@ -136,7 +136,7 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
 
   const handleShare = async () => {
     const shareData = {
-      title: `חותם | ${product?.productType}`,
+      title: `חותם | ${product?.product_type}`,
       url: typeof window !== 'undefined' ? window.location.href : '',
     };
     try {
@@ -173,7 +173,7 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
           {/* Product Images */}
           <div className="space-y-4">
             <div className="relative aspect-square rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-premium bg-white border-4 border-white">
-              <Image loader={unsplashLoader} src={currentImage} alt={product.productType} fill priority className="object-cover" />
+              <Image loader={unsplashLoader} src={currentImage} alt={product.product_type} fill priority className="object-cover" />
               {product.quantity <= 0 && (
                 <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center">
                   <Badge variant="destructive" className="px-8 py-3 text-sm font-black uppercase tracking-widest rounded-full shadow-2xl">אזל מהמלאי</Badge>
@@ -181,7 +181,7 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
               )}
               <div className="absolute top-4 right-4 hidden md:block">
                 <Badge className="bg-primary/80 backdrop-blur-md text-white border-none px-4 py-1.5 rounded-full font-black text-[10px] uppercase">
-                  {product.scriptLevel}
+                  {product.script_level}
                 </Badge>
               </div>
             </div>
@@ -208,7 +208,7 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
             <div className="space-y-3">
               <div className="flex flex-wrap gap-2 justify-start items-center">
                 <Badge variant="outline" className="border-accent/40 text-accent font-black text-[10px] py-1 px-3 rounded-full bg-accent/5">
-                  {product.scriptLevel}
+                  {product.script_level}
                 </Badge>
                 <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[10px] py-1 px-3 rounded-full">
                   <CheckCircle2 className="w-3 h-3 ml-1.5" />
@@ -216,7 +216,7 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
                 </Badge>
               </div>
               <h1 className="text-3xl md:text-5xl font-headline font-black text-primary leading-[1.1] tracking-tight">
-                {product.productType} 
+                {product.product_type} 
                 {product.subType && product.subType !== 'all' && (
                   <span className="text-accent block md:inline md:mr-3 mt-1 md:mt-0 font-black">{product.subType}</span>
                 )}
@@ -241,14 +241,14 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
                       <Clock className="w-5 h-5 text-accent" />
                       <span className="text-[9px] font-black text-primary/40 uppercase tracking-widest">זמן אספקה</span>
                       <span className="text-xs font-black text-primary leading-none">
-                        {product.productType === 'ספר תורה' ? 'בתיאום אישי' : `${product.deliveryTime || '3'} ימים`}
+                        {product.product_type === 'ספר תורה' ? 'בתיאום אישי' : `${product.delivery_time || '3'} ימים`}
                       </span>
                     </div>
                     <div className="flex flex-col items-center md:items-end gap-1.5 p-3 rounded-2xl bg-slate-50/50">
                       <Truck className="w-5 h-5 text-accent" />
                       <span className="text-[9px] font-black text-primary/40 uppercase tracking-widest">עלות משלוח</span>
                       <span className="text-xs font-black text-emerald-600 leading-none">
-                        {Number(product.deliveryFee) > 0 ? `₪${product.deliveryFee}` : 'משלוח חינם'}
+                        {Number(product.delivery_fee) > 0 ? `₪${product.delivery_fee}` : 'משלוח חינם'}
                       </span>
                     </div>
                   </div>
@@ -278,8 +278,8 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
             <TabsContent value="specs" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
               <Card className="border-none shadow-premium rounded-[3rem] bg-white p-6 md:p-10">
                 <div className="grid md:grid-cols-2 gap-x-12 gap-y-2">
-                  <SpecItem label="סוג כתב ומסורת" value={product.scriptType} />
-                  <SpecItem label="רמת הידור הלכתית" value={product.scriptLevel} />
+                  <SpecItem label="סוג כתב ומסורת" value={product.script_type} />
+                  <SpecItem label="רמת הידור הלכתית" value={product.script_level} />
                   <SpecItem label="גודל קלף (סנטימטר)" value={product.parchmentSize || 'סטנדרט'} />
                   <SpecItem label="רמת הגהה וביקורת" value={product.proofreadingLevel || 'גברא'} />
                   <SpecItem label="מלאי זמין כעת" value={`${product.quantity} יחידות`} />
@@ -294,8 +294,8 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
                 ) : seller ? (
                   <div className="flex flex-col md:flex-row items-center gap-10">
                     <div className="relative w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden border-[6px] border-accent/10 shrink-0 bg-muted flex items-center justify-center shadow-xl">
-                      {seller.profileImage ? (
-                        <Image src={seller.profileImage} alt="Scribe" fill className="object-cover" />
+                      {seller.profile_image ? (
+                        <Image src={seller.profile_image} alt="Scribe" fill className="object-cover" />
                       ) : (
                         <UserRound className="w-12 h-12 text-primary/10" />
                       )}
@@ -303,7 +303,7 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
                     <div className="flex-1 space-y-5 text-center md:text-right">
                       <div className="space-y-1">
                         <div className="flex items-center justify-center md:justify-end gap-3">
-                          <h3 className="text-2xl md:text-3xl font-headline font-black text-primary tracking-tight">{seller.firstName} {seller.lastName}</h3>
+                          <h3 className="text-2xl md:text-3xl font-headline font-black text-primary tracking-tight">{seller.first_name} {seller.last_name}</h3>
                           <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[9px] uppercase px-3 py-1">סופר מאומת</Badge>
                         </div>
                         <p className="text-muted-foreground text-sm font-bold flex items-center justify-center md:justify-end gap-2">
@@ -363,7 +363,7 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
       <div className="fixed bottom-0 left-0 right-0 z-[100] bg-white/90 backdrop-blur-2xl border-t border-primary/5 h-20 sm:h-24 md:h-28 shadow-[0_-10px_40px_rgba(0,0,0,0.08)]">
         <div className="container mx-auto px-3 sm:px-4 h-full flex items-center justify-between gap-3 md:gap-4 max-w-5xl">
           <div className="flex-1 flex gap-2 md:gap-6">
-             {product.productType === 'ספר תורה' ? (
+             {product.product_type === 'ספר תורה' ? (
                <Button 
                 onClick={handleTorahCoordination} 
                 disabled={isProcessingRequest} 
@@ -387,7 +387,7 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
               asChild 
               className="flex-1 border-2 border-primary/10 text-primary h-14 md:h-16 rounded-2xl md:rounded-[1.5rem] font-black uppercase tracking-widest gap-3 hover:bg-primary/5 transition-all shadow-sm"
              >
-              <Link href={`/chat/${product.sellerId}?productId=${productId}`}>
+              <Link href={`/chat/${product.seller_id}?productId=${productId}`}>
                 <MessageCircle className="w-6 h-6 text-accent" /> 
                 <span className="hidden sm:inline">התייעצות</span>
                 <span className="sm:hidden">צ'אט</span>

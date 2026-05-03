@@ -137,13 +137,13 @@ export default function AdminDashboard() {
 
   const ordersQuery = useMemoStable(() => {
     if (!canLoadData) return null;
-    return query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
+    return query(collection(db, 'orders'), orderBy('created_at', 'desc'));
   }, [db, canLoadData]);
   const { data: allOrders } = useCollection<any>(ordersQuery);
 
   const reportsQuery = useMemoStable(() => {
     if (!canLoadData) return null;
-    return query(collection(db, 'reports'), orderBy('createdAt', 'desc'));
+    return query(collection(db, 'reports'), orderBy('created_at', 'desc'));
   }, [db, canLoadData]);
   const { data: allReports } = useCollection<any>(reportsQuery);
 
@@ -154,7 +154,7 @@ export default function AdminDashboard() {
     const totalVolume = o.reduce((acc: number, x: any) => acc + Number(x.amount || 0), 0);
     
     return {
-      totalScribes: s.filter(x => x.isApproved).length,
+      totalScribes: s.filter(x => x.is_approved).length,
       totalCustomers: c.length,
       productsSold: o.length,
       totalVolume: totalVolume,
@@ -165,8 +165,8 @@ export default function AdminDashboard() {
   // Filtering Logic
   const filteredSellersPending = useMemo(() => {
     if (!allSellers) return [];
-    return allSellers.filter(s => !s.isApproved && (
-      `${s.firstName || ''} ${s.lastName || ''}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    return allSellers.filter(s => !s.is_approved && (
+      `${s.first_name || ''} ${s.last_name || ''}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (s.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (s.id || '').toLowerCase().includes(searchTerm.toLowerCase())
     ));
@@ -174,8 +174,8 @@ export default function AdminDashboard() {
 
   const filteredSellersActive = useMemo(() => {
     if (!allSellers) return [];
-    return allSellers.filter(s => s.isApproved && (
-      `${s.firstName || ''} ${s.lastName || ''}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    return allSellers.filter(s => s.is_approved && (
+      `${s.first_name || ''} ${s.last_name || ''}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (s.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (s.id || '').toLowerCase().includes(searchTerm.toLowerCase())
     ));
@@ -184,7 +184,7 @@ export default function AdminDashboard() {
   const filteredCustomers = useMemo(() => {
     if (!allCustomers) return [];
     return allCustomers.filter(c => (
-      `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      `${c.first_name || ''} ${c.last_name || ''}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (c.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (c.id || '').toLowerCase().includes(searchTerm.toLowerCase())
     ));
@@ -195,8 +195,8 @@ export default function AdminDashboard() {
     return allOrders.filter(o => {
       if (o.status === 'torah_request') return false; 
       const matchSearch = (o.id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (o.buyerName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (o.productName || '').toLowerCase().includes(searchTerm.toLowerCase());
+                          (o.buyer_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (o.product_name || '').toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchStatus = salesStatusFilter === 'all' ? true :
                           salesStatusFilter === 'completed' ? o.status === 'completed' :
@@ -210,7 +210,7 @@ export default function AdminDashboard() {
     if (!allOrders) return [];
     return allOrders.filter(o => o.status === 'torah_request' && (
       (o.id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (o.buyerName || '').toLowerCase().includes(searchTerm.toLowerCase())
+      (o.buyer_name || '').toLowerCase().includes(searchTerm.toLowerCase())
     ));
   }, [allOrders, searchTerm]);
 
@@ -220,7 +220,7 @@ export default function AdminDashboard() {
   };
 
   const approveScribe = (id: string) => {
-    updateDocumentNonBlocking(doc(db, 'sellers', id), { isApproved: true });
+    updateDocumentNonBlocking(doc(db, 'sellers', id), { is_approved: true });
     toast({ title: "הסופר אושר בהצלחה" });
   };
 
@@ -427,7 +427,7 @@ function ScribeTable({ scribes, onApprove, onDelete, isLoading, orders, page, se
               
               const monthlyEarnings = scribeOrders
                 .filter((o: any) => {
-                  const date = o.createdAt?.toDate ? o.createdAt.toDate() : new Date(o.createdAt);
+                  const date = o.created_at?.toDate ? o.created_at.toDate() : new Date(o.created_at);
                   return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
                 })
                 .reduce((acc: number, o: any) => acc + (Number(o.sellerNet) || Number(o.amount) * 0.80), 0);
@@ -437,12 +437,12 @@ function ScribeTable({ scribes, onApprove, onDelete, isLoading, orders, page, se
                   <TableCell className="py-6 px-8">
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center border border-primary/10 overflow-hidden relative">
-                        <Image loader={unsplashLoader} src={scribe.profileImage || logoImg} alt="P" fill className="object-cover" />
+                        <Image loader={unsplashLoader} src={scribe.profile_image || logoImg} alt="P" fill className="object-cover" />
                       </div>
                       <div className="text-right">
                         <p className="font-black text-primary text-sm leading-none mb-1 flex items-center gap-2">
-                          {scribe.firstName} {scribe.lastName}
-                          {scribe.isApproved && <CheckCircle2 className="w-3 h-3 text-emerald-500" />}
+                          {scribe.first_name} {scribe.last_name}
+                          {scribe.is_approved && <CheckCircle2 className="w-3 h-3 text-emerald-500" />}
                         </p>
                         <p className="text-[8px] text-muted-foreground font-bold font-mono bg-muted/50 px-2 py-0.5 rounded w-fit">ID: {scribe.id?.slice(0, 12)}</p>
                       </div>
@@ -462,7 +462,7 @@ function ScribeTable({ scribes, onApprove, onDelete, isLoading, orders, page, se
                   <TableCell className="px-8">
                     <div className="flex items-center gap-2 justify-end">
                       <VerifyScribeDialog scribe={scribe} db={db} />
-                      {!scribe.isApproved ? (
+                      {!scribe.is_approved ? (
                         <Button onClick={() => onApprove(scribe.id)} className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-full px-5 h-8 text-[9px] font-black uppercase tracking-widest">אשר סופר</Button>
                       ) : (
                         <Badge className="bg-emerald-50 text-emerald-700 border-none px-4 py-1 text-[8px] font-black uppercase tracking-widest">מאושר</Badge>
@@ -504,7 +504,7 @@ function CustomerTable({ customers, orders, page, setPage }: any) {
                 <TableRow key={cust.id} className="border-muted/20">
                   <TableCell className="py-6 px-8">
                     <div className="text-right">
-                      <p className="font-black text-primary text-sm">{cust.firstName} {cust.lastName}</p>
+                      <p className="font-black text-primary text-sm">{cust.first_name} {cust.last_name}</p>
                       <p className="text-[9px] text-muted-foreground">{cust.email}</p>
                     </div>
                   </TableCell>
@@ -512,7 +512,7 @@ function CustomerTable({ customers, orders, page, setPage }: any) {
                   <TableCell className="text-center">
                     <Badge className="bg-primary/5 text-primary border-primary/10 rounded-full font-black text-[10px] px-3">{custOrdersCount} הזמנות</Badge>
                   </TableCell>
-                  <TableCell className="text-[10px] font-bold text-muted-foreground">{cust.createdAt ? new Date(cust.createdAt).toLocaleDateString('he-IL') : '-'}</TableCell>
+                  <TableCell className="text-[10px] font-bold text-muted-foreground">{cust.created_at ? new Date(cust.created_at).toLocaleDateString('he-IL') : '-'}</TableCell>
                   <TableCell className="px-8 text-left">
                     <Button variant="ghost" size="sm" asChild className="rounded-full h-8 px-4 text-[9px] font-black border-primary/5">
                        <Link href={`/customer/dashboard`}>צפה</Link>
@@ -539,7 +539,7 @@ function SalesCards({ orders, sellers, onLinkToTab, page, setPage }: any) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {paginatedData.map((o: any) => {
           const seller = sellers?.find((s: any) => s.id === o.sellerId);
-          const date = o.createdAt?.toDate ? o.createdAt.toDate() : new Date(o.createdAt);
+          const date = o.created_at?.toDate ? o.created_at.toDate() : new Date(o.created_at);
           const formattedDate = date.toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric' });
           const formattedTime = date.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
 
@@ -563,19 +563,19 @@ function SalesCards({ orders, sellers, onLinkToTab, page, setPage }: any) {
                       <Image src={o.productImage} alt="P" fill className="object-cover" />
                     </div>
                     <div className="text-right flex-1 min-w-0">
-                      <h4 className="font-black text-primary truncate text-sm">{o.productName}</h4>
+                      <h4 className="font-black text-primary truncate text-sm">{o.product_name}</h4>
                       <p className="text-base font-black text-emerald-600">₪{o.amount.toLocaleString()}</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-2 pt-2 border-t border-muted/50">
-                  <div className="flex justify-between items-center group/btn cursor-pointer" onClick={() => onLinkToTab('customers', o.buyerName)}>
-                     <div className="flex items-center gap-1.5"><UserRound className="w-3 h-3 text-accent" /><span className="text-[10px] font-bold text-primary/60 group-hover/btn:text-primary transition-colors underline decoration-primary/10">{o.buyerName}</span></div>
+                  <div className="flex justify-between items-center group/btn cursor-pointer" onClick={() => onLinkToTab('customers', o.buyer_name)}>
+                     <div className="flex items-center gap-1.5"><UserRound className="w-3 h-3 text-accent" /><span className="text-[10px] font-bold text-primary/60 group-hover/btn:text-primary transition-colors underline decoration-primary/10">{o.buyer_name}</span></div>
                      <span className="text-[8px] font-black text-muted-foreground uppercase">קונה</span>
                   </div>
-                  <div className="flex justify-between items-center group/btn cursor-pointer" onClick={() => onLinkToTab('active', `${seller?.firstName} ${seller?.lastName}`)}>
-                     <div className="flex items-center gap-1.5"><ShieldCheck className="w-3 h-3 text-primary/40" /><span className="text-[10px] font-bold text-primary/60 group-hover/btn:text-primary transition-colors underline decoration-primary/10">{seller ? `${seller.firstName} ${seller.lastName}` : 'סופר לא מזוהה'}</span></div>
+                  <div className="flex justify-between items-center group/btn cursor-pointer" onClick={() => onLinkToTab('active', `${seller?.first_name} ${seller?.last_name}`)}>
+                     <div className="flex items-center gap-1.5"><ShieldCheck className="w-3 h-3 text-primary/40" /><span className="text-[10px] font-bold text-primary/60 group-hover/btn:text-primary transition-colors underline decoration-primary/10">{seller ? `${seller.first_name} ${seller.last_name}` : 'סופר לא מזוהה'}</span></div>
                      <span className="text-[8px] font-black text-muted-foreground uppercase">מוכר</span>
                   </div>
                 </div>
@@ -616,16 +616,16 @@ function TorahRequestsTable({ orders, sellers, page, setPage }: any) {
           <TableBody>
             {paginatedData.map((o: any) => {
               const seller = sellers?.find((s: any) => s.id === o.sellerId);
-              const date = o.createdAt?.toDate ? o.createdAt.toDate() : new Date(o.createdAt);
+              const date = o.created_at?.toDate ? o.created_at.toDate() : new Date(o.created_at);
               return (
                 <TableRow key={o.id} className="border-muted/20">
                   <TableCell className="py-6 px-8">
                      <p className="text-[9px] font-black text-primary font-mono mb-1">{o.id}</p>
                      <p className="text-[10px] font-bold text-muted-foreground">{date.toLocaleDateString('he-IL')}</p>
                   </TableCell>
-                  <TableCell className="text-[10px] font-bold text-primary">{o.buyerName}</TableCell>
-                  <TableCell className="text-[10px] font-bold text-primary">{seller ? `${seller.firstName} ${seller.lastName}` : 'סופר לא מזוהה'}</TableCell>
-                  <TableCell className="text-[10px] font-bold text-primary">{o.productName}</TableCell>
+                  <TableCell className="text-[10px] font-bold text-primary">{o.buyer_name}</TableCell>
+                  <TableCell className="text-[10px] font-bold text-primary">{seller ? `${seller.first_name} ${seller.last_name}` : 'סופר לא מזוהה'}</TableCell>
+                  <TableCell className="text-[10px] font-bold text-primary">{o.product_name}</TableCell>
                   <TableCell className="px-8 text-left">
                     <Button variant="ghost" size="sm" asChild className="rounded-full h-8 px-4 text-[9px] font-black border-primary/5">
                        <Link href={`/products/${o.productId}`}>צפה במוצר</Link>
@@ -662,12 +662,12 @@ function ReportsTable({ reports, onDelete, page, setPage }: any) {
           </TableHeader>
           <TableBody>
             {paginatedData.map((r: any) => {
-              const date = r.createdAt?.toDate ? r.createdAt.toDate() : new Date(r.createdAt);
+              const date = r.created_at?.toDate ? r.created_at.toDate() : new Date(r.created_at);
               return (
                 <TableRow key={r.id} className="border-muted/20">
                   <TableCell className="py-6 px-8 text-[10px] font-bold">{date.toLocaleDateString('he-IL')}</TableCell>
                   <TableCell className="text-[10px] font-bold text-primary">{r.reporterName}</TableCell>
-                  <TableCell className="text-[10px] font-bold text-primary">{r.sellerName}</TableCell>
+                  <TableCell className="text-[10px] font-bold text-primary">{r.seller_name}</TableCell>
                   <TableCell className="text-[10px] font-bold text-destructive max-w-xs truncate">{r.reason}</TableCell>
                   <TableCell className="px-8 text-left">
                     <Button variant="ghost" size="icon" onClick={() => onDelete(r.id)} className="h-8 w-8 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive"><Trash2 className="w-3.5 h-3.5" /></Button>
@@ -684,7 +684,7 @@ function ReportsTable({ reports, onDelete, page, setPage }: any) {
 }
 
 function VerifyScribeDialog({ scribe, db }: any) {
-  const reviewsQuery = useMemoStable(() => query(collection(db, 'reviews'), where('sellerId', '==', scribe.id)), [db, scribe.id]);
+  const reviewsQuery = useMemoStable(() => query(collection(db, 'reviews'), where('seller_id', '==', scribe.id)), [db, scribe.id]);
   const { data: reviews } = useCollection<any>(reviewsQuery);
 
   const averageRating = useMemo(() => {
@@ -704,10 +704,10 @@ function VerifyScribeDialog({ scribe, db }: any) {
           <DialogHeader>
             <DialogTitle className="text-xl font-headline font-black tracking-tight flex items-center gap-4 text-white">
               <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center border border-white/20 relative overflow-hidden">
-                <Image src={scribe.profileImage || 'https://picsum.photos/seed/scribe/200/200'} alt="S" fill className="object-cover" />
+                <Image src={scribe.profile_image || 'https://picsum.photos/seed/scribe/200/200'} alt="S" fill className="object-cover" />
               </div>
               <div>
-                <p>{scribe.firstName} {scribe.lastName}</p>
+                <p>{scribe.first_name} {scribe.last_name}</p>
                 <div className="flex items-center gap-1 mt-1">
                    {[1,2,3,4,5].map(s => <Star key={s} className={`w-3 s ${s <= averageRating ? 'text-accent fill-accent' : 'text-white/20'}`} />)}
                    <span className="text-[8px] opacity-60 mr-2">({reviews?.length || 0} ביקורות)</span>
@@ -754,8 +754,8 @@ function VerifyScribeDialog({ scribe, db }: any) {
                <div className="space-y-4">
                   <h4 className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2"><UserCheck className="w-4 h-4" /> רקע מקצועי והנהגה</h4>
                   <div className="bg-primary/5 p-5 rounded-2xl space-y-3 text-[11px] font-bold border border-primary/10">
-                    <div className="flex justify-between border-b border-primary/10 pb-2"><span>{scribe.experienceYears} שנים</span><span className="text-muted-foreground">ניסיון:</span></div>
-                    <div className="flex justify-between border-b border-primary/10 pb-2"><span>{scribe.scriptLevel}</span><span className="text-muted-foreground">רמת הידור:</span></div>
+                    <div className="flex justify-between border-b border-primary/10 pb-2"><span>{scribe.experience_years} שנים</span><span className="text-muted-foreground">ניסיון:</span></div>
+                    <div className="flex justify-between border-b border-primary/10 pb-2"><span>{scribe.script_level}</span><span className="text-muted-foreground">רמת הידור:</span></div>
                     <div className="flex justify-between border-b border-primary/10 pb-2"><span>{scribe.torahStudyFrequency === 'full-day' ? 'אברך יום שלם' : scribe.torahStudyFrequency === 'half-day' ? 'אברך חצי יום' : 'קובע עיתים'}</span><span className="text-muted-foreground">לימוד:</span></div>
                     <div className="flex justify-between border-b border-primary/10 pb-2"><span>{scribe.mikvehFrequency === 'daily' ? 'כל יום' : scribe.mikvehFrequency === 'before' ? 'לפני כתיבה' : 'טבילת עזרא'}</span><span className="text-muted-foreground">טבילה:</span></div>
                     <div className="flex justify-between"><span>{scribe.maritalStatus === 'married' ? 'נשוי' : 'רווק'}</span><span className="text-muted-foreground">מצב משפחתי:</span></div>

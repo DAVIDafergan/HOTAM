@@ -90,23 +90,23 @@ export default function CustomerDashboard() {
   const { data: customer, isLoading: isCustomerLoading } = useDoc<any>(customerRef);
 
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+    first_name: '',
+    last_name: '',
     phone: '',
     address: '',
-    notifMsgEmail: true,
-    notifStatusEmail: true,
+    notif_msg_email: true,
+    notif_status_email: true,
   });
 
   useEffect(() => {
     if (customer) {
       setFormData({
-        firstName: customer.firstName || '',
-        lastName: customer.lastName || '',
+        first_name: customer.first_name || '',
+        last_name: customer.last_name || '',
         phone: customer.phone || '',
         address: customer.address || '',
-        notifMsgEmail: customer.notifMsgEmail ?? true,
-        notifStatusEmail: customer.notifStatusEmail ?? true,
+        notif_msg_email: customer.notif_msg_email ?? true,
+        notif_status_email: customer.notif_status_email ?? true,
       });
     }
   }, [customer]);
@@ -126,7 +126,7 @@ export default function CustomerDashboard() {
     supabase
       .from('orders')
       .select('*')
-      .eq('buyerId', user.uid)
+      .eq('buyer_id', user.uid)
       .then(({ data, error }) => {
         if (error) {
           console.error(error);
@@ -145,9 +145,9 @@ export default function CustomerDashboard() {
   const { data: chats, isLoading: isChatsLoading } = useCollection<any>(chatsQuery);
 
   const favoritesQuery = useMemoStable(() => {
-    if (!canLoadData || !customer?.favoriteProductIds || customer.favoriteProductIds.length === 0) return null;
-    return query(collection(db, 'products'), where(documentId(), 'in', customer.favoriteProductIds.slice(0, 30)));
-  }, [db, canLoadData, customer?.favoriteProductIds]);
+    if (!canLoadData || !customer?.favorite_product_ids || customer.favorite_product_ids.length === 0) return null;
+    return query(collection(db, 'products'), where(documentId(), 'in', customer.favorite_product_ids.slice(0, 30)));
+  }, [db, canLoadData, customer?.favorite_product_ids]);
   const { data: favoriteProducts, isLoading: isFavoritesLoading } = useCollection<any>(favoritesQuery);
 
   const handleSaveProfile = () => {
@@ -155,7 +155,7 @@ export default function CustomerDashboard() {
     setIsSaving(true);
     updateDocumentNonBlocking(customerRef, {
       ...formData,
-      updatedAt: new Date().toISOString()
+      updated_at: new Date().toISOString()
     });
     setTimeout(() => {
       setIsSaving(false);
@@ -168,15 +168,15 @@ export default function CustomerDashboard() {
     setIsRatingSubmitting(true);
 
     const reviewData = {
-      orderId: ratingOrderId.id,
-      sellerId: ratingOrderId.sellerId,
-      productId: ratingOrderId.productId,
-      buyerId: user.uid,
-      buyerName: `${customer?.firstName || 'לקוח'} ${customer?.lastName || 'חותם'}`,
+      order_id: ratingOrderId.id,
+      seller_id: ratingOrderId.seller_id,
+      product_id: ratingOrderId.product_id,
+      buyer_id: user.uid,
+      buyer_name: `${customer?.first_name || 'לקוח'} ${customer?.last_name || 'חותם'}`,
       rating: scribeRatingVal,
       productRating: productRatingVal,
       comment: ratingComment,
-      createdAt: serverTimestamp()
+      created_at: serverTimestamp()
     };
 
     addDocumentNonBlocking(collection(db, 'reviews'), reviewData);
@@ -208,7 +208,7 @@ export default function CustomerDashboard() {
       <main className="container mx-auto px-4 py-20 md:py-28 max-w-5xl flex-1">
         <div className="flex flex-col md:flex-row items-center justify-between mb-10 gap-4 text-right">
           <div className="text-right order-1 md:order-2">
-            <h1 className="text-3xl md:text-4xl font-headline font-black text-primary tracking-tight">שלום, {customer?.firstName}</h1>
+            <h1 className="text-3xl md:text-4xl font-headline font-black text-primary tracking-tight">שלום, {customer?.first_name}</h1>
             <p className="text-muted-foreground font-medium text-sm">ניהול רכישות הקודש ואישור מסירה</p>
           </div>
           <Button variant="outline" asChild size="sm" className="gap-2 rounded-full text-xs h-10 px-6 order-2 md:order-1 border-primary/10 bg-white shadow-sm">
@@ -233,11 +233,11 @@ export default function CustomerDashboard() {
                  {orders.map((order: any) => (
                    <Card key={order.id} className="border-none shadow-premium rounded-[2rem] bg-white p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 hover:shadow-xl transition-all">
                      <div className="relative w-20 h-20 rounded-2xl overflow-hidden border shrink-0">
-                       <Image loader={unsplashLoader} src={order.productImage || 'https://picsum.photos/seed/order/200/200'} alt={order.productName} fill sizes="80px" className="object-cover" />
+                       <Image loader={unsplashLoader} src={order.product_image || 'https://picsum.photos/seed/order/200/200'} alt={order.product_name} fill sizes="80px" className="object-cover" />
                      </div>
                      <div className="flex-1 text-right w-full">
                        <div className="flex items-center justify-start gap-3 mb-1">
-                         <h4 className="font-black text-primary text-lg">{order.productName}</h4>
+                         <h4 className="font-black text-primary text-lg">{order.product_name}</h4>
                          {order.status === 'paid' ? (
                            <Badge className="bg-blue-50 text-blue-600 border-none font-black text-[9px] uppercase"><ShieldCheck className="w-3 h-3 ml-1" /> הכסף בהקפאה</Badge>
                          ) : order.status === 'completed' ? (
@@ -259,11 +259,11 @@ export default function CustomerDashboard() {
 
                        <div className="flex items-center gap-4 mt-3 text-[10px] font-bold text-primary/60">
                          <span className="bg-primary/5 px-3 py-1 rounded-full">₪{order.amount}</span>
-                         <span className="flex items-center gap-1.5"><Clock className="w-3 h-3" /> {order.createdAt ? new Date(order.createdAt).toLocaleDateString('he-IL') : 'היום'}</span>
+                         <span className="flex items-center gap-1.5"><Clock className="w-3 h-3" /> {order.created_at ? new Date(order.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
                        </div>
                      </div>
                      <div className="flex flex-col gap-2 shrink-0 w-full sm:w-auto">
-                        <Button variant="outline" asChild size="sm" className="rounded-full h-10 px-6 border-primary/10 font-bold text-xs"><Link href={`/products/${order.productId}`}>צפה במוצר</Link></Button>
+                        <Button variant="outline" asChild size="sm" className="rounded-full h-10 px-6 border-primary/10 font-bold text-xs"><Link href={`/products/${order.product_id}`}>צפה במוצר</Link></Button>
                         {order.status === 'completed' && !order.isRated && (
                           <Button variant="secondary" size="sm" onClick={() => setRatingOrderId(order)} className="rounded-full h-10 px-6 bg-accent/10 text-accent font-black text-xs gap-2"><Star className="w-3 h-3 fill-current" /> דרג סופר</Button>
                         )}
@@ -301,8 +301,8 @@ export default function CustomerDashboard() {
               <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-6">
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2"><Label className="text-[10px] font-black uppercase">שם פרטי</Label><Input value={formData.firstName} onChange={(e) => setFormData({...formData, firstName: e.target.value})} className="rounded-xl h-12" /></div>
-                    <div className="space-y-2"><Label className="text-[10px] font-black uppercase">שם משפחה</Label><Input value={formData.lastName} onChange={(e) => setFormData({...formData, lastName: e.target.value})} className="rounded-xl h-12" /></div>
+                    <div className="space-y-2"><Label className="text-[10px] font-black uppercase">שם פרטי</Label><Input value={formData.first_name} onChange={(e) => setFormData({...formData, first_name: e.target.value})} className="rounded-xl h-12" /></div>
+                    <div className="space-y-2"><Label className="text-[10px] font-black uppercase">שם משפחה</Label><Input value={formData.last_name} onChange={(e) => setFormData({...formData, last_name: e.target.value})} className="rounded-xl h-12" /></div>
                   </div>
                   <div className="space-y-2"><Label className="text-[10px] font-black uppercase">מספר טלפון</Label><Input value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="rounded-xl h-12" /></div>
                   <div className="space-y-2"><Label className="text-[10px] font-black uppercase">כתובת למשלוח</Label><Input value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} className="rounded-xl h-12" /></div>
@@ -310,7 +310,7 @@ export default function CustomerDashboard() {
                 <div className="space-y-6">
                    <div className="flex items-center justify-between p-4 bg-muted/20 rounded-2xl">
                       <span className="text-sm font-bold">עדכוני סטטוס במייל</span>
-                      <Switch checked={formData.notifStatusEmail} onCheckedChange={(v) => setFormData({...formData, notifStatusEmail: v})} />
+                      <Switch checked={formData.notif_status_email} onCheckedChange={(v) => setFormData({...formData, notif_status_email: v})} />
                     </div>
                 </div>
               </div>
@@ -363,12 +363,12 @@ function CustomerChatListItem({ chat, otherUserId }: any) {
       <Card className="p-5 bg-white rounded-3xl shadow-premium hover:shadow-xl transition-all border border-transparent hover:border-accent/10">
         <div className="flex items-center gap-5 text-right">
           <Avatar className="h-14 w-14 border-2 border-primary/5 shadow-sm">
-            <AvatarImage src={otherUser?.profileImage} />
+            <AvatarImage src={otherUser?.profile_image} />
             <AvatarFallback><UserRound className="w-7 h-7 text-primary/20" /></AvatarFallback>
           </Avatar>
           <div className="flex-1 overflow-hidden">
             <div className="flex justify-between items-baseline">
-              <h4 className="font-black text-primary text-base truncate">{otherUser ? `${otherUser.firstName} ${otherUser.lastName}` : 'טוען...'}</h4>
+              <h4 className="font-black text-primary text-base truncate">{otherUser ? `${otherUser.first_name} ${otherUser.last_name}` : 'טוען...'}</h4>
               <span className="text-[9px] text-muted-foreground font-bold">{chat.lastMessageAt?.toDate ? chat.lastMessageAt.toDate().toLocaleDateString('he-IL') : ''}</span>
             </div>
             <p className="text-xs text-muted-foreground truncate font-medium mt-1">{chat.lastMessageText || 'אין הודעות עדיין'}</p>

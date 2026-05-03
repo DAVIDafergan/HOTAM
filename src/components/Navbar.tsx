@@ -79,7 +79,7 @@ export function Navbar() {
                        user?.uid === "aMqKTe1Y4NSQdupLPupviiyrdyj2" ||
                        (user?.email && adminEmails.map(e => e.toLowerCase()).includes(user.email.toLowerCase()));
   
-  const displayName = profile?.firstName || user?.email?.split('@')[0] || 'משתמש';
+  const displayName = profile?.first_name || user?.email?.split('@')[0] || 'משתמש';
   const dashboardLink = isSuperAdmin ? '/admin' : (isSeller ? '/seller/dashboard' : '/customer/dashboard');
 
   const greeting = useMemo(() => {
@@ -104,7 +104,7 @@ export function Navbar() {
 
   const pendingSellersQuery = useMemoStable(() => {
     if (!isSuperAdmin || !mounted) return null;
-    return query(collection(db, 'sellers'), where('isApproved', '==', false));
+    return query(collection(db, 'sellers'), where('is_approved', '==', false));
   }, [db, isSuperAdmin, mounted]);
   const { data: pendingSellers } = useCollection<any>(pendingSellersQuery);
 
@@ -221,7 +221,7 @@ export function Navbar() {
                                 <p className="text-lg font-headline font-black text-primary tracking-tight truncate max-w-[140px] leading-tight">{displayName}</p>
                               </div>
                               <Avatar className="h-12 w-12 border-2 border-white shadow-sm shrink-0">
-                                <AvatarImage src={profile?.profileImage} />
+                                <AvatarImage src={profile?.profile_image} />
                                 <AvatarFallback className="bg-primary/5 text-primary text-[10px] font-black">{displayName.charAt(0)}</AvatarFallback>
                               </Avatar>
                             </div>
@@ -400,7 +400,7 @@ export function Navbar() {
                                 </div>
                                 <div className="flex flex-col text-right">
                                   <span className="text-[11px] font-bold text-primary">{order.status === 'paid' ? 'הזמנה חדשה למסירה' : 'בקשה לספר תורה'}</span>
-                                  <span className="text-[9px] text-muted-foreground">{order.productName}</span>
+                                  <span className="text-[9px] text-muted-foreground">{order.product_name}</span>
                                 </div>
                               </div>
                               <div className="w-1.5 h-1.5 bg-accent rounded-full" />
@@ -417,7 +417,7 @@ export function Navbar() {
                                     <div className="p-2 bg-purple-50 rounded-lg text-purple-600"><MessageCircle className="w-4 h-4" /></div>
                                     <div className="flex flex-col text-right">
                                       <span className="text-[11px] font-bold text-primary">הודעה חדשה</span>
-                                      <span className="text-[9px] text-muted-foreground truncate max-w-[120px]">{chat.lastMessageText}</span>
+                                      <span className="text-[9px] text-muted-foreground truncate max-w-[120px]">{chat.last_message_text}</span>
                                     </div>
                                   </div>
                                   <div className="w-1.5 h-1.5 bg-purple-500 rounded-full" />
@@ -456,7 +456,7 @@ export function Navbar() {
                         <span className="text-[8px] font-bold text-accent uppercase">{isSuperAdmin ? 'מנהל מערכת' : 'ניהול חשבון'}</span>
                       </div>
                       <Avatar className="h-8 w-8 border-2 border-white shadow-sm shrink-0">
-                        <AvatarImage src={profile?.profileImage} />
+                        <AvatarImage src={profile?.profile_image} />
                         <AvatarFallback className="bg-primary/5 text-primary text-[10px] font-black">{displayName.charAt(0)}</AvatarFallback>
                       </Avatar>
                       {(hasUnreadMessages || (isSuperAdmin && adminNotificationCount > 0) || (isSeller && sellerNotificationCount > 0)) && (

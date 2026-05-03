@@ -61,7 +61,7 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (customer) {
-      setRecipientName(`${customer.firstName || ''} ${customer.lastName || ''}`);
+      setRecipientName(`${customer.first_name || ''} ${customer.last_name || ''}`);
       setRecipientPhone(customer.phone || '');
       setRecipientAddress(customer.address || '');
     }
@@ -104,21 +104,21 @@ export default function CheckoutPage() {
 
     const orderData = {
       id: shortId,
-      buyerId: user?.uid,
-      buyerName: recipientName,
-      buyerPhone: recipientPhone,
-      buyerEmail: user?.email || '',
-      buyerAddress: deliveryChoice === 'shipping' ? `${recipientAddress}, ${recipientCity}` : 'איסוף עצמי',
-      sellerId: product.sellerId,
-      productId: productId,
-      productName: product.productType,
-      productImage: product.images?.[0] || '',
+      buyer_id: user?.uid,
+      buyer_name: recipientName,
+      buyer_phone: recipientPhone,
+      buyer_email: user?.email || '',
+      buyer_address: deliveryChoice === 'shipping' ? `${recipientAddress}, ${recipientCity}` : 'איסוף עצמי',
+      seller_id: product.seller_id,
+      product_id: productId,
+      product_name: product.product_type,
+      product_image: product.images?.[0] || '',
       amount: totalPrice,
-      deliveryMethod: deliveryChoice === 'shipping' ? 'משלוח' : 'איסוף עצמי',
+      delivery_method: deliveryChoice === 'shipping' ? 'משלוח' : 'איסוף עצמי',
       status: 'pending_payment',
-      verificationCode: vCode,
-      isRated: false,
-      createdAt: serverTimestamp()
+      verification_code: vCode,
+      is_rated: false,
+      created_at: serverTimestamp()
     };
 
     try {
@@ -131,9 +131,9 @@ export default function CheckoutPage() {
         body: JSON.stringify({
           orderId: shortId,
           amount: totalPrice,
-          buyerName: recipientName,
-          buyerEmail: user?.email,
-          buyerPhone: recipientPhone
+          buyer_name: recipientName,
+          buyer_email: user?.email,
+          buyer_phone: recipientPhone
         })
       });
 
@@ -197,7 +197,7 @@ export default function CheckoutPage() {
                       <Truck className="w-5 h-5 text-primary" />
                       <div className="text-right">
                         <span className="font-black text-primary block">משלוח</span>
-                        <span className="text-xs text-muted-foreground">עד הבית (+₪{product.deliveryFee || 0})</span>
+                        <span className="text-xs text-muted-foreground">עד הבית (+₪{product.delivery_fee || 0})</span>
                       </div>
                     </div>
                     <RadioGroupItem value="shipping" id="delivery" />
@@ -248,7 +248,7 @@ export default function CheckoutPage() {
                 <h3 className="font-black text-primary border-b pb-3 mb-4">סיכום הזמנה</h3>
                 <div className="flex gap-4 items-center mb-6">
                   <div className="relative w-16 h-16 rounded-xl overflow-hidden border shrink-0"><Image loader={unsplashLoader} src={product.images?.[0] || '/hotam-logo.png'} alt="product" fill className="object-cover" /></div>
-                  <div className="text-right"><p className="font-black text-sm">{product.productType}</p><p className="text-[10px] text-muted-foreground font-bold">{product.scriptType}</p></div>
+                  <div className="text-right"><p className="font-black text-sm">{product.product_type}</p><p className="text-[10px] text-muted-foreground font-bold">{product.script_type}</p></div>
                 </div>
                 <div className="space-y-3 border-t pt-4">
                   <div className="flex justify-between text-xs font-bold">
@@ -261,7 +261,7 @@ export default function CheckoutPage() {
                   </div>
                   {deliveryChoice === 'shipping' && (
                     <div className="flex justify-between text-xs font-bold">
-                      <span>₪{product.deliveryFee || 0}</span>
+                      <span>₪{product.delivery_fee || 0}</span>
                       <span className="text-muted-foreground">דמי משלוח</span>
                     </div>
                   )}

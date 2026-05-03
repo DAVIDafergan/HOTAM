@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -29,8 +29,7 @@ import {
   Info
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useAuth, useUser, initiateEmailSignUp, setDocumentNonBlocking, useFirestore } from '@/lib/supabase-hooks';
-import { doc } from '@/lib/supabase-compat';
+import { useAuth, useUser, initiateEmailSignUp, useFirestore } from '@/lib/supabase-hooks';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -53,7 +52,7 @@ export default function SellerOnboarding() {
   const router = useRouter();
   const auth = useAuth();
   const db = useFirestore();
-  const { user, isUserLoading } = useUser();
+  useUser(); // keep provider warm so auth state updates propagate
   const { toast } = useToast();
 
   const certInputRef = useRef<HTMLInputElement>(null);
@@ -174,24 +173,37 @@ export default function SellerOnboarding() {
     if (validateStep()) setStep(s => Math.min(s + 1, totalSteps));
   };
 
-  const handleFinalSubmit = () => {
+  const handleFinalSubmit = async () => {
     if (!validateStep()) return;
     setLoading(true);
-    initiateEmailSignUp(auth, formData.email, formData.password).catch((error: any) => {
-      setLoading(false);
-      toast({
-        variant: "destructive",
-        title: "שגיאת הרשמה",
-        description: error.code === 'auth/email-already-in-use' ? "האימייל כבר קיים במערכת." : "חלה שגיאה בתהליך ההרשמה.",
-      });
-    });
-  };
 
-  useEffect(() => {
-    if (user && !isUserLoading && loading) {
-      const sellerRef = doc(db, 'sellers', user.uid);
+    try {
+      const signUpData = await initiateEmailSignUp(auth, formData.email, formData.password);
+
+      let accessToken: string | undefined = (signUpData as any)?.session?.access_token;
+
+      if (!accessToken) {
+        const { data: signInData } = await db.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+        accessToken = signInData.session?.access_token;
+      }
+
+      const userId: string = (signUpData as any)?.user?.id ?? (signUpData as any)?.session?.user?.id;
+
+      if (!accessToken || !userId) {
+        toast({
+          variant: 'destructive',
+          title: 'שגיאת הרשמה',
+          description: 'לא ניתן היה לאמת את החשבון. ייתכן שנדרש אישור דוא"ל לפני הכניסה.',
+        });
+        setLoading(false);
+        return;
+      }
+
       const sellerData = {
-        id: user.uid,
+        id: userId,
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
@@ -218,12 +230,32 @@ export default function SellerOnboarding() {
         favoriteProductIds: [],
         createdAt: new Date().toISOString(),
       };
-      
-      setDocumentNonBlocking(sellerRef, sellerData, { merge: true });
-      toast({ title: "ההרשמה הסתיימה", description: "הפרופיל שלך הועבר לאישור מנהל." });
+
+      const res = await fetch('/api/register-seller', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(sellerData),
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || 'registration-failed');
+      }
+
+      toast({ title: 'ההרשמה הסתיימה', description: 'הפרופיל שלך הועבר לאישור מנהל.' });
       router.push('/seller/dashboard');
+    } catch (error: any) {
+      setLoading(false);
+      toast({
+        variant: 'destructive',
+        title: 'שגיאת הרשמה',
+        description: error.code === 'auth/email-already-in-use' ? 'האימייל כבר קיים במערכת.' : 'חלה שגיאה בתהליך ההרשמה.',
+      });
     }
-  }, [user, isUserLoading, loading, db, formData, router, toast]);
+  };
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">

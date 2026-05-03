@@ -33,6 +33,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useUser, useFirebase, useFirestore, useDoc, useMemoFirebase, useCollection, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/lib/supabase-hooks';
 import { doc, collection, query, where, documentId, serverTimestamp } from '@/lib/supabase-compat';
+import { supabase } from '@/lib/supabase';
 import { ProductCard } from '@/components/ProductCard';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
@@ -112,11 +113,30 @@ export default function CustomerDashboard() {
 
   const canLoadData = !!user && !!customer;
 
-  const ordersQuery = useMemoFirebase(() => {
-    if (!canLoadData) return null;
-    return query(collection(db, 'orders'), where('buyerId', '==', user.uid));
-  }, [db, user?.uid, canLoadData]);
-  const { data: orders, isLoading: isOrdersLoading } = useCollection<any>(ordersQuery);
+  const [orders, setOrders] = useState<any[] | null>(null);
+  const [isOrdersLoading, setIsOrdersLoading] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      setOrders(null);
+      setIsOrdersLoading(false);
+      return;
+    }
+    setIsOrdersLoading(true);
+    supabase
+      .from('orders')
+      .select('*')
+      .eq('buyerId', user.uid)
+      .then(({ data, error }) => {
+        if (error) {
+          console.error(error);
+          toast({ title: "שגיאה בטעינת ההזמנות", variant: "destructive" });
+        } else {
+          setOrders(data);
+        }
+        setIsOrdersLoading(false);
+      });
+  }, [user?.uid]);
 
   const chatsQuery = useMemoFirebase(() => {
     if (!canLoadData) return null;
@@ -206,7 +226,9 @@ export default function CustomerDashboard() {
           </TabsList>
 
           <TabsContent value="orders" className="space-y-4">
-             {orders && orders.length > 0 ? (
+             {isOrdersLoading ? (
+               <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+             ) : orders && orders.length > 0 ? (
                <div className="grid gap-4">
                  {orders.map((order: any) => (
                    <Card key={order.id} className="border-none shadow-premium rounded-[2rem] bg-white p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 hover:shadow-xl transition-all">
@@ -237,7 +259,7 @@ export default function CustomerDashboard() {
 
                        <div className="flex items-center gap-4 mt-3 text-[10px] font-bold text-primary/60">
                          <span className="bg-primary/5 px-3 py-1 rounded-full">₪{order.amount}</span>
-                         <span className="flex items-center gap-1.5"><Clock className="w-3 h-3" /> {order.createdAt?.toDate ? order.createdAt.toDate().toLocaleDateString('he-IL') : 'היום'}</span>
+                         <span className="flex items-center gap-1.5"><Clock className="w-3 h-3" /> {order.createdAt ? new Date(order.createdAt).toLocaleDateString('he-IL') : 'היום'}</span>
                        </div>
                      </div>
                      <div className="flex flex-col gap-2 shrink-0 w-full sm:w-auto">

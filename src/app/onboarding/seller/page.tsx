@@ -178,35 +178,32 @@ export default function SellerOnboarding() {
     setLoading(true);
 
     try {
-      const signUpData = await initiateEmailSignUp(auth, formData.email, formData.password);
+      // Sign up with role='seller' so the DB trigger creates the sellers row.
+      const signUpData = await initiateEmailSignUp(
+        auth,
+        formData.email,
+        formData.password,
+        { role: 'seller', firstName: formData.firstName, lastName: formData.lastName },
+      );
 
-      let accessToken: string | undefined = (signUpData as any)?.session?.access_token;
+      const userId: string | undefined =
+        (signUpData as any)?.user?.id ?? (signUpData as any)?.session?.user?.id;
 
-      if (!accessToken) {
-        const { data: signInData } = await db.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password,
-        });
-        accessToken = signInData.session?.access_token;
-      }
-
-      const userId: string = (signUpData as any)?.user?.id ?? (signUpData as any)?.session?.user?.id;
-
-      if (!accessToken || !userId) {
+      if (!userId) {
+        // Should not happen, but guard anyway.
         toast({
           variant: 'destructive',
           title: 'שגיאת הרשמה',
-          description: 'לא ניתן היה לאמת את החשבון. ייתכן שנדרש אישור דוא"ל לפני הכניסה.',
+          description: 'לא ניתן היה לאמת את החשבון.',
         });
         setLoading(false);
         return;
       }
 
-      const sellerData = {
-        id: userId,
+      // Build the full seller profile payload.
+      const profilePayload = {
         firstName: formData.firstName,
         lastName: formData.lastName,
-        email: formData.email,
         phone: formData.phone,
         address: formData.address,
         age: Number(formData.age),
@@ -228,31 +225,42 @@ export default function SellerOnboarding() {
         writingSamples: formData.writingSamples,
         isApproved: false,
         favoriteProductIds: [],
-        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
 
-      const res = await fetch('/api/register-seller', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify(sellerData),
-      });
+      if ((signUpData as any)?.session) {
+        // Session is immediately available (email confirmation disabled).
+        // The trigger already created the sellers row; update it with full profile.
+        const { error: dbError } = await db
+          .from('sellers')
+          .update(profilePayload)
+          .eq('id', userId);
 
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error || 'registration-failed');
+        if (dbError) throw dbError;
+
+        toast({ title: 'ההרשמה הסתיימה', description: 'הפרופיל שלך הועבר לאישור מנהל.' });
+        router.push('/seller/dashboard');
+      } else {
+        // Email confirmation is required.
+        // The trigger created the sellers row with basic info; the seller will
+        // complete their profile after confirming their email and logging in.
+        setLoading(false);
+        toast({
+          title: 'הרשמה הצליחה — בדוק את תיבת הדואר שלך',
+          description:
+            'שלחנו קישור אישור לכתובת המייל שלך. לאחר האישור תוכל להתחבר ולהשלים את הפרופיל.',
+        });
+        router.push('/login');
       }
-
-      toast({ title: 'ההרשמה הסתיימה', description: 'הפרופיל שלך הועבר לאישור מנהל.' });
-      router.push('/seller/dashboard');
     } catch (error: any) {
       setLoading(false);
       toast({
         variant: 'destructive',
         title: 'שגיאת הרשמה',
-        description: error.code === 'auth/email-already-in-use' ? 'האימייל כבר קיים במערכת.' : 'חלה שגיאה בתהליך ההרשמה.',
+        description:
+          error.code === 'auth/email-already-in-use'
+            ? 'האימייל כבר קיים במערכת.'
+            : 'חלה שגיאה בתהליך ההרשמה.',
       });
     }
   };

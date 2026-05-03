@@ -104,7 +104,8 @@ export default function AdminDashboard() {
   const adminEmails = ["admin@hotam.co.il", "davidafergan999@gmail.com", "davidafergan@gmail.com", "da@101.org.il", "DA@101.ORG.IL"];
   const isSuperAdmin = user?.uid === "f9hcxiHpzKYMzw7UNpi5II2F13l1" || 
                        user?.uid === "aMqKTe1Y4NSQdupLPupviiyrdyj2" ||
-                       (user?.email && adminEmails.map(e => e.toLowerCase()).includes(user.email.toLowerCase()));
+                       (user?.email && adminEmails.map(e => e.toLowerCase()).includes(user.email.toLowerCase())) ||
+                       user?.role === 'admin';
   
   const adminRef = useMemoFirebase(() => {
     if (!user) return null;

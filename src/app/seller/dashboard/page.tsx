@@ -69,7 +69,6 @@ import {
   useCollection, 
   useDoc,
   useMemoFirebase,
-  addDocumentNonBlocking,
   updateDocumentNonBlocking,
   deleteDocumentNonBlocking
 } from '@/lib/supabase-hooks';
@@ -315,7 +314,7 @@ function SellerDashboardContent() {
     setFormStep(1);
   };
 
-  const handleSubmitProduct = () => {
+  const handleSubmitProduct = async () => {
     if (!user) return;
     
     let finalSize = formParchmentSize;
@@ -349,8 +348,9 @@ function SellerDashboardContent() {
       return;
     }
 
+    const now = new Date().toISOString();
     const data = {
-      seller_id: user.uid,
+      sellerId: user.uid,
       productType: formType,
       subType: formType === 'תפילין' ? 'כללי' : formSubType,
       description: formDescription,
@@ -365,11 +365,19 @@ function SellerDashboardContent() {
       deliveryType: formDeliveryType,
       deliveryFee: formDeliveryType === 'pickup' ? 0 : Number(formDeliveryFee),
       deliveryArea: formDeliveryArea,
-      updatedAt: new Date().toISOString()
+      updatedAt: now
     };
 
-    if (editingProduct) updateDocumentNonBlocking(doc(db, 'products', editingProduct.id), data);
-    else addDocumentNonBlocking(collection(db, 'products'), { ...data, created_at: new Date().toISOString() });
+    if (editingProduct) {
+      updateDocumentNonBlocking(doc(db, 'products', editingProduct.id), data);
+    } else {
+      const { error } = await supabase.from('products').insert([{ ...data, createdAt: now }]);
+      if (error) {
+        console.error("Supabase insert error:", error);
+        toast({ variant: "destructive", title: "שגיאה בהוספת המוצר", description: error.message });
+        return;
+      }
+    }
     
     setIsDialogOpen(false); 
     resetForm();

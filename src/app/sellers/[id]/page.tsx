@@ -34,8 +34,9 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useFirestore, useDoc, useCollection, useMemoFirebase, useUser, addDocumentNonBlocking } from '@/lib/supabase-hooks';
 import { doc, collection, query, where, serverTimestamp } from '@/lib/supabase-compat';
+import { supabase } from '@/lib/supabase';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -60,11 +61,22 @@ export default function SellerProfile() {
   const { data: seller, isLoading: isSellerLoading } = useDoc<any>(sellerRef);
 
   // Fetch Seller's Products
-  const productsQuery = useMemoFirebase(() => {
-    if (!id) return null;
-    return query(collection(db, 'products'), where('sellerId', '==', id));
-  }, [db, id]);
-  const { data: products, isLoading: isProductsLoading } = useCollection<any>(productsQuery);
+  const [products, setProducts] = useState<any[]>([]);
+  const [isProductsLoading, setIsProductsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!id) return;
+    setIsProductsLoading(true);
+    supabase
+      .from('products')
+      .select('*')
+      .eq('seller_id', id)
+      .then(({ data, error }) => {
+        if (error) console.error('products fetch error:', error.message);
+        else setProducts(data || []);
+      })
+      .finally(() => setIsProductsLoading(false));
+  }, [id]);
 
   // Fetch Reviews
   const reviewsQuery = useMemoFirebase(() => {

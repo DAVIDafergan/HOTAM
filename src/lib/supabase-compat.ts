@@ -83,7 +83,7 @@ export function arrayRemove(...elements: any[]): ArrayRemoveValue {
   return { __special: 'arrayRemove', elements };
 }
 
-/** Mirrors firebase/firestore serverTimestamp() */
+/** Mirrors firebase/firestore serverTimestamp() — uses client time for non-blocking writes. */
 export function serverTimestamp(): string {
   return new Date().toISOString();
 }

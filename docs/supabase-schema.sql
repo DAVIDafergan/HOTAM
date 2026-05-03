@@ -220,9 +220,11 @@ CREATE POLICY "customers_admin_all"   ON public.customers FOR ALL
   USING (EXISTS (SELECT 1 FROM public.admins WHERE id = auth.uid()));
 
 -- ── admins policies ───────────────────────────────────────────────────────────
+-- NOTE: Replace the UUIDs below with the actual Supabase Auth user IDs of
+-- your admin accounts. You can find them in Supabase Dashboard → Authentication.
 CREATE POLICY "admins_self_read"  ON public.admins FOR SELECT USING (auth.uid() = id);
 CREATE POLICY "admins_admin_all"  ON public.admins FOR ALL
-  USING (auth.uid() IN ('f9hcxiHpzKYMzw7UNpi5II2F13l1'::UUID, 'aMqKTe1Y4NSQdupLPupviiyrdyj2'::UUID));
+  USING (auth.uid() IN (SELECT id FROM public.admins));
 
 -- ── products policies ─────────────────────────────────────────────────────────
 CREATE POLICY "products_public_read"   ON public.products FOR SELECT USING (true);

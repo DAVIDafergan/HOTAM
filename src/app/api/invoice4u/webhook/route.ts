@@ -19,6 +19,14 @@ export async function GET(req: Request) {
 
 async function handleWebhook(req: Request) {
   try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      console.error('Missing Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+    }
+
     // Support both JSON body and URL query params
     let ApiIdentifier: string | null = null;
     let Status: string | null = null;
@@ -40,10 +48,7 @@ async function handleWebhook(req: Request) {
     console.log('Invoice4u Webhook Triggered:', { ApiIdentifier, Status });
 
     if (Status === 'Success' && ApiIdentifier) {
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      );
+      const supabase = createClient(supabaseUrl, serviceRoleKey);
 
       // Fetch the order
       const { data: order, error: fetchError } = await supabase

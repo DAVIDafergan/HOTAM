@@ -62,7 +62,7 @@ export function initiatePasswordReset(auth: AuthLike, email: string) {
   });
 }
 
-/** @deprecated Anonymous sign-in is not used in this app. */
-export function initiateAnonymousSignIn(_auth: AuthLike) {
-  return Promise.reject(new Error('Anonymous sign-in is not supported with Supabase.'));
+/** @deprecated Anonymous sign-in is not supported with Supabase. */
+export function initiateAnonymousSignIn(_auth: AuthLike): never {
+  throw new Error('Anonymous sign-in is not supported with Supabase.');
 }

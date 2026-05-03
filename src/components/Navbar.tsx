@@ -119,12 +119,18 @@ export function Navbar() {
   const [sellerOrders, setSellerOrders] = useState<any[]>([]);
   useEffect(() => {
     if (!isSeller || !user || !mounted) return;
+    let cancelled = false;
     supabase
       .from('orders')
       .select('*')
       .eq('seller_id', user.uid)
       .eq('is_seen_by_seller', false)
-      .then(({ data }) => setSellerOrders(data ?? []));
+      .then(({ data, error }) => {
+        if (!cancelled) {
+          if (!error) setSellerOrders(data ?? []);
+        }
+      });
+    return () => { cancelled = true; };
   }, [isSeller, user?.uid, mounted]);
 
   const activeUnreadOrders = (sellerOrders || []).filter(o => o.status === 'paid' || o.status === 'torah_request');

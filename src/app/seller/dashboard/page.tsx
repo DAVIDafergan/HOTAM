@@ -73,7 +73,7 @@ import {
   updateDocumentNonBlocking,
   deleteDocumentNonBlocking
 } from '@/firebase';
-import { collection, query, where, doc, increment } from 'firebase/firestore';
+import { collection, query, where, doc, increment } from '@/lib/supabase-compat';
 import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { PlaceHolderImages } from '@/lib/placeholder-images';

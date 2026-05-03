@@ -25,7 +25,7 @@ import {
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import dynamic from 'next/dynamic';
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
-import { collection, query, where, orderBy, limit, doc } from 'firebase/firestore';
+import { collection, query, where, orderBy, doc } from '@/lib/supabase-compat';
 import unsplashLoader from '@/lib/unsplashLoader';
 import { motion } from 'framer-motion';
 import { useMemo } from 'react';

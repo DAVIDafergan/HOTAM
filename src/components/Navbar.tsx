@@ -50,7 +50,7 @@ import {
   useCollection,
   updateDocumentNonBlocking
 } from '@/firebase';
-import { doc, collection, query, where } from 'firebase/firestore';
+import { doc, collection, query, where } from '@/lib/supabase-compat';
 import { useRouter, usePathname } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';

@@ -19,7 +19,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 
 export interface FilterItem {
   column: string;
-  op: 'eq' | 'neq' | 'in' | 'contains' | 'jsonb_contains';
+  op: 'eq' | 'neq' | 'in' | 'contains' | 'jsonb_contains' | 'gt' | 'gte' | 'lt' | 'lte';
   value: any;
   negate?: boolean;
 }
@@ -108,7 +108,7 @@ export interface QueryConstraint {
 /** Mirrors firebase/firestore where() */
 export function where(
   field: string | DocumentIdPath,
-  op: '==' | 'in' | 'array-contains' | '!=' | 'not-in',
+  op: '==' | 'in' | 'array-contains' | '!=' | 'not-in' | '>' | '>=' | '<' | '<=',
   value: any,
 ): QueryConstraint {
   return {
@@ -140,6 +140,14 @@ export function where(
         });
       } else if (op === 'array-contains') {
         q.filters.push({ column: col, op: 'contains', value });
+      } else if (op === '>') {
+        q.filters.push({ column: col, op: 'gt', value });
+      } else if (op === '>=') {
+        q.filters.push({ column: col, op: 'gte', value });
+      } else if (op === '<') {
+        q.filters.push({ column: col, op: 'lt', value });
+      } else if (op === '<=') {
+        q.filters.push({ column: col, op: 'lte', value });
       }
     },
   };
@@ -259,6 +267,14 @@ export function applyFilters(
     } else if (filter.op === 'jsonb_contains') {
       // JSONB @> operator via PostgREST `cs` (containedBy is `cd`; contains is `cs`)
       b = b.contains(filter.column, filter.value);
+    } else if (filter.op === 'gt') {
+      b = b.gt(filter.column, filter.value);
+    } else if (filter.op === 'gte') {
+      b = b.gte(filter.column, filter.value);
+    } else if (filter.op === 'lt') {
+      b = b.lt(filter.column, filter.value);
+    } else if (filter.op === 'lte') {
+      b = b.lte(filter.column, filter.value);
     }
   }
 

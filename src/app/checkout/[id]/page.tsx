@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
-import { doc, collection, serverTimestamp, increment } from 'firebase/firestore';
+import { doc, collection, serverTimestamp, increment } from '@/lib/supabase-compat';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import unsplashLoader from '@/lib/unsplashLoader';

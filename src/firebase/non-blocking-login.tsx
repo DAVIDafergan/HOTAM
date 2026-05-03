@@ -1,13 +1,19 @@
 'use client';
 
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { AuthProxy } from '@/firebase/provider';
+
+type AuthLike = SupabaseClient | AuthProxy;
+
+function getClient(auth: AuthLike): SupabaseClient {
+  if ('_client' in auth) return (auth as AuthProxy)._client;
+  return auth as SupabaseClient;
+}
 
 /** Initiate email/password sign-up. */
-export function initiateEmailSignUp(client: SupabaseClient, email: string, password: string) {
-  return client.auth.signUp({ email, password }).then(({ data, error }) => {
+export function initiateEmailSignUp(auth: AuthLike, email: string, password: string) {
+  return getClient(auth).auth.signUp({ email, password }).then(({ data, error }) => {
     if (error) {
-      // Map Supabase error codes to Firebase-compatible error codes so existing
-      // error-handling UI strings keep working.
       const mappedError: any = new Error(error.message);
       if (error.message.toLowerCase().includes('already registered')) {
         mappedError.code = 'auth/email-already-in-use';
@@ -21,8 +27,8 @@ export function initiateEmailSignUp(client: SupabaseClient, email: string, passw
 }
 
 /** Initiate email/password sign-in. */
-export function initiateEmailSignIn(client: SupabaseClient, email: string, password: string) {
-  return client.auth.signInWithPassword({ email, password }).then(({ data, error }) => {
+export function initiateEmailSignIn(auth: AuthLike, email: string, password: string) {
+  return getClient(auth).auth.signInWithPassword({ email, password }).then(({ data, error }) => {
     if (error) {
       const mappedError: any = new Error(error.message);
       mappedError.code = 'auth/invalid-credential';
@@ -33,8 +39,8 @@ export function initiateEmailSignIn(client: SupabaseClient, email: string, passw
 }
 
 /** Initiate Google OAuth sign-in (redirect flow). */
-export function initiateGoogleSignIn(client: SupabaseClient) {
-  return client.auth.signInWithOAuth({
+export function initiateGoogleSignIn(auth: AuthLike) {
+  return getClient(auth).auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo: typeof window !== 'undefined' ? window.location.origin : undefined },
   }).then(({ data, error }) => {
@@ -48,8 +54,8 @@ export function initiateGoogleSignIn(client: SupabaseClient) {
 }
 
 /** Initiate password reset email. */
-export function initiatePasswordReset(client: SupabaseClient, email: string) {
-  return client.auth.resetPasswordForEmail(email, {
+export function initiatePasswordReset(auth: AuthLike, email: string) {
+  return getClient(auth).auth.resetPasswordForEmail(email, {
     redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/reset-password` : undefined,
   }).then(({ error }) => {
     if (error) throw new Error(error.message);
@@ -57,6 +63,6 @@ export function initiatePasswordReset(client: SupabaseClient, email: string) {
 }
 
 /** @deprecated Anonymous sign-in is not used in this app. */
-export function initiateAnonymousSignIn(_client: SupabaseClient) {
+export function initiateAnonymousSignIn(_auth: AuthLike) {
   return Promise.reject(new Error('Anonymous sign-in is not supported with Supabase.'));
 }

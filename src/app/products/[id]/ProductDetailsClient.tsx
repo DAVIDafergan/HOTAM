@@ -30,7 +30,7 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import { useFirestore, useDoc, useMemoFirebase, useUser, setDocumentNonBlocking, useCollection, addDocumentNonBlocking } from '@/firebase';
-import { doc, arrayUnion, arrayRemove, collection, serverTimestamp, query, where } from 'firebase/firestore';
+import { doc, arrayUnion, arrayRemove, collection, serverTimestamp, query, where } from '@/lib/supabase-compat';
 import { useRouter } from 'next/navigation';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { 

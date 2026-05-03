@@ -58,7 +58,7 @@ import {
   updateDocumentNonBlocking,
   deleteDocumentNonBlocking
 } from '@/firebase';
-import { collection, query, doc, orderBy, where } from 'firebase/firestore';
+import { collection, query, doc, orderBy, where } from '@/lib/supabase-compat';
 import Image from 'next/image';
 import { 
   Dialog, 

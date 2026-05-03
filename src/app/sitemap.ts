@@ -1,9 +1,8 @@
 import { MetadataRoute } from 'next';
-import { firebaseConfig } from '@/firebase/config';
+import { supabaseConfig } from '@/firebase/config';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://hotam.shop';
-  const projectId = firebaseConfig?.projectId;
 
   // Static routes
   const staticRoutes = [
@@ -20,24 +19,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: route === '' ? 1 : 0.8,
   }));
 
-  // Dynamic product routes
+  // Dynamic product routes fetched from Supabase REST API
   let productRoutes: any[] = [];
   try {
-    if (projectId) {
-      const res = await fetch(`https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/products?pageSize=100`, {
-        next: { revalidate: 3600 }
-      });
+    if (supabaseConfig.url && supabaseConfig.anonKey) {
+      const res = await fetch(
+        `${supabaseConfig.url}/rest/v1/products?select=id`,
+        {
+          headers: {
+            apikey: supabaseConfig.anonKey,
+            Authorization: `Bearer ${supabaseConfig.anonKey}`,
+          },
+          next: { revalidate: 3600 },
+        },
+      );
       if (res.ok) {
-        const data = await res.json();
-        productRoutes = (data.documents || []).map((doc: any) => {
-          const id = doc.name.split('/').pop();
-          return {
-            url: `${baseUrl}/products/${id}`,
-            lastModified: new Date(),
-            changeFrequency: 'weekly' as const,
-            priority: 0.6,
-          };
-        });
+        const data: { id: string }[] = await res.json();
+        productRoutes = (data || []).map((row) => ({
+          url: `${baseUrl}/products/${row.id}`,
+          lastModified: new Date(),
+          changeFrequency: 'weekly' as const,
+          priority: 0.6,
+        }));
       }
     }
   } catch (e) {

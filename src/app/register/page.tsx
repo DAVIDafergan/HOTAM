@@ -18,7 +18,7 @@ import {
   initiatePasswordReset
 } from '@/firebase';
 import { useFirestore } from '@/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc } from '@/lib/supabase-compat';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Dialog, 

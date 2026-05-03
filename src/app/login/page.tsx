@@ -17,7 +17,7 @@ import {
   initiatePasswordReset,
   setDocumentNonBlocking 
 } from '@/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc } from '@/lib/supabase-compat';
 import { useFirestore } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { 

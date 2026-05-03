@@ -32,7 +32,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase';
-import { doc, collection, query, where, documentId, serverTimestamp } from 'firebase/firestore';
+import { doc, collection, query, where, documentId, serverTimestamp } from '@/lib/supabase-compat';
 import { ProductCard } from '@/components/ProductCard';
 import { useToast } from '@/hooks/use-toast';
 import { 

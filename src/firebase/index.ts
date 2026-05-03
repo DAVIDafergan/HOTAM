@@ -1,39 +1,13 @@
 'use client';
 
-import { firebaseConfig } from '@/firebase/config';
-import { initializeApp, getApps, FirebaseApp, getApp } from 'firebase/app';
-import { getAuth, Auth } from 'firebase/auth';
-import { getFirestore, Firestore } from 'firebase/firestore';
-
-// Global singletons to prevent multiple initialization issues
-let firebaseApp: FirebaseApp | undefined;
-let firestoreInstance: Firestore | undefined;
-let authInstance: Auth | undefined;
+import { supabase } from '@/lib/supabase';
 
 /**
- * Initializes Firebase services as singletons.
+ * Returns the singleton Supabase client.
+ * Kept for compatibility – previously returned { firebaseApp, auth, firestore }.
  */
 export function initializeFirebase() {
-  if (!firebaseApp) {
-    const apps = getApps();
-    firebaseApp = apps.length ? apps[0] : initializeApp(firebaseConfig);
-    firestoreInstance = getFirestore(firebaseApp);
-    authInstance = getAuth(firebaseApp);
-  }
-
-  return {
-    firebaseApp: firebaseApp!,
-    auth: authInstance!,
-    firestore: firestoreInstance!
-  };
-}
-
-export function getSdks(app: FirebaseApp) {
-  return {
-    firebaseApp: app,
-    auth: getAuth(app),
-    firestore: getFirestore(app)
-  };
+  return { client: supabase };
 }
 
 export * from './provider';

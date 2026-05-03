@@ -1,25 +1,69 @@
 'use client';
 
-import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
-import { FirebaseApp } from 'firebase/app';
-import { Firestore, doc } from 'firebase/firestore';
-import { Auth, User, onAuthStateChanged } from 'firebase/auth';
+import React, {
+  DependencyList,
+  createContext,
+  useContext,
+  ReactNode,
+  useMemo,
+  useState,
+  useEffect,
+} from 'react';
+import type { SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import { useDoc } from './firestore/use-doc';
+import { doc } from '@/lib/supabase-compat';
 
-interface FirebaseProviderProps {
+// ─── Auth-compatible user shape (mirrors the Firebase User interface) ─────────
+
+export interface AppUser {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+  emailVerified: boolean;
+  phoneNumber: string | null;
+  /** Raw Supabase user for advanced use-cases */
+  _raw: SupabaseUser;
+}
+
+function toAppUser(u: SupabaseUser): AppUser {
+  return {
+    uid: u.id,
+    email: u.email ?? null,
+    displayName:
+      u.user_metadata?.full_name ??
+      u.user_metadata?.name ??
+      (u.email ? u.email.split('@')[0] : null),
+    photoURL: u.user_metadata?.avatar_url ?? null,
+    emailVerified: u.email_confirmed_at != null,
+    phoneNumber: u.phone ?? null,
+    _raw: u,
+  };
+}
+
+// ─── Auth proxy — same surface the app uses from useAuth() ───────────────────
+
+export interface AuthProxy {
+  signOut(): Promise<void>;
+  /** The underlying Supabase client — passed to initiateEmailSignIn() etc. */
+  _client: SupabaseClient;
+}
+
+// ─── Context ──────────────────────────────────────────────────────────────────
+
+interface ProviderProps {
   children: ReactNode;
-  firebaseApp: FirebaseApp;
-  firestore: Firestore;
-  auth: Auth;
+  client: SupabaseClient;
 }
 
 export interface FirebaseContextState {
   areServicesAvailable: boolean;
-  firebaseApp: FirebaseApp | null;
-  firestore: Firestore | null;
-  auth: Auth | null;
-  user: User | null;
+  /** The Supabase client — used everywhere as `db` (passed to collection/doc/query) */
+  firestore: SupabaseClient | null;
+  /** Auth proxy used by Navbar's signOut() and the non-blocking-login helpers */
+  auth: AuthProxy | null;
+  user: AppUser | null;
   isUserLoading: boolean;
   userError: Error | null;
   profile: any | null;
@@ -27,10 +71,9 @@ export interface FirebaseContextState {
 }
 
 export interface FirebaseServicesAndUser {
-  firebaseApp: FirebaseApp;
-  firestore: Firestore;
-  auth: Auth;
-  user: User | null;
+  firestore: SupabaseClient;
+  auth: AuthProxy;
+  user: AppUser | null;
   isUserLoading: boolean;
   userError: Error | null;
   profile: any | null;
@@ -39,49 +82,41 @@ export interface FirebaseServicesAndUser {
 
 export const FirebaseContext = createContext<FirebaseContextState | undefined>(undefined);
 
-export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
-  children,
-  firebaseApp,
-  firestore,
-  auth,
-}) => {
-  const [user, setUser] = useState<User | null>(null);
+export const FirebaseProvider: React.FC<ProviderProps> = ({ children, client }) => {
+  const [user, setUser] = useState<AppUser | null>(null);
   const [isUserLoading, setIsUserLoading] = useState(true);
   const [userError, setUserError] = useState<Error | null>(null);
 
+  // ── Auth state listener ────────────────────────────────────────────────────
   useEffect(() => {
-    if (!auth) {
-      setUserError(new Error("Auth service not available"));
+    // Hydrate from existing session immediately
+    client.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ? toAppUser(session.user) : null);
       setIsUserLoading(false);
-      return;
-    }
+    });
 
-    return onAuthStateChanged(
-      auth,
-      (firebaseUser) => {
-        setUser(firebaseUser);
-        setIsUserLoading(false);
-        setUserError(null);
-      },
-      (error) => {
-        console.error("FirebaseProvider auth error:", error);
-        setUserError(error);
-        setIsUserLoading(false);
-      }
-    );
-  }, [auth]);
+    const { data: { subscription } } = client.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ? toAppUser(session.user) : null);
+      setIsUserLoading(false);
+      setUserError(null);
+    });
 
-  // Dynamic Profile Fetching - strictly using user?.uid
+    return () => subscription.unsubscribe();
+  }, [client]);
+
+  // ── Profile fetching ───────────────────────────────────────────────────────
   const customerRef = useMemoFirebase(() => {
-    if (!user?.uid || !firestore) return null;
-    return doc(firestore, 'customers', user.uid);
-  }, [user?.uid, firestore]);
+    if (!user?.uid) return null;
+    return doc(client, 'customers', user.uid);
+  }, [user?.uid]);
+
   const { data: customerData, isLoading: isCustLoading } = useDoc<any>(customerRef);
 
   const sellerRef = useMemoFirebase(() => {
-    if (!user?.uid || !firestore || customerData) return null;
-    return doc(firestore, 'sellers', user.uid);
-  }, [user?.uid, firestore, !!customerData]);
+    if (!user?.uid || customerData) return null;
+    return doc(client, 'sellers', user.uid);
+  }, [user?.uid, !!customerData]);
+
   const { data: sellerData, isLoading: isSellLoading } = useDoc<any>(sellerRef);
 
   const profile = useMemo(() => {
@@ -92,17 +127,22 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
   const isProfileLoading = isCustLoading || isSellLoading;
 
+  // ── Auth proxy ─────────────────────────────────────────────────────────────
+  const auth: AuthProxy = useMemo(() => ({
+    signOut: () => client.auth.signOut().then(() => undefined),
+    _client: client,
+  }), [client]);
+
   const contextValue = useMemo((): FirebaseContextState => ({
-    areServicesAvailable: !!(firebaseApp && firestore && auth),
-    firebaseApp,
-    firestore,
+    areServicesAvailable: true,
+    firestore: client,
     auth,
     user,
     isUserLoading,
     userError,
     profile,
     isProfileLoading,
-  }), [firebaseApp, firestore, auth, user, isUserLoading, userError, profile, isProfileLoading]);
+  }), [client, auth, user, isUserLoading, userError, profile, isProfileLoading]);
 
   return (
     <FirebaseContext.Provider value={contextValue}>
@@ -112,13 +152,14 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   );
 };
 
+// ─── Hooks ────────────────────────────────────────────────────────────────────
+
 export const useFirebase = (): FirebaseServicesAndUser => {
   const context = useContext(FirebaseContext);
   if (!context || !context.areServicesAvailable) {
-    throw new Error('useFirebase must be used within a FirebaseProvider with available services.');
+    throw new Error('useFirebase must be used within a FirebaseProvider.');
   }
   return {
-    firebaseApp: context.firebaseApp!,
     firestore: context.firestore!,
     auth: context.auth!,
     user: context.user,
@@ -131,7 +172,8 @@ export const useFirebase = (): FirebaseServicesAndUser => {
 
 export const useAuth = () => useFirebase().auth;
 export const useFirestore = () => useFirebase().firestore;
-export const useFirebaseApp = () => useFirebase().firebaseApp;
+/** @deprecated Use useFirestore() */
+export const useFirebaseApp = () => useFirebase().firestore;
 export const useUser = () => {
   const { user, isUserLoading, userError } = useFirebase();
   return { user, isUserLoading, userError };

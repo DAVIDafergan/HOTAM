@@ -33,7 +33,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useFirestore, useDoc, useCollection, useMemoFirebase, useUser, addDocumentNonBlocking } from '@/firebase';
-import { doc, collection, query, where, serverTimestamp } from 'firebase/firestore';
+import { doc, collection, query, where, serverTimestamp } from '@/lib/supabase-compat';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useMemo, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';

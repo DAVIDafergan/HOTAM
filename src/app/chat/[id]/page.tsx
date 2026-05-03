@@ -31,7 +31,7 @@ import {
   setDocumentNonBlocking,
   updateDocumentNonBlocking
 } from '@/firebase';
-import { doc, collection, query, orderBy, serverTimestamp, where } from 'firebase/firestore';
+import { doc, collection, query, orderBy, serverTimestamp, where } from '@/lib/supabase-compat';
 import { 
   Dialog, 
   DialogContent, 

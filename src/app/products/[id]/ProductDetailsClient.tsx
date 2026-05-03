@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useFirestore, useDoc, useMemoFirebase, useUser, setDocumentNonBlocking, useCollection, addDocumentNonBlocking } from '@/firebase';
+import { useFirestore, useDoc, useMemoFirebase, useUser, setDocumentNonBlocking, useCollection, addDocumentNonBlocking } from '@/lib/supabase-hooks';
 import { doc, arrayUnion, arrayRemove, collection, serverTimestamp, query, where } from '@/lib/supabase-compat';
 import { useRouter } from 'next/navigation';
 import { PlaceHolderImages } from '@/lib/placeholder-images';

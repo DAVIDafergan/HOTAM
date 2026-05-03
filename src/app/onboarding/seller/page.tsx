@@ -29,7 +29,7 @@ import {
   Info
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useAuth, useUser, initiateEmailSignUp, setDocumentNonBlocking, useFirestore } from '@/firebase';
+import { useAuth, useUser, initiateEmailSignUp, setDocumentNonBlocking, useFirestore } from '@/lib/supabase-hooks';
 import { doc } from '@/lib/supabase-compat';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';

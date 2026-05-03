@@ -19,7 +19,7 @@ import {
   ShieldAlert
 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
-import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking, setDocumentNonBlocking } from '@/lib/supabase-hooks';
 import { doc, collection, serverTimestamp, increment } from '@/lib/supabase-compat';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';

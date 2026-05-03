@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { errorEmitter } from '@/lib/supabase-hooks';
+import { FirestorePermissionError } from '@/lib/supabase-hooks';
 
 /**
  * An invisible component that listens for globally emitted 'permission-error' events.

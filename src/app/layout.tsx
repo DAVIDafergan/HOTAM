@@ -1,7 +1,7 @@
 
 import type {Metadata, Viewport} from 'next';
 import './globals.css';
-import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { SupabaseClientProvider } from '@/lib/supabase-hooks';
 import { ClientWrapper } from '@/components/ClientWrapper';
 import { Frank_Ruhl_Libre, Assistant } from 'next/font/google';
 import { AccessibilityButton } from '@/components/AccessibilityButton';
@@ -108,14 +108,14 @@ export default function RootLayout({
         <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[200] focus:bg-white focus:p-4 focus:rounded-xl focus:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary">
           דילוג לתוכן המרכזי
         </a>
-        <FirebaseClientProvider>
+        <SupabaseClientProvider>
           <ClientWrapper>
             <div id="main-content">
               {children}
             </div>
             <AccessibilityButton />
           </ClientWrapper>
-        </FirebaseClientProvider>
+        </SupabaseClientProvider>
       </body>
     </html>
   );

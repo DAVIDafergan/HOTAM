@@ -30,7 +30,7 @@ import {
   addDocumentNonBlocking,
   setDocumentNonBlocking,
   updateDocumentNonBlocking
-} from '@/firebase';
+} from '@/lib/supabase-hooks';
 import { doc, collection, query, orderBy, serverTimestamp, where } from '@/lib/supabase-compat';
 import { 
   Dialog, 

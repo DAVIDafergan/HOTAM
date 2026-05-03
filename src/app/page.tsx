@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import dynamic from 'next/dynamic';
-import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/lib/supabase-hooks';
 import { collection, query, where, orderBy, doc } from '@/lib/supabase-compat';
 import unsplashLoader from '@/lib/unsplashLoader';
 import { motion } from 'framer-motion';

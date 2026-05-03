@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { ProductDetailsClient } from './ProductDetailsClient';
-import { firebaseConfig } from '@/firebase/config';
+import { createClient } from '@supabase/supabase-js';
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -8,17 +8,19 @@ type Props = {
 
 async function getProductData(id: string) {
   try {
-    const projectId = firebaseConfig?.projectId;
-    if (!projectId) return null;
-    
-    const encodedId = encodeURIComponent(id);
-    const res = await fetch(`https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/products/${encodedId}`, {
-      next: { revalidate: 3600 }
-    });
-    
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data?.fields || null;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseAnonKey) return null;
+
+    const client = createClient(supabaseUrl, supabaseAnonKey);
+    const { data, error } = await client
+      .from('products')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (error || !data) return null;
+    return data;
   } catch (error) {
     console.error("Error fetching product data:", error);
     return null;
@@ -43,17 +45,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       };
     }
 
-    const title = fields.productType?.stringValue || 'מוצר קודש';
-    const subType = fields.subType?.stringValue && fields.subType?.stringValue !== 'all' ? ` ${fields.subType.stringValue}` : '';
-    const scriptType = fields.scriptType?.stringValue || '';
-    
+    const title = fields.productType || 'מוצר קודש';
+    const subType = fields.subType && fields.subType !== 'all' ? ` ${fields.subType}` : '';
+    const scriptType = fields.scriptType || '';
+
     const pageTitle = `${title}${subType} - כתב ${scriptType} מהודר | חותם`;
-    const description = fields.description?.stringValue || `רכישת ${title} מהודרת בכתב ${scriptType}, נכתב על ידי סופר סת"ם ירא שמיים בפיקוח הלכתי.`;
-    
+    const description = fields.description || `רכישת ${title} מהודרת בכתב ${scriptType}, נכתב על ידי סופר סת"ם ירא שמיים בפיקוח הלכתי.`;
+
     let imageUrl = 'https://hotam.shop/opengraph-image.png';
-    const imagesValues = fields.images?.arrayValue?.values;
-    if (Array.isArray(imagesValues) && imagesValues.length > 0 && imagesValues[0]?.stringValue) {
-      imageUrl = imagesValues[0].stringValue;
+    if (Array.isArray(fields.images) && fields.images.length > 0) {
+      imageUrl = fields.images[0];
     }
 
     return {
@@ -84,14 +85,14 @@ export default async function ProductPage({ params }: Props) {
   const jsonLd = fields ? {
     "@context": "https://schema.org",
     "@type": "Product",
-    "name": fields.productType?.stringValue || 'מוצר קודש',
-    "description": fields.description?.stringValue || 'מוצר קודש מהודר מחותם',
-    "image": fields.images?.arrayValue?.values?.[0]?.stringValue || '',
+    "name": fields.productType || 'מוצר קודש',
+    "description": fields.description || 'מוצר קודש מהודר מחותם',
+    "image": Array.isArray(fields.images) ? (fields.images[0] || '') : '',
     "offers": {
       "@type": "Offer",
-      "price": Number(fields.price?.doubleValue || fields.price?.integerValue || 0),
+      "price": Number(fields.price ?? 0),
       "priceCurrency": "ILS",
-      "availability": Number(fields.quantity?.integerValue || 0) > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      "availability": Number(fields.quantity ?? 0) > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       "url": `https://hotam.shop/products/${id}`
     }
   } : null;

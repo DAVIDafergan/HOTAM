@@ -57,7 +57,7 @@ import {
   useMemoFirebase,
   updateDocumentNonBlocking,
   deleteDocumentNonBlocking
-} from '@/firebase';
+} from '@/lib/supabase-hooks';
 import { collection, query, doc, orderBy, where } from '@/lib/supabase-compat';
 import Image from 'next/image';
 import { 

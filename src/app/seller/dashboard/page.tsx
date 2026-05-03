@@ -72,7 +72,7 @@ import {
   addDocumentNonBlocking,
   updateDocumentNonBlocking,
   deleteDocumentNonBlocking
-} from '@/firebase';
+} from '@/lib/supabase-hooks';
 import { collection, query, where, doc, increment } from '@/lib/supabase-compat';
 import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';

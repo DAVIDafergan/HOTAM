@@ -43,7 +43,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase } from '@/lib/supabase-hooks';
 import { collection, query, where } from '@/lib/supabase-compat';
 import { ProductCard } from '@/components/ProductCard';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';

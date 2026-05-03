@@ -16,8 +16,8 @@ import {
   initiateGoogleSignIn, 
   setDocumentNonBlocking,
   initiatePasswordReset
-} from '@/firebase';
-import { useFirestore } from '@/firebase';
+} from '@/lib/supabase-hooks';
+import { useFirestore } from '@/lib/supabase-hooks';
 import { doc, getDoc } from '@/lib/supabase-compat';
 import { useToast } from '@/hooks/use-toast';
 import { 

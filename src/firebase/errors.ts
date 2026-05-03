@@ -32,7 +32,7 @@ export class FirestorePermissionError extends Error {
       resource: context.requestResourceData ? { data: context.requestResourceData } : undefined,
     };
     super(buildErrorMessage(req));
-    this.name = 'FirebaseError';
+    this.name = 'DatabasePermissionError';
     this.request = req;
   }
 }

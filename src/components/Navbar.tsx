@@ -49,7 +49,7 @@ import {
   useAuth,
   useCollection,
   updateDocumentNonBlocking
-} from '@/firebase';
+} from '@/lib/supabase-hooks';
 import { doc, collection, query, where } from '@/lib/supabase-compat';
 import { useRouter, usePathname } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';

@@ -62,6 +62,10 @@ export function useCollection<T = any>(
         setIsLoading(false);
       } catch (err: any) {
         if (!isMounted) return;
+        console.error(
+          `[useCollection] Supabase error on table '${queryRef.current?.table}':`,
+          err?.message ?? err,
+        );
         const contextualError = new FirestorePermissionError({
           operation: 'list',
           path: queryRef.current?.path ?? queryRef.current?.table ?? 'unknown',

@@ -31,7 +31,7 @@ import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/lib/supabase-hooks';
+import { useUser, useFirebase, useFirestore, useDoc, useMemoFirebase, useCollection, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/lib/supabase-hooks';
 import { doc, collection, query, where, documentId, serverTimestamp } from '@/lib/supabase-compat';
 import { ProductCard } from '@/components/ProductCard';
 import { useToast } from '@/hooks/use-toast';
@@ -50,6 +50,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function CustomerDashboard() {
   const { user, isUserLoading } = useUser();
+  const { profile, isProfileLoading } = useFirebase();
   const db = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
@@ -57,18 +58,21 @@ export default function CustomerDashboard() {
   const [isSaving, setIsSaving] = useState(false);
 
   // Route guard — redirect non-customers and unauthenticated users.
+  // Prefer the JWT role (user.role) but fall back to the DB profile role so
+  // that users whose metadata was not populated at signup are also redirected.
   useEffect(() => {
-    if (isUserLoading) return;
+    if (isUserLoading || isProfileLoading) return;
     if (!user) {
       router.push('/login');
       return;
     }
-    if (user.role === 'seller') {
+    const role = user.role ?? profile?.role;
+    if (role === 'seller') {
       router.push('/seller/dashboard');
-    } else if (user.role === 'admin') {
+    } else if (role === 'admin') {
       router.push('/admin');
     }
-  }, [user, isUserLoading, router]);
+  }, [user, isUserLoading, profile, isProfileLoading, router]);
 
   // Review state
   const [ratingOrderId, setRatingOrderId] = useState<any>(null);
@@ -166,7 +170,7 @@ export default function CustomerDashboard() {
     }, 1000);
   };
 
-  if (isUserLoading || isCustomerLoading) {
+  if (isUserLoading || isProfileLoading || isCustomerLoading) {
     return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>;
   }
 

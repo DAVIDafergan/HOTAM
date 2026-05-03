@@ -79,9 +79,9 @@ export default function Home() {
 
         {/* Top Scribes Section */}
         {topScribes.length > 0 && (
-          <section className="py-24 bg-[#F8F9FA]" aria-labelledby="top-scribes-heading">
+          <section className="py-14 md:py-24 bg-[#F8F9FA]" aria-labelledby="top-scribes-heading">
             <div className="container mx-auto px-4">
-              <div className="text-center mb-16 space-y-4">
+              <div className="text-center mb-10 md:mb-16 space-y-4">
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-accent/10 rounded-full text-accent font-black text-[10px] uppercase tracking-widest">
                   <Trophy className="w-3.5 h-3.5" /> נבחרת הסופרים
                 </div>
@@ -91,7 +91,7 @@ export default function Home() {
                 <div className="w-16 h-1 rounded-full bg-accent mx-auto" />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
                 {topScribes.map((scribe, i) => (
                   <motion.div
                     key={scribe.id}
@@ -100,7 +100,7 @@ export default function Home() {
                     transition={{ delay: i * 0.1 }}
                   >
                     <Link href={`/sellers/${scribe.id}`}>
-                      <Card className="group overflow-hidden border-none shadow-premium rounded-[2.5rem] bg-white hover:shadow-2xl transition-all duration-500 text-center p-8">
+                      <Card className="group overflow-hidden border-none shadow-premium rounded-[2.5rem] bg-white hover:shadow-2xl transition-all duration-500 text-center p-5 sm:p-8">
                         <div className="relative w-24 h-24 mx-auto mb-6">
                            <div className="absolute inset-0 rounded-full border-4 border-accent/10 group-hover:scale-110 transition-transform duration-500" />
                            <div className="w-full h-full rounded-full border-4 border-white shadow-lg overflow-hidden relative bg-muted flex items-center justify-center">
@@ -147,10 +147,10 @@ export default function Home() {
         )}
 
         {/* About Section */}
-        <section className="py-24 bg-white/30 backdrop-blur-sm relative overflow-hidden" aria-labelledby="about-heading">
+        <section className="py-14 md:py-24 bg-white/30 backdrop-blur-sm relative overflow-hidden" aria-labelledby="about-heading">
           <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none" />
           <div className="container mx-auto px-4 relative z-10">
-            <div className="max-w-4xl mx-auto text-center space-y-8 mb-20">
+            <div className="max-w-4xl mx-auto text-center space-y-8 mb-12 md:mb-20">
               <div className="inline-block p-3 bg-accent/10 rounded-2xl text-accent mb-2">
                 <Sparkles className="w-6 h-6" />
               </div>
@@ -163,7 +163,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
               <AboutCard 
                 icon={<HandHeart className="w-8 h-8" />}
                 title="קנייה ישירה מהסופר"
@@ -181,7 +181,7 @@ export default function Home() {
               />
             </div>
 
-            <div className="mt-20 text-center">
+            <div className="mt-12 md:mt-20 text-center">
               <Button size="lg" asChild className="rounded-full gap-3 font-black text-white bg-primary hover:bg-primary/90 transition-all px-12 h-16 shadow-xl">
                 <Link href="/search?view=all">
                   <Search className="w-5 h-5" />
@@ -198,7 +198,7 @@ export default function Home() {
 
         {/* Seller Recruitment */}
         {!isSeller && (
-          <section className="py-24 bg-primary text-white relative overflow-hidden">
+          <section className="py-14 md:py-24 bg-primary text-white relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-full opacity-[0.03] pointer-events-none">
               <svg width="100%" height="100%"><pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M 60 0 L 0 0 0 60" fill="none" stroke="white" strokeWidth="1"/></pattern><rect width="100%" height="100%" fill="url(#grid)" /></svg>
             </div>
@@ -226,7 +226,7 @@ export default function Home() {
         )}
       </main>
 
-      <footer className="bg-white border-t py-16">
+      <footer className="bg-white border-t py-10 md:py-16">
         <div className="container mx-auto px-4 flex flex-col items-center justify-center space-y-6">
           <div className="flex items-center gap-3">
              <svg 
@@ -263,7 +263,7 @@ function AboutCard({ icon, title, desc }: { icon: React.ReactNode, title: string
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className="p-10 rounded-[2.5rem] bg-white shadow-premium border border-primary/5 hover:border-accent/20 transition-all hover:-translate-y-2 group text-right"
+      className="p-6 md:p-10 rounded-[2.5rem] bg-white shadow-premium border border-primary/5 hover:border-accent/20 transition-all hover:-translate-y-2 group text-right"
     >
       <div className="w-16 h-16 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-accent group-hover:text-primary transition-all mb-6">
         {icon}

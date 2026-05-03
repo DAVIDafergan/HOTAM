@@ -162,7 +162,7 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-[#F8F9FA] pb-20 text-right" dir="rtl">
       <Navbar />
 
-      <main className="container mx-auto px-4 py-32 max-w-4xl">
+      <main className="container mx-auto px-4 py-20 md:py-28 max-w-4xl">
         {!isSuccess ? (
           <div className="grid md:grid-cols-3 gap-8">
             <div className="md:col-span-2 space-y-6">
@@ -175,7 +175,7 @@ export default function CheckoutPage() {
                 </p>
               </div>
 
-              <Card className="border-none shadow-premium rounded-[2.5rem] bg-white p-8 space-y-6">
+              <Card className="border-none shadow-premium rounded-[2.5rem] bg-white p-5 sm:p-8 space-y-6">
                 <div className="flex items-center justify-between border-b pb-4">
                   <h3 className="text-xl font-black">פרטי התקשרות</h3>
                   <User className="w-6 h-6 text-accent" />
@@ -186,7 +186,7 @@ export default function CheckoutPage() {
                 </div>
               </Card>
 
-              <Card className="border-none shadow-premium rounded-[2.5rem] bg-white p-8 space-y-6">
+              <Card className="border-none shadow-premium rounded-[2.5rem] bg-white p-5 sm:p-8 space-y-6">
                 <div className="flex items-center justify-between border-b pb-4">
                   <h3 className="text-xl font-black">אופן קבלת המוצר</h3>
                   <Truck className="w-6 h-6 text-accent" />

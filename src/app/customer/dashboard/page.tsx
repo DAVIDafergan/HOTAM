@@ -165,7 +165,7 @@ export default function CustomerDashboard() {
     <div className="min-h-screen bg-[#F8F9FA] flex flex-col" dir="rtl">
       <Navbar />
       
-      <main className="container mx-auto px-4 py-28 max-w-5xl flex-1">
+      <main className="container mx-auto px-4 py-20 md:py-28 max-w-5xl flex-1">
         <div className="flex flex-col md:flex-row items-center justify-between mb-10 gap-4 text-right">
           <div className="text-right order-1 md:order-2">
             <h1 className="text-3xl md:text-4xl font-headline font-black text-primary tracking-tight">שלום, {customer?.firstName}</h1>
@@ -189,7 +189,7 @@ export default function CustomerDashboard() {
              {orders && orders.length > 0 ? (
                <div className="grid gap-4">
                  {orders.map((order: any) => (
-                   <Card key={order.id} className="border-none shadow-premium rounded-[2rem] bg-white p-6 flex flex-col sm:flex-row items-center gap-6 hover:shadow-xl transition-all">
+                   <Card key={order.id} className="border-none shadow-premium rounded-[2rem] bg-white p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 hover:shadow-xl transition-all">
                      <div className="relative w-20 h-20 rounded-2xl overflow-hidden border shrink-0">
                        <Image loader={unsplashLoader} src={order.productImage || 'https://picsum.photos/seed/order/200/200'} alt={order.productName} fill sizes="80px" className="object-cover" />
                      </div>
@@ -251,7 +251,7 @@ export default function CustomerDashboard() {
           </TabsContent>
 
           <TabsContent value="settings">
-            <Card className="border-none shadow-premium rounded-[2.5rem] bg-white p-8 md:p-12 space-y-10">
+            <Card className="border-none shadow-premium rounded-[2.5rem] bg-white p-5 sm:p-8 md:p-12 space-y-10">
               <div className="flex items-center justify-end gap-2 border-b pb-6">
                 <h3 className="text-2xl font-headline font-black text-primary">הגדרות חשבון</h3>
                 <Lock className="w-6 h-6 text-accent" />

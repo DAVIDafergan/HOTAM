@@ -152,7 +152,7 @@ export default function SellerProfile() {
     <div className="min-h-screen bg-background" dir="rtl">
       <Navbar />
       
-      <main className="container mx-auto px-4 py-24 md:py-32 max-w-6xl">
+      <main className="container mx-auto px-4 py-20 md:py-28 max-w-6xl">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           <div className="lg:col-span-4 space-y-6">

@@ -370,7 +370,7 @@ function SellerDashboardContent() {
 
   return (
     <div className="flex flex-col w-full">
-      <div className="md:hidden flex items-center justify-between mb-8">
+      <div className="md:hidden flex items-center justify-between mb-6">
            <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
              <SheetTrigger asChild>
                <Button variant="outline" className="rounded-2xl h-14 px-5 border-primary/10 bg-white shadow-premium gap-3 font-black text-primary">
@@ -403,7 +403,7 @@ function SellerDashboardContent() {
            <Button onClick={() => { resetForm(); setIsDialogOpen(true); }} size="icon" className="w-14 h-14 rounded-2xl bg-accent text-primary shadow-lg"><Plus className="w-7 h-7" /></Button>
         </div>
 
-        <div className="hidden md:flex flex-col md:flex-row items-center justify-between mb-12 gap-6 text-right">
+        <div className="hidden md:flex flex-col md:flex-row items-center justify-between mb-10 md:mb-12 gap-6 text-right">
           <Button onClick={() => { resetForm(); setIsDialogOpen(true); }} className="bg-accent text-primary hover:bg-accent/90 rounded-full px-8 py-6 font-black uppercase tracking-wider shadow-xl transition-all"><Plus className="w-5 h-5 ml-2" /> העלאת מוצר חדש</Button>
           <div className="text-right">
             <h1 className="text-3xl font-headline font-black text-primary tracking-tight">שלום, {seller?.firstName}</h1>
@@ -411,7 +411,7 @@ function SellerDashboardContent() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-10">
           <QuickStat label="יתרה למוכר" value={`₪${totalNetEarnings.toFixed(0)}`} icon={<Banknote className="w-4 h-4" />} color="bg-emerald-50 text-emerald-600" />
           <QuickStat label="מוצרים" value={String(products.length)} icon={<Package className="w-4 h-4" />} color="bg-blue-50 text-blue-600" />
           <QuickStat label="הודעות" value={String(unreadCount)} icon={<MessageSquare className="w-4 h-4" />} color="bg-purple-50 text-purple-600" highlight={unreadCount > 0} />
@@ -430,7 +430,7 @@ function SellerDashboardContent() {
           <TabsContent value="inventory" className="space-y-4">
              {products.length === 0 && <div className="py-24 text-center bg-white rounded-[2rem] border-2 border-dashed text-muted-foreground italic">אין מוצרים במלאי. לחץ על כפתור הפלוס להוספה.</div>}
              {paginatedProducts.map((p: any) => (
-               <Card key={p.id} className="border-none shadow-premium rounded-[2rem] bg-white p-5 flex flex-col sm:flex-row items-center gap-6">
+               <Card key={p.id} className="border-none shadow-premium rounded-[2rem] bg-white p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
                  <div className="w-20 h-20 bg-muted rounded-2xl shrink-0 overflow-hidden relative border"><Image src={p.images?.[0] || logoImg} alt="product" fill className="object-cover" /></div>
                  <div className="flex-1 text-right w-full">
                     <h4 className="font-black text-lg text-primary">{p.productType}</h4>
@@ -462,7 +462,7 @@ function SellerDashboardContent() {
                    return (
                      <Card key={o.id} className={cn("border-none shadow-premium rounded-[2rem] bg-white overflow-hidden text-right transition-all", isExpanded ? "ring-2 ring-primary/10" : "hover:shadow-lg")}>
                        <div 
-                         className="p-5 flex flex-col sm:flex-row items-center justify-between gap-4 cursor-pointer group"
+                         className="p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 cursor-pointer group"
                          onClick={() => {
                            setExpandedOrderId(isExpanded ? null : o.id);
                            if (!o.isSeenBySeller) {
@@ -590,10 +590,10 @@ function SellerDashboardContent() {
           </TabsContent>
 
           <TabsContent value="settings">
-             <Card className="p-8 md:p-12 border-none shadow-premium rounded-[3rem] bg-white text-right">
+             <Card className="p-5 sm:p-8 md:p-12 border-none shadow-premium rounded-[3rem] bg-white text-right">
                 <div className="flex items-center justify-between border-b pb-6 mb-10"><h3 className="text-2xl font-black text-primary">הגדרות ופרופיל אישי</h3><Settings className="w-6 h-6 text-accent" /></div>
                 
-                <div className="grid md:grid-cols-3 gap-12">
+                <div className="grid md:grid-cols-3 gap-8 md:gap-12">
                    <div className="space-y-8">
                       <div className="flex flex-col items-center gap-4">
                         <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-accent/20 bg-muted flex items-center justify-center">
@@ -729,7 +729,7 @@ function SellerDashboardContent() {
               </DialogHeader>
             </div>
 
-            <div className="p-6 md:p-10 flex-1 overflow-y-auto">
+            <div className="p-5 md:p-10 flex-1 overflow-y-auto">
               <AnimatePresence mode="wait">
                 {formStep === 1 && (
                   <motion.div key="step1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6 text-right">
@@ -1116,7 +1116,7 @@ export default function SellerDashboard() {
   return (
     <div className="min-h-screen bg-[#F8F9FA] flex flex-col" dir="rtl">
       <Navbar />
-      <main className="container mx-auto px-4 py-24 md:py-32 max-w-6xl flex-1">
+      <main className="container mx-auto px-4 py-20 md:py-28 max-w-6xl flex-1">
         <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>}>
           <SellerDashboardContent />
         </Suspense>

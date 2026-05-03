@@ -392,18 +392,18 @@ function SearchContent() {
           </div>
         ) : !showResults ? (
           <div className="container mx-auto px-4 pt-12 pb-12">
-            <section className="bg-white/50 backdrop-blur-xl p-8 md:p-20 rounded-[4rem] shadow-premium text-center relative overflow-hidden max-w-5xl mx-auto border border-white/50">
+            <section className="bg-white/50 backdrop-blur-xl p-6 sm:p-10 md:p-20 rounded-[2.5rem] md:rounded-[4rem] shadow-premium text-center relative overflow-hidden max-w-5xl mx-auto border border-white/50">
               <div className="absolute -top-20 -right-20 w-64 h-64 bg-accent/5 rounded-full blur-3xl" />
               <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
               
               <h1 className="text-4xl md:text-7xl font-headline font-black text-primary mb-6 tracking-tighter leading-tight">חיפוש קדושה <span className="text-accent underline decoration-accent/20 underline-offset-[12px]">מדויק</span></h1>
               <p className="text-primary/60 text-lg md:text-xl mb-12 font-medium max-w-2xl mx-auto leading-relaxed">הגדירו את המפרט המדויק וקבלו את כלי הקודש המושלם עבורכם ישירות מהסופר המאומת.</p>
               
-              <div className="flex flex-col sm:flex-row justify-center items-center gap-6">
-                <Button onClick={() => setIsWizardOpen(true)} size="lg" className="w-full sm:w-auto bg-primary hover:bg-primary/90 rounded-full px-16 h-20 font-black text-lg uppercase tracking-[0.2em] shadow-2xl hover:scale-105 transition-all group">
+              <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
+                <Button onClick={() => setIsWizardOpen(true)} size="lg" className="w-full sm:w-auto bg-primary hover:bg-primary/90 rounded-full px-10 sm:px-16 h-16 sm:h-20 font-black text-base sm:text-lg uppercase tracking-[0.2em] shadow-2xl hover:scale-105 transition-all group">
                   <SearchIcon className="ml-4 w-6 h-6 group-hover:rotate-12 transition-transform" /> התחל חיפוש מותאם
                 </Button>
-                <Button onClick={() => setShowResults(true)} variant="outline" size="lg" className="w-full sm:w-auto rounded-full px-12 h-20 font-black uppercase text-sm tracking-widest border-primary/10 bg-white shadow-premium">צפה בכל הקטלוג</Button>
+                <Button onClick={() => setShowResults(true)} variant="outline" size="lg" className="w-full sm:w-auto rounded-full px-8 sm:px-12 h-14 sm:h-20 font-black uppercase text-sm tracking-widest border-primary/10 bg-white shadow-premium">צפה בכל הקטלוג</Button>
               </div>
             </section>
           </div>

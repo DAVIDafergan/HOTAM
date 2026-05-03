@@ -154,9 +154,9 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
   const displayPrice = (Number(product.price) * 1.18).toFixed(0);
 
   return (
-    <div className="min-h-screen bg-[#FDFCF0] pb-32" dir="rtl">
+    <div className="min-h-screen bg-[#FDFCF0] pb-24 sm:pb-28 md:pb-32" dir="rtl">
       <Navbar />
-      <main className="container mx-auto px-4 py-24 md:py-32 max-w-5xl">
+      <main className="container mx-auto px-4 py-20 md:py-28 max-w-5xl">
         
         {/* Mobile Header Actions */}
         <div className="flex items-center justify-between mb-6 md:hidden">
@@ -169,7 +169,7 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
           {/* Product Images */}
           <div className="space-y-4">
             <div className="relative aspect-square rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-premium bg-white border-4 border-white">
@@ -267,7 +267,7 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
         </div>
 
         {/* Technical Details Tabs */}
-        <div className="mt-12 md:mt-20">
+        <div className="mt-10 md:mt-20">
           <Tabs defaultValue="specs" className="text-right">
             <TabsList className="w-full flex bg-white/40 backdrop-blur-xl p-1.5 rounded-3xl shadow-premium h-16 border border-white/50 mb-8">
               <TabsTrigger value="specs" className="flex-1 py-3 text-[10px] md:text-xs font-black rounded-2xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all">מפרט טכני</TabsTrigger>
@@ -360,9 +360,9 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
       </main>
 
       {/* Floating Action Bar - Optimized for Mobile */}
-      <div className="fixed bottom-0 left-0 right-0 z-[100] bg-white/90 backdrop-blur-2xl border-t border-primary/5 h-24 md:h-28 shadow-[0_-10px_40px_rgba(0,0,0,0.08)]">
-        <div className="container mx-auto px-4 h-full flex items-center justify-between gap-4 max-w-5xl">
-          <div className="flex-1 flex gap-3 md:gap-6">
+      <div className="fixed bottom-0 left-0 right-0 z-[100] bg-white/90 backdrop-blur-2xl border-t border-primary/5 h-20 sm:h-24 md:h-28 shadow-[0_-10px_40px_rgba(0,0,0,0.08)]">
+        <div className="container mx-auto px-3 sm:px-4 h-full flex items-center justify-between gap-3 md:gap-4 max-w-5xl">
+          <div className="flex-1 flex gap-2 md:gap-6">
              {product.productType === 'ספר תורה' ? (
                <Button 
                 onClick={handleTorahCoordination} 

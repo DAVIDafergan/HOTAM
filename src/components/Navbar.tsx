@@ -69,8 +69,8 @@ export function Navbar() {
     setMounted(true);
   }, []);
 
-  // Use profile (DB lookup) as primary source; fall back to JWT metadata so
-  // the bell and seller-specific UI still render when the DB is unavailable.
+  // Use profile (DB lookup, more up-to-date) as primary source; fall back to
+  // JWT user_metadata role so the bell renders even when the DB is unavailable.
   const isSeller = profile?.role === 'seller' || user?.role === 'seller';
   
   const adminEmails = ["admin@hotam.co.il", "davidafergan999@gmail.com", "davidafergan@gmail.com", "da@101.org.il", "DA@101.ORG.IL"];

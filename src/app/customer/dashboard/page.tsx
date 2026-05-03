@@ -58,15 +58,15 @@ export default function CustomerDashboard() {
   const [isSaving, setIsSaving] = useState(false);
 
   // Route guard — redirect non-customers and unauthenticated users.
-  // Prefer the JWT role (user.role) but fall back to the DB profile role so
-  // that users whose metadata was not populated at signup are also redirected.
+  // Prefer the DB profile role (more authoritative / up-to-date) and fall back
+  // to the JWT user_metadata role for users whose metadata was set at signup.
   useEffect(() => {
     if (isUserLoading || isProfileLoading) return;
     if (!user) {
       router.push('/login');
       return;
     }
-    const role = user.role ?? profile?.role;
+    const role = profile?.role ?? user.role;
     if (role === 'seller') {
       router.push('/seller/dashboard');
     } else if (role === 'admin') {

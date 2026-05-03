@@ -10,12 +10,19 @@ function getClient(auth: AuthLike): SupabaseClient {
   return auth as SupabaseClient;
 }
 
+export interface SignUpMetadata {
+  role?: 'customer' | 'seller' | 'admin';
+  firstName?: string;
+  lastName?: string;
+  [key: string]: any;
+}
+
 /** Initiate email/password sign-up. */
 export function initiateEmailSignUp(
   auth: AuthLike,
   email: string,
   password: string,
-  metadata?: Record<string, any>,
+  metadata?: SignUpMetadata,
 ) {
   return getClient(auth).auth.signUp({
     email,

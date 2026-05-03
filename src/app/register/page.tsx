@@ -60,8 +60,9 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       // The DB trigger creates the customers row automatically.
-      // We pass firstName/lastName so the trigger can populate the profile.
+      // We pass firstName/lastName and role so the trigger populates the profile correctly.
       const data = await initiateEmailSignUp(auth, email, password, {
+        role: 'customer',
         firstName,
         lastName,
       });

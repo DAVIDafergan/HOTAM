@@ -32,8 +32,8 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useSupabaseClient, useDoc, useMemoStable, useUser, addDocumentNonBlocking } from '@/lib/supabase-hooks';
-import { doc, collection, serverTimestamp } from '@/lib/supabase-compat';
+import { useSupabaseClient, useUser, addDocumentNonBlocking } from '@/lib/supabase-hooks';
+import { collection, serverTimestamp } from '@/lib/supabase-compat';
 import { supabase } from '@/lib/supabase';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useMemo, useState, useEffect } from 'react';
@@ -54,11 +54,23 @@ export default function SellerProfile() {
   const [isReporting, setIsReporting] = useState(false);
 
   // Fetch Seller Info
-  const sellerRef = useMemoStable(() => {
-    if (!id) return null;
-    return doc(db, 'sellers', id);
-  }, [db, id]);
-  const { data: seller, isLoading: isSellerLoading } = useDoc<any>(sellerRef);
+  const [seller, setSeller] = useState<any>(null);
+  const [isSellerLoading, setIsSellerLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) return;
+    setIsSellerLoading(true);
+    supabase
+      .from('sellers')
+      .select('*')
+      .eq('id', id)
+      .single()
+      .then(({ data, error }) => {
+        if (error) console.error('[seller] fetch error:', error.message);
+        else setSeller(data || null);
+      })
+      .finally(() => setIsSellerLoading(false));
+  }, [id]);
 
   // Fetch Seller's Products
   const [products, setProducts] = useState<any[]>([]);

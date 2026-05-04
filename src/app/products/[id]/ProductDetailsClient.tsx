@@ -29,8 +29,8 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useSupabaseClient, useDoc, useMemoStable, useUser, setDocumentNonBlocking, addDocumentNonBlocking } from '@/lib/supabase-hooks';
-import { doc, arrayUnion, arrayRemove, collection, serverTimestamp } from '@/lib/supabase-compat';
+import { useSupabaseClient, useDoc, useMemoStable, useUser, addDocumentNonBlocking } from '@/lib/supabase-hooks';
+import { doc, collection, serverTimestamp } from '@/lib/supabase-compat';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -53,6 +53,7 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
   const { toast } = useToast();
   const [selectedImageIdx, setSelectedImageIdx] = useState(0);
   const [isProcessingRequest, setIsProcessingRequest] = useState(false);
+  const [isProcessingFavorite, setIsProcessingFavorite] = useState(false);
 
   const logoImg = PlaceHolderImages.find(img => img.id === 'site-logo')?.imageUrl || 'https://picsum.photos/seed/hotam-logo/400/400';
 
@@ -94,18 +95,46 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
       });
   }, [productId]);
 
-  const handleToggleFavorite = () => {
-    if (!user || !profileRef) {
-      toast({ title: "התחברות נדרשת" });
+  const handleToggleFavorite = async () => {
+    if (!user || !profileRef || isProcessingFavorite) {
+      if (!user || !profileRef) toast({ title: "התחברות נדרשת" });
       return;
     }
-    setDocumentNonBlocking(profileRef, {
-      favorite_product_ids: isFavorite ? arrayRemove(productId) : arrayUnion(productId)
-    }, { merge: true });
-    
-    toast({ 
-      title: isFavorite ? "הוסר מהמועדפים" : "נוסף למועדפים - תוכלו למצוא אותו באיזור האישי" 
-    });
+
+    setIsProcessingFavorite(true);
+    try {
+      const { data: profileRow, error: fetchError } = await profileRef.client
+        .from(profileRef.table)
+        .select('favorite_product_ids')
+        .eq('id', profileRef.id)
+        .single();
+
+      if (fetchError || profileRow === null) {
+        toast({ variant: "destructive", title: "שגיאה בעדכון המועדפים" });
+        return;
+      }
+
+      const currentIds: string[] = profileRow.favorite_product_ids || [];
+      const newIds = isFavorite
+        ? currentIds.filter((fid: string) => fid !== productId)
+        : [...currentIds, productId];
+
+      const { error: updateError } = await profileRef.client
+        .from(profileRef.table)
+        .update({ favorite_product_ids: newIds })
+        .eq('id', profileRef.id);
+
+      if (updateError) {
+        toast({ variant: "destructive", title: "שגיאה בעדכון המועדפים" });
+        return;
+      }
+
+      toast({ 
+        title: isFavorite ? "הוסר מהמועדפים" : "נוסף למועדפים - תוכלו למצוא אותו באיזור האישי" 
+      });
+    } finally {
+      setIsProcessingFavorite(false);
+    }
   };
 
   const handlePurchaseClick = () => {

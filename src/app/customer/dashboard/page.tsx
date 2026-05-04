@@ -179,7 +179,10 @@ export default function CustomerDashboard() {
     };
 
     supabase.from('reviews').insert(reviewData).then(({ error }) => {
-      if (error) console.error('[reviews] insert error:', error.message);
+      if (error) {
+        console.error('[reviews] insert error:', error.message);
+        toast({ variant: 'destructive', title: 'שגיאה בשמירת הדירוג', description: 'אנא נסה שנית.' });
+      }
     });
     updateDocumentNonBlocking(doc(db, 'orders', ratingOrderId.id), { is_rated: true });
 

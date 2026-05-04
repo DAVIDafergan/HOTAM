@@ -53,6 +53,7 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
   const { toast } = useToast();
   const [selectedImageIdx, setSelectedImageIdx] = useState(0);
   const [isProcessingRequest, setIsProcessingRequest] = useState(false);
+  const [isProcessingFavorite, setIsProcessingFavorite] = useState(false);
 
   const logoImg = PlaceHolderImages.find(img => img.id === 'site-logo')?.imageUrl || 'https://picsum.photos/seed/hotam-logo/400/400';
 
@@ -95,40 +96,45 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
   }, [productId]);
 
   const handleToggleFavorite = async () => {
-    if (!user || !profileRef) {
-      toast({ title: "התחברות נדרשת" });
+    if (!user || !profileRef || isProcessingFavorite) {
+      if (!user || !profileRef) toast({ title: "התחברות נדרשת" });
       return;
     }
 
-    const { data: profileRow, error: fetchError } = await profileRef.client
-      .from(profileRef.table)
-      .select('favorite_product_ids')
-      .eq('id', profileRef.id)
-      .single();
+    setIsProcessingFavorite(true);
+    try {
+      const { data: profileRow, error: fetchError } = await profileRef.client
+        .from(profileRef.table)
+        .select('favorite_product_ids')
+        .eq('id', profileRef.id)
+        .single();
 
-    if (fetchError) {
-      toast({ variant: "destructive", title: "שגיאה בעדכון המועדפים" });
-      return;
+      if (fetchError || profileRow === null) {
+        toast({ variant: "destructive", title: "שגיאה בעדכון המועדפים" });
+        return;
+      }
+
+      const currentIds: string[] = profileRow.favorite_product_ids || [];
+      const newIds = isFavorite
+        ? currentIds.filter((fid: string) => fid !== productId)
+        : [...currentIds, productId];
+
+      const { error: updateError } = await profileRef.client
+        .from(profileRef.table)
+        .update({ favorite_product_ids: newIds })
+        .eq('id', profileRef.id);
+
+      if (updateError) {
+        toast({ variant: "destructive", title: "שגיאה בעדכון המועדפים" });
+        return;
+      }
+
+      toast({ 
+        title: isFavorite ? "הוסר מהמועדפים" : "נוסף למועדפים - תוכלו למצוא אותו באיזור האישי" 
+      });
+    } finally {
+      setIsProcessingFavorite(false);
     }
-
-    const currentIds: string[] = profileRow?.favorite_product_ids || [];
-    const newIds = isFavorite
-      ? currentIds.filter((fid: string) => fid !== productId)
-      : [...currentIds, productId];
-
-    const { error: updateError } = await profileRef.client
-      .from(profileRef.table)
-      .update({ favorite_product_ids: newIds })
-      .eq('id', profileRef.id);
-
-    if (updateError) {
-      toast({ variant: "destructive", title: "שגיאה בעדכון המועדפים" });
-      return;
-    }
-
-    toast({ 
-      title: isFavorite ? "הוסר מהמועדפים" : "נוסף למועדפים - תוכלו למצוא אותו באיזור האישי" 
-    });
   };
 
   const handlePurchaseClick = () => {

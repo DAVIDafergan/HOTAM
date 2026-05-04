@@ -28,7 +28,6 @@ import {
   useDoc, 
   useMemoStable,
   addDocumentNonBlocking,
-  setDocumentNonBlocking,
   updateDocumentNonBlocking
 } from '@/lib/supabase-hooks';
 import { doc, collection, query, orderBy, serverTimestamp } from '@/lib/supabase-compat';
@@ -141,20 +140,22 @@ function ChatContent() {
 
   useEffect(() => {
     if (user && otherUserId && chatId && !isChatLoading && chatData === null) {
-      const metadata = {
-        id: chatId,
-        participants: [user.uid, otherUserId],
-        last_message_at: serverTimestamp(),
-        last_message_text: 'תחילת שיחה',
-        updated_at: serverTimestamp(),
-        is_suspicious: false,
-        origin_product_id: originProductIdFromUrl || null,
-        [`unread_${otherUserId}`]: false,
-        [`unread_${user.uid}`]: false
-      };
-      setDocumentNonBlocking(doc(db, 'chats', chatId), metadata, { merge: true });
+      supabase.from('chats').upsert([
+        {
+          id: chatId,
+          participants: [user.uid, otherUserId],
+          last_message_at: new Date().toISOString(),
+          last_message_text: 'תחילת שיחה',
+          updated_at: new Date().toISOString(),
+          is_suspicious: false,
+          origin_product_id: originProductIdFromUrl || null,
+          unread_state: { [user.uid]: false, [otherUserId]: false }
+        }
+      ]).then(({ error }) => {
+        if (error) console.error('Failed to create/update chat in Supabase:', error);
+      });
     }
-  }, [user, otherUserId, chatId, isChatLoading, chatData, db, originProductIdFromUrl]);
+  }, [user, otherUserId, chatId, isChatLoading, chatData, originProductIdFromUrl]);
 
   useEffect(() => {
     if (scrollRef.current) {

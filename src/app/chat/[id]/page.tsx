@@ -152,7 +152,7 @@ function ChatContent() {
           unread_state: { [user.uid]: false, [otherUserId]: false }
         }
       ]).then(({ error }) => {
-        if (error) console.error('Chat creation error:', error);
+        if (error) console.error('Failed to create/update chat in Supabase:', error);
       });
     }
   }, [user, otherUserId, chatId, isChatLoading, chatData, originProductIdFromUrl]);

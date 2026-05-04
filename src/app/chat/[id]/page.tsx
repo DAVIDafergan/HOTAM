@@ -92,7 +92,7 @@ function ChatContent() {
   useEffect(() => {
     if (chatId && user && chatData && chatData?.unread_state?.[user.uid] === true) {
       updateDocumentNonBlocking(doc(db, 'chats', chatId), {
-        unread_state: { ...chatData.unread_state, [user.uid]: false }
+        unread_state: { ...chatData?.unread_state, [user.uid]: false }
       });
     }
   }, [chatData, user?.uid, chatId, db]);

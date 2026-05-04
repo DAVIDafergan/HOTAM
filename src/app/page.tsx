@@ -46,20 +46,20 @@ export default function Home() {
   const { data: sellerData } = useDoc<any>(sellerRef);
   const isSeller = !!sellerData;
 
-  const sellersQuery = useMemoStable(() => query(collection(db, 'sellers'), where('isApproved', '==', true)), [db]);
+  const sellersQuery = useMemoStable(() => query(collection(db, 'sellers'), where('is_approved', '==', true)), [db]);
   const { data: allSellers } = useCollection<any>(sellersQuery);
 
   const topScribes = useMemo(() => {
     if (!allSellers) return [];
     
-    // Sort by salesCount (aggregated on seller doc) or 0
+    // Sort by sales_count (aggregated on seller doc) or 0
     // We do it in memory to avoid index requirements and missing field issues for new sellers
     return [...allSellers]
       .sort((a, b) => {
-        const countA = a.salesCount || 0;
-        const countB = b.salesCount || 0;
+        const countA = a.sales_count || 0;
+        const countB = b.sales_count || 0;
         if (countB !== countA) return countB - countA;
-        return (a.firstName || '').localeCompare(b.firstName || '');
+        return (a.first_name || '').localeCompare(b.first_name || '');
       })
       .slice(0, 8);
   }, [allSellers]);
@@ -104,8 +104,8 @@ export default function Home() {
                         <div className="relative w-24 h-24 mx-auto mb-6">
                            <div className="absolute inset-0 rounded-full border-4 border-accent/10 group-hover:scale-110 transition-transform duration-500" />
                            <div className="w-full h-full rounded-full border-4 border-white shadow-lg overflow-hidden relative bg-muted flex items-center justify-center">
-                             {scribe.profileImage ? (
-                               <Image src={scribe.profileImage} alt={scribe.firstName} fill className="object-cover" />
+                             {scribe.profile_image ? (
+                               <Image src={scribe.profile_image} alt={scribe.first_name} fill className="object-cover" />
                              ) : (
                                <UserRound className="w-10 h-10 text-primary/10" />
                              )}
@@ -114,14 +114,14 @@ export default function Home() {
                              <ShieldCheck className="w-3.5 h-3.5" />
                            </div>
                         </div>
-                        <h3 className="text-xl font-headline font-black text-primary mb-1 group-hover:text-accent transition-colors">{scribe.firstName} {scribe.lastName}</h3>
+                        <h3 className="text-xl font-headline font-black text-primary mb-1 group-hover:text-accent transition-colors">{scribe.first_name} {scribe.last_name}</h3>
                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-4 flex items-center justify-center gap-1.5">
                           <MapPin size={12} className="text-accent" /> {scribe.address?.split(' ')[0]}
                         </p>
                         <div className="flex items-center justify-center gap-4 border-t pt-4">
                            <div className="text-right">
                               <p className="text-[8px] font-black text-muted-foreground uppercase tracking-tighter">ניסיון</p>
-                              <p className="text-sm font-black text-primary tabular-nums">{scribe.experienceYears}ש'</p>
+                              <p className="text-sm font-black text-primary tabular-nums">{scribe.experience_years}ש'</p>
                            </div>
                            <div className="w-px h-6 bg-muted" />
                            <div className="text-right">

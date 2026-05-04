@@ -2,8 +2,7 @@
 -- HOTAM — Supabase PostgreSQL Schema
 -- =============================================================================
 -- Run this SQL in the Supabase SQL Editor (Project → SQL Editor → New Query).
--- Column names are camelCase (quoted) to match the Firestore field names used
--- in the frontend code, avoiding any client-side transformation.
+-- Column names are snake_case to follow PostgreSQL conventions.
 --
 -- IDEMPOTENT: This script drops and recreates all tables on every run so that
 -- it always succeeds, even if the database already has stale table definitions
@@ -12,7 +11,7 @@
 --
 -- TROUBLESHOOTING — "400 Bad Request" on REST queries (e.g. orders table):
 --   If the frontend logs a 400 error like
---     GET /rest/v1/orders?select=*&buyerId=eq.<uid>  400 Bad Request
+--     GET /rest/v1/orders?select=*&buyer_id=eq.<uid>  400 Bad Request
 --   it almost always means this SQL file has not been applied to the Supabase
 --   project yet, OR was applied before a recent schema change.
 --   Fix: paste the entire file into Supabase → SQL Editor and run it.
@@ -54,112 +53,112 @@ DROP FUNCTION IF EXISTS public.update_unread_state(TEXT, TEXT, BOOLEAN);
 -- ── sellers ──────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.sellers (
   id                    UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  "firstName"           TEXT NOT NULL DEFAULT '',
-  "lastName"            TEXT NOT NULL DEFAULT '',
+  first_name           TEXT NOT NULL DEFAULT '',
+  last_name            TEXT NOT NULL DEFAULT '',
   email                 TEXT NOT NULL DEFAULT '',
   phone                 TEXT,
   address               TEXT,
   age                   INTEGER,
-  "maritalStatus"       TEXT,
-  "businessType"        TEXT,
-  "businessId"          TEXT,
-  "businessName"        TEXT,
-  "bankName"            TEXT,
-  "bankBranch"          TEXT,
-  "bankAccountNumber"   TEXT,
-  "hasScribeCertificate" TEXT,
-  "certificateUrl"      TEXT,
-  "torahStudyFrequency" TEXT,
-  "mikvehFrequency"     TEXT,
+  marital_status       TEXT,
+  business_type        TEXT,
+  business_id          TEXT,
+  business_name        TEXT,
+  bank_name            TEXT,
+  bank_branch          TEXT,
+  bank_account_number   TEXT,
+  has_scribe_certificate TEXT,
+  certificate_url      TEXT,
+  torah_study_frequency TEXT,
+  mikveh_frequency     TEXT,
   notes                 TEXT,
-  "experienceYears"     INTEGER,
-  "scriptLevel"         TEXT,
-  "scriptTypes"         TEXT[]        NOT NULL DEFAULT '{}',
-  "writingSamples"      TEXT[]        NOT NULL DEFAULT '{}',
-  "profileImage"        TEXT,
-  "isApproved"          BOOLEAN       NOT NULL DEFAULT FALSE,
-  "salesCount"          INTEGER       NOT NULL DEFAULT 0,
-  "notificationEmail"   BOOLEAN       NOT NULL DEFAULT TRUE,
-  "notificationSMS"     BOOLEAN       NOT NULL DEFAULT TRUE,
-  "notificationVoice"   BOOLEAN       NOT NULL DEFAULT FALSE,
-  "favoriteProductIds"  TEXT[]        NOT NULL DEFAULT '{}',
-  "createdAt"           TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
-  "updatedAt"           TIMESTAMPTZ
+  experience_years     INTEGER,
+  script_level         TEXT,
+  script_types         TEXT[]        NOT NULL DEFAULT '{}',
+  writing_samples      TEXT[]        NOT NULL DEFAULT '{}',
+  profile_image        TEXT,
+  is_approved          BOOLEAN       NOT NULL DEFAULT FALSE,
+  sales_count          INTEGER       NOT NULL DEFAULT 0,
+  notification_email   BOOLEAN       NOT NULL DEFAULT TRUE,
+  notification_sms     BOOLEAN       NOT NULL DEFAULT TRUE,
+  notification_voice   BOOLEAN       NOT NULL DEFAULT FALSE,
+  favorite_product_ids  TEXT[]        NOT NULL DEFAULT '{}',
+  created_at           TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+  updated_at           TIMESTAMPTZ
 );
 
 -- ── customers ─────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.customers (
   id                   UUID          PRIMARY KEY DEFAULT uuid_generate_v4(),
-  "firstName"          TEXT          NOT NULL DEFAULT '',
-  "lastName"           TEXT          NOT NULL DEFAULT '',
+  first_name          TEXT          NOT NULL DEFAULT '',
+  last_name           TEXT          NOT NULL DEFAULT '',
   email                TEXT          NOT NULL DEFAULT '',
   phone                TEXT,
   address              TEXT,
-  "favoriteProductIds" TEXT[]        NOT NULL DEFAULT '{}',
-  "notifMsgEmail"      BOOLEAN       NOT NULL DEFAULT TRUE,
-  "notifStatusEmail"   BOOLEAN       NOT NULL DEFAULT TRUE,
-  "createdAt"          TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
-  "updatedAt"          TIMESTAMPTZ
+  favorite_product_ids TEXT[]        NOT NULL DEFAULT '{}',
+  notif_msg_email      BOOLEAN       NOT NULL DEFAULT TRUE,
+  notif_status_email   BOOLEAN       NOT NULL DEFAULT TRUE,
+  created_at          TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+  updated_at          TIMESTAMPTZ
 );
 
 -- ── admins ───────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.admins (
   id         UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
   email      TEXT        NOT NULL,
-  "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- ── products ──────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.products (
   id                  UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
-  "sellerId"          UUID        NOT NULL REFERENCES public.sellers(id) ON DELETE CASCADE,
-  "productType"       TEXT        NOT NULL DEFAULT '',
-  "subType"           TEXT,
+  seller_id          UUID        NOT NULL REFERENCES public.sellers(id) ON DELETE CASCADE,
+  product_type       TEXT        NOT NULL DEFAULT '',
+  sub_type           TEXT,
   description         TEXT,
   quantity            INTEGER     NOT NULL DEFAULT 0,
-  "scriptType"        TEXT,
-  "scriptLevel"       TEXT,
+  script_type        TEXT,
+  script_level       TEXT,
   price               NUMERIC(10,2) NOT NULL DEFAULT 0,
   images              TEXT[]      NOT NULL DEFAULT '{}',
-  "parchmentSize"     TEXT,
-  "proofreadingLevel" TEXT,
-  "deliveryTime"      TEXT,
-  "deliveryType"      TEXT,
-  "deliveryFee"       NUMERIC(10,2),
-  "deliveryArea"      TEXT[]      NOT NULL DEFAULT '{}',
-  "createdAt"         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  "updatedAt"         TIMESTAMPTZ
+  parchment_size     TEXT,
+  proofreading_level TEXT,
+  delivery_time      TEXT,
+  delivery_type      TEXT,
+  delivery_fee       NUMERIC(10,2),
+  delivery_area      TEXT[]      NOT NULL DEFAULT '{}',
+  created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at         TIMESTAMPTZ
 );
 
 -- ── orders ────────────────────────────────────────────────────────────────────
--- buyerId / sellerId / productId are stored as plain strings by the frontend
+-- buyer_id / seller_id / product_id are stored as plain strings by the frontend
 -- (Supabase Auth UIDs and Firestore-style document IDs).
 CREATE TABLE IF NOT EXISTS public.orders (
   id                  TEXT        PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
-  "buyerId"           TEXT        NOT NULL,
-  "sellerId"          TEXT        NOT NULL,
-  "productId"         TEXT        NOT NULL,
-  "productName"       TEXT        NOT NULL DEFAULT '',
-  "productImage"      TEXT,
+  buyer_id           TEXT        NOT NULL,
+  seller_id          TEXT        NOT NULL,
+  product_id         TEXT        NOT NULL,
+  product_name       TEXT        NOT NULL DEFAULT '',
+  product_image      TEXT,
   amount              NUMERIC(10,2) NOT NULL DEFAULT 0,
   status              TEXT        NOT NULL DEFAULT 'pending_payment',
-  "deliveryMethod"    TEXT,
-  "verificationCode"  TEXT,
-  "isRated"           BOOLEAN     NOT NULL DEFAULT FALSE,
-  "sellerNet"         NUMERIC(10,2),
-  "platformFee"       NUMERIC(10,2),
-  "completedAt"       TIMESTAMPTZ,
-  "verifiedBySeller"  BOOLEAN     NOT NULL DEFAULT FALSE,
-  "isSeenBySeller"    BOOLEAN     NOT NULL DEFAULT FALSE,
-  "buyerName"         TEXT,
-  "buyerPhone"        TEXT,
-  "buyerEmail"        TEXT,
-  "buyerAddress"      TEXT,
-  "paidAt"            TIMESTAMPTZ,
-  "invoiceGenerated"  BOOLEAN     NOT NULL DEFAULT FALSE,
-  "paymentProvider"   TEXT,
-  "createdAt"         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  "updatedAt"         TIMESTAMPTZ
+  delivery_method    TEXT,
+  verification_code  TEXT,
+  is_rated           BOOLEAN     NOT NULL DEFAULT FALSE,
+  seller_net         NUMERIC(10,2),
+  platform_fee       NUMERIC(10,2),
+  completed_at       TIMESTAMPTZ,
+  verified_by_seller  BOOLEAN     NOT NULL DEFAULT FALSE,
+  is_seen_by_seller    BOOLEAN     NOT NULL DEFAULT FALSE,
+  buyer_name         TEXT,
+  buyer_phone        TEXT,
+  buyer_email        TEXT,
+  buyer_address      TEXT,
+  paid_at            TIMESTAMPTZ,
+  invoice_generated  BOOLEAN     NOT NULL DEFAULT FALSE,
+  payment_provider   TEXT,
+  created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at         TIMESTAMPTZ
 );
 
 -- ── chats ─────────────────────────────────────────────────────────────────────
@@ -170,73 +169,73 @@ CREATE TABLE IF NOT EXISTS public.orders (
 CREATE TABLE IF NOT EXISTS public.chats (
   id                  TEXT        PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
   participants        TEXT[]      NOT NULL DEFAULT '{}',
-  "lastMessageAt"     TIMESTAMPTZ,
-  "lastMessageText"   TEXT,
-  "originProductId"   TEXT,
-  "isSuspicious"      BOOLEAN     NOT NULL DEFAULT FALSE,
-  "lastViolationAt"   TIMESTAMPTZ,
-  "lastViolationText" TEXT,
+  last_message_at     TIMESTAMPTZ,
+  last_message_text   TEXT,
+  origin_product_id   TEXT,
+  is_suspicious      BOOLEAN     NOT NULL DEFAULT FALSE,
+  last_violation_at   TIMESTAMPTZ,
+  last_violation_text TEXT,
   unread_state        JSONB       NOT NULL DEFAULT '{}',
-  "createdAt"         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  "updatedAt"         TIMESTAMPTZ
+  created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at         TIMESTAMPTZ
 );
 
 -- ── messages ──────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.messages (
   id                UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
-  "chatId"          TEXT        NOT NULL REFERENCES public.chats(id) ON DELETE CASCADE,
-  "senderId"        TEXT        NOT NULL,
+  chat_id          TEXT        NOT NULL REFERENCES public.chats(id) ON DELETE CASCADE,
+  sender_id        TEXT        NOT NULL,
   text              TEXT        NOT NULL DEFAULT '',
   timestamp         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  "isPaymentRequest" BOOLEAN    NOT NULL DEFAULT FALSE,
+  is_payment_request BOOLEAN    NOT NULL DEFAULT FALSE,
   amount            NUMERIC(10,2),
-  "productName"     TEXT,
-  "productImage"    TEXT,
-  "productId"       TEXT
+  product_name     TEXT,
+  product_image    TEXT,
+  product_id       TEXT
 );
 
 -- ── reviews ───────────────────────────────────────────────────────────────────
--- sellerId / productId / buyerId are stored as plain strings by the frontend.
+-- seller_id / product_id / buyer_id are stored as plain strings by the frontend.
 CREATE TABLE IF NOT EXISTS public.reviews (
   id             UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
-  "orderId"      TEXT        NOT NULL,
-  "sellerId"     TEXT        NOT NULL,
-  "productId"    TEXT        NOT NULL,
-  "buyerId"      TEXT        NOT NULL,
-  "buyerName"    TEXT,
+  order_id      TEXT        NOT NULL,
+  seller_id     TEXT        NOT NULL,
+  product_id    TEXT        NOT NULL,
+  buyer_id      TEXT        NOT NULL,
+  buyer_name    TEXT,
   rating         INTEGER     NOT NULL CHECK (rating BETWEEN 1 AND 5),
-  "productRating" INTEGER    NOT NULL CHECK ("productRating" BETWEEN 1 AND 5),
+  product_rating INTEGER    NOT NULL CHECK (product_rating BETWEEN 1 AND 5),
   comment        TEXT,
-  "createdAt"    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- ── reports ───────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.reports (
   id             UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
-  "sellerId"     TEXT        NOT NULL,
-  "sellerName"   TEXT,
-  "reporterId"   TEXT        NOT NULL,
-  "reporterName" TEXT,
+  seller_id     TEXT        NOT NULL,
+  seller_name   TEXT,
+  reporter_id   TEXT        NOT NULL,
+  reporter_name TEXT,
   reason         TEXT,
-  "createdAt"    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- =============================================================================
 -- INDEXES
 -- =============================================================================
 
-CREATE INDEX IF NOT EXISTS idx_products_seller_id    ON public.products ("sellerId");
-CREATE INDEX IF NOT EXISTS idx_orders_buyer_id        ON public.orders   ("buyerId");
-CREATE INDEX IF NOT EXISTS idx_orders_seller_id       ON public.orders   ("sellerId");
-CREATE INDEX IF NOT EXISTS idx_orders_product_id      ON public.orders   ("productId");
+CREATE INDEX IF NOT EXISTS idx_products_seller_id    ON public.products (seller_id);
+CREATE INDEX IF NOT EXISTS idx_orders_buyer_id        ON public.orders   (buyer_id);
+CREATE INDEX IF NOT EXISTS idx_orders_seller_id       ON public.orders   (seller_id);
+CREATE INDEX IF NOT EXISTS idx_orders_product_id      ON public.orders   (product_id);
 CREATE INDEX IF NOT EXISTS idx_orders_status          ON public.orders   (status);
-CREATE INDEX IF NOT EXISTS idx_messages_chat_id       ON public.messages ("chatId");
+CREATE INDEX IF NOT EXISTS idx_messages_chat_id       ON public.messages (chat_id);
 CREATE INDEX IF NOT EXISTS idx_messages_timestamp     ON public.messages (timestamp);
-CREATE INDEX IF NOT EXISTS idx_reviews_seller_id      ON public.reviews  ("sellerId");
-CREATE INDEX IF NOT EXISTS idx_reviews_product_id     ON public.reviews  ("productId");
+CREATE INDEX IF NOT EXISTS idx_reviews_seller_id      ON public.reviews  (seller_id);
+CREATE INDEX IF NOT EXISTS idx_reviews_product_id     ON public.reviews  (product_id);
 CREATE INDEX IF NOT EXISTS idx_chats_participants     ON public.chats USING GIN (participants);
 CREATE INDEX IF NOT EXISTS idx_chats_unread_state     ON public.chats USING GIN (unread_state);
-CREATE INDEX IF NOT EXISTS idx_sellers_is_approved    ON public.sellers ("isApproved");
+CREATE INDEX IF NOT EXISTS idx_sellers_is_approved    ON public.sellers (is_approved);
 
 -- =============================================================================
 -- ROW-LEVEL SECURITY (RLS)
@@ -282,19 +281,19 @@ CREATE POLICY "admins_own_write"   ON public.admins FOR ALL USING (public.is_adm
 -- ── products policies ─────────────────────────────────────────────────────────
 CREATE POLICY "Allow public read"       ON public.products FOR SELECT USING (true);
 CREATE POLICY "products_seller_insert"  ON public.products FOR INSERT
-  WITH CHECK (auth.uid() = "sellerId");
+  WITH CHECK (auth.uid() = seller_id);
 CREATE POLICY "products_seller_update"  ON public.products FOR UPDATE
-  USING (auth.uid() = "sellerId");
+  USING (auth.uid() = seller_id);
 CREATE POLICY "products_seller_delete"  ON public.products FOR DELETE
-  USING (auth.uid() = "sellerId");
+  USING (auth.uid() = seller_id);
 CREATE POLICY "products_admin_all"      ON public.products FOR ALL USING (public.is_admin());
 
 -- ── orders policies ───────────────────────────────────────────────────────────
 CREATE POLICY "Allow public read"     ON public.orders FOR SELECT USING (true);
 CREATE POLICY "orders_buyer_insert"   ON public.orders FOR INSERT
-  WITH CHECK (auth.uid()::TEXT = "buyerId");
+  WITH CHECK (auth.uid()::TEXT = buyer_id);
 CREATE POLICY "orders_parties_update" ON public.orders FOR UPDATE
-  USING (auth.uid()::TEXT = "buyerId" OR auth.uid()::TEXT = "sellerId");
+  USING (auth.uid()::TEXT = buyer_id OR auth.uid()::TEXT = seller_id);
 CREATE POLICY "orders_admin_all"      ON public.orders FOR ALL USING (public.is_admin());
 
 -- ── chats policies ────────────────────────────────────────────────────────────
@@ -308,19 +307,19 @@ CREATE POLICY "chats_admin_all"          ON public.chats FOR ALL USING (public.i
 -- ── messages policies ─────────────────────────────────────────────────────────
 CREATE POLICY "Allow public read"           ON public.messages FOR SELECT USING (true);
 CREATE POLICY "messages_participant_insert" ON public.messages FOR INSERT
-  WITH CHECK (auth.uid()::TEXT = "senderId");
+  WITH CHECK (auth.uid()::TEXT = sender_id);
 CREATE POLICY "messages_admin_all"          ON public.messages FOR ALL USING (public.is_admin());
 
 -- ── reviews policies ──────────────────────────────────────────────────────────
 CREATE POLICY "Allow public read"  ON public.reviews FOR SELECT USING (true);
 CREATE POLICY "reviews_buyer_insert" ON public.reviews FOR INSERT
-  WITH CHECK (auth.uid()::TEXT = "buyerId");
+  WITH CHECK (auth.uid()::TEXT = buyer_id);
 CREATE POLICY "reviews_admin_all"    ON public.reviews FOR ALL USING (public.is_admin());
 
 -- ── reports policies ──────────────────────────────────────────────────────────
 CREATE POLICY "Allow public read"       ON public.reports FOR SELECT USING (true);
 CREATE POLICY "reports_reporter_insert" ON public.reports FOR INSERT
-  WITH CHECK (auth.uid()::TEXT = "reporterId");
+  WITH CHECK (auth.uid()::TEXT = reporter_id);
 CREATE POLICY "reports_admin_all"       ON public.reports FOR ALL USING (public.is_admin());
 
 -- =============================================================================
@@ -484,7 +483,7 @@ BEGIN
 
   IF v_role = 'seller' THEN
     INSERT INTO public.sellers (
-      id, email, "firstName", "lastName"
+      id, email, first_name, last_name
     ) VALUES (
       NEW.id, NEW.email, v_first, v_last
     )
@@ -498,7 +497,7 @@ BEGIN
   ELSE
     -- Default: customer
     INSERT INTO public.customers (
-      id, email, "firstName", "lastName"
+      id, email, first_name, last_name
     ) VALUES (
       NEW.id, NEW.email, v_first, v_last
     )

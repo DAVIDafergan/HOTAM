@@ -173,7 +173,7 @@ export function collection(client: SupabaseClient, ...pathSegments: string[]): C
     return {
       client,
       table: childTable,
-      implicitFilters: [{ column: 'chatId', op: 'eq', value: parentId }],
+      implicitFilters: [{ column: 'chat_id', op: 'eq', value: parentId }],
     };
   }
   return { client, table: pathSegments[0] };

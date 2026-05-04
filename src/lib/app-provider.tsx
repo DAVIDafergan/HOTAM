@@ -107,24 +107,24 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
     return () => subscription.unsubscribe();
   }, [client]);
 
-  // ── Profile fetching ───────────────────────────────────────────────────────
+  // ── Profile fetching (role-based) ─────────────────────────────────────────
   const customerRef = useMemoStable(() => {
-    if (!user?.uid) return null;
+    if (!user?.uid || user?.role === 'seller' || user?.role === 'admin') return null;
     return doc(client, 'customers', user.uid);
-  }, [user?.uid]);
+  }, [user?.uid, user?.role]);
 
   const { data: customerData, isLoading: isCustLoading } = useDoc<any>(customerRef);
 
   const sellerRef = useMemoStable(() => {
-    if (!user?.uid || customerData) return null;
+    if (!user?.uid || user?.role !== 'seller') return null;
     return doc(client, 'sellers', user.uid);
-  }, [user?.uid, !!customerData]);
+  }, [user?.uid, user?.role]);
 
   const { data: sellerData, isLoading: isSellLoading } = useDoc<any>(sellerRef);
 
   const profile = useMemo(() => {
-    if (customerData) return { ...customerData, role: 'customer' };
     if (sellerData) return { ...sellerData, role: 'seller' };
+    if (customerData) return { ...customerData, role: 'customer' };
     return null;
   }, [customerData, sellerData]);
 

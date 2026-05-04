@@ -81,7 +81,7 @@ export default function SellerProfile() {
   // Fetch Reviews
   const reviewsQuery = useMemoStable(() => {
     if (!id) return null;
-    return query(collection(db, 'reviews'), where('sellerId', '==', id));
+    return query(collection(db, 'reviews'), where('seller_id', '==', id));
   }, [db, id]);
   const { data: reviews } = useCollection<any>(reviewsQuery);
 
@@ -98,12 +98,12 @@ export default function SellerProfile() {
     
     setIsReporting(true);
     const reportData = {
-      sellerId: id,
-      sellerName: `${seller.firstName} ${seller.lastName}`,
-      reporterId: user.uid,
-      reporterName: user.displayName || user.email || 'משתמש באתר',
+      seller_id: id,
+      seller_name: `${seller.first_name} ${seller.last_name}`,
+      reporter_id: user.uid,
+      reporter_name: user.displayName || user.email || 'משתמש באתר',
       reason: reportReason,
-      createdAt: serverTimestamp()
+      created_at: serverTimestamp()
     };
 
     addDocumentNonBlocking(collection(db, 'reports'), reportData);
@@ -136,26 +136,26 @@ export default function SellerProfile() {
   const stats = [
     { 
       label: 'ניסיון', 
-      value: `${seller.experienceYears || '0'} שנות ניסיון`, 
+      value: `${seller.experience_years || '0'} שנות ניסיון`, 
       icon: <Award className="w-4 h-4" /> 
     },
     { 
       label: 'טבילות', 
-      value: seller.mikvehFrequency === 'daily' ? 'טובל כל יום' : 
-             seller.mikvehFrequency === 'before' ? 'טובל לפני הכתיבה' : 
-             seller.mikvehFrequency === 'ezra' ? 'טבילת עזרא' : 'לא צוין', 
+      value: seller.mikveh_frequency === 'daily' ? 'טובל כל יום' : 
+             seller.mikveh_frequency === 'before' ? 'טובל לפני הכתיבה' : 
+             seller.mikveh_frequency === 'ezra' ? 'טבילת עזרא' : 'לא צוין', 
       icon: <CheckCircle2 className="w-4 h-4" /> 
     },
     { 
       label: 'לימוד תורה', 
-      value: seller.torahStudyFrequency === 'full-day' ? 'אברך יום שלם' : 
-             seller.torahStudyFrequency === 'half-day' ? 'אברך חצי יום' : 'קובע עיתים', 
+      value: seller.torah_study_frequency === 'full-day' ? 'אברך יום שלם' : 
+             seller.torah_study_frequency === 'half-day' ? 'אברך חצי יום' : 'קובע עיתים', 
       icon: <BookOpen className="w-4 h-4" /> 
     },
     { 
       label: 'הסמכה', 
-      value: seller.hasScribeCertificate === 'valid' ? 'תעודה בתוקף' : 
-             seller.hasScribeCertificate === 'expired' ? 'הייתה תעודה בעבר' : 'ללא תעודה', 
+      value: seller.has_scribe_certificate === 'valid' ? 'תעודה בתוקף' : 
+             seller.has_scribe_certificate === 'expired' ? 'הייתה תעודה בעבר' : 'ללא תעודה', 
       icon: <ShieldCheck className="w-4 h-4" /> 
     },
   ];
@@ -173,13 +173,13 @@ export default function SellerProfile() {
               <div className="relative w-32 h-32 md:w-40 md:h-40 mx-auto mb-6 z-10">
                 <div className="absolute inset-0 rounded-full border-4 border-accent/10" />
                 <div className="w-full h-full rounded-full border-[6px] border-white shadow-xl overflow-hidden relative bg-muted flex items-center justify-center">
-                  {seller.profileImage ? (
-                    <Image src={seller.profileImage} alt={`${seller.firstName} ${seller.lastName}`} fill className="object-cover" />
+                  {seller.profile_image ? (
+                    <Image src={seller.profile_image} alt={`${seller.first_name} ${seller.last_name}`} fill className="object-cover" />
                   ) : (
                     <UserRound className="w-16 h-16 text-primary/20" />
                   )}
                 </div>
-                {seller.isApproved && (
+                {seller.is_approved && (
                   <div className="absolute -bottom-1 -right-1 bg-accent text-primary p-2 rounded-full shadow-lg border-2 border-white">
                     <ShieldCheck className="w-5 h-5" />
                   </div>
@@ -187,7 +187,7 @@ export default function SellerProfile() {
               </div>
               
               <h1 className="text-2xl md:text-3xl font-headline font-black text-primary mb-1 tracking-tight">
-                {seller.firstName} {seller.lastName}
+                {seller.first_name} {seller.last_name}
               </h1>
               <p className="text-muted-foreground flex items-center justify-center gap-2 mb-6 font-bold text-[10px] uppercase tracking-tighter">
                 {seller.address} <MapPin className="w-3 h-3 text-accent" />
@@ -204,7 +204,7 @@ export default function SellerProfile() {
                 ) : (
                   <span className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-widest italic">אין דירוגים עדיין</span>
                 )}
-                {seller.isApproved && <span className="text-[9px] font-black text-primary/40 uppercase tracking-widest">(פרופיל מאומת)</span>}
+                {seller.is_approved && <span className="text-[9px] font-black text-primary/40 uppercase tracking-widest">(פרופיל מאומת)</span>}
               </div>
 
               <div className="grid grid-cols-1 gap-2 text-right">
@@ -220,7 +220,7 @@ export default function SellerProfile() {
               </div>
 
               <div className="pt-8 space-y-3">
-                {seller.certificateUrl && (
+                {seller.certificate_url && (
                   <Dialog>
                     <DialogTrigger asChild>
                       <Button className="w-full bg-accent text-primary hover:bg-accent/90 py-6 rounded-2xl gap-2 text-xs font-black uppercase tracking-wider shadow-lg">
@@ -231,14 +231,14 @@ export default function SellerProfile() {
                       <div className="bg-primary p-6 text-white text-right relative">
                         <DialogHeader>
                           <DialogTitle className="text-xl font-headline font-black flex items-center gap-3 text-white">
-                            <ShieldCheck className="w-6 h-6 text-accent" /> תעודת הסמכה - {seller.firstName} {seller.lastName}
+                            <ShieldCheck className="w-6 h-6 text-accent" /> תעודת הסמכה - {seller.first_name} {seller.last_name}
                           </DialogTitle>
                         </DialogHeader>
                       </div>
                       <div className="p-4 bg-white flex justify-center items-center min-h-[400px]">
                         <div className="relative w-full aspect-[1/1.4] max-h-[70vh]">
                            <Image 
-                             src={seller.certificateUrl} 
+                             src={seller.certificate_url} 
                              alt="תעודת סופר" 
                              fill 
                              className="object-contain"
@@ -300,7 +300,7 @@ export default function SellerProfile() {
                   "{seller.notes || 'מלאכת שמיים ושליחות קודש. כל תג נכתב מתוך כוונה טהורה על קלף איכותי, בחרדת קודש ובהתאם לכל כללי ההלכה.'}"
                 </p>
                 <div className="flex flex-wrap justify-end gap-2">
-                  {(seller.scriptTypes || []).map((type: string) => (
+                  {(seller.script_types || []).map((type: string) => (
                     <Badge key={type} variant="secondary" className="bg-accent/10 text-accent border-accent/10 font-black text-[9px] px-4 py-1 uppercase tracking-wider">
                       מומחה לכתב {type}
                     </Badge>
@@ -323,14 +323,14 @@ export default function SellerProfile() {
                        {products.map((p: any) => (
                           <Card key={p.id} className="group overflow-hidden border-none shadow-premium rounded-2xl bg-muted/10 hover:bg-white hover:shadow-2xl transition-all duration-500">
                             <div className="relative h-40 md:h-44">
-                              <Image src={p.images?.[0] || logoImg} alt={p.productType} fill className="object-cover group-hover:scale-105 transition-transform duration-700" />
+                              <Image src={p.images?.[0] || logoImg} alt={p.product_type} fill className="object-cover group-hover:scale-105 transition-transform duration-700" />
                               <Badge className="absolute top-3 right-3 bg-primary/80 text-white text-[8px] px-3 py-1 rounded-full backdrop-blur-md">
-                                {p.scriptLevel}
+                                {p.script_level}
                               </Badge>
                             </div>
                             <div className="p-5 text-right space-y-2">
                               <h4 className="font-black text-primary text-sm md:text-base tracking-tight group-hover:text-accent transition-colors leading-tight">
-                                {p.productType} {p.subType && `(${p.subType})`}
+                                {p.product_type} {p.sub_type && `(${p.sub_type})`}
                               </h4>
                               <p className="text-lg font-black text-accent">₪{p.price}</p>
                               <Button variant="link" size="sm" asChild className="p-0 h-auto mt-1 text-[9px] font-black uppercase tracking-widest">
@@ -350,7 +350,7 @@ export default function SellerProfile() {
 
                 <TabsContent value="samples" className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
                   <div className="grid grid-cols-2 gap-4">
-                    {(seller.writingSamples || []).map((sample: string, i: number) => (
+                    {(seller.writing_samples || []).map((sample: string, i: number) => (
                       <div key={i} className="group relative aspect-square rounded-2xl overflow-hidden shadow-premium border border-muted/50">
                         <Image src={sample} alt={`Sample ${i}`} fill className="object-cover group-hover:scale-110 transition-transform duration-1000" />
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -358,7 +358,7 @@ export default function SellerProfile() {
                         </div>
                       </div>
                     ))}
-                    {(!seller.writingSamples || seller.writingSamples.length === 0) && (
+                    {(!seller.writing_samples || seller.writing_samples.length === 0) && (
                       <div className="col-span-full py-16 text-center bg-muted/10 rounded-3xl border-2 border-dashed border-muted">
                         <PenToolIcon className="w-10 h-10 mx-auto mb-3 opacity-10" />
                         <p className="text-muted-foreground font-bold text-sm">אין דוגמאות כתיבה זמינות מההרשמה</p>
@@ -380,9 +380,9 @@ export default function SellerProfile() {
                               </div>
                             </div>
                           </div>
-                          <span className="text-[10px] font-bold text-muted-foreground">{rev.createdAt?.toDate ? rev.createdAt.toDate().toLocaleDateString('he-IL') : 'היום'}</span>
+                          <span className="text-[10px] font-bold text-muted-foreground">{rev.created_at?.toDate ? rev.created_at.toDate().toLocaleDateString('he-IL') : 'היום'}</span>
                         </div>
-                        <p className="font-black text-primary text-sm mb-2">{rev.buyerName}</p>
+                        <p className="font-black text-primary text-sm mb-2">{rev.buyer_name}</p>
                         <p className="text-xs text-primary/70 leading-relaxed italic">"{rev.comment}"</p>
                       </Card>
                     ))

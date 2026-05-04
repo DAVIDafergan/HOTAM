@@ -45,9 +45,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       };
     }
 
-    const title = fields.productType || 'מוצר קודש';
-    const subType = fields.subType && fields.subType !== 'all' ? ` ${fields.subType}` : '';
-    const scriptType = fields.scriptType || '';
+    const title = fields.product_type || 'מוצר קודש';
+    const subType = fields.sub_type && fields.sub_type !== 'all' ? ` ${fields.sub_type}` : '';
+    const scriptType = fields.script_type || '';
 
     const pageTitle = `${title}${subType} - כתב ${scriptType} מהודר | חותם`;
     const description = fields.description || `רכישת ${title} מהודרת בכתב ${scriptType}, נכתב על ידי סופר סת"ם ירא שמיים בפיקוח הלכתי.`;
@@ -85,7 +85,7 @@ export default async function ProductPage({ params }: Props) {
   const jsonLd = fields ? {
     "@context": "https://schema.org",
     "@type": "Product",
-    "name": fields.productType || 'מוצר קודש',
+    "name": fields.product_type || 'מוצר קודש',
     "description": fields.description || 'מוצר קודש מהודר מחותם',
     "image": Array.isArray(fields.images) ? (fields.images[0] || '') : '',
     "offers": {

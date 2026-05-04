@@ -348,7 +348,6 @@ function SellerDashboardContent() {
       return;
     }
 
-    const now = new Date().toISOString();
     const data = {
       seller_id: user.uid,
       product_type: formType,
@@ -365,13 +364,12 @@ function SellerDashboardContent() {
       delivery_type: formDeliveryType,
       delivery_fee: formDeliveryType === 'pickup' ? 0 : Number(formDeliveryFee),
       delivery_area: formDeliveryArea,
-      updatedAt: now
     };
 
     if (editingProduct) {
       updateDocumentNonBlocking(doc(db, 'products', editingProduct.id), data);
     } else {
-      const { error } = await supabase.from('products').insert([{ ...data, created_at: now }]);
+      const { error } = await supabase.from('products').insert([data]);
       if (error) {
         console.error("Supabase insert error:", error);
         toast({ variant: "destructive", title: "שגיאה בהוספת המוצר", description: error.message });

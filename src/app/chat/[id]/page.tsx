@@ -90,9 +90,9 @@ function ChatContent() {
 
   // Handle Mark as Read
   useEffect(() => {
-    if (chatId && user && chatData && chatData[`unread_${user.uid}`] === true) {
+    if (chatId && user && chatData && chatData?.unread_state?.[user.uid] === true) {
       updateDocumentNonBlocking(doc(db, 'chats', chatId), {
-        [`unread_${user.uid}`]: false
+        unread_state: { ...chatData?.unread_state, [user.uid]: false }
       });
     }
   }, [chatData, user?.uid, chatId, db]);
@@ -211,7 +211,7 @@ function ChatContent() {
       last_message_at: serverTimestamp(),
       last_message_text: newMessage,
       updated_at: serverTimestamp(),
-      [`unread_${otherUserId}`]: true
+      unread_state: { ...chatData?.unread_state, [otherUserId]: true }
     });
 
     setNewMessage('');
@@ -237,7 +237,7 @@ function ChatContent() {
       last_message_at: serverTimestamp(),
       last_message_text: text,
       updated_at: serverTimestamp(),
-      [`unread_${otherUserId}`]: true
+      unread_state: { ...chatData?.unread_state, [otherUserId]: true }
     });
     setIsPaymentDialogOpen(false);
   };

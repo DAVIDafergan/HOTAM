@@ -427,7 +427,7 @@ function ScribeTable({ scribes, onApprove, onDelete, isLoading, orders, page, se
               
               const monthlyEarnings = scribeOrders
                 .filter((o: any) => {
-                  const date = o.created_at?.toDate ? o.created_at.toDate() : new Date(o.created_at);
+                  const date = o.created_at?.toDate ? o.created_at.toDate() : (o.created_at ? new Date(o.created_at) : new Date());
                   return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
                 })
                 .reduce((acc: number, o: any) => acc + (Number(o.seller_net) || Number(o.amount) * 0.80), 0);

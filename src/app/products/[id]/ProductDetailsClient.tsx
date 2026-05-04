@@ -29,8 +29,8 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useSupabaseClient, useDoc, useMemoStable, useUser, setDocumentNonBlocking, addDocumentNonBlocking } from '@/lib/supabase-hooks';
-import { doc, arrayUnion, arrayRemove, collection, serverTimestamp } from '@/lib/supabase-compat';
+import { useSupabaseClient, useDoc, useMemoStable, useUser, addDocumentNonBlocking } from '@/lib/supabase-hooks';
+import { doc, collection, serverTimestamp } from '@/lib/supabase-compat';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -94,15 +94,38 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
       });
   }, [productId]);
 
-  const handleToggleFavorite = () => {
+  const handleToggleFavorite = async () => {
     if (!user || !profileRef) {
       toast({ title: "התחברות נדרשת" });
       return;
     }
-    setDocumentNonBlocking(profileRef, {
-      favorite_product_ids: isFavorite ? arrayRemove(productId) : arrayUnion(productId)
-    }, { merge: true });
-    
+
+    const { data: profileRow, error: fetchError } = await profileRef.client
+      .from(profileRef.table)
+      .select('favorite_product_ids')
+      .eq('id', profileRef.id)
+      .single();
+
+    if (fetchError) {
+      toast({ variant: "destructive", title: "שגיאה בעדכון המועדפים" });
+      return;
+    }
+
+    const currentIds: string[] = profileRow?.favorite_product_ids || [];
+    const newIds = isFavorite
+      ? currentIds.filter((fid: string) => fid !== productId)
+      : [...currentIds, productId];
+
+    const { error: updateError } = await profileRef.client
+      .from(profileRef.table)
+      .update({ favorite_product_ids: newIds })
+      .eq('id', profileRef.id);
+
+    if (updateError) {
+      toast({ variant: "destructive", title: "שגיאה בעדכון המועדפים" });
+      return;
+    }
+
     toast({ 
       title: isFavorite ? "הוסר מהמועדפים" : "נוסף למועדפים - תוכלו למצוא אותו באיזור האישי" 
     });

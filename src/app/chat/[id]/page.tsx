@@ -146,7 +146,7 @@ function ChatContent() {
         participants: [user.uid, otherUserId],
         last_message_at: serverTimestamp(),
         last_message_text: 'תחילת שיחה',
-        updatedAt: serverTimestamp(),
+        updated_at: serverTimestamp(),
         is_suspicious: false,
         origin_product_id: originProductIdFromUrl || null,
         [`unread_${otherUserId}`]: false,
@@ -209,7 +209,7 @@ function ChatContent() {
     updateDocumentNonBlocking(doc(db, 'chats', chatId), { 
       last_message_at: serverTimestamp(),
       last_message_text: newMessage,
-      updatedAt: serverTimestamp(),
+      updated_at: serverTimestamp(),
       [`unread_${otherUserId}`]: true
     });
 
@@ -235,7 +235,7 @@ function ChatContent() {
     updateDocumentNonBlocking(doc(db, 'chats', chatId), { 
       last_message_at: serverTimestamp(),
       last_message_text: text,
-      updatedAt: serverTimestamp(),
+      updated_at: serverTimestamp(),
       [`unread_${otherUserId}`]: true
     });
     setIsPaymentDialogOpen(false);

@@ -3,7 +3,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { errorEmitter } from '@/lib/error-emitter';
 import { DatabasePermissionError } from '@/lib/errors';
-import type { SupabaseDocRef } from '@/lib/supabase-compat';
+import type { CollectionRef, SupabaseDocRef } from '@/lib/supabase-compat';
 
 // ─── Type helpers ─────────────────────────────────────────────────────────────
 
@@ -113,11 +113,18 @@ export function setDocumentNonBlocking(
 // ─── addDocumentNonBlocking ────────────────────────────────────────────────────
 
 export function addDocumentNonBlocking(
-  colRef: { client: SupabaseClient; table: string },
+  colRef: CollectionRef,
   data: Record<string, any>,
 ) {
+  // Merge implicit eq-filters (e.g. chat_id from sub-collection path) into data
+  const implicitData: Record<string, any> = {};
+  for (const f of colRef.implicitFilters ?? []) {
+    if (f.op === 'eq') implicitData[f.column] = f.value;
+  }
+  const insertData = { ...implicitData, ...data };
+
   const promise = Promise.resolve(
-    colRef.client.from(colRef.table).insert(data).select('id').single(),
+    colRef.client.from(colRef.table).insert(insertData).select('id').single(),
   ).then(({ data: row, error }) => {
     if (error) throw error;
     return row;

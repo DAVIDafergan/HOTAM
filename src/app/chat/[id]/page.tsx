@@ -207,12 +207,15 @@ function ChatContent() {
     };
 
     addDocumentNonBlocking(collection(db, 'chats', chatId, 'messages'), msgData);
-    updateDocumentNonBlocking(doc(db, 'chats', chatId), { 
-      last_message_at: serverTimestamp(),
-      last_message_text: newMessage,
-      updated_at: serverTimestamp(),
-      unread_state: { ...chatData?.unread_state, [otherUserId]: true }
-    });
+    supabase
+      .from('chats')
+      .update({
+        last_message_at: new Date().toISOString(),
+        last_message_text: newMessage,
+        unread_state: { ...chatData?.unread_state, [otherUserId]: true },
+      })
+      .eq('id', chatId)
+      .then(({ error }) => { if (error) console.error('Supabase Chat Update Error:', error); });
 
     setNewMessage('');
     setSecurityViolation(false);
@@ -233,12 +236,15 @@ function ChatContent() {
     };
     
     addDocumentNonBlocking(collection(db, 'chats', chatId, 'messages'), msgData);
-    updateDocumentNonBlocking(doc(db, 'chats', chatId), { 
-      last_message_at: serverTimestamp(),
-      last_message_text: text,
-      updated_at: serverTimestamp(),
-      unread_state: { ...chatData?.unread_state, [otherUserId]: true }
-    });
+    supabase
+      .from('chats')
+      .update({
+        last_message_at: new Date().toISOString(),
+        last_message_text: text,
+        unread_state: { ...chatData?.unread_state, [otherUserId]: true },
+      })
+      .eq('id', chatId)
+      .then(({ error }) => { if (error) console.error('Supabase Chat Update Error:', error); });
     setIsPaymentDialogOpen(false);
   };
 

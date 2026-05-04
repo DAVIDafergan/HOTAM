@@ -31,8 +31,8 @@ import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { useUser, useApp, useSupabaseClient, useDoc, useMemoStable, useCollection, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/lib/supabase-hooks';
-import { doc, collection, query, where, documentId, serverTimestamp } from '@/lib/supabase-compat';
+import { useUser, useApp, useSupabaseClient, useDoc, useMemoStable, useCollection, updateDocumentNonBlocking } from '@/lib/supabase-hooks';
+import { doc, collection, query, where, documentId } from '@/lib/supabase-compat';
 import { supabase } from '@/lib/supabase';
 import { ProductCard } from '@/components/ProductCard';
 import { useToast } from '@/hooks/use-toast';
@@ -168,18 +168,19 @@ export default function CustomerDashboard() {
     setIsRatingSubmitting(true);
 
     const reviewData = {
-      orderId: ratingOrderId.id,
+      order_id: ratingOrderId.id,
       seller_id: ratingOrderId.seller_id,
       product_id: ratingOrderId.product_id,
       buyer_id: user.uid,
       buyer_name: `${customer?.first_name || 'לקוח'} ${customer?.last_name || 'חותם'}`,
       rating: scribeRatingVal,
-      productRating: productRatingVal,
+      product_rating: productRatingVal,
       comment: ratingComment,
-      created_at: serverTimestamp()
     };
 
-    addDocumentNonBlocking(collection(db, 'reviews'), reviewData);
+    supabase.from('reviews').insert(reviewData).then(({ error }) => {
+      if (error) console.error('[reviews] insert error:', error.message);
+    });
     updateDocumentNonBlocking(doc(db, 'orders', ratingOrderId.id), { is_rated: true });
 
     setTimeout(() => {

@@ -32,8 +32,8 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useSupabaseClient, useDoc, useCollection, useMemoStable, useUser, addDocumentNonBlocking } from '@/lib/supabase-hooks';
-import { doc, collection, query, where, serverTimestamp } from '@/lib/supabase-compat';
+import { useSupabaseClient, useDoc, useMemoStable, useUser, addDocumentNonBlocking } from '@/lib/supabase-hooks';
+import { doc, collection, serverTimestamp } from '@/lib/supabase-compat';
 import { supabase } from '@/lib/supabase';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useMemo, useState, useEffect } from 'react';
@@ -79,11 +79,19 @@ export default function SellerProfile() {
   }, [id]);
 
   // Fetch Reviews
-  const reviewsQuery = useMemoStable(() => {
-    if (!id) return null;
-    return query(collection(db, 'reviews'), where('seller_id', '==', id));
-  }, [db, id]);
-  const { data: reviews } = useCollection<any>(reviewsQuery);
+  const [reviews, setReviews] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!id) return;
+    supabase
+      .from('reviews')
+      .select('*')
+      .eq('seller_id', id)
+      .then(({ data, error }) => {
+        if (error) console.error('[reviews] fetch error:', error.message);
+        else setReviews(data ?? []);
+      });
+  }, [id]);
 
   const averageRating = useMemo(() => {
     const revs = reviews || [];

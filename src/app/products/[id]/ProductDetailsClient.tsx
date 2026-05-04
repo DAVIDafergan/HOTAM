@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -29,8 +29,9 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useSupabaseClient, useDoc, useMemoStable, useUser, setDocumentNonBlocking, useCollection, addDocumentNonBlocking } from '@/lib/supabase-hooks';
-import { doc, arrayUnion, arrayRemove, collection, serverTimestamp, query, where } from '@/lib/supabase-compat';
+import { useSupabaseClient, useDoc, useMemoStable, useUser, setDocumentNonBlocking, addDocumentNonBlocking } from '@/lib/supabase-hooks';
+import { doc, arrayUnion, arrayRemove, collection, serverTimestamp } from '@/lib/supabase-compat';
+import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { 
@@ -79,11 +80,19 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
 
   const { data: seller, isLoading: isSellerLoading } = useDoc<any>(sellerRef);
 
-  const reviewsQuery = useMemoStable(() => {
-    if (!productId) return null;
-    return query(collection(db, 'reviews'), where('product_id', '==', productId));
-  }, [db, productId]);
-  const { data: reviews } = useCollection<any>(reviewsQuery);
+  const [reviews, setReviews] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!productId) return;
+    supabase
+      .from('reviews')
+      .select('*')
+      .eq('product_id', productId)
+      .then(({ data, error }) => {
+        if (error) console.error('[reviews] fetch error:', error.message);
+        else setReviews(data ?? []);
+      });
+  }, [productId]);
 
   const handleToggleFavorite = () => {
     if (!user || !profileRef) {

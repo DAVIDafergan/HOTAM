@@ -208,7 +208,7 @@ function SellerDashboardContent() {
     notes: '',
     notification_email: true,
     notification_sms: true,
-    notificationVoice: false
+    notification_voice: false
   });
 
   useEffect(() => {
@@ -222,7 +222,7 @@ function SellerDashboardContent() {
         notes: seller.notes || '',
         notification_email: seller.notification_email ?? true,
         notification_sms: seller.notification_sms ?? true,
-        notificationVoice: seller.notificationVoice ?? false
+        notification_voice: seller.notification_voice ?? false
       });
     }
   }, [seller]);
@@ -681,8 +681,8 @@ function SellerDashboardContent() {
                                 <span className="text-xs font-bold text-primary">שיחה קולית אוטומטית</span>
                               </div>
                               <Switch 
-                                checked={profileData.notificationVoice} 
-                                onCheckedChange={v => setProfileData({...profileData, notificationVoice: v})} 
+                                checked={profileData.notification_voice} 
+                                onCheckedChange={v => setProfileData({...profileData, notification_voice: v})} 
                               />
                            </div>
                         </div>
@@ -695,7 +695,8 @@ function SellerDashboardContent() {
                            <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/40">שם פרטי</Label><Input value={profileData.first_name} onChange={e => setProfileData({...profileData, first_name: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
                            <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/40">שם משפחה</Label><Input value={profileData.last_name} onChange={e => setProfileData({...profileData, last_name: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
                         </div>
-                        <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/40">כתובת</Label><Input value={profileData.address} onChange={e => setProfileData({...profileData, address: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
+                        <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/40">טלפון</Label><Input value={profileData.phone} onChange={e => setProfileData({...profileData, phone: e.target.value})} className="h-12 rounded-xl font-bold" dir="ltr" /></div>
+                         <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/40">כתובת</Label><Input value={profileData.address} onChange={e => setProfileData({...profileData, address: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
                         <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/40">אודותיך (יוצג ללקוח)</Label><Textarea value={profileData.notes} onChange={e => setProfileData({...profileData, notes: e.target.value})} className="rounded-2xl min-h-[100px] font-medium" placeholder="ספר ללקוחות על ההנהגה שלך..." /></div>
                       </div>
 
@@ -711,18 +712,18 @@ function SellerDashboardContent() {
                             <div className="space-y-4 p-6 bg-muted/30 rounded-2xl border">
                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">פרטי עסק רשמיים</p>
                                <div className="space-y-3">
-                                  <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.businessName}</span><span className="text-[10px] font-black uppercase text-primary/40">שם עסק</span></div>
-                                  <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.businessId}</span><span className="text-[10px] font-black uppercase text-primary/40">ח.פ / עוסק</span></div>
-                                  <div className="flex justify-between"><span className="text-sm font-bold opacity-60">{seller?.businessType === 'osek_patur' ? 'עוסק פטור' : 'עוסק מורשה/חברה'}</span><span className="text-[10px] font-black uppercase text-primary/40">סוג</span></div>
+                                  <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.business_name}</span><span className="text-[10px] font-black uppercase text-primary/40">שם עסק</span></div>
+                                  <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.business_id}</span><span className="text-[10px] font-black uppercase text-primary/40">ח.פ / עוסק</span></div>
+                                  <div className="flex justify-between"><span className="text-sm font-bold opacity-60">{seller?.business_type === 'osek_patur' ? 'עוסק פטור' : 'עוסק מורשה/חברה'}</span><span className="text-[10px] font-black uppercase text-primary/40">סוג</span></div>
                                </div>
                             </div>
 
                             <div className="space-y-4 p-6 bg-muted/30 rounded-2xl border">
                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">פרטי חשבון בנק</p>
                                <div className="space-y-3">
-                                  <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.bankName}</span><span className="text-[10px] font-black uppercase text-primary/40">בנק</span></div>
-                                  <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.bankBranch}</span><span className="text-[10px] font-black uppercase text-primary/40">סניף</span></div>
-                                  <div className="flex justify-between"><span className="text-sm font-bold opacity-60">{seller?.bankAccountNumber}</span><span className="text-[10px] font-black uppercase text-primary/40">חשבון</span></div>
+                                  <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.bank_name}</span><span className="text-[10px] font-black uppercase text-primary/40">בנק</span></div>
+                                  <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.bank_branch}</span><span className="text-[10px] font-black uppercase text-primary/40">סניף</span></div>
+                                  <div className="flex justify-between"><span className="text-sm font-bold opacity-60">{seller?.bank_account_number}</span><span className="text-[10px] font-black uppercase text-primary/40">חשבון</span></div>
                                </div>
                             </div>
                          </div>

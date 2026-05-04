@@ -79,7 +79,7 @@ export function Navbar() {
                        user?.uid === "aMqKTe1Y4NSQdupLPupviiyrdyj2" ||
                        (user?.email && adminEmails.map(e => e.toLowerCase()).includes(user.email.toLowerCase()));
   
-  const displayName = profile?.first_name || user?.email?.split('@')[0] || 'משתמש';
+  const displayName = profile?.first_name?.trim() || user?.email?.split('@')[0] || 'משתמש';
   const dashboardLink = isSuperAdmin ? '/admin' : (isSeller ? '/seller/dashboard' : '/customer/dashboard');
 
   const greeting = useMemo(() => {

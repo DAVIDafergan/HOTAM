@@ -116,7 +116,7 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
   const { data: customerData, isLoading: isCustLoading } = useDoc<any>(customerRef);
 
   const sellerRef = useMemoStable(() => {
-    if (!user?.uid || user?.role !== 'seller') return null;
+    if (!user?.uid || (user?.role !== 'seller' && user?.role !== 'admin')) return null;
     return doc(client, 'sellers', user.uid);
   }, [user?.uid, user?.role]);
 

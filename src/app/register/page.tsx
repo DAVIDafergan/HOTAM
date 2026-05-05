@@ -63,8 +63,8 @@ export default function RegisterPage() {
       // We pass firstName/lastName and role so the trigger populates the profile correctly.
       const data = await initiateEmailSignUp(auth, email, password, {
         role: 'customer',
-        firstName,
-        lastName,
+        first_name: firstName,
+        last_name: lastName,
       });
 
       if (!data.session) {

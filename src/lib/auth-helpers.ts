@@ -14,6 +14,8 @@ export interface SignUpMetadata {
   role?: 'customer' | 'seller' | 'admin';
   firstName?: string;
   lastName?: string;
+  first_name?: string;
+  last_name?: string;
   [key: string]: any;
 }
 

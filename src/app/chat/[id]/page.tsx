@@ -82,6 +82,13 @@ function ChatContent() {
     return [user.uid, otherUserId].sort().join('_');
   }, [user?.uid, otherUserId]);
 
+  // Self-chat guard: cannot open a conversation with yourself
+  useEffect(() => {
+    if (!isUserLoading && user && otherUserId && otherUserId === user.uid) {
+      router.push('/seller/dashboard');
+    }
+  }, [user, otherUserId, isUserLoading, router]);
+
   const chatRef = useMemoStable(() => {
     if (!chatId) return null;
     return doc(db, 'chats', chatId);
@@ -91,11 +98,11 @@ function ChatContent() {
   // Handle Mark as Read
   useEffect(() => {
     if (chatId && user && chatData && chatData?.unread_state?.[user.uid] === true) {
-      updateDocumentNonBlocking(doc(db, 'chats', chatId), {
-        unread_state: { ...chatData?.unread_state, [user.uid]: false }
-      });
+      supabase
+        .rpc('update_unread_state', { chat_id: chatId, uid: user.uid, is_unread: false })
+        .then(({ error }) => { if (error) console.error('mark read error:', error); });
     }
-  }, [chatData, user?.uid, chatId, db]);
+  }, [chatData, user?.uid, chatId]);
 
   const effectiveOriginProductId = chatData?.origin_product_id || originProductIdFromUrl;
   const originProductRef = useMemoStable(() => 
@@ -208,14 +215,16 @@ function ChatContent() {
 
     addDocumentNonBlocking(collection(db, 'chats', chatId, 'messages'), msgData);
     supabase
+      .rpc('update_unread_state', { chat_id: chatId, uid: otherUserId, is_unread: true })
+      .then(({ error }) => { if (error) console.error('unread update error:', error); });
+    supabase
       .from('chats')
       .update({
         last_message_at: new Date().toISOString(),
         last_message_text: newMessage,
-        unread_state: { ...chatData?.unread_state, [otherUserId]: true },
       })
       .eq('id', chatId)
-      .then(({ error }) => { if (error) console.error('Supabase Chat Update Error:', error); });
+      .then(({ error }) => { if (error) console.error('chat update error:', error); });
 
     setNewMessage('');
     setSecurityViolation(false);
@@ -223,7 +232,7 @@ function ChatContent() {
 
   const sendPaymentRequest = (product: any) => {
     if (!user || !chatId || !otherUserId) return;
-    const text = `בקשת רכישה עבור: ${product.productType}. אנא פנה אלי לתיאום התשלום.`;
+    const text = `בקשת רכישה עבור: ${product.product_type}. אנא פנה אלי לתיאום התשלום.`;
     const msgData = {
       sender_id: user.uid,
       text: text,
@@ -237,14 +246,16 @@ function ChatContent() {
     
     addDocumentNonBlocking(collection(db, 'chats', chatId, 'messages'), msgData);
     supabase
+      .rpc('update_unread_state', { chat_id: chatId, uid: otherUserId, is_unread: true })
+      .then(({ error }) => { if (error) console.error('unread update error:', error); });
+    supabase
       .from('chats')
       .update({
         last_message_at: new Date().toISOString(),
         last_message_text: text,
-        unread_state: { ...chatData?.unread_state, [otherUserId]: true },
       })
       .eq('id', chatId)
-      .then(({ error }) => { if (error) console.error('Supabase Chat Update Error:', error); });
+      .then(({ error }) => { if (error) console.error('chat update error:', error); });
     setIsPaymentDialogOpen(false);
   };
 
@@ -450,11 +461,11 @@ function PaymentProductItem({ product, onSelect, highlight = false }: any) {
       className={`flex items-center gap-4 p-3 rounded-2xl border transition-all text-right group ${highlight ? 'border-accent bg-accent/5' : 'border-slate-100 hover:border-accent hover:bg-accent/5'}`}
     >
       <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 border bg-muted">
-        {product.images?.[0] && <Image src={product.images[0]} alt={product.productType} fill className="object-cover" />}
+        {product.images?.[0] && <Image src={product.images[0]} alt={product.product_type} fill className="object-cover" />}
       </div>
       <div className="flex-1 space-y-0.5">
-        <h4 className="font-bold text-sm text-primary group-hover:text-accent transition-colors">{product.productType}</h4>
-        <p className="text-[10px] text-muted-foreground font-medium">{product.scriptType}</p>
+        <h4 className="font-bold text-sm text-primary group-hover:text-accent transition-colors">{product.product_type}</h4>
+        <p className="text-[10px] text-muted-foreground font-medium">{product.script_type}</p>
         <p className="text-sm font-black text-primary">₪{product.price}</p>
       </div>
       <Plus className="w-5 h-5 text-accent opacity-0 group-hover:opacity-100 transition-all" />

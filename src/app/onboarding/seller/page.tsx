@@ -183,7 +183,7 @@ export default function SellerOnboarding() {
         auth,
         formData.email,
         formData.password,
-        { role: 'seller', firstName: formData.firstName, lastName: formData.lastName },
+        { role: 'seller', first_name: formData.firstName, last_name: formData.lastName },
       );
 
       const userId: string | undefined =

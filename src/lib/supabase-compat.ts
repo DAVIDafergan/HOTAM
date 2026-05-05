@@ -302,7 +302,9 @@ export function transformRow(row: Record<string, any>): Record<string, any> {
   const result: Record<string, any> = {};
   for (const [key, value] of Object.entries(row)) {
     if (key === 'unread_state' && value !== null && typeof value === 'object') {
-      // Spread JSONB unread flags — gives chat[`unread_${uid}`] = true/false
+      // Keep the original unread_state object so callers can read chatData.unread_state?.[uid]
+      result['unread_state'] = value;
+      // Also spread JSONB unread flags — gives chat[`unread_${uid}`] = true/false (for Navbar query)
       Object.assign(result, value);
     } else if (typeof value === 'string' && ISO_RE.test(value)) {
       result[key] = wrapTimestamp(value);

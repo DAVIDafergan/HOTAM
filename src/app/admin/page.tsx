@@ -582,7 +582,7 @@ function SalesCards({ orders, sellers, onLinkToTab, page, setPage }: any) {
 
                 <div className="pt-2 flex gap-2">
                   <Button asChild variant="outline" className="flex-1 h-9 rounded-xl font-black text-[9px] uppercase gap-2 border-primary/5 hover:bg-primary hover:text-white">
-                    <Link href={`/products/${o.productId}`}>צפה במוצר</Link>
+                    <Link href={`/products/${o.product_id}`}>צפה במוצר</Link>
                   </Button>
                 </div>
               </div>
@@ -628,7 +628,7 @@ function TorahRequestsTable({ orders, sellers, page, setPage }: any) {
                   <TableCell className="text-[10px] font-bold text-primary">{o.product_name}</TableCell>
                   <TableCell className="px-8 text-left">
                     <Button variant="ghost" size="sm" asChild className="rounded-full h-8 px-4 text-[9px] font-black border-primary/5">
-                       <Link href={`/products/${o.productId}`}>צפה במוצר</Link>
+                       <Link href={`/products/${o.product_id}`}>צפה במוצר</Link>
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -724,18 +724,18 @@ function VerifyScribeDialog({ scribe, db }: any) {
                <div className="space-y-4">
                   <h4 className="text-[10px] font-black text-accent uppercase tracking-widest flex items-center gap-2"><Building2 className="w-4 h-4" /> פרטי עסק רשמיים</h4>
                   <div className="bg-muted/30 p-5 rounded-2xl space-y-3 text-[11px] font-bold">
-                    <div className="flex justify-between border-b border-white/50 pb-2"><span>{scribe.businessName}</span><span className="text-muted-foreground">שם עסק:</span></div>
-                    <div className="flex justify-between border-b border-white/50 pb-2"><span>{scribe.businessId}</span><span className="text-muted-foreground">ח.פ / עוסק:</span></div>
-                    <div className="flex justify-between"><span>{scribe.businessType === 'osek_patur' ? 'עוסק פטור' : 'עוסק מורשה'}</span><span className="text-muted-foreground">סוג:</span></div>
+                    <div className="flex justify-between border-b border-white/50 pb-2"><span>{scribe.business_name}</span><span className="text-muted-foreground">שם עסק:</span></div>
+                    <div className="flex justify-between border-b border-white/50 pb-2"><span>{scribe.business_id}</span><span className="text-muted-foreground">ח.פ / עוסק:</span></div>
+                    <div className="flex justify-between"><span>{scribe.business_type === 'osek_patur' ? 'עוסק פטור' : 'עוסק מורשה'}</span><span className="text-muted-foreground">סוג:</span></div>
                   </div>
                </div>
                
                <div className="space-y-4">
                   <h4 className="text-[10px] font-black text-accent uppercase tracking-widest flex items-center gap-2"><Landmark className="w-4 h-4" /> פרטי חשבון בנק</h4>
                   <div className="bg-emerald-50/50 p-5 rounded-2xl space-y-3 text-[11px] font-bold border border-emerald-100/50">
-                    <div className="flex justify-between border-b border-emerald-100/50 pb-2"><span>{scribe.bankName}</span><span className="text-muted-foreground">בנק:</span></div>
-                    <div className="flex justify-between border-b border-emerald-100/50 pb-2"><span>{scribe.bankBranch}</span><span className="text-muted-foreground">סניף:</span></div>
-                    <div className="flex justify-between"><span>{scribe.bankAccountNumber}</span><span className="text-muted-foreground">חשבון:</span></div>
+                    <div className="flex justify-between border-b border-emerald-100/50 pb-2"><span>{scribe.bank_name}</span><span className="text-muted-foreground">בנק:</span></div>
+                    <div className="flex justify-between border-b border-emerald-100/50 pb-2"><span>{scribe.bank_branch}</span><span className="text-muted-foreground">סניף:</span></div>
+                    <div className="flex justify-between"><span>{scribe.bank_account_number}</span><span className="text-muted-foreground">חשבון:</span></div>
                   </div>
                </div>
 
@@ -756,15 +756,15 @@ function VerifyScribeDialog({ scribe, db }: any) {
                   <div className="bg-primary/5 p-5 rounded-2xl space-y-3 text-[11px] font-bold border border-primary/10">
                     <div className="flex justify-between border-b border-primary/10 pb-2"><span>{scribe.experience_years} שנים</span><span className="text-muted-foreground">ניסיון:</span></div>
                     <div className="flex justify-between border-b border-primary/10 pb-2"><span>{scribe.script_level}</span><span className="text-muted-foreground">רמת הידור:</span></div>
-                    <div className="flex justify-between border-b border-primary/10 pb-2"><span>{scribe.torahStudyFrequency === 'full-day' ? 'אברך יום שלם' : scribe.torahStudyFrequency === 'half-day' ? 'אברך חצי יום' : 'קובע עיתים'}</span><span className="text-muted-foreground">לימוד:</span></div>
-                    <div className="flex justify-between border-b border-primary/10 pb-2"><span>{scribe.mikvehFrequency === 'daily' ? 'כל יום' : scribe.mikvehFrequency === 'before' ? 'לפני כתיבה' : 'טבילת עזרא'}</span><span className="text-muted-foreground">טבילה:</span></div>
-                    <div className="flex justify-between"><span>{scribe.maritalStatus === 'married' ? 'נשוי' : 'רווק'}</span><span className="text-muted-foreground">מצב משפחתי:</span></div>
+                    <div className="flex justify-between border-b border-primary/10 pb-2"><span>{scribe.torah_study_frequency === 'full-day' ? 'אברך יום שלם' : scribe.torah_study_frequency === 'half-day' ? 'אברך חצי יום' : 'קובע עיתים'}</span><span className="text-muted-foreground">לימוד:</span></div>
+                    <div className="flex justify-between border-b border-primary/10 pb-2"><span>{scribe.mikveh_frequency === 'daily' ? 'כל יום' : scribe.mikveh_frequency === 'before' ? 'לפני כתיבה' : 'טבילת עזרא'}</span><span className="text-muted-foreground">טבילה:</span></div>
+                    <div className="flex justify-between"><span>{scribe.marital_status === 'married' ? 'נשוי' : 'רווק'}</span><span className="text-muted-foreground">מצב משפחתי:</span></div>
                   </div>
                </div>
                <div className="space-y-2">
                   <h4 className="text-[10px] font-black text-primary uppercase tracking-widest">סוגי כתב</h4>
                   <div className="flex flex-wrap gap-1.5">
-                    {(scribe.scriptTypes || []).map((t: string) => (
+                    {(scribe.script_types || []).map((t: string) => (
                       <Badge key={t} className="bg-white border-primary/10 text-primary text-[9px] font-black px-3 py-1 rounded-full shadow-sm">{t}</Badge>
                     ))}
                   </div>
@@ -782,20 +782,20 @@ function VerifyScribeDialog({ scribe, db }: any) {
           </div>
 
           <div className="grid md:grid-cols-2 gap-8">
-            {scribe.certificateUrl && (
+            {scribe.certificate_url && (
               <div className="space-y-4">
                  <h4 className="font-black text-[11px] uppercase text-primary/40 tracking-widest">תעודת סופר מועלה</h4>
                  <div className="relative aspect-[1.4/1] w-full rounded-2xl overflow-hidden border shadow-inner bg-white">
-                    <Image src={scribe.certificateUrl} alt="Cert" fill className="object-contain" />
+                    <Image src={scribe.certificate_url} alt="Cert" fill className="object-contain" />
                  </div>
               </div>
             )}
             
-            {(scribe.writingSamples || []).length > 0 && (
+            {(scribe.writing_samples || []).length > 0 && (
               <div className="space-y-4">
                  <h4 className="font-black text-[11px] uppercase text-primary/40 tracking-widest">דוגמאות כתיבה</h4>
                  <div className="grid grid-cols-2 gap-2">
-                    {scribe.writingSamples.slice(0, 4).map((sample: string, idx: number) => (
+                    {scribe.writing_samples.slice(0, 4).map((sample: string, idx: number) => (
                       <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border shadow-sm">
                          <Image src={sample} alt={`Sample ${idx}`} fill className="object-cover" />
                       </div>

@@ -51,7 +51,6 @@ import {
   updateDocumentNonBlocking
 } from '@/lib/supabase-hooks';
 import { doc, collection, query, where } from '@/lib/supabase-compat';
-import { supabase } from '@/lib/supabase';
 import { useRouter, usePathname } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -116,22 +115,15 @@ export function Navbar() {
 
   const adminNotificationCount = (pendingSellers?.length || 0) + (allReports?.length || 0);
 
-  const [sellerOrders, setSellerOrders] = useState<any[]>([]);
-  useEffect(() => {
-    if (!isSeller || !user || !mounted) return;
-    let cancelled = false;
-    supabase
-      .from('orders')
-      .select('*')
-      .eq('seller_id', user.uid)
-      .eq('is_seen_by_seller', false)
-      .then(({ data, error }) => {
-        if (!cancelled) {
-          if (!error) setSellerOrders(data ?? []);
-        }
-      });
-    return () => { cancelled = true; };
-  }, [isSeller, user?.uid, mounted]);
+  const sellerOrdersQuery = useMemoStable(() => {
+    if (!isSeller || !user || !mounted) return null;
+    return query(
+      collection(db, 'orders'),
+      where('seller_id', '==', user.uid),
+      where('is_seen_by_seller', '==', false)
+    );
+  }, [db, isSeller, user?.uid, mounted]);
+  const { data: sellerOrders } = useCollection<any>(sellerOrdersQuery);
 
   const activeUnreadOrders = (sellerOrders || []).filter(o => o.status === 'paid' || o.status === 'torah_request');
   const sellerNotificationCount = activeUnreadOrders.length + unreadCount;

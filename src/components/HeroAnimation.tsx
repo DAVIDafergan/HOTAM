@@ -61,6 +61,7 @@ export function HeroAnimation() {
   const [selectedLocation, setSelectedRegion] = useState('all');
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
   const [userCoords, setUserCoords] = useState<{lat: number, lng: number} | null>(null);
+  const [detectedCity, setDetectedCity] = useState<string | null>(null);
 
   // Advanced Scribe Filters
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -88,10 +89,78 @@ export function HeroAnimation() {
     }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setUserCoords({ lat: position.coords.latitude, lng: position.coords.longitude });
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        setUserCoords({ lat: latitude, lng: longitude });
+
+        // Reverse-geocode to get city name using Nominatim (OpenStreetMap)
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=he`,
+            { headers: { 'Accept-Language': 'he' } }
+          );
+          if (res.ok) {
+            const data = await res.json();
+            const addr = data.address || {};
+            const city = addr.city || addr.town || addr.village || addr.municipality || addr.county || null;
+            if (city) {
+              setDetectedCity(city);
+              // Map detected city to a region
+              const cityToRegion: Record<string, string> = {
+                'ירושלים': 'ירושלים והסביבה',
+                'בית שמש': 'ירושלים והסביבה',
+                'מעלה אדומים': 'ירושלים והסביבה',
+                'תל אביב': 'תל אביב וגוש דן',
+                'תל אביב-יפו': 'תל אביב וגוש דן',
+                'רמת גן': 'תל אביב וגוש דן',
+                'גבעתיים': 'תל אביב וגוש דן',
+                'חולון': 'תל אביב וגוש דן',
+                'בת ים': 'תל אביב וגוש דן',
+                'חיפה': 'חיפה והצפון',
+                'קריית ביאליק': 'חיפה והצפון',
+                'קריית מוצקין': 'חיפה והצפון',
+                'נצרת': 'חיפה והצפון',
+                'עכו': 'חיפה והצפון',
+                'נהריה': 'חיפה והצפון',
+                'טבריה': 'חיפה והצפון',
+                'צפת': 'חיפה והצפון',
+                'באר שבע': 'באר שבע והדרום',
+                'אשדוד': 'באר שבע והדרום',
+                'אשקלון': 'באר שבע והדרום',
+                'קריית גת': 'באר שבע והדרום',
+                'אילת': 'באר שבע והדרום',
+                'דימונה': 'באר שבע והדרום',
+                'בני ברק': 'בני ברק והמרכז',
+                'פתח תקווה': 'בני ברק והמרכז',
+                'ראשון לציון': 'בני ברק והמרכז',
+                'רחובות': 'בני ברק והמרכז',
+                'לוד': 'בני ברק והמרכז',
+                'רמלה': 'בני ברק והמרכז',
+                'מודיעין': 'בני ברק והמרכז',
+                'נתניה': 'השרון',
+                'הרצליה': 'השרון',
+                'רעננה': 'השרון',
+                'כפר סבא': 'השרון',
+                'רא"ש העין': 'השרון',
+                'הוד השרון': 'השרון',
+                'אריאל': 'יהודה ושומרון',
+                'מעלה אדומים': 'יהודה ושומרון',
+              };
+              const mappedRegion = cityToRegion[city];
+              if (mappedRegion) setSelectedRegion(mappedRegion);
+              toast({ title: `מיקום זוהה: ${city}` });
+            } else {
+              toast({ title: "מיקום זוהה" });
+            }
+          } else {
+            toast({ title: "מיקום זוהה" });
+          }
+        } catch {
+          // Reverse geocode failed silently, still use coords
+          toast({ title: "מיקום זוהה" });
+        }
+
         setIsDetectingLocation(false);
-        toast({ title: "מיקום זוהה" });
       },
       () => {
         setIsDetectingLocation(false);
@@ -150,6 +219,7 @@ export function HeroAnimation() {
       params.set('lat', String(userCoords.lat));
       params.set('lng', String(userCoords.lng));
       params.set('nearMe', 'true');
+      if (detectedCity) params.set('city', detectedCity);
     }
 
     let finalSize = scrollSize;
@@ -230,12 +300,12 @@ export function HeroAnimation() {
                   <div className="flex flex-col items-center gap-4">
                     <h3 className="text-xl md:text-2xl font-headline font-black text-primary">מה אתם מחפשים?</h3>
                     <div className="flex items-center gap-4 bg-white/90 p-2 rounded-full border shadow-sm ring-4 ring-primary/5">
-                      <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-12 h-12 rounded-full border-2 border-primary/10 font-bold hover:bg-primary/5 active:scale-95 transition-all text-primary flex items-center justify-center text-xl">-</button>
+                      <button type="button" onClick={() => setQuantity(Math.max(1, quantity - 1))} aria-label="הפחת כמות" className="w-12 h-12 rounded-full border-2 border-primary/10 font-bold hover:bg-primary/5 active:scale-95 transition-all text-primary flex items-center justify-center text-xl">-</button>
                       <div className="flex flex-col items-center px-6 min-w-[80px]">
                         <span className="text-2xl font-black text-primary tabular-nums leading-none">{quantity}</span>
                         <span className="text-[10px] font-black opacity-40 uppercase tracking-tighter">יחידות</span>
                       </div>
-                      <button onClick={() => setQuantity(quantity + 1)} className="w-12 h-12 rounded-full border-2 border-primary/10 font-bold hover:bg-primary/5 active:scale-95 transition-all text-primary flex items-center justify-center text-xl">+</button>
+                      <button type="button" onClick={() => setQuantity(quantity + 1)} aria-label="הוסף כמות" className="w-12 h-12 rounded-full border-2 border-primary/10 font-bold hover:bg-primary/5 active:scale-95 transition-all text-primary flex items-center justify-center text-xl">+</button>
                     </div>
                   </div>
 
@@ -245,6 +315,18 @@ export function HeroAnimation() {
                     <CategoryCard icon={<Crown />} label="מגילה" onClick={() => handleCategorySelect('מגילה')} />
                     <CategoryCard icon={<BookOpen />} label="ספר תורה" onClick={() => handleCategorySelect('ספר תורה')} />
                     <CategoryCard icon={<Palette />} label="יודאיקה" onClick={() => handleCategorySelect('מוצרי יודאיקה שונים')} />
+                  </div>
+
+                  <div className="flex justify-center pt-2">
+                    <Button
+                      variant="ghost"
+                      onClick={() => router.push('/search?view=all')}
+                      className="h-11 px-8 rounded-full text-[11px] font-black uppercase tracking-widest text-primary/40 hover:text-primary hover:bg-primary/5 border border-transparent hover:border-primary/10 transition-all gap-2"
+                    >
+                      <Search className="w-4 h-4" />
+                      צפה בכל המוצרים ללא פילטר
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                    </Button>
                   </div>
                 </motion.div>
               )}
@@ -312,7 +394,7 @@ export function HeroAnimation() {
                         <div className="flex flex-col gap-3">
                           <Button variant="outline" onClick={detectLocation} disabled={isDetectingLocation} className={cn("h-14 rounded-2xl gap-3 font-black text-xs uppercase border-2 transition-all", userCoords ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'hover:border-primary/20')}>
                             {isDetectingLocation ? <Loader2 className="w-5 h-5 animate-spin" /> : <LocateFixed className="w-5 h-5" />}
-                            {userCoords ? 'המיקום שלך זוהה בהצלחה' : 'זהה את המיקום הנוכחי שלי'}
+                            {userCoords ? (detectedCity ? `המיקום שלך: ${detectedCity}` : 'המיקום שלך זוהה בהצלחה') : 'זהה את המיקום הנוכחי שלי'}
                           </Button>
                           <div className="relative">
                             <Select value={selectedLocation} onValueChange={setSelectedRegion}>
@@ -335,6 +417,7 @@ export function HeroAnimation() {
                             <div className="grid grid-cols-4 gap-2">
                               {['all', '11', '21', '28', '42'].map(r => (
                                 <button 
+                                  type="button"
                                   key={r} 
                                   onClick={() => {
                                     setMegillahRows(r);
@@ -377,7 +460,7 @@ export function HeroAnimation() {
                           <Label className="font-black text-[10px] uppercase text-primary/40 mr-1 tracking-widest">גודל הקלף (ס"מ)</Label>
                           <div className="grid grid-cols-2 gap-2">
                             {getSizesForProduct(selectedProduct, scriptType).map(sz => (
-                              <button key={sz} onClick={() => setScrollSize(sz)} className={cn("h-12 rounded-xl border-2 font-black text-11px transition-all", scrollSize === sz ? "border-primary bg-primary text-white shadow-md" : "bg-white/40 border-primary/5 text-primary hover:border-accent/40")}>{sz === 'all' ? 'כל הגדלים' : sz}</button>
+                              <button type="button" key={sz} onClick={() => setScrollSize(sz)} className={cn("h-12 rounded-xl border-2 font-black text-11px transition-all", scrollSize === sz ? "border-primary bg-primary text-white shadow-md" : "bg-white/40 border-primary/5 text-primary hover:border-accent/40")}>{sz === 'all' ? 'כל הגדלים' : sz}</button>
                             ))}
                           </div>
                         </div>
@@ -430,7 +513,7 @@ export function HeroAnimation() {
                   </div>
 
                   <div className="flex justify-center pt-10">
-                    <Button onClick={handleFinalSearch} className="w-full md:w-auto bg-accent text-primary hover:bg-accent/90 rounded-full px-20 h-16 font-black text-lg uppercase tracking-[0.2em] shadow-2xl gap-4 hover:scale-105 focus:ring-4 focus:ring-accent/30 transition-all duration-300 group active:scale-95">
+                    <Button onClick={handleFinalSearch} className="w-full bg-accent text-primary hover:bg-accent/90 rounded-full px-20 h-16 font-black text-lg uppercase tracking-[0.2em] shadow-2xl gap-4 hover:scale-105 focus:ring-4 focus:ring-accent/30 transition-all duration-300 group active:scale-95">
                       <Search className="w-6 h-6 group-hover:rotate-12 transition-transform" /> הצג כלי קודש מתאימים
                     </Button>
                   </div>
@@ -447,7 +530,9 @@ export function HeroAnimation() {
 function CategoryCard({ icon, label, onClick }: any) {
   return (
     <button 
-      onClick={onClick} 
+      type="button"
+      onClick={onClick}
+      aria-label={label}
       className="group flex flex-col items-center gap-3 p-5 rounded-[2.5rem] bg-white border-2 border-transparent shadow-sm hover:shadow-xl hover:border-accent/40 hover:-translate-y-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 transition-all duration-300 w-full"
     >
       <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-accent group-hover:text-primary group-hover:scale-110 transition-all duration-300">

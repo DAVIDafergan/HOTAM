@@ -91,6 +91,22 @@ const PRODUCT_SUBTYPES: Record<string, string[]> = {
   'מוצרי יודאיקה שונים': ['פיטום הקטורת', 'אשת חיל', 'למנצח', 'ספר הפטרות']
 };
 
+const ISRAEL_CITIES = [
+  'כל הארץ',
+  'ירושלים', 'תל אביב-יפו', 'חיפה', 'ראשון לציון', 'פתח תקווה', 'אשדוד',
+  'נתניה', 'באר שבע', 'בני ברק', 'חולון', 'רמת גן', 'אשקלון', 'רחובות',
+  'בת ים', 'בית שמש', 'כפר סבא', 'הרצליה', 'חדרה', 'מודיעין-מכבים-רעות',
+  'לוד', 'רמלה', 'נצרת', 'עכו', 'אילת', 'עפולה', 'נהריה', 'טבריה', 'צפת',
+  'קריית גת', 'קריית אתא', 'קריית ביאליק', 'קריית מוצקין', 'קריית שמונה',
+  'רעננה', 'הוד השרון', 'יבנה', 'גבעתיים', 'גבעת שמואל', 'אור יהודה',
+  'אריאל', 'מעלה אדומים', 'בית שאן', 'אלעד', 'נס ציונה', 'רא"ש העין',
+  'מגדל העמק', 'דימונה', 'אופקים', 'ירוחם', 'מצפה רמון', 'סח\'נין', 'שפרעם',
+  'נוף הגליל', 'טירה', 'טירת כרמל', 'קלנסוואה', 'כרמיאל', 'נשר',
+  'פרדס חנה-כרכור', 'זכרון יעקב', 'יקנעם עילית', 'מעלות-תרשיחא',
+  'באר יעקב', 'גדרה', 'שוהם', 'מזכרת בתיה', 'גן יבנה', 'קריית מלאכי',
+  'ג\'לג\'וליה', 'בנימינה-גבעת עדה', 'אבן יהודה', 'ראש העין',
+];
+
 const ITEMS_PER_PAGE = 7;
 
 function SellerDashboardContent() {
@@ -194,6 +210,7 @@ function SellerDashboardContent() {
   const [formDeliveryType, setFormDeliveryType] = useState('pickup');
   const [formDeliveryFee, setFormDeliveryFee] = useState(0);
   const [formDeliveryArea, setFormDeliveryArea] = useState<string[]>(['כל הארץ']);
+  const [citySearch, setCitySearch] = useState('');
 
   const [megRows, setMegRows] = useState('');
   const [megHeight, setMegHeight] = useState('');
@@ -350,6 +367,7 @@ function SellerDashboardContent() {
     setFormScript(''); setFormQuality(''); setFormPrice(0); setFormImages([]);
     setFormParchmentSize(''); setFormProofreading(''); setFormDeliveryTime('3');
     setFormDeliveryType('pickup'); setFormDeliveryFee(0); setFormDeliveryArea(['כל הארץ']);
+    setCitySearch('');
     setMegRows(''); setMegHeight('');
     setFormStep(1);
   };
@@ -1033,27 +1051,62 @@ function SellerDashboardContent() {
                        </RadioGroup>
                        
                        {formDeliveryType === 'shipping' && (
-                         <div className="space-y-3 pt-2 animate-in slide-in-from-top-1">
-                            <div className="grid grid-cols-2 gap-3">
-                               <div className="space-y-1">
-                                  <Label className="text-[9px] font-black">עלות משלוח (₪)</Label>
-                                  <Input type="number" value={formDeliveryFee} onChange={e => setFormDeliveryFee(Number(e.target.value))} className="h-10 rounded-xl" />
+                          <div className="space-y-4 pt-2 animate-in slide-in-from-top-1">
+                             <div className="space-y-1">
+                               <Label className="text-[9px] font-black">עלות משלוח (₪)</Label>
+                               <Input type="number" value={formDeliveryFee} onChange={e => setFormDeliveryFee(Number(e.target.value))} className="h-10 rounded-xl" />
+                             </div>
+                             <div className="space-y-2">
+                               <Label className="text-[9px] font-black">ערים לשירות משלוח</Label>
+                               <p className="text-[9px] text-primary/40 font-medium leading-tight">בחר אחת או יותר מרשימת הערים. סמן "כל הארץ" לכיסוי מלא.</p>
+                               {formDeliveryArea.length > 0 && !formDeliveryArea.includes('כל הארץ') && (
+                                 <div className="flex flex-wrap gap-1.5 p-2 bg-primary/5 rounded-xl border border-primary/10 min-h-[40px]">
+                                   {formDeliveryArea.map(city => (
+                                     <span key={city} className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary text-white text-[10px] font-black rounded-full">
+                                       {city}
+                                       <button type="button" onClick={() => setFormDeliveryArea(prev => prev.filter(c => c !== city))} className="hover:text-accent transition-colors ml-0.5">×</button>
+                                     </span>
+                                   ))}
+                                 </div>
+                               )}
+                               <Input
+                                 value={citySearch}
+                                 onChange={e => setCitySearch(e.target.value)}
+                                 placeholder="חפש עיר..."
+                                 className="h-10 rounded-xl text-sm"
+                               />
+                               <div className="max-h-44 overflow-y-auto border rounded-xl bg-white divide-y divide-primary/5">
+                                 {ISRAEL_CITIES
+                                   .filter(city => !citySearch || city.includes(citySearch))
+                                   .map(city => {
+                                     const isAllCountry = city === 'כל הארץ';
+                                     const isChecked = formDeliveryArea.includes(city);
+                                     return (
+                                       <label key={city} className={cn("flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-primary/5 transition-colors", isChecked ? 'bg-primary/5' : '')}>
+                                         <span className={cn("text-xs font-bold", isChecked ? 'text-primary' : 'text-primary/60')}>{city}</span>
+                                         <input
+                                           type="checkbox"
+                                           checked={isChecked}
+                                           onChange={e => {
+                                             if (isAllCountry) {
+                                               setFormDeliveryArea(e.target.checked ? ['כל הארץ'] : []);
+                                             } else {
+                                               if (e.target.checked) {
+                                                 setFormDeliveryArea(prev => [...prev.filter(c => c !== 'כל הארץ'), city]);
+                                               } else {
+                                                 setFormDeliveryArea(prev => prev.filter(c => c !== city));
+                                               }
+                                             }
+                                           }}
+                                           className="w-4 h-4 accent-primary"
+                                         />
+                                       </label>
+                                     );
+                                   })
+                                 }
                                </div>
-                               <div className="space-y-1">
-                                  <Label className="text-[9px] font-black">אזורי שירות</Label>
-                                  <Select value={formDeliveryArea[0]} onValueChange={v => setFormDeliveryArea([v])} modal={false}>
-                                     <SelectTrigger className="h-10 rounded-xl"><SelectValue /></SelectTrigger>
-                                     <SelectContent className="rounded-xl">
-                                        <SelectItem value="כל הארץ" className="font-bold">כל הארץ</SelectItem>
-                                        <SelectItem value="מרכז" className="font-bold">אזור המרכז</SelectItem>
-                                        <SelectItem value="ירושלים" className="font-bold">אזור ירושלים</SelectItem>
-                                        <SelectItem value="צפון" className="font-bold">אזור הצפון</SelectItem>
-                                        <SelectItem value="דרום" className="font-bold">אזור הדרום</SelectItem>
-                                     </SelectContent>
-                                  </Select>
-                               </div>
-                            </div>
-                         </div>
+                             </div>
+                          </div>
                        )}
                     </div>
                   </motion.div>

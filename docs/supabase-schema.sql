@@ -467,11 +467,15 @@ DECLARE
   v_last      TEXT;
 BEGIN
   v_role  := NEW.raw_user_meta_data->>'role';
-  v_first := COALESCE(NEW.raw_user_meta_data->>'firstName',
+  -- Accept both snake_case (first_name) and camelCase (firstName) to be robust
+  -- against whichever format the frontend sends in options.data.
+  v_first := COALESCE(NEW.raw_user_meta_data->>'first_name',
+                      NEW.raw_user_meta_data->>'firstName',
                       split_part(COALESCE(NEW.raw_user_meta_data->>'full_name',
                                           NEW.raw_user_meta_data->>'name', ''), ' ', 1),
                       '');
-  v_last  := COALESCE(NEW.raw_user_meta_data->>'lastName',
+  v_last  := COALESCE(NEW.raw_user_meta_data->>'last_name',
+                      NEW.raw_user_meta_data->>'lastName',
                       NULLIF(
                         substring(COALESCE(NEW.raw_user_meta_data->>'full_name',
                                            NEW.raw_user_meta_data->>'name', '')

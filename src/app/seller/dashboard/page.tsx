@@ -227,6 +227,46 @@ function SellerDashboardContent() {
     }
   }, [seller]);
 
+  // Apply any pending seller profile that was saved in localStorage during onboarding
+  // when email confirmation was required (the full profile couldn't be written to the
+  // DB at registration time because no session existed yet).
+  useEffect(() => {
+    if (!canLoadData || !user || !seller || !db) return;
+    if (typeof window === 'undefined') return;
+
+    try {
+      const raw = localStorage.getItem('pendingSellerProfile');
+      if (!raw) return;
+
+      const { _pending_email, ...profileData } = JSON.parse(raw);
+
+      // Safety check: only apply if the stored email matches the authenticated user.
+      if (_pending_email && _pending_email !== seller.email) {
+        localStorage.removeItem('pendingSellerProfile');
+        return;
+      }
+
+      // Only apply if the profile is still incomplete (phone is a reliable indicator).
+      if (seller.phone) {
+        localStorage.removeItem('pendingSellerProfile');
+        return;
+      }
+
+      db.from('sellers')
+        .update({ ...profileData, updated_at: new Date().toISOString() })
+        .eq('id', user.uid)
+        .then(({ error }) => {
+          if (!error) {
+            localStorage.removeItem('pendingSellerProfile');
+            toast({ title: 'הפרופיל הושלם', description: 'כל הפרטים שהזנת בהרשמה נשמרו בהצלחה.' });
+          }
+        });
+    } catch {
+      localStorage.removeItem('pendingSellerProfile');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canLoadData, user?.uid, seller?.email]);
+
   useEffect(() => {
     const tabParam = searchParams.get('tab');
     if (tabParam && ['inventory', 'sales', 'chats', 'settings'].includes(tabParam)) {

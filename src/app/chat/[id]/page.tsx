@@ -106,7 +106,11 @@ function ChatContent() {
       .channel(`chat_${chatId}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `chat_id=eq.${chatId}` }, 
         (payload) => {
-          setMessages((prev) => [...prev, payload.new as Message]);
+          setMessages((prev) => {
+            // Deduplicate: skip if a message with this id already exists (e.g. optimistic update was replaced)
+            if (prev.some(m => m.id === (payload.new as Message).id)) return prev;
+            return [...prev, payload.new as Message];
+          });
         }
       )
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chats', filter: `id=eq.${chatId}` },
@@ -240,8 +244,16 @@ function ChatContent() {
     setNewMessage('');
     setSecurityViolation(false);
 
+    // Optimistic update – show the message immediately without waiting for realtime
+    const optimisticMsg: Message = { ...msgData, id: `opt_${Date.now()}` };
+    setMessages((prev) => [...prev, optimisticMsg]);
+
     // הוספת ההודעה ל-Supabase במקום Firebase!
-    await supabase.from('messages').insert([msgData]);
+    const { data: inserted } = await supabase.from('messages').insert([msgData]).select().single();
+    if (inserted) {
+      // Replace optimistic entry with the real one (correct id from DB)
+      setMessages((prev) => prev.map(m => m.id === optimisticMsg.id ? inserted as Message : m));
+    }
     await supabase.rpc('update_unread_state', { chat_id: chatId, uid: otherUserId, is_unread: true });
     await supabase.from('chats').update({
       last_message_at: new Date().toISOString(),
@@ -268,7 +280,14 @@ function ChatContent() {
     
     setIsPaymentDialogOpen(false);
 
-    await supabase.from('messages').insert([msgData]);
+    // Optimistic update for payment request
+    const optimisticPaymentMsg: Message = { ...msgData, id: `opt_${Date.now()}` };
+    setMessages((prev) => [...prev, optimisticPaymentMsg]);
+
+    const { data: insertedPayment } = await supabase.from('messages').insert([msgData]).select().single();
+    if (insertedPayment) {
+      setMessages((prev) => prev.map(m => m.id === optimisticPaymentMsg.id ? insertedPayment as Message : m));
+    }
     await supabase.rpc('update_unread_state', { chat_id: chatId, uid: otherUserId, is_unread: true });
     await supabase.from('chats').update({
       last_message_at: new Date().toISOString(),

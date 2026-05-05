@@ -228,7 +228,7 @@ export default function Home() {
 
       <footer className="bg-white border-t py-10 md:py-16">
         <div className="container mx-auto px-4 flex flex-col items-center justify-center space-y-6">
-          <div className="flex items-center gap-3">
+          <Link href="/" aria-label="חותם - דף הבית" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
              <svg 
                 width="40" 
                 height="40" 
@@ -246,7 +246,7 @@ export default function Home() {
                 <path d="m11 11l1 1" />
               </svg>
               <span className="text-3xl font-headline font-black text-primary tracking-tighter uppercase">HOTAM</span>
-          </div>
+          </Link>
           <div className="text-center space-y-1">
             <p className="text-sm font-bold text-primary/60">נבנה ע"י DA ניהול פרויקטים</p>
             <p className="text-[10px] font-black text-muted-foreground/30 tracking-[0.4em] uppercase">Sacred Scribal Art © 2024</p>

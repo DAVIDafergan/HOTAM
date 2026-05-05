@@ -176,26 +176,26 @@ function SearchContent() {
     if (!allProducts) return [];
     
     let results = allProducts.filter(p => {
-      const matchType = !selectedProduct || p.productType === selectedProduct;
-      const matchSub = subType === 'all' || p.subType === subType;
-      const matchScript = scriptType === 'all' || p.scriptType === scriptType;
-      const matchQuality = qualityLevel === 'all' || p.scriptLevel === qualityLevel;
+      const matchType = !selectedProduct || p.product_type === selectedProduct;
+      const matchSub = subType === 'all' || p.sub_type === subType;
+      const matchScript = scriptType === 'all' || p.script_type === scriptType;
+      const matchQuality = qualityLevel === 'all' || p.script_level === qualityLevel;
       const matchQty = p.quantity >= quantity;
-      const matchSize = scrollSize === 'all' || p.parchmentSize === scrollSize;
+      const matchSize = scrollSize === 'all' || p.parchment_size === scrollSize;
       
       const deliversToCity = !detectedCity || 
-                            (p.deliveryArea && (p.deliveryArea === 'כל הארץ' || 
-                             (Array.isArray(p.deliveryArea) && p.deliveryArea.includes(detectedCity)) ||
-                             p.deliveryArea === detectedCity));
+                            (p.delivery_area && (p.delivery_area === 'כל הארץ' || 
+                             (Array.isArray(p.delivery_area) && p.delivery_area.includes(detectedCity)) ||
+                             p.delivery_area === detectedCity));
 
-      const matchShipping = !shippingOnly || (p.deliveryType !== 'pickup_only');
+      const matchShipping = !shippingOnly || (p.delivery_type !== 'pickup_only');
       
-      const seller = allSellers?.find(s => s.id === p.sellerId);
+      const seller = allSellers?.find(s => s.id === p.seller_id);
       const matchRegion = selectedRegion === 'all' || (seller && (seller.address || '').includes(selectedRegion.split(' ')[0]));
-      const matchMarried = !marriedOnly || (seller && seller.maritalStatus === 'married');
-      const matchMikveh = mikvehFreq === 'all' || (seller && seller.mikvehFrequency === mikvehFreq);
-      const matchCert = certStatus === 'all' || (seller && seller.hasScribeCertificate === certStatus);
-      const matchStudy = studyFreq === 'all' || (seller && seller.torahStudyFrequency === studyFreq);
+      const matchMarried = !marriedOnly || (seller && seller.marital_status === 'married');
+      const matchMikveh = mikvehFreq === 'all' || (seller && seller.mikveh_frequency === mikvehFreq);
+      const matchCert = certStatus === 'all' || (seller && seller.has_scribe_certificate === certStatus);
+      const matchStudy = studyFreq === 'all' || (seller && seller.torah_study_frequency === studyFreq);
       
       return matchType && matchSub && matchScript && matchQuality && matchQty && matchSize && 
              matchShipping && matchRegion && matchMarried && matchMikveh && matchCert && matchStudy && deliversToCity;
@@ -205,8 +205,8 @@ function SearchContent() {
     else if (sortOrder === 'price_desc') results = [...results].sort((a, b) => Number(b.price) - Number(a.price));
     else if (sortOrder === 'rating') {
       results = [...results].sort((a, b) => {
-        const ratingA = allReviews?.filter(r => r.productId === a.id).reduce((acc, r) => acc + (r.rating || 5), 0) || 0;
-        const ratingB = allReviews?.filter(r => r.productId === b.id).reduce((acc, r) => acc + (r.rating || 5), 0) || 0;
+        const ratingA = allReviews?.filter(r => r.product_id === a.id).reduce((acc, r) => acc + (r.rating || 5), 0) || 0;
+        const ratingB = allReviews?.filter(r => r.product_id === b.id).reduce((acc, r) => acc + (r.rating || 5), 0) || 0;
         return ratingB - ratingA;
       });
     }

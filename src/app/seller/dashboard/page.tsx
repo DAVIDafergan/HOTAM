@@ -1064,7 +1064,7 @@ function SellerDashboardContent() {
                                    {formDeliveryArea.map(city => (
                                      <span key={city} className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary text-white text-[10px] font-black rounded-full">
                                        {city}
-                                       <button type="button" onClick={() => setFormDeliveryArea(prev => prev.filter(c => c !== city))} className="hover:text-accent transition-colors ml-0.5">×</button>
+                                       <button type="button" aria-label={`הסר ${city}`} onClick={() => setFormDeliveryArea(prev => prev.filter(c => c !== city))} className="hover:text-accent transition-colors ml-0.5">×</button>
                                      </span>
                                    ))}
                                  </div>

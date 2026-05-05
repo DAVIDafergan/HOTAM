@@ -87,7 +87,7 @@ export default function CustomerDashboard() {
     return doc(db, 'customers', user.uid);
   }, [db, user?.uid]);
 
-  const { data: customer, isLoading: isCustomerLoading } = useDoc<any>(customerRef);
+  const { data: customer, isLoading: isCustomerLoading, isLoaded: isCustomerLoaded } = useDoc<any>(customerRef);
 
   const [formData, setFormData] = useState({
     first_name: '',
@@ -98,18 +98,41 @@ export default function CustomerDashboard() {
     notif_status_email: true,
   });
 
+  // When the customer profile loads, populate the form. If names are empty in the
+  // DB but available in the auth metadata (set during registration), sync them now.
   useEffect(() => {
-    if (customer) {
+    if (customer && isCustomerLoaded) {
+      const rawMeta = user?._raw?.user_metadata ?? {};
+      const metaFirstName = (rawMeta.first_name ?? rawMeta.firstName ?? '') as string;
+      const metaLastName  = (rawMeta.last_name  ?? rawMeta.lastName  ?? '') as string;
+      const firstName = customer.first_name || metaFirstName;
+      const lastName  = customer.last_name  || metaLastName;
+
       setFormData({
-        first_name: customer.first_name || '',
-        last_name: customer.last_name || '',
+        first_name: firstName,
+        last_name: lastName,
         phone: customer.phone || '',
         address: customer.address || '',
         notif_msg_email: customer.notif_msg_email ?? true,
         notif_status_email: customer.notif_status_email ?? true,
       });
+
+      // Persist synced names back to DB if they were missing
+      if ((!customer.first_name && firstName) || (!customer.last_name && lastName)) {
+        supabase
+          .from('customers')
+          .update({ first_name: firstName, last_name: lastName })
+          .eq('id', user!.uid)
+          .then(({ error }) => {
+            if (error) {
+              console.error('Failed to sync names:', error);
+              toast({ title: 'שגיאה בשמירת השם', description: error.message, variant: 'destructive' });
+            }
+          });
+      }
     }
-  }, [customer]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customer, isCustomerLoaded, user?.uid]);
 
   const canLoadData = !!user && !!customer;
 

@@ -12,6 +12,8 @@ type WithId<T> = T & { id: string };
 export interface UseDocResult<T> {
   data: WithId<T> | null;
   isLoading: boolean;
+  /** true once the initial fetch has completed (data may still be null for non-existent rows) */
+  isLoaded: boolean;
   error: Error | null;
 }
 
@@ -26,6 +28,7 @@ export function useDoc<T = any>(
 ): UseDocResult<T> {
   const [data, setData] = useState<WithId<T> | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   const docRefRef = useRef(memoizedDocRef);
@@ -35,6 +38,7 @@ export function useDoc<T = any>(
     if (!memoizedDocRef) {
       setData(null);
       setIsLoading(false);
+      setIsLoaded(false);
       setError(null);
       return;
     }
@@ -56,6 +60,7 @@ export function useDoc<T = any>(
         setData(row ? ({ ...transformRow(row), id: String(row.id) } as WithId<T>) : null);
         setError(null);
         setIsLoading(false);
+        setIsLoaded(true);
       } catch (err: any) {
         if (!isMounted) return;
         console.error(
@@ -69,11 +74,13 @@ export function useDoc<T = any>(
         setError(contextualError);
         setData(null);
         setIsLoading(false);
+        setIsLoaded(true);
         errorEmitter.emit('permission-error', contextualError);
       }
     };
 
     setIsLoading(true);
+    setIsLoaded(false);
     fetchData();
 
     // Real-time subscription for this specific row
@@ -106,5 +113,5 @@ export function useDoc<T = any>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [memoizedDocRef]);
 
-  return { data, isLoading, error };
+  return { data, isLoading, isLoaded, error };
 }

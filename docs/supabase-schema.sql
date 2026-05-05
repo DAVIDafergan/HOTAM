@@ -491,12 +491,15 @@ BEGIN
     ) VALUES (
       NEW.id, NEW.email, v_first, v_last
     )
-    ON CONFLICT (id) DO NOTHING;
+    ON CONFLICT (id) DO UPDATE
+      SET email      = EXCLUDED.email,
+          first_name = CASE WHEN public.sellers.first_name = '' THEN EXCLUDED.first_name ELSE public.sellers.first_name END,
+          last_name  = CASE WHEN public.sellers.last_name  = '' THEN EXCLUDED.last_name  ELSE public.sellers.last_name  END;
 
   ELSIF v_role = 'admin' THEN
     INSERT INTO public.admins (id, email)
     VALUES (NEW.id, NEW.email)
-    ON CONFLICT (id) DO NOTHING;
+    ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email;
 
   ELSE
     -- Default: customer
@@ -505,7 +508,10 @@ BEGIN
     ) VALUES (
       NEW.id, NEW.email, v_first, v_last
     )
-    ON CONFLICT (id) DO NOTHING;
+    ON CONFLICT (id) DO UPDATE
+      SET email      = EXCLUDED.email,
+          first_name = CASE WHEN public.customers.first_name = '' THEN EXCLUDED.first_name ELSE public.customers.first_name END,
+          last_name  = CASE WHEN public.customers.last_name  = '' THEN EXCLUDED.last_name  ELSE public.customers.last_name  END;
   END IF;
 
   RETURN NEW;

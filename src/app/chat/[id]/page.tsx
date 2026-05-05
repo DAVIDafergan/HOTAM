@@ -93,7 +93,7 @@ function ChatContent() {
     if (!chatId) return null;
     return doc(db, 'chats', chatId);
   }, [db, chatId]);
-  const { data: chatData, isLoading: isChatLoading } = useDoc<any>(chatRef);
+  const { data: chatData, isLoading: isChatLoading, isLoaded: isChatLoaded } = useDoc<any>(chatRef);
 
   // Handle Mark as Read
   useEffect(() => {
@@ -146,8 +146,8 @@ function ChatContent() {
   const messages = messagesData || [];
 
   useEffect(() => {
-    if (user && otherUserId && chatId && !isChatLoading && chatData === null) {
-      supabase.from('chats').upsert([
+    if (user && otherUserId && chatId && isChatLoaded && chatData === null) {
+      supabase.from('chats').insert([
         {
           id: chatId,
           participants: [user.uid, otherUserId],
@@ -159,10 +159,13 @@ function ChatContent() {
           unread_state: { [user.uid]: false, [otherUserId]: false }
         }
       ]).then(({ error }) => {
-        if (error) console.error('Failed to create/update chat in Supabase:', error);
+        if (error && error.code !== '23505') {
+          // 23505 = unique_violation (chat already exists) — safe to ignore
+          console.error(`Failed to create chat (id=${chatId}):`, error.code, error.message);
+        }
       });
     }
-  }, [user, otherUserId, chatId, isChatLoading, chatData, originProductIdFromUrl]);
+  }, [user, otherUserId, chatId, isChatLoaded, chatData, originProductIdFromUrl]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -259,7 +262,7 @@ function ChatContent() {
     setIsPaymentDialogOpen(false);
   };
 
-  if (isUserLoading || isChatLoading || !user) {
+  if (isUserLoading || isChatLoading || (chatRef !== null && !isChatLoaded) || !user) {
     return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>;
   }
 

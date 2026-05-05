@@ -178,29 +178,8 @@ export default function SellerOnboarding() {
     setLoading(true);
 
     try {
-      // Sign up with role='seller' so the DB trigger creates the sellers row.
-      const signUpData = await initiateEmailSignUp(
-        auth,
-        formData.email,
-        formData.password,
-        { role: 'seller', first_name: formData.firstName, last_name: formData.lastName },
-      );
-
-      const userId: string | undefined =
-        (signUpData as any)?.user?.id ?? (signUpData as any)?.session?.user?.id;
-
-      if (!userId) {
-        // Should not happen, but guard anyway.
-        toast({
-          variant: 'destructive',
-          title: 'שגיאת הרשמה',
-          description: 'לא ניתן היה לאמת את החשבון.',
-        });
-        setLoading(false);
-        return;
-      }
-
-      // Build the full seller profile payload.
+      // Build the full seller profile payload up-front so it can be persisted
+      // regardless of whether email confirmation is required.
       const profilePayload = {
         first_name: formData.firstName,
         last_name: formData.lastName,
@@ -228,6 +207,42 @@ export default function SellerOnboarding() {
         updated_at: new Date().toISOString(),
       };
 
+      // Persist the full profile to localStorage so that when email confirmation
+      // is required the seller dashboard can apply it automatically after login.
+      // We tag it with the email so the dashboard can verify ownership.
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(
+            'pendingSellerProfile',
+            JSON.stringify({ ...profilePayload, _pending_email: formData.email }),
+          );
+        } catch {
+          // localStorage quota exceeded (very unlikely) — ignore and continue.
+        }
+      }
+
+      // Sign up with role='seller' so the DB trigger creates the sellers row.
+      const signUpData = await initiateEmailSignUp(
+        auth,
+        formData.email,
+        formData.password,
+        { role: 'seller', first_name: formData.firstName, last_name: formData.lastName },
+      );
+
+      const userId: string | undefined =
+        (signUpData as any)?.user?.id ?? (signUpData as any)?.session?.user?.id;
+
+      if (!userId) {
+        // Should not happen, but guard anyway.
+        toast({
+          variant: 'destructive',
+          title: 'שגיאת הרשמה',
+          description: 'לא ניתן היה לאמת את החשבון.',
+        });
+        setLoading(false);
+        return;
+      }
+
       if ((signUpData as any)?.session) {
         // Session is immediately available (email confirmation disabled).
         // The trigger already created the sellers row; update it with full profile.
@@ -238,12 +253,18 @@ export default function SellerOnboarding() {
 
         if (dbError) throw dbError;
 
+        // Profile saved — no need for the localStorage copy.
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('pendingSellerProfile');
+        }
+
         toast({ title: 'ההרשמה הסתיימה', description: 'הפרופיל שלך הועבר לאישור מנהל.' });
         router.push('/seller/dashboard');
       } else {
         // Email confirmation is required.
-        // The trigger created the sellers row with basic info; the seller will
-        // complete their profile after confirming their email and logging in.
+        // The DB trigger created the sellers row with only first/last name.
+        // The full profile is saved in localStorage and will be applied by the
+        // seller dashboard on the first login after email confirmation.
         setLoading(false);
         toast({
           title: 'הרשמה הצליחה — בדוק את תיבת הדואר שלך',

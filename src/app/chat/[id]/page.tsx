@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect, useMemo, Suspense } from 'react';
@@ -7,46 +6,27 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
-  Send, 
-  ShieldAlert, 
-  CreditCard, 
-  Info,
-  PackageCheck,
-  Loader2,
-  Package,
-  Plus,
-  AlertTriangle,
-  User,
-  ShieldCheck
+  Send, ShieldAlert, CreditCard, Info, PackageCheck, 
+  Loader2, Package, Plus, AlertTriangle, User, ShieldCheck 
 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { 
-  useUser, 
-  useSupabaseClient, 
-  useCollection, 
-  useDoc, 
-  useMemoStable,
-  addDocumentNonBlocking,
-  updateDocumentNonBlocking
-} from '@/lib/supabase-hooks';
-import { doc, collection, query, orderBy, serverTimestamp } from '@/lib/supabase-compat';
+
+// השארנו רק את ה-hook של המשתמש (בהנחה שהוא מנוהל על ידי Supabase Auth)
+import { useUser } from '@/lib/supabase-hooks'; 
+// ייבוא הלקוח הסטנדרטי של סופאבייס (ללא קבצי compat!)
 import { supabase } from '@/lib/supabase';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger 
-} from '@/components/ui/dialog';
+
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 
 interface Message {
   id: string;
+  chat_id: string;
   sender_id: string;
   text: string;
-  timestamp: any;
+  created_at: string;
   is_payment_request?: boolean;
   amount?: number;
   product_name?: string;
@@ -61,7 +41,6 @@ function ChatContent() {
   const originProductIdFromUrl = searchParams.get('productId');
   
   const { user, isUserLoading } = useUser();
-  const db = useSupabaseClient();
   const router = useRouter();
   const { toast } = useToast();
   
@@ -70,85 +49,128 @@ function ChatContent() {
   const [securityViolation, setSecurityViolation] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Navigation guard
+  // States לניהול הנתונים הישיר מול Supabase
+  const [chatData, setChatData] = useState<any>(null);
+  const [isChatLoading, setIsChatLoading] = useState(true);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isMessagesLoading, setIsMessagesLoading] = useState(true);
+  
+  const [originProduct, setOriginProduct] = useState<any>(null);
+  const [otherUserData, setOtherUserData] = useState<any>(null);
+  const [otherSellerData, setOtherSellerData] = useState<any>(null);
+  const [sellerProducts, setSellerProducts] = useState<any[]>([]);
+
+  // שומר על משתמשים לא מחוברים בחוץ
   useEffect(() => {
-    if (!isUserLoading && !user) {
-      router.push('/login');
-    }
+    if (!isUserLoading && !user) router.push('/login');
   }, [user, isUserLoading, router]);
 
+  // יצירת מזהה חדר צ'אט ייחודי
   const chatId = useMemo(() => {
     if (!user || !otherUserId) return null;
     return [user.uid, otherUserId].sort().join('_');
   }, [user?.uid, otherUserId]);
 
-  // Self-chat guard: cannot open a conversation with yourself
+  // מניעת שיחה עם עצמך
   useEffect(() => {
     if (!isUserLoading && user && otherUserId && otherUserId === user.uid) {
       router.push('/seller/dashboard');
     }
   }, [user, otherUserId, isUserLoading, router]);
 
-  const chatRef = useMemoStable(() => {
-    if (!chatId) return null;
-    return doc(db, 'chats', chatId);
-  }, [db, chatId]);
-  const { data: chatData, isLoading: isChatLoading, isLoaded: isChatLoaded } = useDoc<any>(chatRef);
+  // 1. Fetching Chat & Messages + Realtime Subscription
+  useEffect(() => {
+    if (!chatId) return;
+
+    const fetchChatAndMessages = async () => {
+      // הבאת נתוני הצ'אט
+      const { data: chat } = await supabase.from('chats').select('*').eq('id', chatId).single();
+      setChatData(chat || null);
+      setIsChatLoading(false);
+
+      // הבאת היסטוריית ההודעות
+      const { data: msgs } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('chat_id', chatId)
+        .order('created_at', { ascending: true });
+      
+      if (msgs) setMessages(msgs);
+      setIsMessagesLoading(false);
+    };
+
+    fetchChatAndMessages();
+
+    // האזנה בזמן אמת להודעות חדשות!
+    const channel = supabase
+      .channel(`chat_${chatId}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `chat_id=eq.${chatId}` }, 
+        (payload) => {
+          setMessages((prev) => [...prev, payload.new as Message]);
+        }
+      )
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chats', filter: `id=eq.${chatId}` },
+        (payload) => {
+          setChatData(payload.new);
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [chatId]);
 
   // Handle Mark as Read
   useEffect(() => {
     if (chatId && user && chatData && chatData?.unread_state?.[user.uid] === true) {
-      supabase
-        .rpc('update_unread_state', { chat_id: chatId, uid: user.uid, is_unread: false })
+      supabase.rpc('update_unread_state', { chat_id: chatId, uid: user.uid, is_unread: false })
         .then(({ error }) => { if (error) console.error('mark read error:', error); });
     }
   }, [chatData, user?.uid, chatId]);
 
+  // Fetch Origin Product
   const effectiveOriginProductId = chatData?.origin_product_id || originProductIdFromUrl;
-  const originProductRef = useMemoStable(() => 
-    effectiveOriginProductId ? doc(db, 'products', effectiveOriginProductId) : null, 
-    [db, effectiveOriginProductId]
-  );
-  const { data: originProduct } = useDoc<any>(originProductRef);
+  useEffect(() => {
+    if (!effectiveOriginProductId) return;
+    const fetchOriginProduct = async () => {
+      const { data } = await supabase.from('products').select('*').eq('id', effectiveOriginProductId).single();
+      setOriginProduct(data);
+    };
+    fetchOriginProduct();
+  }, [effectiveOriginProductId]);
 
-  const otherSellerRef = useMemoStable(() => otherUserId ? doc(db, 'sellers', otherUserId) : null, [db, otherUserId]);
-  const { data: otherSellerData } = useDoc<any>(otherSellerRef);
-
-  const otherCustomerRef = useMemoStable(() => otherUserId ? doc(db, 'customers', otherUserId) : null, [db, otherUserId]);
-  const { data: otherCustomerData } = useDoc<any>(otherCustomerRef);
-
-  const otherUserData = otherSellerData || otherCustomerData;
+  // Fetch Other User
+  useEffect(() => {
+    if (!otherUserId) return;
+    const fetchOtherUser = async () => {
+      let { data: seller } = await supabase.from('sellers').select('*').eq('id', otherUserId).single();
+      if (seller) {
+        setOtherSellerData(seller);
+        setOtherUserData(seller);
+      } else {
+        let { data: customer } = await supabase.from('customers').select('*').eq('id', otherUserId).single();
+        setOtherUserData(customer);
+      }
+    };
+    fetchOtherUser();
+  }, [otherUserId]);
 
   const canCreatePaymentRequest = user && originProduct && originProduct.seller_id === user.uid;
 
-  const [sellerProducts, setSellerProducts] = useState<any[]>([]);
-
+  // Fetch Seller Products
   useEffect(() => {
     if (!user || !canCreatePaymentRequest) return;
-    supabase
-      .from('products')
-      .select('*')
-      .eq('seller_id', user.uid)
-      .then(({ data, error }) => {
-        if (error) console.error('sellerProducts fetch error:', error.message);
-        else setSellerProducts(data || []);
-      });
+    const fetchSellerProducts = async () => {
+      const { data } = await supabase.from('products').select('*').eq('seller_id', user.uid);
+      if (data) setSellerProducts(data);
+    };
+    fetchSellerProducts();
   }, [user?.uid, canCreatePaymentRequest]);
 
-  const messagesQuery = useMemoStable(() => {
-    if (!chatId) return null;
-    return query(
-      collection(db, 'chats', chatId, 'messages'),
-      orderBy('timestamp', 'asc')
-    );
-  }, [db, chatId]);
-  const { data: messagesData, isLoading: isMessagesLoading } = useCollection<Message>(messagesQuery);
-  const messages = messagesData || [];
-
+  // יצירת צ'אט אם הוא לא קיים
   useEffect(() => {
-    if (user && otherUserId && chatId && isChatLoaded && chatData === null) {
-      supabase.from('chats').insert([
-        {
+    if (user && otherUserId && chatId && !isChatLoading && chatData === null) {
+      const initChat = async () => {
+        const { error } = await supabase.from('chats').insert([{
           id: chatId,
           participants: [user.uid, otherUserId],
           last_message_at: new Date().toISOString(),
@@ -157,16 +179,18 @@ function ChatContent() {
           is_suspicious: false,
           origin_product_id: originProductIdFromUrl || null,
           unread_state: { [user.uid]: false, [otherUserId]: false }
-        }
-      ]).then(({ error }) => {
-        if (error && error.code !== '23505') {
-          // 23505 = unique_violation (chat already exists) — safe to ignore
-          console.error(`Failed to create chat (id=${chatId}):`, error.code, error.message);
-        }
-      });
-    }
-  }, [user, otherUserId, chatId, isChatLoaded, chatData, originProductIdFromUrl]);
+        }]);
 
+        if (!error || error.code === '23505') {
+          const { data } = await supabase.from('chats').select('*').eq('id', chatId).single();
+          setChatData(data);
+        }
+      };
+      initChat();
+    }
+  }, [user, otherUserId, chatId, isChatLoading, chatData, originProductIdFromUrl]);
+
+  // גלילה אוטומטית למטה
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -178,7 +202,6 @@ function ChatContent() {
     const phoneRegex = /(?:(?:\+|00)972|0)\s*[234895](?:[\s\.\-]*\d){7,8}|(?:(?:\+|00)972|0)\s*5[0-9](?:[\s\.\-]*\d){7}/g;
     const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
     const urlRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|([a-zA-Z0-9-]+\.[a-z]{2,})/g;
-
     const forbiddenPhrases = [
       'מספר', 'טלפון', 'נייד', 'פלאפון', 'סלולרי', 'וואטסאפ', 'ווצאפ', 'בווצאפ', 'בוואטסאפ', 
       'מייל', 'אימייל', 'צור קשר', 'תתקשר', 'דבר איתי', 'בפרטי', 'באישי', 'מחוץ לאתר', 
@@ -190,79 +213,71 @@ function ChatContent() {
     if (hasViolation) {
       setSecurityViolation(true);
       if (chatId) {
-        updateDocumentNonBlocking(doc(db, 'chats', chatId), { 
+        supabase.from('chats').update({ 
           is_suspicious: true,
-          last_violation_at: serverTimestamp(),
+          last_violation_at: new Date().toISOString(),
           last_violation_text: text
-        });
+        }).eq('id', chatId).then();
       }
-      toast({ 
-        variant: "destructive", 
-        title: "פעולה אסורה זוהתה", 
-        description: "חל איסור מוחלט על העברת פרטי קשר. המקרה דווח למערכת." 
-      });
+      toast({ variant: "destructive", title: "פעולה אסורה זוהתה", description: "חל איסור מוחלט על העברת פרטי קשר. המקרה דווח למערכת." });
       return false;
     }
     return true;
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!newMessage.trim() || !user || !chatId || !otherUserId) return;
     if (!validateMessage(newMessage)) return;
 
     const msgData = {
+      chat_id: chatId,
       sender_id: user.uid,
       text: newMessage,
-      timestamp: serverTimestamp(),
+      created_at: new Date().toISOString()
     };
 
-    addDocumentNonBlocking(collection(db, 'chats', chatId, 'messages'), msgData);
-    supabase
-      .rpc('update_unread_state', { chat_id: chatId, uid: otherUserId, is_unread: true })
-      .then(({ error }) => { if (error) console.error('unread update error:', error); });
-    supabase
-      .from('chats')
-      .update({
-        last_message_at: new Date().toISOString(),
-        last_message_text: newMessage,
-      })
-      .eq('id', chatId)
-      .then(({ error }) => { if (error) console.error('chat update error:', error); });
-
+    const textCopy = newMessage;
     setNewMessage('');
     setSecurityViolation(false);
+
+    // הוספת ההודעה ל-Supabase במקום Firebase!
+    await supabase.from('messages').insert([msgData]);
+    await supabase.rpc('update_unread_state', { chat_id: chatId, uid: otherUserId, is_unread: true });
+    await supabase.from('chats').update({
+      last_message_at: new Date().toISOString(),
+      last_message_text: textCopy,
+      updated_at: new Date().toISOString()
+    }).eq('id', chatId);
   };
 
-  const sendPaymentRequest = (product: any) => {
+  const sendPaymentRequest = async (product: any) => {
     if (!user || !chatId || !otherUserId) return;
     const text = `בקשת רכישה עבור: ${product.product_type}. אנא פנה אלי לתיאום התשלום.`;
+    
     const msgData = {
+      chat_id: chatId,
       sender_id: user.uid,
       text: text,
-      timestamp: serverTimestamp(),
       is_payment_request: true,
       amount: product.price,
       product_name: product.product_type,
       product_image: product.images?.[0] || '',
-      product_id: product.id
+      product_id: product.id,
+      created_at: new Date().toISOString()
     };
     
-    addDocumentNonBlocking(collection(db, 'chats', chatId, 'messages'), msgData);
-    supabase
-      .rpc('update_unread_state', { chat_id: chatId, uid: otherUserId, is_unread: true })
-      .then(({ error }) => { if (error) console.error('unread update error:', error); });
-    supabase
-      .from('chats')
-      .update({
-        last_message_at: new Date().toISOString(),
-        last_message_text: text,
-      })
-      .eq('id', chatId)
-      .then(({ error }) => { if (error) console.error('chat update error:', error); });
     setIsPaymentDialogOpen(false);
+
+    await supabase.from('messages').insert([msgData]);
+    await supabase.rpc('update_unread_state', { chat_id: chatId, uid: otherUserId, is_unread: true });
+    await supabase.from('chats').update({
+      last_message_at: new Date().toISOString(),
+      last_message_text: text,
+      updated_at: new Date().toISOString()
+    }).eq('id', chatId);
   };
 
-  if (isUserLoading || isChatLoading || (chatRef !== null && !isChatLoaded) || !user) {
+  if (isUserLoading || isChatLoading || !user) {
     return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>;
   }
 
@@ -271,7 +286,6 @@ function ChatContent() {
   return (
     <div className="flex flex-col h-[100dvh] bg-[#F8F9FA] overflow-hidden" dir="rtl">
       <Navbar />
-      
       <main className="flex-1 flex flex-col max-w-3xl mx-auto w-full pt-20 sm:pt-24 pb-2 px-2 sm:px-4 overflow-hidden relative" role="main">
         <Card className="flex-1 flex flex-col shadow-premium border-none rounded-[2rem] sm:rounded-[3rem] overflow-hidden bg-white relative">
           
@@ -285,7 +299,7 @@ function ChatContent() {
                 <CardTitle className="text-base font-headline font-black tracking-tight">{displayName}</CardTitle>
                 <div className="flex items-center gap-1.5 opacity-70">
                   <span className="text-[9px] font-bold uppercase tracking-widest">
-                    {otherSellerData ? 'סופר מוסמך' : 'לקוח'}
+                    {otherSellerData ? 'מוכר מוסמך' : 'לקוח'}
                   </span>
                   {otherSellerData?.is_approved && <ShieldCheck className="w-3 h-3 text-accent" aria-label="מאומת" />}
                 </div>
@@ -307,6 +321,9 @@ function ChatContent() {
           >
             {messages.map((msg) => {
               const isMine = msg.sender_id === user.uid;
+              // Format Supabase created_at ISO string
+              const timeString = new Date(msg.created_at).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+              
               return (
                 <div key={msg.id} className={`flex ${isMine ? 'justify-start' : 'justify-end'} animate-in fade-in slide-in-from-bottom-1`}>
                   <div className={`max-w-[85%] p-3.5 sm:p-4 rounded-2xl text-base shadow-sm transition-all ${
@@ -338,9 +355,7 @@ function ChatContent() {
                     ) : (
                       <p className="leading-relaxed font-medium text-right whitespace-pre-wrap">{msg.text}</p>
                     )}
-                    <p className={`text-[8px] mt-1.5 opacity-40 font-bold text-right`}>
-                      {msg.timestamp?.toDate ? msg.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '...'}
-                    </p>
+                    <p className={`text-[8px] mt-1.5 opacity-40 font-bold text-right`}>{timeString}</p>
                   </div>
                 </div>
               );

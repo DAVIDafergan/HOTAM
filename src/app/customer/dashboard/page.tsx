@@ -516,7 +516,7 @@ function CustomerChatListItem({ chat, otherUserId, currentUserId }: any) {
               <span className="text-[10px] text-muted-foreground font-bold whitespace-nowrap bg-muted/30 px-2 py-0.5 rounded-full">
                 {chat.last_message_at ? new Date(chat.last_message_at).toLocaleDateString('he-IL') : ''}
               </span>
-              <h4 className={`font-black text-primary text-sm truncate ${isUnread ? 'text-primary' : ''}`}>{otherUser ? `${otherUser.first_name} ${otherUser.last_name}` : 'טוען...'}</h4>
+              <h4 className="font-black text-primary text-sm truncate">{otherUser ? `${otherUser.first_name} ${otherUser.last_name}` : 'טוען...'}</h4>
             </div>
             <p className={`text-xs truncate mt-1 ${isUnread ? 'font-black text-primary' : 'text-muted-foreground font-medium'}`}>{chat.last_message_text || 'אין הודעות עדיין'}</p>
           </div>

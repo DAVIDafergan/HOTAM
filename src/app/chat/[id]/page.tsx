@@ -277,23 +277,43 @@ function ChatContent() {
     }).eq('id', chatId);
 
     if (otherUserData?.email) {
-      const profileName = myProfile?.first_name
-        ? `${myProfile.first_name}${myProfile.last_name ? ' ' + myProfile.last_name : ''}`
-        : null;
-      const senderName = profileName || (user.email ? user.email.split('@')[0] : null) || 'משתמש';
-      const chatLink = `https://hotam.shop/chat/${user.uid}`;
-      fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: otherUserData.email,
-          subject: `הודעה חדשה מ-${senderName} ב-Hotam`,
-          text: `קיבלת הודעה חדשה מ-${senderName}:\n\n"${textCopy}"\n\nלתגובה, כנס/י לאתר: ${chatLink}`,
-          senderName,
-          message: textCopy,
-          link: chatLink,
-        }),
-      }).catch((err) => console.error('Failed to send email notification:', err));
+      // Respect the recipient's email notification preference.
+      // Sellers use `notification_email`; customers use `notif_msg_email`.
+      const emailNotifEnabled = otherSellerData
+        ? otherUserData?.notification_email !== false
+        : otherUserData?.notif_msg_email !== false;
+
+      // Throttle: send at most one email per hour per chat to avoid flooding.
+      const lastEmailAt = chatData?.last_email_notif_at;
+      const oneHourAgo = Date.now() - 3_600_000;
+      const shouldSendEmail =
+        emailNotifEnabled &&
+        (!lastEmailAt || new Date(lastEmailAt).getTime() < oneHourAgo);
+
+      if (shouldSendEmail) {
+        const profileName = myProfile?.first_name
+          ? `${myProfile.first_name}${myProfile.last_name ? ' ' + myProfile.last_name : ''}`
+          : null;
+        const senderName = profileName || (user.email ? user.email.split('@')[0] : null) || 'משתמש';
+        const chatLink = `https://hotam.shop/chat/${user.uid}`;
+        fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: otherUserData.email,
+            subject: `הודעות ממתינות לך ב-Hotam`,
+            text: `יש לך הודעות חדשות מ-${senderName}. לצפייה ולהשבה, כנס/י לאתר: ${chatLink}`,
+            senderName,
+            message: textCopy,
+            link: chatLink,
+          }),
+        }).catch((err) => console.error('Failed to send email notification:', err));
+
+        // Record the time we sent the throttle email on the chat document.
+        supabase.from('chats').update({ last_email_notif_at: new Date().toISOString() })
+          .eq('id', chatId)
+          .then(({ error }) => { if (error) console.error('Failed to update last_email_notif_at:', error); });
+      }
     }
   };
 

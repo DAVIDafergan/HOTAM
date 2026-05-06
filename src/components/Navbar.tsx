@@ -364,7 +364,7 @@ export function Navbar() {
                   </DropdownMenu>
                 )}
 
-                {!isSeller && !isSuperAdmin && hasUnreadMessages && (
+                {!isSeller && !isSuperAdmin && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button 

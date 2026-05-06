@@ -423,7 +423,7 @@ export default function SellerOnboarding() {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>אימייל *</Label>
-                    <Input type="email" value={formData.email} onChange={(e) => !isExistingCustomer && updateField('email', e.target.value)} readOnly={isExistingCustomer} required className={cn("text-slate-900 rounded-xl h-11", isExistingCustomer && "bg-muted/50")} />
+                    <Input type="email" value={formData.email} onChange={(e) => updateField('email', e.target.value)} readOnly={isExistingCustomer} required className={cn("text-slate-900 rounded-xl h-11", isExistingCustomer && "bg-muted/50")} />
                   </div>
                   {!isExistingCustomer && (
                     <div className="space-y-2">

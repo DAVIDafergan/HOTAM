@@ -552,7 +552,7 @@ function FilterSection({ title, icon, children, defaultOpen = false }: { title: 
           {icon}
           <span className="font-black text-[10px] uppercase tracking-widest text-primary/70">{title}</span>
         </div>
-        <ChevronRight className={cn("w-3.5 h-3.5 text-primary/30 transition-transform duration-200", open ? "rotate-90" : "-rotate-90")} />
+        <ChevronRight className={cn("w-3.5 h-3.5 text-primary/30 transition-transform duration-200", open ? "rotate-90" : "rotate-0")} />
       </button>
       {open && (
         <div className="px-4 pb-4">

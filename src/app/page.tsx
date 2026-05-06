@@ -63,8 +63,8 @@ export default function Home() {
         const countA = reviewsA.length;
         const countB = reviewsB.length;
         if (countB !== countA) return countB - countA;
-        const avgA = countA > 0 ? reviewsA.reduce((s: number, r: any) => s + (r.rating || 5), 0) / countA : 0;
-        const avgB = countB > 0 ? reviewsB.reduce((s: number, r: any) => s + (r.rating || 5), 0) / countB : 0;
+        const avgA = countA > 0 ? reviewsA.reduce((s: number, r: any) => s + (r.rating ?? 5), 0) / countA : 0;
+        const avgB = countB > 0 ? reviewsB.reduce((s: number, r: any) => s + (r.rating ?? 5), 0) / countB : 0;
         if (avgB !== avgA) return avgB - avgA;
         const salesA = a.sales_count || 0;
         const salesB = b.sales_count || 0;
@@ -141,7 +141,7 @@ export default function Home() {
                                  {(() => {
                                     const scribesReviews = (allReviews || []).filter((r: any) => r.seller_id === scribe.id);
                                     const avg = scribesReviews.length > 0
-                                      ? (scribesReviews.reduce((s: number, r: any) => s + (r.rating || 5), 0) / scribesReviews.length).toFixed(1)
+                                      ? (scribesReviews.reduce((s: number, r: any) => s + (r.rating ?? 5), 0) / scribesReviews.length).toFixed(1)
                                       : '—';
                                     return <span className="text-sm font-black text-primary">{avg}</span>;
                                   })()}

@@ -106,7 +106,7 @@ const ISRAEL_CITIES = [
   'ג\'לג\'וליה', 'בנימינה-גבעת עדה', 'אבן יהודה', 'ראש העין',
 ];
 
-const ITEMS_PER_PAGE = 7;
+const ITEMS_PER_PAGE = 6;
 
 function SellerDashboardContent() {
   const { user, isUserLoading } = useUser();
@@ -171,7 +171,13 @@ function SellerDashboardContent() {
     return query(collection(db, 'chats'), where('participants', 'array-contains', user.uid));
   }, [db, user?.uid, canLoadData]);
   const { data: chatsData } = useCollection<any>(chatsQuery);
-  const chats = (chatsData || []).filter((c: any) => c.participants && c.participants.length > 0);
+  const chats = (chatsData || [])
+    .filter((c: any) => c.participants && c.participants.length > 0)
+    .sort((a: any, b: any) => {
+      const timeA = a.updated_at ? new Date(a.updated_at).getTime() : (a.last_message_at ? new Date(a.last_message_at).getTime() : 0);
+      const timeB = b.updated_at ? new Date(b.updated_at).getTime() : (b.last_message_at ? new Date(b.last_message_at).getTime() : 0);
+      return timeB - timeA;
+    });
 
   const unreadCount = useMemo(() => {
     if (!user || !chats) return 0;
@@ -1276,7 +1282,7 @@ function SellerChatListItem({ chat, otherUserId, userId }: any) {
           <div className="flex-1 overflow-hidden">
             <div className="flex justify-between items-baseline">
               <h4 className="font-black text-primary text-base truncate">{otherUser ? `${otherUser.first_name} ${otherUser.last_name}` : 'טוען...'}</h4>
-              <span className="text-[9px] text-muted-foreground font-bold whitespace-nowrap bg-muted/30 px-2 py-0.5 rounded-full">{chat.last_message_at?.toDate ? chat.last_message_at.toDate().toLocaleDateString('he-IL') : ''}</span>
+              <span className="text-[9px] text-muted-foreground font-bold whitespace-nowrap bg-muted/30 px-2 py-0.5 rounded-full">{chat.last_message_at ? new Date(chat.last_message_at).toLocaleDateString('he-IL') : ''}</span>
             </div>
             <p className={cn("text-xs truncate mt-1", isUnread ? "font-black text-primary" : "text-muted-foreground font-medium")}>{chat.last_message_text || 'תחילת שיחה'}</p>
           </div>

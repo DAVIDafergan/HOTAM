@@ -52,8 +52,10 @@ export const metadata: Metadata = {
     images: ['https://images.unsplash.com/photo-1626767110251-c63fa319b75b?q=80&w=1200&h=630&auto=format&fit=crop'],
   },
   icons: {
-    icon: '/icon.png',
-    apple: '/icon.png',
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
+    apple: '/icon.svg',
   },
   robots: {
     index: true,
@@ -94,7 +96,7 @@ export default function RootLayout({
               "@type": "Organization",
               "name": "חותם - Hotam",
               "url": "https://hotam.shop",
-              "logo": "https://hotam.shop/icon.png",
+              "logo": "https://hotam.shop/icon.svg",
               "description": "זירת המסחר המובילה לכלי קודש מהודרים ישירות מסופרי סת''ם.",
               "address": {
                 "@type": "PostalAddress",

@@ -280,10 +280,10 @@ function SearchContent() {
         );
       case 3:
         return (
-          <div className="space-y-6 text-right max-h-[60vh] overflow-y-auto px-1 scrollbar-hide">
-            <div className="space-y-2">
-              <Label className="font-black text-[10px] uppercase tracking-widest opacity-40">מיקום ומשלוחים</Label>
-              <div className="flex flex-col gap-2">
+          <div className="space-y-3 text-right">
+            {/* Location section */}
+            <FilterSection title="מיקום ומשלוחים" icon={<MapPin className="w-3.5 h-3.5 text-accent" />} defaultOpen>
+              <div className="flex flex-col gap-2 pt-2">
                 <Button onClick={detectLocation} disabled={isDetecting} variant="outline" className={cn("h-11 w-full gap-3 rounded-xl text-[10px] font-bold border-2 transition-all", userCoords ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'hover:border-primary/20')}>
                   {isDetecting ? <Loader2 className="w-3 h-3 animate-spin" /> : <LocateFixed className="w-3 h-3" />} 
                   {detectedCity ? `זוהית ב: ${detectedCity}` : 'זהה מיקום נוכחי'}
@@ -298,45 +298,42 @@ function SearchContent() {
                   </SelectContent>
                 </Select>
               </div>
-            </div>
+            </FilterSection>
 
-            <div className="pt-4 border-t border-primary/5">
-               <Label className="font-black text-[10px] uppercase text-primary/40 tracking-widest mb-3 block">מסנני סופר מתקדמים (הנהגה וקדושה)</Label>
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-3">
-                    <Label className="text-[9px] font-black text-primary/30">הסמכת הסופר</Label>
-                    <RadioGroup value={certStatus} onValueChange={setCertStatus} className="grid gap-1.5">
-                      <CustomFilterTile value="all" label="הכל" active={certStatus === 'all'} />
-                      <CustomFilterTile value="valid" label="תעודה בתוקף" active={certStatus === 'valid'} />
-                    </RadioGroup>
-                  </div>
-                  <div className="space-y-3">
-                    <Label className="text-[9px] font-black text-primary/30">לימוד תורה</Label>
-                    <RadioGroup value={studyFreq} onValueChange={setStudyFreq} className="grid gap-1.5">
-                      <CustomFilterTile value="all" label="הכל" active={studyFreq === 'all'} />
-                      <CustomFilterTile value="full-day" label="אברך יום שלם" active={studyFreq === 'full-day'} />
-                    </RadioGroup>
-                  </div>
-               </div>
-               
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <div className="space-y-3">
-                    <Label className="text-[9px] font-black text-primary/30">מנהג טבילה</Label>
-                    <RadioGroup value={mikvehFreq} onValueChange={setMikvehFreq} className="grid gap-1.5">
-                      <CustomFilterTile value="all" label="הכל" active={mikvehFreq === 'all'} />
-                      <CustomFilterTile value="daily" label="טובל יומיום" active={mikvehFreq === 'daily'} />
-                    </RadioGroup>
-                  </div>
-                  <div className="flex flex-col justify-end">
-                    <Label className="flex items-center justify-between p-3 rounded-xl border-2 border-primary/5 hover:bg-slate-50 transition-all cursor-pointer">
-                      <div className="flex items-center gap-2"><UserCheck className="w-3.5 h-3.5 text-accent" /><span className="text-[9px] font-bold">סופר נשוי</span></div>
-                      <Checkbox checked={marriedOnly} onCheckedChange={(v) => setMarriedOnly(!!v)} />
-                    </Label>
-                  </div>
-               </div>
-            </div>
+            {/* Advanced scribe filters */}
+            <FilterSection title="מסנני סופר (הנהגה וקדושה)" icon={<GraduationCap className="w-3.5 h-3.5 text-accent" />}>
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <div className="space-y-2">
+                  <Label className="text-[9px] font-black text-primary/30">הסמכת הסופר</Label>
+                  <RadioGroup value={certStatus} onValueChange={setCertStatus} className="grid gap-1.5">
+                    <CustomFilterTile value="all" label="הכל" active={certStatus === 'all'} />
+                    <CustomFilterTile value="valid" label="תעודה בתוקף" active={certStatus === 'valid'} />
+                  </RadioGroup>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[9px] font-black text-primary/30">לימוד תורה</Label>
+                  <RadioGroup value={studyFreq} onValueChange={setStudyFreq} className="grid gap-1.5">
+                    <CustomFilterTile value="all" label="הכל" active={studyFreq === 'all'} />
+                    <CustomFilterTile value="full-day" label="אברך יום שלם" active={studyFreq === 'full-day'} />
+                  </RadioGroup>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[9px] font-black text-primary/30">מנהג טבילה</Label>
+                  <RadioGroup value={mikvehFreq} onValueChange={setMikvehFreq} className="grid gap-1.5">
+                    <CustomFilterTile value="all" label="הכל" active={mikvehFreq === 'all'} />
+                    <CustomFilterTile value="daily" label="טובל יומיום" active={mikvehFreq === 'daily'} />
+                  </RadioGroup>
+                </div>
+                <div className="flex flex-col justify-end">
+                  <Label className="flex items-center justify-between p-3 rounded-xl border-2 border-primary/5 hover:bg-slate-50 transition-all cursor-pointer h-full">
+                    <div className="flex items-center gap-2"><UserCheck className="w-3.5 h-3.5 text-accent" /><span className="text-[9px] font-bold">סופר נשוי</span></div>
+                    <Checkbox checked={marriedOnly} onCheckedChange={(v) => setMarriedOnly(!!v)} />
+                  </Label>
+                </div>
+              </div>
+            </FilterSection>
 
-            <div className="pt-6 border-t border-primary/5">
+            <div className="pt-2">
               <Button onClick={() => setIsWizardOpen(false)} className="w-full h-12 rounded-xl bg-primary text-white font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:scale-[1.02] transition-all">
                 עדכן תוצאות חיפוש
               </Button>
@@ -539,5 +536,29 @@ function CustomFilterTile({ value, label, active }: any) {
         active ? "bg-primary border-primary scale-110 shadow-sm" : "border-primary/10 group-hover:border-primary/30"
       )} />
     </Label>
+  );
+}
+
+function FilterSection({ title, icon, children, defaultOpen = false }: { title: string; icon: React.ReactNode; children: React.ReactNode; defaultOpen?: boolean }) {
+  const [open, setOpen] = React.useState(defaultOpen);
+  return (
+    <div className="rounded-2xl border-2 border-primary/5 bg-white overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-4 py-3 text-right hover:bg-slate-50 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          {icon}
+          <span className="font-black text-[10px] uppercase tracking-widest text-primary/70">{title}</span>
+        </div>
+        <ChevronRight className={cn("w-3.5 h-3.5 text-primary/30 transition-transform duration-200", open ? "rotate-90" : "-rotate-90")} />
+      </button>
+      {open && (
+        <div className="px-4 pb-4">
+          {children}
+        </div>
+      )}
+    </div>
   );
 }

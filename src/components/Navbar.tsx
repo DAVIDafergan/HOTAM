@@ -353,6 +353,63 @@ export function Navbar() {
                   </DropdownMenu>
                 )}
 
+                {!isSeller && !isSuperAdmin && hasUnreadMessages && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="rounded-full h-11 w-11 bg-white/40 border border-white/30 shadow-sm relative hover:bg-white/60 transition-all"
+                        aria-label="התראות הודעות"
+                      >
+                        <Bell className="w-5 h-5 text-primary" />
+                        {unreadCount > 0 && (
+                          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-accent text-primary text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white px-1">
+                            {unreadCount}
+                          </span>
+                        )}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-72 p-2 rounded-[2rem] shadow-premium border-none bg-white/95 backdrop-blur-md mt-2" dir="rtl">
+                      <DropdownMenuLabel className="text-sm font-black uppercase text-primary flex items-center gap-2 p-4">
+                        <Bell className="w-4 h-4 text-accent" /> התראות הודעות
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator className="bg-primary/5" />
+                      <div className="p-2 space-y-1">
+                        {unreadChats && unreadChats.length > 0 ? (
+                          unreadChats.map((chat: any) => {
+                            const otherId = chat.participants.find((p: string) => p !== user.uid);
+                            return (
+                              <DropdownMenuItem key={chat.id} asChild className="rounded-xl p-3 cursor-pointer hover:bg-primary/5 transition-colors">
+                                <Link href={`/chat/${otherId}`} className="flex items-center justify-between w-full">
+                                  <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-purple-50 rounded-lg text-purple-600"><MessageCircle className="w-4 h-4" /></div>
+                                    <div className="flex flex-col text-right">
+                                      <span className="text-[11px] font-bold text-primary">הודעה חדשה</span>
+                                      <span className="text-[9px] text-muted-foreground truncate max-w-[120px]">{chat.last_message_text}</span>
+                                    </div>
+                                  </div>
+                                  <div className="w-1.5 h-1.5 bg-purple-500 rounded-full" />
+                                </Link>
+                              </DropdownMenuItem>
+                            );
+                          })
+                        ) : (
+                          <div className="py-8 text-center space-y-2">
+                            <CheckCircle2 className="w-8 h-8 text-emerald-500/20 mx-auto" />
+                            <p className="text-[10px] font-bold text-muted-foreground italic">אין הודעות חדשות</p>
+                          </div>
+                        )}
+                        <div className="pt-2">
+                          <Button variant="ghost" asChild className="w-full h-10 rounded-xl text-[10px] font-black uppercase tracking-widest text-primary/40 hover:text-primary">
+                            <Link href="/customer/dashboard?tab=messages">לכל ההודעות ←</Link>
+                          </Button>
+                        </div>
+                      </div>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+
                 {isSeller && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

@@ -49,20 +49,30 @@ export default function Home() {
   const sellersQuery = useMemoStable(() => query(collection(db, 'sellers'), where('is_approved', '==', true)), [db]);
   const { data: allSellers } = useCollection<any>(sellersQuery);
 
+  const reviewsQuery = useMemoStable(() => query(collection(db, 'reviews')), [db]);
+  const { data: allReviews } = useCollection<any>(reviewsQuery);
+
   const topScribes = useMemo(() => {
     if (!allSellers) return [];
     
-    // Sort by sales_count (aggregated on seller doc) or 0
-    // We do it in memory to avoid index requirements and missing field issues for new sellers
+    // Sort by review count + avg rating first, then fall back to sales_count
     return [...allSellers]
       .sort((a, b) => {
-        const countA = a.sales_count || 0;
-        const countB = b.sales_count || 0;
+        const reviewsA = (allReviews || []).filter((r: any) => r.seller_id === a.id);
+        const reviewsB = (allReviews || []).filter((r: any) => r.seller_id === b.id);
+        const countA = reviewsA.length;
+        const countB = reviewsB.length;
         if (countB !== countA) return countB - countA;
+        const avgA = countA > 0 ? reviewsA.reduce((s: number, r: any) => s + (r.rating || 5), 0) / countA : 0;
+        const avgB = countB > 0 ? reviewsB.reduce((s: number, r: any) => s + (r.rating || 5), 0) / countB : 0;
+        if (avgB !== avgA) return avgB - avgA;
+        const salesA = a.sales_count || 0;
+        const salesB = b.sales_count || 0;
+        if (salesB !== salesA) return salesB - salesA;
         return (a.first_name || '').localeCompare(b.first_name || '');
       })
       .slice(0, 8);
-  }, [allSellers]);
+  }, [allSellers, allReviews]);
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -128,7 +138,13 @@ export default function Home() {
                               <p className="text-[8px] font-black text-muted-foreground uppercase tracking-tighter">דירוג</p>
                               <div className="flex items-center gap-0.5 mt-0.5">
                                  <Star className="w-3 h-3 fill-accent text-accent" />
-                                 <span className="text-sm font-black text-primary">5.0</span>
+                                 {(() => {
+                                    const scribesReviews = (allReviews || []).filter((r: any) => r.seller_id === scribe.id);
+                                    const avg = scribesReviews.length > 0
+                                      ? (scribesReviews.reduce((s: number, r: any) => s + (r.rating || 5), 0) / scribesReviews.length).toFixed(1)
+                                      : '—';
+                                    return <span className="text-sm font-black text-primary">{avg}</span>;
+                                  })()}
                               </div>
                            </div>
                         </div>

@@ -260,6 +260,19 @@ function ChatContent() {
       last_message_text: textCopy,
       updated_at: new Date().toISOString()
     }).eq('id', chatId);
+
+    if (otherUserData?.email) {
+      const senderName = user.displayName || user.email || 'משתמש';
+      fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: otherUserData.email,
+          subject: 'הודעה חדשה ב-Hotam',
+          text: `קיבלת הודעה חדשה מ-${senderName}:\n\n"${textCopy}"\n\nלתגובה, כנס/י לאתר: https://hotam.shop`,
+        }),
+      }).catch((err) => console.error('Failed to send email notification:', err));
+    }
   };
 
   const sendPaymentRequest = async (product: any) => {

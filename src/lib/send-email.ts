@@ -1,4 +1,10 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
+
+const apiKey = process.env.RESEND_API_KEY;
+if (!apiKey) {
+  throw new Error('RESEND_API_KEY environment variable is not set');
+}
+const resend = new Resend(apiKey);
 
 export interface SendEmailOptions {
   to: string;
@@ -7,18 +13,8 @@ export interface SendEmailOptions {
 }
 
 export async function sendEmail({ to, subject, text }: SendEmailOptions): Promise<void> {
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT ?? 587),
-    secure: process.env.SMTP_SECURE === 'true',
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
-
-  await transporter.sendMail({
-    from: process.env.EMAIL_FROM ?? process.env.SMTP_USER,
+  await resend.emails.send({
+    from: 'Hotam Shop <onboarding@resend.dev>',
     to,
     subject,
     text,

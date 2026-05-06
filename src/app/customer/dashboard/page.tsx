@@ -331,14 +331,27 @@ export default function CustomerDashboard() {
                     <div className="space-y-2"><Label className="text-[10px] font-black uppercase">שם פרטי</Label><Input value={formData.first_name} onChange={(e) => setFormData({...formData, first_name: e.target.value})} className="rounded-xl h-12" /></div>
                     <div className="space-y-2"><Label className="text-[10px] font-black uppercase">שם משפחה</Label><Input value={formData.last_name} onChange={(e) => setFormData({...formData, last_name: e.target.value})} className="rounded-xl h-12" /></div>
                   </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase">כתובת דואר אלקטרוני</Label>
+                    <Input value={user?.email ?? ''} readOnly className="rounded-xl h-12 bg-muted/30 text-muted-foreground cursor-not-allowed" />
+                  </div>
                   <div className="space-y-2"><Label className="text-[10px] font-black uppercase">מספר טלפון</Label><Input value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="rounded-xl h-12" /></div>
                   <div className="space-y-2"><Label className="text-[10px] font-black uppercase">כתובת למשלוח</Label><Input value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} className="rounded-xl h-12" /></div>
                 </div>
-                <div className="space-y-6">
-                   <div className="flex items-center justify-between p-4 bg-muted/20 rounded-2xl">
-                      <span className="text-sm font-bold">עדכוני סטטוס במייל</span>
-                      <Switch checked={formData.notif_status_email} onCheckedChange={(v) => setFormData({...formData, notif_status_email: v})} />
-                    </div>
+                <div className="space-y-4">
+                  <Label className="text-[10px] font-black uppercase text-primary/60 block">התראות במייל</Label>
+                  <div className="flex items-center justify-between p-4 bg-muted/20 rounded-2xl">
+                    <span className="text-sm font-bold">הודעות צ'אט חדשות</span>
+                    <Switch checked={formData.notif_msg_email} onCheckedChange={(v) => setFormData({...formData, notif_msg_email: v})} />
+                  </div>
+                  <div className="flex items-center justify-between p-4 bg-muted/20 rounded-2xl">
+                    <span className="text-sm font-bold">עדכוני סטטוס הזמנות</span>
+                    <Switch checked={formData.notif_status_email} onCheckedChange={(v) => setFormData({...formData, notif_status_email: v})} />
+                  </div>
+                  <div className="pt-4 p-4 bg-accent/5 rounded-2xl border border-accent/10 flex items-start gap-3">
+                    <Info className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+                    <p className="text-[10px] font-bold text-primary/60 leading-relaxed">כתובת המייל נקבעת בעת ההרשמה ואינה ניתנת לשינוי. לפרטים צרו קשר עם התמיכה.</p>
+                  </div>
                 </div>
               </div>
               <div className="pt-8 border-t flex justify-end">

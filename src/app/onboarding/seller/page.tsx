@@ -48,6 +48,7 @@ export default function SellerOnboarding() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const totalSteps = 3;
   const router = useRouter();
   const auth = useAuth();
@@ -173,6 +174,10 @@ export default function SellerOnboarding() {
       }
       if (formData.writingSamples.length < 2) {
         toast({ variant: "destructive", title: "חסרות דוגמאות", description: "עליך להעלות לפחות 2 דוגמאות כתיבה ברורות." });
+        return false;
+      }
+      if (!termsAccepted) {
+        toast({ variant: "destructive", title: "נדרש אישור תנאי שימוש", description: "עליך לאשר את תנאי השימוש ומדיניות הפרטיות כדי להמשיך." });
         return false;
       }
     }
@@ -554,8 +559,8 @@ export default function SellerOnboarding() {
                 </div>
 
                 <div className="flex items-start space-x-reverse space-x-3 p-5 bg-primary/5 rounded-2xl border border-primary/10">
-                  <Checkbox id="terms" required className="mt-1" />
-                  <Label htmlFor="terms" className="text-[11px] font-bold leading-relaxed">אני מצהיר כי כל הפרטים שהזנתי נכונים, ומתחייב לעסוק במלאכת הקודש בקדושה, טהרה ויראת שמיים. אני מאשר את <Link href="/terms" className="underline font-black text-primary">תנאי השימוש</Link> ומדיניות הפרטיות של הפלטפורמה.</Label>
+                  <Checkbox id="terms" checked={termsAccepted} onCheckedChange={(v) => setTermsAccepted(!!v)} className="mt-1" />
+                  <Label htmlFor="terms" className="text-[11px] font-bold leading-relaxed cursor-pointer">אני מצהיר כי כל הפרטים שהזנתי נכונים, ומתחייב לעסוק במלאכת הקודש בקדושה, טהרה ויראת שמיים. אני מאשר את <Link href="/terms" target="_blank" className="underline font-black text-primary hover:text-primary/70">תנאי השימוש ומדיניות הפרטיות</Link> של הפלטפורמה.</Label>
                 </div>
               </div>
             )}

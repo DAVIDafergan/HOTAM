@@ -55,6 +55,21 @@ export default function Home() {
   const topScribes = useMemo(() => {
     if (!allSellers) return [];
     
+    const anyHasReviews = (allReviews || []).some((r: any) =>
+      allSellers.some((s: any) => s.id === r.seller_id)
+    );
+
+    if (!anyHasReviews) {
+      // Fall back to most recently joined sellers
+      return [...allSellers]
+        .sort((a, b) => {
+          const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+          const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+          return dateB - dateA;
+        })
+        .slice(0, 8);
+    }
+
     // Sort by review count + avg rating first, then fall back to sales_count
     return [...allSellers]
       .sort((a, b) => {

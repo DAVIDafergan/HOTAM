@@ -238,6 +238,13 @@ export default function AdminDashboard() {
     }
   };
 
+  const deleteCustomer = (id: string) => {
+    if (confirm('האם אתה בטוח שברצונך למחוק לקוח זה לצמיתות?')) {
+      deleteDocumentNonBlocking(doc(db, 'customers', id));
+      toast({ variant: "destructive", title: "הלקוח נמחק" });
+    }
+  };
+
   if (isUserLoading || isAdminCheckLoading) {
     return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>;
   }
@@ -332,6 +339,7 @@ export default function AdminDashboard() {
             <CustomerTable 
               customers={filteredCustomers} 
               orders={allOrders}
+              onDelete={deleteCustomer}
               page={customersPage}
               setPage={setCustomersPage}
             />
@@ -366,7 +374,9 @@ export default function AdminDashboard() {
           <TabsContent value="reports">
             <ReportsTable 
               reports={allReports} 
+              sellers={allSellers}
               onDelete={deleteReport} 
+              onLinkToTab={handleTabLink}
               page={reportsPage} 
               setPage={setReportsPage} 
             />
@@ -481,8 +491,9 @@ function ScribeTable({ scribes, onApprove, onDelete, isLoading, orders, page, se
   );
 }
 
-function CustomerTable({ customers, orders, page, setPage }: any) {
+function CustomerTable({ customers, orders, onDelete, page, setPage }: any) {
   const paginatedData = customers.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
 
   return (
     <div className="space-y-4">
@@ -514,8 +525,8 @@ function CustomerTable({ customers, orders, page, setPage }: any) {
                   </TableCell>
                   <TableCell className="text-[10px] font-bold text-muted-foreground">{cust.created_at ? new Date(cust.created_at).toLocaleDateString('he-IL') : '-'}</TableCell>
                   <TableCell className="px-8 text-left">
-                    <Button variant="ghost" size="sm" asChild className="rounded-full h-8 px-4 text-[9px] font-black border-primary/5">
-                       <Link href={`/customer/dashboard`}>צפה</Link>
+                    <Button variant="ghost" size="sm" onClick={() => setSelectedCustomer(cust)} aria-label={`צפה פרטי ${cust.first_name} ${cust.last_name}`} className="rounded-full h-8 px-4 text-[9px] font-black border-primary/5">
+                      צפה
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -525,7 +536,88 @@ function CustomerTable({ customers, orders, page, setPage }: any) {
         </Table>
       </Card>
       <Pagination current={page} total={customers.length} onChange={setPage} />
+
+      {selectedCustomer && (
+        <CustomerDetailsDialog
+          customer={selectedCustomer}
+          orders={(orders || []).filter((o: any) => o.buyer_id === selectedCustomer.id)}
+          onDelete={() => { onDelete(selectedCustomer.id); setSelectedCustomer(null); }}
+          onClose={() => setSelectedCustomer(null)}
+        />
+      )}
     </div>
+  );
+}
+
+function CustomerDetailsDialog({ customer, orders, onDelete, onClose }: any) {
+  return (
+    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="max-w-2xl rounded-[2.5rem] p-0 border-none shadow-2xl bg-white max-h-[85vh] overflow-y-auto z-[150]" dir="rtl">
+        <div className="bg-primary p-6 text-white text-right sticky top-0 z-50">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-headline font-black tracking-tight flex items-center gap-4 text-white">
+              <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center border border-white/20">
+                <UserRound className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <p>{customer.first_name} {customer.last_name}</p>
+                <p className="text-[11px] font-medium opacity-70 mt-0.5">{customer.email}</p>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+        </div>
+
+        <div className="p-8 space-y-6 text-right">
+          {/* Customer details */}
+          <div className="space-y-4">
+            <h4 className="text-[10px] font-black text-accent uppercase tracking-widest flex items-center gap-2"><IdCard className="w-4 h-4" /> פרטי לקוח</h4>
+            <div className="bg-muted/30 p-5 rounded-2xl space-y-3 text-[11px] font-bold">
+              <div className="flex justify-between border-b border-white/50 pb-2"><span>{customer.first_name} {customer.last_name}</span><span className="text-muted-foreground">שם מלא:</span></div>
+              <div className="flex justify-between border-b border-white/50 pb-2"><span>{customer.email}</span><span className="text-muted-foreground">אימייל:</span></div>
+              <div className="flex justify-between border-b border-white/50 pb-2"><span>{customer.phone || '-'}</span><span className="text-muted-foreground">טלפון:</span></div>
+              <div className="flex justify-between border-b border-white/50 pb-2"><span>{customer.address || '-'}</span><span className="text-muted-foreground">כתובת:</span></div>
+              <div className="flex justify-between"><span>{customer.created_at ? new Date(customer.created_at).toLocaleDateString('he-IL') : '-'}</span><span className="text-muted-foreground">תאריך הצטרפות:</span></div>
+            </div>
+          </div>
+
+          {/* Orders */}
+          <div className="space-y-4">
+            <h4 className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2"><ShoppingBag className="w-4 h-4" /> הזמנות ({orders.length})</h4>
+            {orders.length === 0 ? (
+              <p className="text-sm text-muted-foreground italic bg-muted/20 p-4 rounded-xl">אין הזמנות עבור לקוח זה.</p>
+            ) : (
+              <div className="space-y-3 max-h-64 overflow-y-auto">
+                {orders.map((o: any) => {
+                  const date = o.created_at?.toDate ? o.created_at.toDate() : (o.created_at ? new Date(o.created_at) : null);
+                  return (
+                    <div key={o.id} className="bg-muted/20 p-4 rounded-2xl flex justify-between items-center text-[11px] font-bold border border-muted/30">
+                      <div className="flex items-center gap-3">
+                        <Badge className={cn("border-none font-black text-[8px] uppercase", o.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700')}>
+                          {o.status === 'completed' ? 'הושלם' : 'בהמתנה'}
+                        </Badge>
+                        <span className="text-primary/50 font-mono text-[9px]">#{o.id?.slice(0, 8)}</span>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-primary font-black">{o.product_name}</p>
+                        <p className="text-muted-foreground text-[9px]">{date ? date.toLocaleDateString('he-IL') : '-'}</p>
+                      </div>
+                      <p className="text-emerald-600 font-black">₪{o.amount?.toLocaleString()}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Delete button */}
+          <div className="pt-4 border-t flex justify-end">
+            <Button variant="destructive" onClick={onDelete} className="rounded-full px-6 h-10 text-[10px] font-black uppercase gap-2">
+              <Trash2 className="w-3.5 h-3.5" /> מחק לקוח
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -642,7 +734,7 @@ function TorahRequestsTable({ orders, sellers, page, setPage }: any) {
   );
 }
 
-function ReportsTable({ reports, onDelete, page, setPage }: any) {
+function ReportsTable({ reports, sellers, onDelete, onLinkToTab, page, setPage }: any) {
   const paginatedData = (reports || []).slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
   if (!reports || reports.length === 0) return <Card className="p-24 text-center bg-white rounded-[3rem] shadow-premium italic text-muted-foreground">אין דיווחים במערכת.</Card>;
@@ -666,8 +758,27 @@ function ReportsTable({ reports, onDelete, page, setPage }: any) {
               return (
                 <TableRow key={r.id} className="border-muted/20">
                   <TableCell className="py-6 px-8 text-[10px] font-bold">{date.toLocaleDateString('he-IL')}</TableCell>
-                  <TableCell className="text-[10px] font-bold text-primary">{r.reporter_name}</TableCell>
-                  <TableCell className="text-[10px] font-bold text-primary">{r.seller_name}</TableCell>
+                  <TableCell>
+                    <button
+                      onClick={() => onLinkToTab('customers', r.reporter_name)}
+                      className="text-[10px] font-bold text-primary underline decoration-primary/20 hover:text-accent transition-colors"
+                    >
+                      {r.reporter_name}
+                    </button>
+                  </TableCell>
+                  <TableCell>
+                    {r.seller_id ? (
+                      <Link
+                        href={`/sellers/${r.seller_id}`}
+                        className="text-[10px] font-bold text-primary underline decoration-primary/20 hover:text-accent transition-colors"
+                        target="_blank"
+                      >
+                        {r.seller_name}
+                      </Link>
+                    ) : (
+                      <span className="text-[10px] font-bold text-primary">{r.seller_name}</span>
+                    )}
+                  </TableCell>
                   <TableCell className="text-[10px] font-bold text-destructive max-w-xs truncate">{r.reason}</TableCell>
                   <TableCell className="px-8 text-left">
                     <Button variant="ghost" size="icon" onClick={() => onDelete(r.id)} className="h-8 w-8 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive"><Trash2 className="w-3.5 h-3.5" /></Button>

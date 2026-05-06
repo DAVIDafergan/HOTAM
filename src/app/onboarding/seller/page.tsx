@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -52,11 +52,13 @@ export default function SellerOnboarding() {
   const router = useRouter();
   const auth = useAuth();
   const db = useSupabaseClient();
-  useUser(); // keep provider warm so auth state updates propagate
+  const { user } = useUser();
   const { toast } = useToast();
 
   const certInputRef = useRef<HTMLInputElement>(null);
   const samplesInputRef = useRef<HTMLInputElement>(null);
+
+  const isExistingCustomer = !!user?.uid && user.role === 'customer';
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -90,6 +92,13 @@ export default function SellerOnboarding() {
   const updateField = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+
+  // Pre-fill email when an existing customer opens the form
+  useEffect(() => {
+    if (user?.email && isExistingCustomer) {
+      setFormData(prev => ({ ...prev, email: user.email! }));
+    }
+  }, [user?.email, isExistingCustomer]);
 
   const toggleScriptType = (type: string) => {
     setFormData(prev => ({
@@ -129,8 +138,13 @@ export default function SellerOnboarding() {
 
   const validateStep = () => {
     if (step === 1) {
-      if (!formData.firstName || !formData.lastName || !formData.email || !formData.password || !formData.phone || !formData.address || !formData.age) {
+      if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.address || !formData.age) {
         toast({ variant: "destructive", title: "פרטים חסרים", description: "כל השדות האישיים הם חובה." });
+        return false;
+      }
+      // Password is only required for new registrations (not existing logged-in customers)
+      if (!isExistingCustomer && (!formData.password || formData.password.length < 6)) {
+        toast({ variant: "destructive", title: "סיסמה חלשה", description: "לפחות 6 תווים." });
         return false;
       }
       if (!formData.businessId || !formData.businessName) {
@@ -139,10 +153,6 @@ export default function SellerOnboarding() {
       }
       if (!formData.bankName || !formData.bankBranch || !formData.bankAccountNumber) {
         toast({ variant: "destructive", title: "פרטי בנק חסרים", description: "חובה להזין פרטי חשבון בנק לקבלת תשלומים." });
-        return false;
-      }
-      if (formData.password.length < 6) {
-        toast({ variant: "destructive", title: "סיסמה חלשה", description: "לפחות 6 תווים." });
         return false;
       }
     }
@@ -206,6 +216,29 @@ export default function SellerOnboarding() {
         favorite_product_ids: [],
         updated_at: new Date().toISOString(),
       };
+
+      // If user is already logged in as a customer, upgrade them to seller
+      if (isExistingCustomer && user?.uid) {
+        // Update auth metadata role to 'seller'
+        const { error: authUpdateError } = await db.auth.updateUser({
+          data: { role: 'seller' },
+        });
+        if (authUpdateError) throw authUpdateError;
+
+        // Upsert the sellers row with the full profile
+        const { error: dbError } = await db
+          .from('sellers')
+          .upsert({ id: user.uid, ...profilePayload });
+        if (dbError) throw dbError;
+
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('pendingSellerProfile');
+        }
+
+        toast({ title: 'ההרשמה הסתיימה', description: 'הפרופיל שלך הועבר לאישור מנהל.' });
+        router.push('/seller/dashboard');
+        return;
+      }
 
       // Persist the full profile to localStorage so that when email confirmation
       // is required the seller dashboard can apply it automatically after login.
@@ -345,13 +378,13 @@ export default function SellerOnboarding() {
                   </div>
                   
                   <RadioGroup value={formData.businessType} onValueChange={(v) => updateField('businessType', v)} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className={cn("flex items-center space-x-reverse space-x-2 p-3 border rounded-xl bg-white transition-all", formData.businessType === 'osek_patur' ? 'border-primary ring-2 ring-primary/5' : '')}>
+                    <div className={cn("flex items-center space-x-reverse space-x-2 p-3 border rounded-xl bg-white transition-all cursor-pointer", formData.businessType === 'osek_patur' ? 'border-primary ring-2 ring-primary/5' : '')} onClick={() => updateField('businessType', 'osek_patur')}>
                       <RadioGroupItem value="osek_patur" id="bp1" />
-                      <Label htmlFor="osek_patur" className="text-xs font-bold cursor-pointer">עוסק פטור</Label>
+                      <Label htmlFor="bp1" className="text-xs font-bold cursor-pointer">עוסק פטור</Label>
                     </div>
-                    <div className={cn("flex items-center space-x-reverse space-x-2 p-3 border rounded-xl bg-white transition-all", formData.businessType === 'business' ? 'border-primary ring-2 ring-primary/5' : '')}>
+                    <div className={cn("flex items-center space-x-reverse space-x-2 p-3 border rounded-xl bg-white transition-all cursor-pointer", formData.businessType === 'business' ? 'border-primary ring-2 ring-primary/5' : '')} onClick={() => updateField('businessType', 'business')}>
                       <RadioGroupItem value="business" id="bp2" />
-                      <Label htmlFor="business" className="text-xs font-bold cursor-pointer">עוסק מורשה / חברה</Label>
+                      <Label htmlFor="bp2" className="text-xs font-bold cursor-pointer">עוסק מורשה / חברה</Label>
                     </div>
                   </RadioGroup>
 
@@ -388,14 +421,19 @@ export default function SellerOnboarding() {
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2"><Label>אימייל *</Label><Input type="email" value={formData.email} onChange={(e) => updateField('email', e.target.value)} required className="text-slate-900 rounded-xl h-11" /></div>
                   <div className="space-y-2">
-                    <Label>סיסמה (לפחות 6 תווים) *</Label>
-                    <div className="relative">
-                      <Input type={showPassword ? "text" : "password"} value={formData.password} onChange={(e) => updateField('password', e.target.value)} required className="text-slate-900 rounded-xl h-11" />
-                      <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button>
-                    </div>
+                    <Label>אימייל *</Label>
+                    <Input type="email" value={formData.email} onChange={(e) => !isExistingCustomer && updateField('email', e.target.value)} readOnly={isExistingCustomer} required className={cn("text-slate-900 rounded-xl h-11", isExistingCustomer && "bg-muted/50")} />
                   </div>
+                  {!isExistingCustomer && (
+                    <div className="space-y-2">
+                      <Label>סיסמה (לפחות 6 תווים) *</Label>
+                      <div className="relative">
+                        <Input type={showPassword ? "text" : "password"} value={formData.password} onChange={(e) => updateField('password', e.target.value)} required className="text-slate-900 rounded-xl h-11" />
+                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="grid md:grid-cols-2 gap-4">
@@ -411,9 +449,9 @@ export default function SellerOnboarding() {
                 <div className="space-y-4 text-right">
                   <Label className="font-bold block mb-2">הסמכת סופר סת''ם *</Label>
                   <RadioGroup value={formData.hasScribeCertificate} onValueChange={(v) => updateField('hasScribeCertificate', v)} className="grid gap-2">
-                    <div className="flex items-center space-x-reverse space-x-3 p-4 border rounded-2xl cursor-pointer"><RadioGroupItem value="valid" id="v1" /><Label htmlFor="v1" className="flex-1 cursor-pointer font-bold">תעודה בתוקף</Label></div>
-                    <div className="flex items-center space-x-reverse space-x-3 p-4 border rounded-2xl cursor-pointer"><RadioGroupItem value="expired" id="v2" /><Label htmlFor="v2" className="flex-1 cursor-pointer font-bold">הייתה תעודה בעבר</Label></div>
-                    <div className="flex items-center space-x-reverse space-x-3 p-4 border rounded-2xl cursor-pointer"><RadioGroupItem value="none" id="v3" /><Label htmlFor="v3" className="flex-1 cursor-pointer font-bold">ללא תעודה</Label></div>
+                    <div className="flex items-center space-x-reverse space-x-3 p-4 border rounded-2xl cursor-pointer" onClick={() => updateField('hasScribeCertificate', 'valid')}><RadioGroupItem value="valid" id="v1" /><Label htmlFor="v1" className="flex-1 cursor-pointer font-bold">תעודה בתוקף</Label></div>
+                    <div className="flex items-center space-x-reverse space-x-3 p-4 border rounded-2xl cursor-pointer" onClick={() => updateField('hasScribeCertificate', 'expired')}><RadioGroupItem value="expired" id="v2" /><Label htmlFor="v2" className="flex-1 cursor-pointer font-bold">הייתה תעודה בעבר</Label></div>
+                    <div className="flex items-center space-x-reverse space-x-3 p-4 border rounded-2xl cursor-pointer" onClick={() => updateField('hasScribeCertificate', 'none')}><RadioGroupItem value="none" id="v3" /><Label htmlFor="v3" className="flex-1 cursor-pointer font-bold">ללא תעודה</Label></div>
                   </RadioGroup>
 
                   {(formData.hasScribeCertificate === 'valid' || formData.hasScribeCertificate === 'expired') && (
@@ -441,18 +479,18 @@ export default function SellerOnboarding() {
                   <div className="space-y-4">
                     <Label className="font-bold">לימוד תורה קבוע *</Label>
                     <RadioGroup value={formData.torahStudyFrequency} onValueChange={(v) => updateField('torahStudyFrequency', v)} className="flex flex-col gap-2">
-                      <div className="flex items-center space-x-reverse space-x-2"><RadioGroupItem value="fixed" id="t1" /><Label htmlFor="t1" className="text-xs">קובע עיתים</Label></div>
-                      <div className="flex items-center space-x-reverse space-x-2"><RadioGroupItem value="half-day" id="t2" /><Label htmlFor="t2" className="text-xs">אברך חצי יום</Label></div>
-                      <div className="flex items-center space-x-reverse space-x-2"><RadioGroupItem value="full-day" id="t3" /><Label htmlFor="t3" className="text-xs">אברך יום שלם</Label></div>
+                      <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => updateField('torahStudyFrequency', 'fixed')}><RadioGroupItem value="fixed" id="t1" /><Label htmlFor="t1" className="text-xs cursor-pointer">קובע עיתים</Label></div>
+                      <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => updateField('torahStudyFrequency', 'half-day')}><RadioGroupItem value="half-day" id="t2" /><Label htmlFor="t2" className="text-xs cursor-pointer">אברך חצי יום</Label></div>
+                      <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => updateField('torahStudyFrequency', 'full-day')}><RadioGroupItem value="full-day" id="t3" /><Label htmlFor="t3" className="text-xs cursor-pointer">אברך יום שלם</Label></div>
                     </RadioGroup>
                   </div>
 
                   <div className="space-y-4">
                     <Label className="font-bold">מנהג טבילה *</Label>
                     <RadioGroup value={formData.mikvehFrequency} onValueChange={(v) => updateField('mikvehFrequency', v)} className="flex flex-col gap-2">
-                      <div className="flex items-center space-x-reverse space-x-2"><RadioGroupItem value="ezra" id="m1" /><Label htmlFor="m1" className="text-xs">טבילת עזרא</Label></div>
-                      <div className="flex items-center space-x-reverse space-x-2"><RadioGroupItem value="before" id="m2" /><Label htmlFor="m2" className="text-xs">לפני כתיבה</Label></div>
-                      <div className="flex items-center space-x-reverse space-x-2"><RadioGroupItem value="daily" id="m3" /><Label htmlFor="m3" className="text-xs">כל יום</Label></div>
+                      <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => updateField('mikvehFrequency', 'ezra')}><RadioGroupItem value="ezra" id="m1" /><Label htmlFor="m1" className="text-xs cursor-pointer">טבילת עזרא</Label></div>
+                      <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => updateField('mikvehFrequency', 'before')}><RadioGroupItem value="before" id="m2" /><Label htmlFor="m2" className="text-xs cursor-pointer">לפני כתיבה</Label></div>
+                      <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => updateField('mikvehFrequency', 'daily')}><RadioGroupItem value="daily" id="m3" /><Label htmlFor="m3" className="text-xs cursor-pointer">כל יום</Label></div>
                     </RadioGroup>
                   </div>
                 </div>
@@ -474,9 +512,9 @@ export default function SellerOnboarding() {
                   <div className="space-y-2">
                     <Label className="font-bold">רמת הידור ממוצעת *</Label>
                     <RadioGroup value={formData.scriptLevel} onValueChange={(v) => updateField('scriptLevel', v)} className="grid grid-cols-2 gap-2 mt-2">
-                      <div className="flex items-center space-x-reverse space-x-2"><RadioGroupItem value="כשר" id="ls" /><Label htmlFor="ls" className="text-xs">כשר</Label></div>
-                      <div className="flex items-center space-x-reverse space-x-2"><RadioGroupItem value="מהודר" id="lm" /><Label htmlFor="lm" className="text-xs font-black text-accent">מהודר</Label></div>
-                      <div className="flex items-center space-x-reverse space-x-2"><RadioGroupItem value="מהודר מאד" id="lx" /><Label htmlFor="lx" className="text-xs font-black text-primary">מהודר מאד</Label></div>
+                      <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => updateField('scriptLevel', 'כשר')}><RadioGroupItem value="כשר" id="ls" /><Label htmlFor="ls" className="text-xs cursor-pointer">כשר</Label></div>
+                      <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => updateField('scriptLevel', 'מהודר')}><RadioGroupItem value="מהודר" id="lm" /><Label htmlFor="lm" className="text-xs font-black text-accent cursor-pointer">מהודר</Label></div>
+                      <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => updateField('scriptLevel', 'מהודר מאד')}><RadioGroupItem value="מהודר מאד" id="lx" /><Label htmlFor="lx" className="text-xs font-black text-primary cursor-pointer">מהודר מאד</Label></div>
                     </RadioGroup>
                   </div>
                 </div>

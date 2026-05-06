@@ -249,7 +249,7 @@ export function HeroAnimation() {
   };
 
   return (
-    <section className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#FDFCF0] py-12">
+    <section className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#FDFCF0] py-6 md:py-12">
       <div className="absolute inset-0 z-0">
         {heroImg?.imageUrl && (
           <Image 
@@ -266,24 +266,24 @@ export function HeroAnimation() {
       </div>
 
       <div className="container mx-auto px-4 relative z-20 flex flex-col items-center justify-center">
-        <div className="max-w-4xl w-full space-y-12 flex flex-col items-center text-center">
+        <div className="max-w-4xl w-full space-y-5 md:space-y-12 flex flex-col items-center text-center">
           
-          <div className="space-y-4 animate-fade-in">
+          <div className="space-y-2 md:space-y-4 animate-fade-in">
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="inline-block px-5 py-2 bg-white/80 border border-primary/15 rounded-full text-primary font-black text-[10px] uppercase tracking-[0.3em] mb-2 shadow-sm backdrop-blur-sm"
+              className="inline-block px-5 py-2 bg-white/80 border border-primary/15 rounded-full text-primary font-black text-[10px] uppercase tracking-[0.3em] mb-1 shadow-sm backdrop-blur-sm"
             >
               {greeting()}, The Sacred Marketplace • חותם
             </motion.div>
-            <h1 className="text-4xl md:text-7xl font-headline font-black text-primary leading-tight tracking-tighter">
+            <h1 className="text-3xl md:text-7xl font-headline font-black text-primary leading-tight tracking-tighter">
               קדושה <span className="text-accent underline decoration-accent/20 underline-offset-8">בכל תג</span>
             </h1>
           </div>
           
           <div className="w-full bg-white/75 backdrop-blur-3xl border border-white/80 rounded-[3rem] p-6 md:p-10 shadow-premium-lg relative ring-1 ring-primary/5">
             
-            <div className="flex flex-col items-center mb-8 gap-3">
+            <div className="flex flex-col items-center mb-5 md:mb-8 gap-3">
               <div className="flex justify-center gap-3">
                 {[1, 2, 3].map((s) => (
                   <div key={s} className={cn("h-1.5 rounded-full transition-all duration-500", step === s ? "w-14 bg-primary shadow-md" : "w-4 bg-primary/15")} />
@@ -296,7 +296,7 @@ export function HeroAnimation() {
 
             <AnimatePresence mode="wait">
               {step === 1 && (
-                <motion.div key="step1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-8">
+                <motion.div key="step1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-5 md:space-y-8">
                   <div className="flex flex-col items-center gap-4">
                     <h3 className="text-xl md:text-2xl font-headline font-black text-primary">מה אתם מחפשים?</h3>
                     <div className="flex items-center gap-4 bg-white/90 p-2 rounded-full border shadow-sm ring-4 ring-primary/5">
@@ -309,7 +309,7 @@ export function HeroAnimation() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4">
                     <CategoryCard icon={<Scroll />} label="מזוזה" onClick={() => handleCategorySelect('מזוזה')} />
                     <CategoryCard icon={<Package />} label="תפילין" onClick={() => handleCategorySelect('תפילין')} />
                     <CategoryCard icon={<Crown />} label="מגילה" onClick={() => handleCategorySelect('מגילה')} />
@@ -533,7 +533,7 @@ function CategoryCard({ icon, label, onClick }: any) {
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="group flex flex-col items-center gap-3 p-5 rounded-[2.5rem] bg-white border-2 border-transparent shadow-sm hover:shadow-xl hover:border-accent/40 hover:-translate-y-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 transition-all duration-300 w-full"
+    className="group flex flex-col items-center gap-2 md:gap-3 p-3 md:p-5 rounded-[2.5rem] bg-white border-2 border-transparent shadow-sm hover:shadow-xl hover:border-accent/40 hover:-translate-y-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 transition-all duration-300 w-full"
     >
       <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-accent group-hover:text-primary group-hover:scale-110 transition-all duration-300">
         {React.cloneElement(icon, { className: "w-6 h-6 md:w-7 md:h-7" })}

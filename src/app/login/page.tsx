@@ -113,35 +113,35 @@ export default function LoginPage() {
       <main className="flex-1 flex items-center justify-center p-4 pt-20 sm:pt-28 pb-8 sm:pb-12">
         <Card className="w-full max-w-5xl shadow-premium border-none rounded-[2.5rem] overflow-hidden bg-white">
           <div className="grid md:grid-cols-5 min-h-[500px]">
-            {/* Left/Info Side (Desktop) */}
-            <div className="order-2 md:order-1 md:col-span-2 bg-primary text-white p-5 sm:p-8 md:p-10 flex flex-col justify-center text-right relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl" />
-              <div className="relative z-10 space-y-6">
-                <div className="space-y-4">
-                  <h1 className="text-3xl md:text-5xl font-headline font-black tracking-tight leading-tight bg-clip-text text-transparent bg-gradient-to-r from-accent via-white to-accent/80">
+            {/* Left/Info Side — top on mobile, left panel on desktop */}
+            <div className="order-1 md:col-span-2 bg-primary text-white px-5 py-5 sm:p-8 md:p-10 flex flex-col justify-center text-right relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl hidden md:block" />
+              <div className="relative z-10 space-y-3 md:space-y-6">
+                <div className="space-y-2 md:space-y-4">
+                  <h1 className="text-2xl md:text-5xl font-headline font-black tracking-tight leading-tight bg-clip-text text-transparent bg-gradient-to-r from-accent via-white to-accent/80">
                     ברוכים השבים לחותם
                   </h1>
-                  <p className="text-white/70 font-black text-base md:text-lg leading-relaxed">זירת המסחר המאובטחת והאיכותית ביותר לכלי קודש וסת"ם מהודרים.</p>
+                  <p className="text-white/70 font-black text-xs md:text-lg leading-relaxed">זירת המסחר המאובטחת והאיכותית ביותר לכלי קודש וסת"ם מהודרים.</p>
                 </div>
-                <div className="flex flex-wrap justify-end gap-x-6 gap-y-3 pt-4 border-t border-white/10">
-                  <div className="flex items-center gap-2 text-[10px] md:text-xs font-black">
+                <div className="flex flex-wrap justify-end gap-x-3 gap-y-1.5 pt-2 border-t border-white/10 md:gap-x-6 md:gap-y-3 md:pt-4">
+                  <div className="flex items-center gap-1.5 md:gap-2 text-[10px] md:text-xs font-black">
                     <span>פיקוח הלכתי קפדני</span>
-                    <CheckCircle2 className="w-4 h-4 text-accent" />
+                    <CheckCircle2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-accent" />
                   </div>
-                  <div className="flex items-center gap-2 text-[10px] md:text-xs font-black">
+                  <div className="flex items-center gap-1.5 md:gap-2 text-[10px] md:text-xs font-black">
                     <span>סופרים מאומתים בלבד</span>
-                    <CheckCircle2 className="w-4 h-4 text-accent" />
+                    <CheckCircle2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-accent" />
                   </div>
-                  <div className="flex items-center gap-2 text-[10px] md:text-xs font-black">
+                  <div className="flex items-center gap-1.5 md:gap-2 text-[10px] md:text-xs font-black">
                     <span>תשלום מאובטח בנאמנות</span>
-                    <CheckCircle2 className="w-4 h-4 text-accent" />
+                    <CheckCircle2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-accent" />
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Right/Form Side */}
-            <CardContent className="order-1 md:order-2 md:col-span-3 p-6 sm:p-8 md:p-14 space-y-8 text-right flex flex-col justify-center">
+            <CardContent className="order-2 md:col-span-3 p-6 sm:p-8 md:p-14 space-y-8 text-right flex flex-col justify-center">
               <div className="space-y-2">
                 <h2 className="text-2xl md:text-3xl font-black text-primary">כניסה למערכת</h2>
                 <p className="text-muted-foreground text-sm font-black">הזינו את הפרטים כדי להמשיך למלאכת הקודש</p>

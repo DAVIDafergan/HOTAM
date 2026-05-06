@@ -32,7 +32,6 @@ import {
   ClipboardList,
   X,
   Loader2,
-  Menu,
   ChevronLeft,
   ChevronRight,
   Camera,
@@ -441,6 +440,11 @@ function SellerDashboardContent() {
   };
 
   const updateStock = (productId: string, diff: number) => {
+    setProductsData(prev =>
+      prev.map(p =>
+        p.id === productId ? { ...p, quantity: Math.max(0, (p.quantity || 0) + diff) } : p
+      )
+    );
     updateDocumentNonBlocking(doc(db, 'products', productId), {
       quantity: increment(diff)
     });
@@ -464,63 +468,102 @@ function SellerDashboardContent() {
   }
 
   return (
-    <div className="flex flex-col w-full">
-      <div className="md:hidden flex items-center justify-between mb-6">
-           <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
-             <SheetTrigger asChild>
-               <Button variant="outline" className="rounded-2xl h-14 px-5 border-primary/10 bg-white shadow-premium gap-3 font-black text-primary">
-                 <Menu className="w-5 h-5 text-accent" />
-                 <span>{navItems.find(i => i.id === activeTab)?.label}</span>
-               </Button>
-             </SheetTrigger>
-             <SheetContent side="right" className="w-[280px] p-0 border-none bg-white rounded-l-[2.5rem]">
-               <SheetHeader className="sr-only">
-                 <SheetTitle>תפריט ניהול סופר</SheetTitle>
-                 <SheetDescription>מעבר בין מלאי, מכירות, הודעות והגדרות חשבון</SheetDescription>
-               </SheetHeader>
-               <div className="bg-primary p-8 text-white">
-                 <div className="text-right">
-                   <div className="flex items-center justify-between">
-                     <h2 className="text-white font-headline font-black text-2xl flex items-center gap-3"><LayoutDashboard className="w-6 h-6 text-accent" /> ניהול סופר</h2>
-                   </div>
-                 </div>
-               </div>
-               <div className="p-4 space-y-2 mt-4">
-                 {navItems.map((item) => (
-                   <button key={item.id} onClick={() => { setActiveTab(item.id); setIsMobileNavOpen(false); }} className={cn("w-full flex items-center justify-between p-4 rounded-2xl transition-all font-black text-sm", activeTab === item.id ? "bg-primary text-white shadow-lg" : "text-primary/60 hover:bg-primary/5")}>
-                     <div className="flex items-center gap-3">{item.icon}<span>{item.label}</span></div>
-                     {item.badge ? <Badge className="bg-destructive text-white border-none rounded-full px-2 py-0.5 text-[10px]">{item.badge}</Badge> : <ChevronLeft className="w-4 h-4 opacity-30" />}
-                   </button>
-                 ))}
-               </div>
-             </SheetContent>
-           </Sheet>
-           <Button onClick={() => { resetForm(); setIsDialogOpen(true); }} size="icon" className="w-14 h-14 rounded-2xl bg-accent text-primary shadow-lg"><Plus className="w-7 h-7" /></Button>
-        </div>
-
-        <div className="hidden md:flex flex-col md:flex-row items-center justify-between mb-10 md:mb-12 gap-6 text-right">
-          <Button onClick={() => { resetForm(); setIsDialogOpen(true); }} className="bg-accent text-primary hover:bg-accent/90 rounded-full px-8 py-6 font-black uppercase tracking-wider shadow-xl transition-all"><Plus className="w-5 h-5 ml-2" /> העלאת מוצר חדש</Button>
-          <div className="text-right">
-            <h1 className="text-3xl font-headline font-black text-primary tracking-tight">שלום, {seller?.first_name}</h1>
-            <div className="flex items-center justify-end gap-2 text-emerald-600 font-bold text-xs"><CheckCircle2 className="w-4 h-4" /><span>סופר מאומת</span></div>
+    <div className="flex flex-col w-full gap-6 md:gap-8">
+      {/* ── Welcome Banner ────────────────────────────────────────────── */}
+      <div className="rounded-[2rem] bg-gradient-to-l from-primary to-primary/80 text-white p-6 md:p-8 shadow-xl">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
+          <div className="flex items-center gap-4 text-right">
+            <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white/10 flex items-center justify-center shrink-0 border border-white/20 overflow-hidden">
+              {profileData.profile_image
+                ? <Image src={profileData.profile_image} alt="profile" width={64} height={64} className="rounded-2xl object-cover w-full h-full" />
+                : <UserRound className="w-8 h-8 text-white/70" />}
+            </div>
+            <div>
+              <p className="text-xs font-bold text-white/60 uppercase tracking-widest mb-0.5">לוח בקרה</p>
+              <h1 className="text-2xl md:text-3xl font-headline font-black tracking-tight">שלום, {seller?.first_name} 👋</h1>
+              <div className="flex items-center gap-2 text-emerald-300 font-bold text-xs mt-1">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>סופר מאומת</span>
+              </div>
+            </div>
           </div>
+          <Button
+            onClick={() => { resetForm(); setIsDialogOpen(true); }}
+            className="bg-accent text-primary hover:bg-accent/90 rounded-2xl px-6 h-12 font-black shadow-lg transition-all gap-2 shrink-0 w-full md:w-auto"
+          >
+            <Plus className="w-5 h-5" /> העלאת מוצר חדש
+          </Button>
         </div>
+      </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-10">
-          <QuickStat label="יתרה למוכר" value={`₪${totalNetEarnings.toFixed(0)}`} icon={<Banknote className="w-4 h-4" />} color="bg-emerald-50 text-emerald-600" />
-          <QuickStat label="מוצרים" value={String(products.length)} icon={<Package className="w-4 h-4" />} color="bg-blue-50 text-blue-600" />
-          <QuickStat label="הודעות" value={String(unreadCount)} icon={<MessageSquare className="w-4 h-4" />} color="bg-purple-50 text-purple-600" highlight={unreadCount > 0} />
-          <QuickStat label="סטטוס" value="פעיל" icon={<TrendingUp className="w-4 h-4" />} color="bg-orange-50 text-orange-600" />
-        </div>
+      {/* ── Quick Stats ───────────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <QuickStat label="יתרה למוכר" value={`₪${totalNetEarnings.toFixed(0)}`} icon={<Banknote className="w-4 h-4" />} color="bg-emerald-50 text-emerald-600" />
+        <QuickStat label="מוצרים" value={String(products.length)} icon={<Package className="w-4 h-4" />} color="bg-blue-50 text-blue-600" />
+        <QuickStat label="הודעות" value={String(unreadCount)} icon={<MessageSquare className="w-4 h-4" />} color="bg-purple-50 text-purple-600" highlight={unreadCount > 0} />
+        <QuickStat label="סטטוס" value="פעיל" icon={<TrendingUp className="w-4 h-4" />} color="bg-orange-50 text-orange-600" />
+      </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <TabsList className="hidden md:flex bg-white/50 backdrop-blur-md p-1.5 rounded-3xl shadow-premium h-16 border">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          {/* Desktop tab bar */}
+          <TabsList className="hidden md:flex bg-white/60 backdrop-blur-md p-1.5 rounded-3xl shadow-premium h-16 border">
             {navItems.map((item) => (
               <TabsTrigger key={item.id} value={item.id} className="flex-1 rounded-2xl data-[state=active]:bg-primary data-[state=active]:text-white gap-2 text-xs font-black uppercase transition-all">
-                {item.icon} {item.label}
+                {item.icon}
+                {item.label}
+                {item.badge ? <Badge className="bg-destructive text-white border-none rounded-full px-1.5 py-0.5 text-[9px] ml-1">{item.badge}</Badge> : null}
               </TabsTrigger>
             ))}
           </TabsList>
+
+          {/* Mobile tab selector */}
+          <div className="md:hidden">
+            <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
+              <SheetTrigger asChild>
+                <button className="w-full flex items-center justify-between bg-white rounded-2xl shadow-premium border border-primary/5 px-5 h-14 font-black text-primary text-sm">
+                  <div className="flex items-center gap-3">
+                    {navItems.find(i => i.id === activeTab)?.icon}
+                    <span>{navItems.find(i => i.id === activeTab)?.label}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {unreadCount > 0 && activeTab !== 'chats' && (
+                      <Badge className="bg-destructive text-white border-none rounded-full px-2 py-0.5 text-[9px]">{unreadCount}</Badge>
+                    )}
+                    <ChevronDown className="w-4 h-4 text-primary/40" />
+                  </div>
+                </button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[280px] p-0 border-none bg-white rounded-l-[2.5rem]">
+                <SheetHeader className="sr-only">
+                  <SheetTitle>תפריט ניהול סופר</SheetTitle>
+                  <SheetDescription>מעבר בין מלאי, מכירות, הודעות והגדרות חשבון</SheetDescription>
+                </SheetHeader>
+                <div className="bg-gradient-to-b from-primary to-primary/80 p-8 text-white">
+                  <h2 className="text-white font-headline font-black text-xl flex items-center gap-3">
+                    <LayoutDashboard className="w-5 h-5 text-accent" /> ניהול סופר
+                  </h2>
+                  <p className="text-white/50 text-xs font-bold mt-1">{seller?.first_name} {seller?.last_name}</p>
+                </div>
+                <div className="p-4 space-y-2 mt-2">
+                  {navItems.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => { setActiveTab(item.id); setIsMobileNavOpen(false); }}
+                      className={cn(
+                        "w-full flex items-center justify-between p-4 rounded-2xl transition-all font-black text-sm",
+                        activeTab === item.id ? "bg-primary text-white shadow-lg" : "text-primary/60 hover:bg-primary/5"
+                      )}
+                    >
+                      <div className="flex items-center gap-3">{item.icon}<span>{item.label}</span></div>
+                      {item.badge
+                        ? <Badge className="bg-destructive text-white border-none rounded-full px-2 py-0.5 text-[10px]">{item.badge}</Badge>
+                        : <ChevronLeft className="w-4 h-4 opacity-30" />}
+                    </button>
+                  ))}
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
 
           <TabsContent value="inventory" className="space-y-4">
              {products.length === 0 && <div className="py-24 text-center bg-white rounded-[2rem] border-2 border-dashed text-muted-foreground italic">אין מוצרים במלאי. לחץ על כפתור הפלוס להוספה.</div>}

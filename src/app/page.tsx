@@ -52,6 +52,12 @@ export default function Home() {
   const reviewsQuery = useMemoStable(() => query(collection(db, 'reviews')), [db]);
   const { data: allReviews } = useCollection<any>(reviewsQuery);
 
+  const getTimestampMillis = (ts: any): number => {
+    if (!ts) return 0;
+    if (ts.seconds) return ts.seconds * 1000;
+    return new Date(ts).getTime();
+  };
+
   const topScribes = useMemo(() => {
     if (!allSellers) return [];
     
@@ -62,11 +68,7 @@ export default function Home() {
     if (!anyHasReviews) {
       // Fall back to most recently joined sellers
       return [...allSellers]
-        .sort((a, b) => {
-          const dateA = a.created_at ? (a.created_at.seconds ? a.created_at.seconds * 1000 : new Date(a.created_at).getTime()) : 0;
-          const dateB = b.created_at ? (b.created_at.seconds ? b.created_at.seconds * 1000 : new Date(b.created_at).getTime()) : 0;
-          return dateB - dateA;
-        })
+        .sort((a, b) => getTimestampMillis(b.created_at) - getTimestampMillis(a.created_at))
         .slice(0, 8);
     }
 

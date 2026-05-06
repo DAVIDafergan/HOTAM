@@ -14,7 +14,7 @@ export interface SendEmailOptions {
 
 export async function sendEmail({ to, subject, text }: SendEmailOptions): Promise<void> {
   await resend.emails.send({
-    from: 'Hotam Shop <onboarding@resend.dev>',
+    from: 'Hotam Shop <updates@hotam.shop>',
     to,
     subject,
     text,

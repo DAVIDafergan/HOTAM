@@ -283,6 +283,7 @@ export default function Home() {
           <div className="text-center space-y-1">
             <p className="text-sm font-bold text-primary/60">נבנה ע"י DA ניהול פרויקטים</p>
             <p className="text-[10px] font-black text-muted-foreground/30 tracking-[0.4em] uppercase">Sacred Scribal Art © 2024</p>
+            <Link href="/terms" className="text-[10px] font-bold text-muted-foreground/50 hover:text-primary transition-colors underline underline-offset-2">תקנון ותנאי שימוש</Link>
           </div>
         </div>
       </footer>

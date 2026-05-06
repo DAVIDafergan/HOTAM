@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { ShieldCheck, Loader2, Heart, Mail, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -34,6 +35,8 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   
+  const [termsAccepted, setTermsAccepted] = useState(false);
+
   const [resetEmail, setResetEmail] = useState('');
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
@@ -57,6 +60,14 @@ export default function RegisterPage() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!firstName || !lastName || !email || !password) return;
+    if (!termsAccepted) {
+      toast({
+        variant: "destructive",
+        title: "נדרש אישור תנאי שימוש",
+        description: "עליך לאשר את תנאי השימוש ומדיניות הפרטיות כדי להמשיך.",
+      });
+      return;
+    }
     setLoading(true);
     try {
       // The DB trigger creates the customers row automatically.
@@ -272,6 +283,22 @@ export default function RegisterPage() {
                       className="rounded-xl h-11 text-right border-muted-foreground/20 focus:ring-primary/10 font-bold" 
                       required 
                     />
+                  </div>
+
+                  <div className="flex items-start gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10">
+                    <Checkbox 
+                      id="terms" 
+                      checked={termsAccepted}
+                      onCheckedChange={(v) => setTermsAccepted(!!v)}
+                      className="mt-0.5 shrink-0"
+                    />
+                    <Label htmlFor="terms" className="text-[11px] font-bold leading-relaxed cursor-pointer">
+                      קראתי ואני מאשר את{' '}
+                      <Link href="/terms" target="_blank" className="underline font-black text-primary hover:text-primary/70">
+                        תנאי השימוש ומדיניות הפרטיות
+                      </Link>{' '}
+                      של האתר
+                    </Label>
                   </div>
 
                   <div className="pt-2">

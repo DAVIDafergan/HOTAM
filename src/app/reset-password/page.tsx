@@ -23,32 +23,38 @@ export default function ResetPasswordPage() {
   const { toast } = useToast();
 
   useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
     // Supabase sets the session from the URL hash automatically (detectSessionInUrl: true).
-    // We listen for the PASSWORD_RECOVERY event to confirm the user arrived via a valid link.
+    // PASSWORD_RECOVERY fires when the user arrives via a valid reset link.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') {
+        if (timer) clearTimeout(timer);
         setPageState('ready');
-      } else if (event === 'SIGNED_IN' && pageState === 'loading') {
-        // Already has a recovery session
-        setPageState('ready');
+      } else if (event === 'SIGNED_IN') {
+        if (timer) clearTimeout(timer);
+        // Only transition to ready from loading; don't overwrite success state.
+        setPageState((prev) => (prev === 'loading' ? 'ready' : prev));
       }
     });
 
-    // Also check if we already have an active session when the page loads
+    // Also check if a recovery session is already present on mount.
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        setPageState('ready');
+        if (timer) clearTimeout(timer);
+        setPageState((prev) => (prev === 'loading' ? 'ready' : prev));
       } else {
-        // No session and no PASSWORD_RECOVERY event — likely invalid/expired link
-        const timer = setTimeout(() => {
+        // No session yet — wait briefly for the PASSWORD_RECOVERY event before showing error.
+        timer = setTimeout(() => {
           setPageState((prev) => (prev === 'loading' ? 'invalid' : prev));
         }, 3000);
-        return () => clearTimeout(timer);
       }
     });
 
-    return () => subscription.unsubscribe();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      subscription.unsubscribe();
+      if (timer) clearTimeout(timer);
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {

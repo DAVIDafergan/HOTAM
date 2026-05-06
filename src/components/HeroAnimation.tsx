@@ -269,13 +269,6 @@ export function HeroAnimation() {
         <div className="max-w-4xl w-full space-y-5 md:space-y-12 flex flex-col items-center text-center">
           
           <div className="space-y-2 md:space-y-4 animate-fade-in">
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="inline-block px-5 py-2 bg-white/80 border border-primary/15 rounded-full text-primary font-black text-[10px] uppercase tracking-[0.3em] mb-1 shadow-sm backdrop-blur-sm"
-            >
-              {greeting()}, The Sacred Marketplace • חותם
-            </motion.div>
             <h1 className="text-3xl md:text-7xl font-headline font-black text-primary leading-tight tracking-tighter">
               קדושה <span className="text-accent underline decoration-accent/20 underline-offset-8">בכל תג</span>
             </h1>

@@ -173,13 +173,15 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
   };
 
   const handleShare = async () => {
+    const url = typeof window !== 'undefined' ? window.location.href : '';
     const shareData = {
       title: `חותם | ${product?.product_type}`,
-      url: typeof window !== 'undefined' ? window.location.href : '',
+      text: product?.description || `רכישת ${product?.product_type} מהודרת, נכתב על ידי סופר סת"ם ירא שמיים`,
+      url,
     };
     try {
       if (navigator.share) await navigator.share(shareData);
-      else { await navigator.clipboard.writeText(window.location.href); toast({ title: "הקישור הועתק" }); }
+      else { await navigator.clipboard.writeText(url); toast({ title: "הקישור הועתק" }); }
     } catch (err) {}
   };
 

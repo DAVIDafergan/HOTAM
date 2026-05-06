@@ -63,9 +63,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       openGraph: {
         title: pageTitle,
         description: description,
-        images: [{ url: imageUrl }],
+        images: [{ url: imageUrl, width: 1200, height: 630 }],
         url: `https://hotam.shop/products/${id}`,
         type: 'website'
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: pageTitle,
+        description: description,
+        images: [imageUrl],
       },
     };
   } catch (error) {

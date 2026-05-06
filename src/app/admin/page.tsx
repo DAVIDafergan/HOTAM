@@ -525,7 +525,7 @@ function CustomerTable({ customers, orders, onDelete, page, setPage }: any) {
                   </TableCell>
                   <TableCell className="text-[10px] font-bold text-muted-foreground">{cust.created_at ? new Date(cust.created_at).toLocaleDateString('he-IL') : '-'}</TableCell>
                   <TableCell className="px-8 text-left">
-                    <Button variant="ghost" size="sm" onClick={() => setSelectedCustomer(cust)} className="rounded-full h-8 px-4 text-[9px] font-black border-primary/5">
+                    <Button variant="ghost" size="sm" onClick={() => setSelectedCustomer(cust)} aria-label={`צפה פרטי ${cust.first_name} ${cust.last_name}`} className="rounded-full h-8 px-4 text-[9px] font-black border-primary/5">
                       צפה
                     </Button>
                   </TableCell>
@@ -552,7 +552,7 @@ function CustomerTable({ customers, orders, onDelete, page, setPage }: any) {
 function CustomerDetailsDialog({ customer, orders, onDelete, onClose }: any) {
   return (
     <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="max-w-2xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white max-h-[85vh] overflow-y-auto z-[150]" dir="rtl">
+      <DialogContent className="max-w-2xl rounded-[2.5rem] p-0 border-none shadow-2xl bg-white max-h-[85vh] overflow-y-auto z-[150]" dir="rtl">
         <div className="bg-primary p-6 text-white text-right sticky top-0 z-50">
           <DialogHeader>
             <DialogTitle className="text-xl font-headline font-black tracking-tight flex items-center gap-4 text-white">
@@ -588,7 +588,7 @@ function CustomerDetailsDialog({ customer, orders, onDelete, onClose }: any) {
             ) : (
               <div className="space-y-3 max-h-64 overflow-y-auto">
                 {orders.map((o: any) => {
-                  const date = o.created_at?.toDate ? o.created_at.toDate() : new Date(o.created_at);
+                  const date = o.created_at?.toDate ? o.created_at.toDate() : (o.created_at ? new Date(o.created_at) : null);
                   return (
                     <div key={o.id} className="bg-muted/20 p-4 rounded-2xl flex justify-between items-center text-[11px] font-bold border border-muted/30">
                       <div className="flex items-center gap-3">
@@ -599,7 +599,7 @@ function CustomerDetailsDialog({ customer, orders, onDelete, onClose }: any) {
                       </div>
                       <div className="text-right">
                         <p className="text-primary font-black">{o.product_name}</p>
-                        <p className="text-muted-foreground text-[9px]">{date.toLocaleDateString('he-IL')}</p>
+                        <p className="text-muted-foreground text-[9px]">{date ? date.toLocaleDateString('he-IL') : '-'}</p>
                       </div>
                       <p className="text-emerald-600 font-black">₪{o.amount?.toLocaleString()}</p>
                     </div>

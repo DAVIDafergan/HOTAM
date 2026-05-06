@@ -28,7 +28,6 @@ import {
   LayoutDashboard, 
   ShoppingBag, 
   X,
-  Sparkles,
   ChevronRight,
   MessageCircle,
   PhoneCall,
@@ -38,7 +37,11 @@ import {
   AlertCircle,
   CheckCircle2,
   PackageCheck,
-  Scroll
+  Scroll,
+  Sunrise,
+  Sun,
+  Sunset,
+  Moon
 } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { 
@@ -87,6 +90,14 @@ export function Navbar() {
     if (hour >= 12 && hour < 18) return 'צהריים טובים';
     if (hour >= 18 && hour < 22) return 'ערב טוב';
     return 'לילה טוב';
+  }, []);
+
+  const greetingIcon = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return <Sunrise className="w-3 h-3" />;
+    if (hour >= 12 && hour < 18) return <Sun className="w-3 h-3" />;
+    if (hour >= 18 && hour < 22) return <Sunset className="w-3 h-3" />;
+    return <Moon className="w-3 h-3" />;
   }, []);
 
   const unreadChatsQuery = useMemoStable(() => {
@@ -208,7 +219,7 @@ export function Navbar() {
                             <div className="flex items-center justify-end gap-3 w-full">
                               <div className="text-right space-y-0.5">
                                 <p className="text-[10px] font-black text-accent uppercase tracking-widest flex items-center justify-end gap-1.5 leading-none">
-                                  <Sparkles className="w-3 h-3" /> {greeting},
+                                  {greetingIcon} {greeting},
                                 </p>
                                 <p className="text-lg font-headline font-black text-primary tracking-tight truncate max-w-[140px] leading-tight">{displayName}</p>
                               </div>

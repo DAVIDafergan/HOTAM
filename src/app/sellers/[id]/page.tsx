@@ -279,29 +279,29 @@ export default function SellerProfile() {
                     <div className="bg-destructive p-6 text-white text-right">
                        <DialogHeader>
                           <DialogTitle className="text-xl font-headline font-black flex items-center gap-3 text-white">
-                            <Flag className="w-6 h-6" /> דיווח למנהל המערכת
+                            <Flag className="w-6 h-6 text-white" /> דיווח למנהל המערכת
                           </DialogTitle>
                        </DialogHeader>
                     </div>
-                    <div className="p-8 space-y-4">
+                    <div className="p-8 space-y-4 bg-white text-slate-900">
                        <div className="space-y-2">
                           <Label className="text-xs font-black uppercase text-slate-900">מה סיבת הדיווח?</Label>
                           <Textarea 
                             value={reportReason} 
                             onChange={e => setReportReason(e.target.value)} 
                             placeholder="פרט כאן את הבעיה..." 
-                            className="min-h-[120px] rounded-2xl text-slate-900 border-slate-200 placeholder:text-slate-400 focus:ring-destructive/10" 
+                            className="min-h-[120px] rounded-2xl text-slate-900 bg-white border-slate-200 placeholder:text-slate-400 focus:ring-destructive/20" 
                           />
                        </div>
-                       <p className="text-[10px] font-bold text-slate-600 leading-relaxed italic">
+                       <p className="text-[11px] font-medium text-slate-500 leading-relaxed">
                          * הדיווח ישלח באופן דיסקרטי למנהלי 'חותם'. אנו לוקחים כל פנייה ברצינות רבה לשמירה על כשרות וקדושת המערכת.
                        </p>
                     </div>
-                    <DialogFooter className="p-6 bg-muted/30 border-t flex gap-3">
-                       <Button onClick={handleSendReport} disabled={isReporting} className="flex-1 bg-destructive text-white h-12 rounded-xl font-black uppercase shadow-lg hover:bg-destructive/90 transition-colors">
+                    <DialogFooter className="p-6 bg-slate-50 border-t border-slate-100 flex gap-3">
+                       <Button onClick={handleSendReport} disabled={isReporting} className="flex-1 bg-destructive text-white h-12 rounded-xl font-black uppercase shadow-md hover:bg-red-700 transition-colors">
                          {isReporting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'שלח דיווח'}
                        </Button>
-                       <Button variant="ghost" onClick={() => setIsReportDialogOpen(false)} className="h-12 rounded-xl font-bold text-slate-900">ביטול</Button>
+                       <Button variant="outline" onClick={() => setIsReportDialogOpen(false)} className="h-12 rounded-xl font-bold text-slate-700 border-slate-200 hover:bg-slate-100">ביטול</Button>
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>

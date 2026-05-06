@@ -59,6 +59,7 @@ function ChatContent() {
   const [otherUserData, setOtherUserData] = useState<any>(null);
   const [otherSellerData, setOtherSellerData] = useState<any>(null);
   const [sellerProducts, setSellerProducts] = useState<any[]>([]);
+  const [myProfile, setMyProfile] = useState<any>(null);
 
   // שומר על משתמשים לא מחוברים בחוץ
   useEffect(() => {
@@ -157,6 +158,20 @@ function ChatContent() {
     };
     fetchOtherUser();
   }, [otherUserId]);
+
+  // Fetch current user's profile for display name
+  useEffect(() => {
+    if (!user) return;
+    const fetchMyProfile = async () => {
+      const [{ data: seller }, { data: customer }] = await Promise.all([
+        supabase.from('sellers').select('first_name, last_name').eq('id', user.uid).single(),
+        supabase.from('customers').select('first_name, last_name').eq('id', user.uid).single(),
+      ]);
+      if (seller) setMyProfile(seller);
+      else if (customer) setMyProfile(customer);
+    };
+    fetchMyProfile();
+  }, [user?.uid]);
 
   const canCreatePaymentRequest = user && originProduct && originProduct.seller_id === user.uid;
 
@@ -262,14 +277,21 @@ function ChatContent() {
     }).eq('id', chatId);
 
     if (otherUserData?.email) {
-      const senderName = user.displayName || user.email || 'משתמש';
+      const profileName = myProfile?.first_name
+        ? `${myProfile.first_name}${myProfile.last_name ? ' ' + myProfile.last_name : ''}`
+        : null;
+      const senderName = profileName || (user.email ? user.email.split('@')[0] : null) || 'משתמש';
+      const chatLink = `https://hotam.shop/chat/${user.uid}`;
       fetch('/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           to: otherUserData.email,
-          subject: 'הודעה חדשה ב-Hotam',
-          text: `קיבלת הודעה חדשה מ-${senderName}:\n\n"${textCopy}"\n\nלתגובה, כנס/י לאתר: https://hotam.shop`,
+          subject: `הודעה חדשה מ-${senderName} ב-Hotam`,
+          text: `קיבלת הודעה חדשה מ-${senderName}:\n\n"${textCopy}"\n\nלתגובה, כנס/י לאתר: ${chatLink}`,
+          senderName,
+          message: textCopy,
+          link: chatLink,
         }),
       }).catch((err) => console.error('Failed to send email notification:', err));
     }

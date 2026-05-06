@@ -15,8 +15,7 @@ import {
   Loader2, 
   CheckCircle2, 
   CreditCard, 
-  AlertCircle,
-  ShieldAlert
+  AlertCircle
 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useUser, useSupabaseClient, useDoc, useMemoStable, updateDocumentNonBlocking, setDocumentNonBlocking } from '@/lib/supabase-hooks';
@@ -164,16 +163,9 @@ export default function CheckoutPage() {
 
       <main className="container mx-auto px-4 py-20 md:py-28 max-w-4xl">
         {!isSuccess ? (
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="md:col-span-2 space-y-6">
+          <div className="grid md:grid-cols-5 gap-6">
+            <div className="md:col-span-3 space-y-6">
               <h1 className="text-3xl font-headline font-black text-primary">סיכום הזמנה ותשלום</h1>
-              
-              <div className="bg-primary/5 p-4 rounded-2xl border border-primary/10 flex items-center gap-3">
-                <ShieldAlert className="w-5 h-5 text-primary" />
-                <p className="text-xs font-bold text-primary leading-relaxed">
-                  מערכת Marketplace מאובטחת: הכסף יוחזק בנאמנות וישוחרר לסופר רק לאחר שתאשר את קבלת המוצר באמצעות קוד אימות שתקבל.
-                </p>
-              </div>
 
               <Card className="border-none shadow-premium rounded-[2.5rem] bg-white p-5 sm:p-8 space-y-6">
                 <div className="flex items-center justify-between border-b pb-4">
@@ -243,7 +235,7 @@ export default function CheckoutPage() {
               </div>
             </div>
             
-            <div className="space-y-6">
+            <div className="md:col-span-2 space-y-6">
               <Card className="border-none shadow-premium rounded-[2.5rem] bg-white p-6 sticky top-32">
                 <h3 className="font-black text-primary border-b pb-3 mb-4">סיכום הזמנה</h3>
                 <div className="flex gap-4 items-center mb-6">
@@ -269,10 +261,6 @@ export default function CheckoutPage() {
                     <span className="text-primary">₪{totalPrice}</span>
                     <span className="text-primary">סה"כ לתשלום</span>
                   </div>
-                </div>
-                <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-accent bg-accent/5 p-2 rounded-lg">
-                  <ShieldAlert className="w-3 h-3" />
-                  <span>התשלום יבוצע והכספים יוקפאו בנאמנות.</span>
                 </div>
               </Card>
             </div>

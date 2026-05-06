@@ -332,15 +332,15 @@ export function HeroAnimation() {
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-8 pt-4">
-                    <div className="space-y-4">
-                      <Label className="font-black text-[10px] uppercase text-primary/40 mr-1 tracking-widest">תת-סוג המוצר</Label>
-                      {getSubTypesForProduct(selectedProduct).length > 0 ? (
+                    {getSubTypesForProduct(selectedProduct).length > 0 && (
+                      <div className="space-y-4">
+                        <Label className="font-black text-[10px] uppercase text-primary/40 mr-1 tracking-widest">תת-סוג המוצר</Label>
                         <RadioGroup value={subType} onValueChange={setSubType} className="grid grid-cols-2 gap-3">
                           {selectedProduct !== 'מזוזה' && <CustomTile value="all" label="כל הסוגים" active={subType === 'all'} />}
                           {getSubTypesForProduct(selectedProduct).map(opt => <CustomTile key={opt} value={opt} label={opt} active={subType === opt} />)}
                         </RadioGroup>
-                      ) : <div className="p-10 bg-primary/5 rounded-[2rem] text-center flex flex-col items-center justify-center border-2 border-dashed border-primary/10"><Info className="w-6 h-6 mb-2 text-primary/20" /><span className="text-[11px] font-black text-primary/30 uppercase">אין תת-סוג נוסף לקטגוריה זו</span></div>}
-                    </div>
+                      </div>
+                    )}
 
                     <div className="space-y-4">
                       <Label className="font-black text-[10px] uppercase text-primary/40 mr-1 tracking-widest">סוג הכתב (מסורת)</Label>

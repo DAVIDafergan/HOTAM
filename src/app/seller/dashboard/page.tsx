@@ -202,13 +202,13 @@ function SellerDashboardContent() {
   const [formQuantity, setFormQuantity] = useState(1);
   const [formScript, setFormScript] = useState('');
   const [formQuality, setFormQuality] = useState('');
-  const [formPrice, setFormPrice] = useState(0);
+  const [formPrice, setFormPrice] = useState<string>('');
   const [formImages, setFormImages] = useState<string[]>([]);
   const [formParchmentSize, setFormParchmentSize] = useState('');
   const [formProofreading, setFormProofreading] = useState('');
   const [formDeliveryTime, setFormDeliveryTime] = useState('3');
   const [formDeliveryType, setFormDeliveryType] = useState('pickup');
-  const [formDeliveryFee, setFormDeliveryFee] = useState(0);
+  const [formDeliveryFee, setFormDeliveryFee] = useState<string>('');
   const [formDeliveryArea, setFormDeliveryArea] = useState<string[]>(['כל הארץ']);
   const [citySearch, setCitySearch] = useState('');
 
@@ -339,13 +339,13 @@ function SellerDashboardContent() {
     setFormQuantity(p.quantity || 1);
     setFormScript(p.script_type || '');
     setFormQuality(p.script_level || '');
-    setFormPrice(p.price || 0);
+    setFormPrice(p.price ? String(p.price) : '');
     setFormImages(p.images || []);
     setFormParchmentSize(p.parchment_size || '');
     setFormProofreading(p.proofreading_level || '');
     setFormDeliveryTime(p.delivery_time || '3');
     setFormDeliveryType(p.delivery_type || 'pickup');
-    setFormDeliveryFee(p.delivery_fee || 0);
+    setFormDeliveryFee(p.delivery_fee ? String(p.delivery_fee) : '');
     setFormDeliveryArea(Array.isArray(p.delivery_area) ? p.delivery_area : [p.delivery_area || 'כל הארץ']);
     setFormStep(1);
     
@@ -364,9 +364,9 @@ function SellerDashboardContent() {
   const resetForm = () => {
     setEditingProduct(null);
     setFormType(''); setFormSubType(''); setFormDescription(''); setFormQuantity(1);
-    setFormScript(''); setFormQuality(''); setFormPrice(0); setFormImages([]);
+    setFormScript(''); setFormQuality(''); setFormPrice(''); setFormImages([]);
     setFormParchmentSize(''); setFormProofreading(''); setFormDeliveryTime('3');
-    setFormDeliveryType('pickup'); setFormDeliveryFee(0); setFormDeliveryArea(['כל הארץ']);
+    setFormDeliveryType('pickup'); setFormDeliveryFee(''); setFormDeliveryArea(['כל הארץ']);
     setCitySearch('');
     setMegRows(''); setMegHeight('');
     setFormStep(1);
@@ -391,7 +391,7 @@ function SellerDashboardContent() {
       !formQuality || 
       !formProofreading ||
       !finalSize ||
-      formPrice <= 0 || 
+      formPrice === '' || Number(formPrice) <= 0 || 
       formQuantity < 1 ||
       !formDeliveryTime ||
       !formDeliveryType ||
@@ -414,7 +414,7 @@ function SellerDashboardContent() {
       quantity: formQuantity,
       script_type: formScript,
       script_level: formQuality,
-      price: formPrice,
+      price: Number(formPrice),
       images: formImages,
       parchment_size: finalSize,
       proofreading_level: formProofreading,
@@ -985,7 +985,7 @@ function SellerDashboardContent() {
                           <Input 
                             type="number" 
                             value={formPrice} 
-                            onChange={e => setFormPrice(Number(e.target.value))} 
+                            onChange={e => setFormPrice(e.target.value)} 
                             className="h-16 rounded-2xl border-2 border-emerald-200/50 bg-white pr-14 text-2xl font-black text-emerald-600" 
                           />
                           <Banknote className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 text-emerald-300" />
@@ -993,10 +993,10 @@ function SellerDashboardContent() {
                         <div className="flex justify-between items-center px-1">
                           <div className="flex items-center gap-1.5 text-muted-foreground">
                              <Info className="w-3.5 h-3.5" />
-                             <span className="text-[10px] font-bold">עמלת אתר (20%): ₪{(formPrice * 0.2).toFixed(0)}</span>
+                             <span className="text-[10px] font-bold">עמלת אתר (20%): ₪{(Number(formPrice) * 0.2).toFixed(0)}</span>
                           </div>
                           <div className="bg-emerald-600 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase">
-                            הרווח שלך: ₪{(formPrice * 0.8).toFixed(0)}
+                            הרווח שלך: ₪{(Number(formPrice) * 0.8).toFixed(0)}
                           </div>
                         </div>
                       </div>
@@ -1054,7 +1054,7 @@ function SellerDashboardContent() {
                           <div className="space-y-4 pt-2 animate-in slide-in-from-top-1">
                              <div className="space-y-1">
                                <Label className="text-[9px] font-black">עלות משלוח (₪)</Label>
-                               <Input type="number" value={formDeliveryFee} onChange={e => setFormDeliveryFee(Number(e.target.value))} className="h-10 rounded-xl" />
+                               <Input type="number" value={formDeliveryFee} onChange={e => setFormDeliveryFee(e.target.value)} className="h-10 rounded-xl" />
                              </div>
                              <div className="space-y-2">
                                <Label className="text-[9px] font-black">ערים לשירות משלוח</Label>

@@ -278,15 +278,40 @@ export function HeroAnimation() {
           
           <div className="w-full bg-white/75 backdrop-blur-3xl border border-white/80 rounded-[3rem] p-6 md:p-10 shadow-premium-lg relative ring-1 ring-primary/5">
             
-            <div className="flex flex-col items-center mb-5 md:mb-8 gap-3">
-              <div className="flex justify-center gap-3">
-                {[1, 2, 3].map((s) => (
-                  <div key={s} className={cn("h-1.5 rounded-full transition-all duration-500", step === s ? "w-14 bg-primary shadow-md" : "w-4 bg-primary/15")} />
+            {/* Step indicator */}
+            <div className="flex flex-col items-center mb-6 md:mb-10 gap-4">
+              <div className="flex items-center gap-0">
+                {[
+                  { n: 1, label: 'בחירת מוצר' },
+                  { n: 2, label: 'מפרט הלכתי' },
+                  { n: 3, label: 'התאמה אישית' },
+                ].map(({ n, label }, i) => (
+                  <React.Fragment key={n}>
+                    <div className="flex flex-col items-center gap-1.5">
+                      <div className={cn(
+                        "w-8 h-8 rounded-full flex items-center justify-center font-black text-sm border-2 transition-all duration-500",
+                        step === n
+                          ? "bg-primary text-white border-primary shadow-lg scale-110"
+                          : step > n
+                          ? "bg-accent/20 text-accent border-accent/30"
+                          : "bg-white text-primary/30 border-primary/10"
+                      )}>
+                        {step > n ? <span className="text-accent text-lg leading-none">✓</span> : n}
+                      </div>
+                      <span className={cn(
+                        "text-[9px] font-black uppercase tracking-widest transition-colors hidden sm:block",
+                        step === n ? "text-primary" : "text-primary/25"
+                      )}>{label}</span>
+                    </div>
+                    {i < 2 && (
+                      <div className={cn(
+                        "w-12 md:w-20 h-0.5 mb-5 transition-all duration-500",
+                        step > n ? "bg-accent/40" : "bg-primary/10"
+                      )} />
+                    )}
+                  </React.Fragment>
                 ))}
               </div>
-              <p className="text-[10px] font-black text-primary/40 uppercase tracking-widest">
-                {step === 1 ? 'בחירת מוצר' : step === 2 ? 'מפרט הלכתי' : 'התאמה אישית'}
-              </p>
             </div>
 
             <AnimatePresence mode="wait">
@@ -294,33 +319,35 @@ export function HeroAnimation() {
                 <motion.div key="step1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-5 md:space-y-8">
                   <div className="flex flex-col items-center gap-4">
                     <h3 className="text-xl md:text-2xl font-headline font-black text-primary">מה אתם מחפשים?</h3>
-                    <div className="flex items-center gap-4 bg-white/90 p-2 rounded-full border shadow-sm ring-4 ring-primary/5">
-                      <button type="button" onClick={() => setQuantity(Math.max(1, quantity - 1))} aria-label="הפחת כמות" className="w-12 h-12 rounded-full border-2 border-primary/10 font-bold hover:bg-primary/5 active:scale-95 transition-all text-primary flex items-center justify-center text-xl">-</button>
-                      <div className="flex flex-col items-center px-6 min-w-[80px]">
+                    {/* Quantity selector */}
+                    <div className="flex items-center gap-3 bg-primary/5 p-2 rounded-2xl border border-primary/10 shadow-sm">
+                      <button type="button" onClick={() => setQuantity(Math.max(1, quantity - 1))} aria-label="הפחת כמות" className="w-10 h-10 rounded-xl border-2 border-primary/15 font-bold hover:bg-white active:scale-90 transition-all text-primary flex items-center justify-center text-lg bg-white shadow-sm">−</button>
+                      <div className="flex items-center gap-2 px-4">
                         <span className="text-2xl font-black text-primary tabular-nums leading-none">{quantity}</span>
-                        <span className="text-[10px] font-black opacity-40 uppercase tracking-tighter">יחידות</span>
+                        <span className="text-[10px] font-black text-primary/40 uppercase tracking-tight">יח'</span>
                       </div>
-                      <button type="button" onClick={() => setQuantity(quantity + 1)} aria-label="הוסף כמות" className="w-12 h-12 rounded-full border-2 border-primary/10 font-bold hover:bg-primary/5 active:scale-95 transition-all text-primary flex items-center justify-center text-xl">+</button>
+                      <button type="button" onClick={() => setQuantity(quantity + 1)} aria-label="הוסף כמות" className="w-10 h-10 rounded-xl border-2 border-primary/15 font-bold hover:bg-white active:scale-90 transition-all text-primary flex items-center justify-center text-lg bg-white shadow-sm">+</button>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4">
-                    <CategoryCard icon={<Scroll />} label="מזוזה" onClick={() => handleCategorySelect('מזוזה')} />
-                    <CategoryCard icon={<Package />} label="תפילין" onClick={() => handleCategorySelect('תפילין')} />
-                    <CategoryCard icon={<Crown />} label="מגילה" onClick={() => handleCategorySelect('מגילה')} />
-                    <CategoryCard icon={<BookOpen />} label="ספר תורה" onClick={() => handleCategorySelect('ספר תורה')} />
-                    <CategoryCard icon={<Palette />} label="יודאיקה" onClick={() => handleCategorySelect('מוצרי יודאיקה שונים')} />
+                  {/* Category cards */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 md:gap-4">
+                    <CategoryCard icon={<Scroll />} label="מזוזה" onClick={() => handleCategorySelect('מזוזה')} color="indigo" />
+                    <CategoryCard icon={<Package />} label="תפילין" onClick={() => handleCategorySelect('תפילין')} color="blue" />
+                    <CategoryCard icon={<Crown />} label="מגילה" onClick={() => handleCategorySelect('מגילה')} color="amber" />
+                    <CategoryCard icon={<BookOpen />} label="ספר תורה" onClick={() => handleCategorySelect('ספר תורה')} color="emerald" />
+                    <CategoryCard icon={<Palette />} label="יודאיקה" onClick={() => handleCategorySelect('מוצרי יודאיקה שונים')} color="purple" />
                   </div>
 
                   <div className="flex justify-center pt-2">
                     <Button
                       variant="ghost"
                       onClick={() => router.push('/search?view=all')}
-                      className="h-11 px-8 rounded-full text-[11px] font-black uppercase tracking-widest text-primary/40 hover:text-primary hover:bg-primary/5 border border-transparent hover:border-primary/10 transition-all gap-2"
+                      className="h-10 px-6 rounded-full text-[11px] font-black uppercase tracking-widest text-primary/40 hover:text-primary hover:bg-primary/5 border border-primary/10 hover:border-primary/20 transition-all gap-2"
                     >
-                      <Search className="w-4 h-4" />
+                      <Search className="w-3.5 h-3.5" />
                       צפה בכל המוצרים ללא פילטר
-                      <ArrowLeft className="w-3.5 h-3.5" />
+                      <ArrowLeft className="w-3 h-3" />
                     </Button>
                   </div>
                 </motion.div>
@@ -329,8 +356,11 @@ export function HeroAnimation() {
               {step === 2 && (
                 <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6 text-right">
                   <div className="flex justify-between items-center border-b border-primary/5 pb-4">
-                    <Button variant="ghost" onClick={() => setStep(1)} className="font-black text-[11px] uppercase tracking-widest h-10 px-4 rounded-xl hover:bg-primary/5"><ChevronRight className="w-4 h-4 ml-2" /> חזור לבחירה</Button>
-                    <h3 className="text-2xl font-headline font-black text-primary">מפרט {selectedProduct}</h3>
+                    <Button variant="ghost" onClick={() => setStep(1)} className="font-black text-[11px] uppercase tracking-widest h-10 px-4 rounded-xl hover:bg-primary/5 gap-1"><ChevronRight className="w-4 h-4" /> חזור</Button>
+                    <div className="text-right">
+                      <h3 className="text-xl md:text-2xl font-headline font-black text-primary">מפרט {selectedProduct}</h3>
+                      <p className="text-[10px] text-primary/40 font-black uppercase tracking-widest mt-0.5">שלב 2 מתוך 3</p>
+                    </div>
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-8 pt-4">
@@ -361,8 +391,8 @@ export function HeroAnimation() {
                   </div>
 
                   <div className="flex justify-center pt-8">
-                    <Button onClick={() => setStep(3)} className="bg-primary text-white hover:bg-primary/90 rounded-full px-16 h-14 font-black uppercase text-sm tracking-[0.2em] shadow-2xl transition-all hover:scale-105 active:scale-95 group">
-                      המשך להתאמה אישית <ChevronLeft className="w-5 h-5 mr-3 group-hover:-translate-x-1 transition-transform" />
+                    <Button onClick={() => setStep(3)} className="bg-primary text-white hover:bg-primary/90 rounded-full px-16 h-14 font-black uppercase text-sm tracking-[0.2em] shadow-xl transition-all hover:scale-105 active:scale-95 group gap-2">
+                      המשך להתאמה אישית <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
                     </Button>
                   </div>
                 </motion.div>
@@ -371,8 +401,11 @@ export function HeroAnimation() {
               {step === 3 && (
                 <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6 text-right">
                   <div className="flex justify-between items-center border-b border-primary/5 pb-4">
-                    <Button variant="ghost" onClick={() => setStep(2)} className="font-black text-[11px] uppercase tracking-widest h-10 px-4 rounded-xl hover:bg-primary/5"><ChevronRight className="w-4 h-4 ml-2" /> חזור למפרט</Button>
-                    <h3 className="text-2xl font-headline font-black text-primary">דיוק והתאמה</h3>
+                    <Button variant="ghost" onClick={() => setStep(2)} className="font-black text-[11px] uppercase tracking-widest h-10 px-4 rounded-xl hover:bg-primary/5 gap-1"><ChevronRight className="w-4 h-4" /> חזור</Button>
+                    <div className="text-right">
+                      <h3 className="text-xl md:text-2xl font-headline font-black text-primary">דיוק והתאמה</h3>
+                      <p className="text-[10px] text-primary/40 font-black uppercase tracking-widest mt-0.5">שלב 3 מתוך 3</p>
+                    </div>
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-10 pt-4">
@@ -522,18 +555,30 @@ export function HeroAnimation() {
   );
 }
 
-function CategoryCard({ icon, label, onClick }: any) {
+function CategoryCard({ icon, label, onClick, color = 'primary' }: any) {
+  const colorMap: Record<string, { bg: string; hover: string; text: string }> = {
+    indigo:  { bg: 'bg-indigo-50',  hover: 'group-hover:bg-indigo-500',  text: 'group-hover:text-indigo-600' },
+    blue:    { bg: 'bg-blue-50',    hover: 'group-hover:bg-blue-500',    text: 'group-hover:text-blue-600' },
+    amber:   { bg: 'bg-amber-50',   hover: 'group-hover:bg-amber-400',   text: 'group-hover:text-amber-600' },
+    emerald: { bg: 'bg-emerald-50', hover: 'group-hover:bg-emerald-500', text: 'group-hover:text-emerald-600' },
+    purple:  { bg: 'bg-purple-50',  hover: 'group-hover:bg-purple-500',  text: 'group-hover:text-purple-600' },
+    primary: { bg: 'bg-primary/5',  hover: 'group-hover:bg-accent',      text: 'group-hover:text-accent' },
+  };
+  const c = colorMap[color] ?? colorMap.primary;
   return (
     <button 
       type="button"
       onClick={onClick}
       aria-label={label}
-    className="group flex flex-col items-center gap-2 md:gap-3 p-3 md:p-5 rounded-[2.5rem] bg-white border-2 border-transparent shadow-sm hover:shadow-xl hover:border-accent/40 hover:-translate-y-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 transition-all duration-300 w-full"
+      className="group flex flex-col items-center gap-2.5 md:gap-3 p-4 md:p-5 rounded-3xl bg-white border-2 border-transparent shadow-sm hover:shadow-xl hover:border-primary/10 hover:-translate-y-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 transition-all duration-300 w-full"
     >
-      <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-accent group-hover:text-primary group-hover:scale-110 transition-all duration-300">
+      <div className={cn(
+        "w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center text-primary transition-all duration-300 group-hover:text-white group-hover:scale-110",
+        c.bg, c.hover
+      )}>
         {React.cloneElement(icon, { className: "w-6 h-6 md:w-7 md:h-7" })}
       </div>
-      <span className="font-black text-primary text-[11px] md:text-xs tracking-tight group-hover:text-accent transition-colors duration-300">{label}</span>
+      <span className={cn("font-black text-primary text-[11px] md:text-xs tracking-tight transition-colors duration-300", c.text)}>{label}</span>
     </button>
   );
 }

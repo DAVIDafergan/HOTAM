@@ -301,8 +301,8 @@ function ChatContent() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             to: otherUserData.email,
-            subject: `הודעות חדשות ממתינות לך ב-Hotam`,
-            text: `קיבלת הודעות חדשות מ-${senderName}. לצפייה ולהשבה, כנס/י לאתר: ${chatLink}`,
+            subject: `הודעות ממתינות לך ב-Hotam`,
+            text: `יש לך הודעות חדשות מ-${senderName}. לצפייה ולהשבה, כנס/י לאתר: ${chatLink}`,
             senderName,
             message: textCopy,
             link: chatLink,
@@ -312,7 +312,7 @@ function ChatContent() {
         // Record the time we sent the throttle email on the chat document.
         supabase.from('chats').update({ last_email_notif_at: new Date().toISOString() })
           .eq('id', chatId)
-          .then();
+          .then(({ error }) => { if (error) console.error('Failed to update last_email_notif_at:', error); });
       }
     }
   };

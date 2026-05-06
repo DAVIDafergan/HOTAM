@@ -296,7 +296,7 @@ export function HeroAnimation() {
                           ? "bg-accent/20 text-accent border-accent/30"
                           : "bg-white text-primary/30 border-primary/10"
                       )}>
-                        {step > n ? <span className="text-accent text-lg leading-none">✓</span> : n}
+                      {step > n ? <span aria-label="שלב הושלם" className="text-accent text-lg leading-none">✓</span> : n}
                       </div>
                       <span className={cn(
                         "text-[9px] font-black uppercase tracking-widest transition-colors hidden sm:block",
@@ -555,7 +555,14 @@ export function HeroAnimation() {
   );
 }
 
-function CategoryCard({ icon, label, onClick, color = 'primary' }: any) {
+interface CategoryCardProps {
+  icon: React.ReactElement;
+  label: string;
+  onClick: () => void;
+  color?: 'indigo' | 'blue' | 'amber' | 'emerald' | 'purple' | 'primary';
+}
+
+function CategoryCard({ icon, label, onClick, color = 'primary' }: CategoryCardProps) {
   const colorMap: Record<string, { bg: string; hover: string; text: string }> = {
     indigo:  { bg: 'bg-indigo-50',  hover: 'group-hover:bg-indigo-500',  text: 'group-hover:text-indigo-600' },
     blue:    { bg: 'bg-blue-50',    hover: 'group-hover:bg-blue-500',    text: 'group-hover:text-blue-600' },

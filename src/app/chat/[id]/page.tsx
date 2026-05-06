@@ -26,7 +26,7 @@ interface Message {
   chat_id: string;
   sender_id: string;
   text: string;
-  created_at: string;
+  timestamp: string;
   is_payment_request?: boolean;
   amount?: number;
   product_name?: string;
@@ -93,7 +93,7 @@ function ChatContent() {
         .from('messages')
         .select('*')
         .eq('chat_id', chatId)
-        .order('created_at', { ascending: true });
+        .order('timestamp', { ascending: true });
       
       if (msgs) setMessages(msgs);
       setIsMessagesLoading(false);
@@ -237,7 +237,7 @@ function ChatContent() {
       chat_id: chatId,
       sender_id: user.uid,
       text: newMessage,
-      created_at: new Date().toISOString()
+      timestamp: new Date().toISOString()
     };
 
     const textCopy = newMessage;
@@ -275,7 +275,7 @@ function ChatContent() {
       product_name: product.product_type,
       product_image: product.images?.[0] || '',
       product_id: product.id,
-      created_at: new Date().toISOString()
+      timestamp: new Date().toISOString()
     };
     
     setIsPaymentDialogOpen(false);
@@ -340,8 +340,8 @@ function ChatContent() {
           >
             {messages.map((msg) => {
               const isMine = msg.sender_id === user.uid;
-              // Format Supabase created_at ISO string
-              const timeString = new Date(msg.created_at).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+              // Format Supabase timestamp ISO string
+              const timeString = new Date(msg.timestamp).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
               
               return (
                 <div key={msg.id} className={`flex ${isMine ? 'justify-start' : 'justify-end'} animate-in fade-in slide-in-from-bottom-1`}>

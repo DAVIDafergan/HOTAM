@@ -163,10 +163,12 @@ function ChatContent() {
   useEffect(() => {
     if (!user) return;
     const fetchMyProfile = async () => {
-      let { data: seller } = await supabase.from('sellers').select('first_name, last_name').eq('id', user.uid).single();
-      if (seller) { setMyProfile(seller); return; }
-      let { data: customer } = await supabase.from('customers').select('first_name, last_name').eq('id', user.uid).single();
-      if (customer) setMyProfile(customer);
+      const [{ data: seller }, { data: customer }] = await Promise.all([
+        supabase.from('sellers').select('first_name, last_name').eq('id', user.uid).single(),
+        supabase.from('customers').select('first_name, last_name').eq('id', user.uid).single(),
+      ]);
+      if (seller) setMyProfile(seller);
+      else if (customer) setMyProfile(customer);
     };
     fetchMyProfile();
   }, [user?.uid]);
@@ -278,7 +280,7 @@ function ChatContent() {
       const profileName = myProfile?.first_name
         ? `${myProfile.first_name}${myProfile.last_name ? ' ' + myProfile.last_name : ''}`
         : null;
-      const senderName = profileName || user.email?.split('@')[0] || 'משתמש';
+      const senderName = profileName || (user.email ? user.email.split('@')[0] : null) || 'משתמש';
       const chatLink = `https://hotam.shop/chat/${user.uid}`;
       fetch('/api/send-email', {
         method: 'POST',

@@ -77,6 +77,8 @@ export function HeroAnimation() {
 
   const handleCategorySelect = (type: ProductType) => {
     setSelectedProduct(type);
+    // Reset subType when the new product has no subtypes to avoid stale filter
+    if (getSubTypesForProduct(type).length === 0) setSubType('all');
     setStep(2);
   };
 

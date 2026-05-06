@@ -161,11 +161,22 @@ export default function CustomerDashboard() {
       });
   }, [user?.uid]);
 
-  const chatsQuery = useMemoStable(() => {
+   const chatsQuery = useMemoStable(() => {
     if (!canLoadData) return null;
     return query(collection(db, 'chats'), where('participants', 'array-contains', user.uid));
   }, [db, user?.uid, canLoadData]);
-  const { data: chats, isLoading: isChatsLoading } = useCollection<any>(chatsQuery);
+  const { data: rawChats, isLoading: isChatsLoading } = useCollection<any>(chatsQuery);
+
+  const chats = (rawChats || []).sort((a: any, b: any) => {
+    const timeA = a.updated_at ? new Date(a.updated_at).getTime() : (a.last_message_at ? new Date(a.last_message_at).getTime() : 0);
+    const timeB = b.updated_at ? new Date(b.updated_at).getTime() : (b.last_message_at ? new Date(b.last_message_at).getTime() : 0);
+    return timeB - timeA;
+  });
+
+  const CHATS_PER_PAGE = 6;
+  const [chatsPage, setChatsPage] = useState(1);
+  const totalChatPages = Math.ceil(chats.length / CHATS_PER_PAGE);
+  const paginatedChats = chats.slice((chatsPage - 1) * CHATS_PER_PAGE, chatsPage * CHATS_PER_PAGE);
 
   const favoritesQuery = useMemoStable(() => {
     if (!canLoadData || !customer?.favorite_product_ids || customer.favorite_product_ids.length === 0) return null;
@@ -221,141 +232,231 @@ export default function CustomerDashboard() {
     return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>;
   }
 
+  const unreadChatsCount = chats.filter((c: any) => c?.unread_state?.[user?.uid ?? ''] === true).length;
+
   const navItems = [
-    { id: 'orders', label: 'הזמנות', icon: <ShoppingBag className="w-3.5 h-3.5" /> },
-    { id: 'messages', label: 'הודעות', icon: <MessageSquare className="w-3.5 h-3.5" /> },
-    { id: 'favorites', label: 'מועדפים', icon: <Heart className="w-3.5 h-3.5" /> },
-    { id: 'settings', label: 'הגדרות', icon: <Settings className="w-3.5 h-3.5" /> },
+    { id: 'orders', label: 'הזמנות', icon: <ShoppingBag className="w-4 h-4" />, count: orders?.length ?? 0 },
+    { id: 'messages', label: 'הודעות', icon: <MessageSquare className="w-4 h-4" />, count: unreadChatsCount },
+    { id: 'favorites', label: 'מועדפים', icon: <Heart className="w-4 h-4" />, count: 0 },
+    { id: 'settings', label: 'הגדרות', icon: <Settings className="w-4 h-4" />, count: 0 },
   ];
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] flex flex-col" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-br from-[#F8F9FA] via-[#F0F4F8] to-[#F8F9FA] flex flex-col" dir="rtl">
       <Navbar />
-      
+
       <main className="container mx-auto px-4 py-20 md:py-28 max-w-5xl flex-1">
-        <div className="flex flex-col md:flex-row items-center justify-between mb-10 gap-4 text-right">
-          <div className="text-right order-1 md:order-2">
-            <h1 className="text-3xl md:text-4xl font-headline font-black text-primary tracking-tight">שלום, {customer?.first_name}</h1>
-            <p className="text-muted-foreground font-medium text-sm">ניהול רכישות הקודש ואישור מסירה</p>
+        {/* Profile Hero Header */}
+        <div className="relative mb-8 rounded-[2.5rem] overflow-hidden shadow-premium">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/95 to-primary/80" />
+          <div className="absolute inset-0 opacity-5">
+            <svg width="100%" height="100%"><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="white"/></pattern><rect width="100%" height="100%" fill="url(#dots)"/></svg>
           </div>
-          <Button variant="outline" asChild size="sm" className="gap-2 rounded-full text-xs h-10 px-6 order-2 md:order-1 border-primary/10 bg-white shadow-sm">
-            <Link href="/search?view=all"><ArrowRight className="w-4 h-4" /> המשך בקניות</Link>
-          </Button>
+          <div className="relative z-10 p-6 md:p-10 flex flex-col md:flex-row items-start md:items-center gap-6">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-white/10 border-4 border-white/20 flex items-center justify-center shadow-xl shrink-0">
+              <UserRound className="w-10 h-10 md:w-12 md:h-12 text-white/70" />
+            </div>
+            <div className="flex-1 text-right">
+              <p className="text-white/50 text-[10px] font-black uppercase tracking-[0.3em] mb-1">אזור אישי</p>
+              <h1 className="text-3xl md:text-4xl font-headline font-black text-white tracking-tight leading-tight">
+                שלום, {customer?.first_name || 'לקוח'} {customer?.last_name || ''}
+              </h1>
+              <p className="text-white/50 text-sm font-medium mt-1">{user?.email}</p>
+              <div className="flex items-center gap-4 mt-4">
+                <div className="flex items-center gap-2 bg-white/10 rounded-full px-4 py-1.5">
+                  <ShoppingBag className="w-3.5 h-3.5 text-accent" />
+                  <span className="text-[11px] font-black text-white">{orders?.length ?? 0} הזמנות</span>
+                </div>
+                <div className="flex items-center gap-2 bg-white/10 rounded-full px-4 py-1.5">
+                  <MessageSquare className="w-3.5 h-3.5 text-accent" />
+                  <span className="text-[11px] font-black text-white">{chats.length} שיחות</span>
+                </div>
+              </div>
+            </div>
+            <Button variant="outline" asChild size="sm" className="gap-2 rounded-full text-xs h-10 px-6 bg-white/10 border-white/20 text-white hover:bg-white/20 shrink-0">
+              <Link href="/search?view=all"><ArrowRight className="w-3.5 h-3.5" /> המשך בקניות</Link>
+            </Button>
+          </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <TabsList className="bg-white/50 backdrop-blur-md p-1.5 rounded-3xl shadow-premium border h-16 w-full flex overflow-x-auto">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          {/* Tab Navigation */}
+          <TabsList className="bg-white p-1.5 rounded-2xl shadow-sm border border-primary/5 h-auto w-full grid grid-cols-4 gap-1">
             {navItems.map((item) => (
-              <TabsTrigger key={item.id} value={item.id} className="flex-1 rounded-[1.2rem] data-[state=active]:bg-primary data-[state=active]:text-white gap-2 text-xs font-black uppercase tracking-widest transition-all">
-                {item.icon} {item.label}
+              <TabsTrigger
+                key={item.id}
+                value={item.id}
+                className="relative rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg gap-2 text-xs font-black uppercase tracking-wider transition-all py-3 flex flex-col sm:flex-row items-center"
+              >
+                {item.icon}
+                <span className="hidden sm:inline">{item.label}</span>
+                <span className="sm:hidden text-[9px]">{item.label}</span>
+                {item.count > 0 && (
+                  <span className="absolute -top-1 -left-1 w-4 h-4 bg-accent text-primary text-[8px] font-black rounded-full flex items-center justify-center shadow-sm">{item.count}</span>
+                )}
               </TabsTrigger>
             ))}
           </TabsList>
 
-          <TabsContent value="orders" className="space-y-4">
-             {isOrdersLoading ? (
-               <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
-             ) : orders && orders.length > 0 ? (
-               <div className="grid gap-4">
-                 {orders.map((order: any) => (
-                   <Card key={order.id} className="border-none shadow-premium rounded-[2rem] bg-white p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 hover:shadow-xl transition-all">
-                     <div className="relative w-20 h-20 rounded-2xl overflow-hidden border shrink-0">
-                       <Image loader={unsplashLoader} src={order.product_image || 'https://picsum.photos/seed/order/200/200'} alt={order.product_name} fill sizes="80px" className="object-cover" />
-                     </div>
-                     <div className="flex-1 text-right w-full">
-                       <div className="flex items-center justify-start gap-3 mb-1">
-                         <h4 className="font-black text-primary text-lg">{order.product_name}</h4>
-                         {order.status === 'paid' ? (
-                           <Badge className="bg-blue-50 text-blue-600 border-none font-black text-[9px] uppercase"><ShieldCheck className="w-3 h-3 ml-1" /> הכסף בהקפאה</Badge>
-                         ) : order.status === 'completed' ? (
-                           <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[9px] uppercase"><CheckCircle2 className="w-3 h-3 ml-1" /> עסקה הושלמה</Badge>
-                         ) : <Badge variant="outline" className="text-[9px] font-black uppercase">{order.status}</Badge>}
-                       </div>
-                       
-                       {order.status === 'paid' && (
-                         <div className="mt-3 p-4 bg-accent/5 rounded-2xl border border-accent/20 space-y-2">
-                           <div className="flex items-center justify-between">
-                              <span className="text-[10px] font-black text-accent uppercase tracking-widest">קוד אימות למסירה לסופר:</span>
-                              <span className="text-2xl font-black text-primary tracking-[0.2em] tabular-nums">{order.verification_code}</span>
-                           </div>
-                           <p className="text-[9px] font-bold text-primary/60 leading-tight">
-                             <Info className="w-3 h-3 inline ml-1" /> מסור קוד זה לסופר רק לאחר שקיבלת את המוצר והוא לשביעות רצונך. מסירת הקוד משחררת את התשלום לסופר.
-                           </p>
-                         </div>
-                       )}
+          {/* Orders Tab */}
+          <TabsContent value="orders" className="space-y-3 focus-visible:outline-none">
+            {isOrdersLoading ? (
+              <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+            ) : orders && orders.length > 0 ? (
+              <div className="grid gap-3">
+                {orders.map((order: any) => (
+                  <Card key={order.id} className="border-none shadow-sm rounded-2xl bg-white p-4 sm:p-5 hover:shadow-md transition-all group">
+                    <div className="flex items-start gap-4">
+                      <div className="relative w-16 h-16 rounded-xl overflow-hidden border border-primary/5 shrink-0 shadow-sm">
+                        <Image loader={unsplashLoader} src={order.product_image || 'https://picsum.photos/seed/order/200/200'} alt={order.product_name} fill sizes="64px" className="object-cover" />
+                      </div>
+                      <div className="flex-1 text-right min-w-0">
+                        <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {order.status === 'paid' ? (
+                              <Badge className="bg-blue-50 text-blue-600 border-none font-black text-[9px] uppercase px-2 py-0.5 rounded-full"><ShieldCheck className="w-3 h-3 ml-1" /> בהקפאה</Badge>
+                            ) : order.status === 'completed' ? (
+                              <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[9px] uppercase px-2 py-0.5 rounded-full"><CheckCircle2 className="w-3 h-3 ml-1" /> הושלמה</Badge>
+                            ) : <Badge variant="outline" className="text-[9px] font-black uppercase rounded-full px-2">{order.status}</Badge>}
+                          </div>
+                          <span className="text-[10px] text-muted-foreground font-bold flex items-center gap-1"><Clock className="w-3 h-3" /> {order.created_at ? new Date(order.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
+                        </div>
+                        <h4 className="font-black text-primary text-base leading-tight mb-1 truncate">{order.product_name}</h4>
+                        <p className="text-sm font-black text-accent">₪{order.amount}</p>
 
-                       <div className="flex items-center gap-4 mt-3 text-[10px] font-bold text-primary/60">
-                         <span className="bg-primary/5 px-3 py-1 rounded-full">₪{order.amount}</span>
-                         <span className="flex items-center gap-1.5"><Clock className="w-3 h-3" /> {order.created_at ? new Date(order.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
-                       </div>
-                     </div>
-                     <div className="flex flex-col gap-2 shrink-0 w-full sm:w-auto">
-                        <Button variant="outline" asChild size="sm" className="rounded-full h-10 px-6 border-primary/10 font-bold text-xs"><Link href={`/products/${order.product_id}`}>צפה במוצר</Link></Button>
-                        {order.status === 'completed' && !order.is_rated && (
-                          <Button variant="secondary" size="sm" onClick={() => setRatingOrderId(order)} className="rounded-full h-10 px-6 bg-accent/10 text-accent font-black text-xs gap-2"><Star className="w-3 h-3 fill-current" /> דרג סופר</Button>
+                        {order.status === 'paid' && (
+                          <div className="mt-3 p-3 bg-blue-50/50 rounded-xl border border-blue-100 space-y-1">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">קוד אימות:</span>
+                              <span className="text-xl font-black text-primary tracking-[0.2em] tabular-nums">{order.verification_code}</span>
+                            </div>
+                            <p className="text-[9px] font-bold text-primary/50 leading-tight">
+                              <Info className="w-3 h-3 inline ml-1" /> מסור לסופר רק לאחר קבלת המוצר.
+                            </p>
+                          </div>
                         )}
-                     </div>
-                   </Card>
-                 ))}
-               </div>
-             ) : <div className="py-20 text-center text-muted-foreground italic">אין הזמנות פעילות.</div>}
-          </TabsContent>
-
-          <TabsContent value="messages" className="space-y-4">
-            {chats && chats.length > 0 ? (
-              <div className="grid gap-4">
-                {chats.map((chat: any) => {
-                  const otherId = chat.participants.find((p: string) => p !== user?.uid);
-                  return otherId ? <CustomerChatListItem key={chat.id} otherUserId={otherId} chat={chat} /> : null;
-                })}
+                      </div>
+                      <div className="flex flex-col gap-2 shrink-0">
+                        <Button variant="outline" asChild size="sm" className="rounded-xl h-9 px-4 border-primary/10 font-bold text-xs"><Link href={`/products/${order.product_id}`}>צפה</Link></Button>
+                        {order.status === 'completed' && !order.is_rated && (
+                          <Button variant="secondary" size="sm" onClick={() => setRatingOrderId(order)} className="rounded-xl h-9 px-4 bg-accent/10 text-accent font-black text-xs gap-1"><Star className="w-3 h-3 fill-current" /> דרג</Button>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                ))}
               </div>
-            ) : <div className="py-20 text-center text-muted-foreground italic">אין הודעות עדיין.</div>}
+            ) : (
+              <div className="py-20 text-center bg-white rounded-2xl border-2 border-dashed border-primary/5">
+                <ShoppingBag className="w-12 h-12 text-primary/10 mx-auto mb-4" />
+                <p className="text-muted-foreground font-medium">אין הזמנות פעילות.</p>
+                <Button asChild variant="outline" className="mt-4 rounded-full px-8 h-10 text-xs font-black border-primary/10"><Link href="/search?view=all">גלה כלי קודש</Link></Button>
+              </div>
+            )}
           </TabsContent>
 
-          <TabsContent value="favorites">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {favoriteProducts?.map((p: any) => <ProductCard key={p.id} product={p} />)}
-            </div>
-            {(!favoriteProducts || favoriteProducts.length === 0) && <div className="py-20 text-center text-muted-foreground italic">אין מועדפים שמורים.</div>}
+          {/* Messages/Chats Tab */}
+          <TabsContent value="messages" className="space-y-3 focus-visible:outline-none">
+            {isChatsLoading ? (
+              <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+            ) : chats.length > 0 ? (
+              <div className="space-y-3">
+                <div className="grid gap-3">
+                  {paginatedChats.map((chat: any) => {
+                    const otherId = chat.participants.find((p: string) => p !== user?.uid);
+                    return otherId ? <CustomerChatListItem key={chat.id} otherUserId={otherId} chat={chat} currentUserId={user?.uid ?? ''} /> : null;
+                  })}
+                </div>
+                {totalChatPages > 1 && (
+                  <div className="flex items-center justify-center gap-3 pt-4">
+                    <Button variant="outline" size="sm" onClick={() => setChatsPage(p => Math.max(1, p - 1))} disabled={chatsPage === 1} className="rounded-xl h-9 px-4 font-bold border-primary/10 bg-white text-xs"><ArrowRight className="w-3.5 h-3.5 ml-1.5" /> הקודם</Button>
+                    <span className="text-[11px] font-black text-primary/40 uppercase tracking-widest">עמוד {chatsPage} / {totalChatPages}</span>
+                    <Button variant="outline" size="sm" onClick={() => setChatsPage(p => Math.min(totalChatPages, p + 1))} disabled={chatsPage === totalChatPages} className="rounded-xl h-9 px-4 font-bold border-primary/10 bg-white text-xs">הבא <ArrowRight className="w-3.5 h-3.5 mr-1.5 rotate-180" /></Button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="py-20 text-center bg-white rounded-2xl border-2 border-dashed border-primary/5">
+                <MessageCircle className="w-12 h-12 text-primary/10 mx-auto mb-4" />
+                <p className="text-muted-foreground font-medium">אין הודעות עדיין.</p>
+              </div>
+            )}
           </TabsContent>
 
-          <TabsContent value="settings">
-            <Card className="border-none shadow-premium rounded-[2.5rem] bg-white p-5 sm:p-8 md:p-12 space-y-10">
-              <div className="flex items-center justify-end gap-2 border-b pb-6">
-                <h3 className="text-2xl font-headline font-black text-primary">הגדרות חשבון</h3>
-                <Lock className="w-6 h-6 text-accent" />
+          {/* Favorites Tab */}
+          <TabsContent value="favorites" className="focus-visible:outline-none">
+            {isFavoritesLoading ? (
+              <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+            ) : favoriteProducts && favoriteProducts.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {favoriteProducts.map((p: any) => <ProductCard key={p.id} product={p} />)}
+              </div>
+            ) : (
+              <div className="py-20 text-center bg-white rounded-2xl border-2 border-dashed border-primary/5">
+                <Heart className="w-12 h-12 text-primary/10 mx-auto mb-4" />
+                <p className="text-muted-foreground font-medium">אין מועדפים שמורים.</p>
+                <Button asChild variant="outline" className="mt-4 rounded-full px-8 h-10 text-xs font-black border-primary/10"><Link href="/search?view=all">גלה כלי קודש</Link></Button>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Settings Tab */}
+          <TabsContent value="settings" className="focus-visible:outline-none">
+            <Card className="border-none shadow-sm rounded-2xl bg-white p-6 sm:p-8">
+              <div className="flex items-center justify-end gap-3 border-b pb-5 mb-8">
+                <div className="text-right">
+                  <h3 className="text-xl font-headline font-black text-primary">הגדרות חשבון</h3>
+                  <p className="text-xs text-muted-foreground font-medium mt-0.5">עדכן את הפרטים האישיים שלך</p>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center">
+                  <Lock className="w-5 h-5 text-primary" />
+                </div>
               </div>
               <div className="grid md:grid-cols-2 gap-8">
-                <div className="space-y-6">
+                <div className="space-y-5">
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2"><Label className="text-[10px] font-black uppercase">שם פרטי</Label><Input value={formData.first_name} onChange={(e) => setFormData({...formData, first_name: e.target.value})} className="rounded-xl h-12" /></div>
-                    <div className="space-y-2"><Label className="text-[10px] font-black uppercase">שם משפחה</Label><Input value={formData.last_name} onChange={(e) => setFormData({...formData, last_name: e.target.value})} className="rounded-xl h-12" /></div>
+                    <div className="space-y-1.5">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-primary/50">שם פרטי</Label>
+                      <Input value={formData.first_name} onChange={(e) => setFormData({...formData, first_name: e.target.value})} className="rounded-xl h-11 border-primary/10 focus:border-primary/30" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-primary/50">שם משפחה</Label>
+                      <Input value={formData.last_name} onChange={(e) => setFormData({...formData, last_name: e.target.value})} className="rounded-xl h-11 border-primary/10 focus:border-primary/30" />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase">כתובת דואר אלקטרוני</Label>
-                    <Input value={user?.email ?? ''} readOnly className="rounded-xl h-12 bg-muted/30 text-muted-foreground cursor-not-allowed" />
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-primary/50">דואר אלקטרוני</Label>
+                    <Input value={user?.email ?? ''} readOnly className="rounded-xl h-11 bg-muted/30 text-muted-foreground cursor-not-allowed border-primary/5" />
                   </div>
-                  <div className="space-y-2"><Label className="text-[10px] font-black uppercase">מספר טלפון</Label><Input value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="rounded-xl h-12" /></div>
-                  <div className="space-y-2"><Label className="text-[10px] font-black uppercase">כתובת למשלוח</Label><Input value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} className="rounded-xl h-12" /></div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-primary/50">מספר טלפון</Label>
+                    <Input value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="rounded-xl h-11 border-primary/10 focus:border-primary/30" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-primary/50">כתובת למשלוח</Label>
+                    <Input value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} className="rounded-xl h-11 border-primary/10 focus:border-primary/30" />
+                  </div>
                 </div>
                 <div className="space-y-4">
-                  <Label className="text-[10px] font-black uppercase text-primary/60 block">התראות במייל</Label>
-                  <div className="flex items-center justify-between p-4 bg-muted/20 rounded-2xl">
-                    <span className="text-sm font-bold">הודעות צ'אט חדשות</span>
-                    <Switch checked={formData.notif_msg_email} onCheckedChange={(v) => setFormData({...formData, notif_msg_email: v})} />
+                  <p className="text-[10px] font-black uppercase tracking-widest text-primary/50">התראות במייל</p>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-4 bg-muted/20 rounded-xl border border-primary/5">
+                      <span className="text-sm font-bold">הודעות צ'אט חדשות</span>
+                      <Switch checked={formData.notif_msg_email} onCheckedChange={(v) => setFormData({...formData, notif_msg_email: v})} />
+                    </div>
+                    <div className="flex items-center justify-between p-4 bg-muted/20 rounded-xl border border-primary/5">
+                      <span className="text-sm font-bold">עדכוני סטטוס הזמנות</span>
+                      <Switch checked={formData.notif_status_email} onCheckedChange={(v) => setFormData({...formData, notif_status_email: v})} />
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between p-4 bg-muted/20 rounded-2xl">
-                    <span className="text-sm font-bold">עדכוני סטטוס הזמנות</span>
-                    <Switch checked={formData.notif_status_email} onCheckedChange={(v) => setFormData({...formData, notif_status_email: v})} />
-                  </div>
-                  <div className="pt-4 p-4 bg-accent/5 rounded-2xl border border-accent/10 flex items-start gap-3">
+                  <div className="p-4 bg-accent/5 rounded-xl border border-accent/10 flex items-start gap-3">
                     <Info className="w-4 h-4 text-accent shrink-0 mt-0.5" />
-                    <p className="text-[10px] font-bold text-primary/60 leading-relaxed">כתובת המייל נקבעת בעת ההרשמה ואינה ניתנת לשינוי. לפרטים צרו קשר עם התמיכה.</p>
+                    <p className="text-[10px] font-bold text-primary/60 leading-relaxed">כתובת המייל נקבעת בעת ההרשמה ואינה ניתנת לשינוי.</p>
                   </div>
                 </div>
               </div>
-              <div className="pt-8 border-t flex justify-end">
-                <Button onClick={handleSaveProfile} disabled={isSaving} className="bg-primary text-white rounded-full px-12 h-14 font-black uppercase shadow-lg gap-2">
+              <div className="pt-6 border-t mt-6 flex justify-end">
+                <Button onClick={handleSaveProfile} disabled={isSaving} className="bg-primary text-white rounded-full px-10 h-12 font-black uppercase shadow-lg gap-2 hover:bg-primary/90 transition-all">
                   {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} שמור שינויים
                 </Button>
               </div>
@@ -395,23 +496,29 @@ export default function CustomerDashboard() {
   );
 }
 
-function CustomerChatListItem({ chat, otherUserId }: any) {
+function CustomerChatListItem({ chat, otherUserId, currentUserId }: any) {
   const db = useSupabaseClient();
   const { data: otherUser } = useDoc<any>(doc(db, 'sellers', otherUserId));
+  const isUnread = chat?.unread_state?.[currentUserId] === true;
   return (
     <Link href={`/chat/${otherUserId}`}>
-      <Card className="p-5 bg-white rounded-3xl shadow-premium hover:shadow-xl transition-all border border-transparent hover:border-accent/10">
-        <div className="flex items-center gap-5 text-right">
-          <Avatar className="h-14 w-14 border-2 border-primary/5 shadow-sm">
-            <AvatarImage src={otherUser?.profile_image} />
-            <AvatarFallback><UserRound className="w-7 h-7 text-primary/20" /></AvatarFallback>
-          </Avatar>
+      <Card className={`p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-all border border-transparent hover:border-accent/10 ${isUnread ? 'ring-2 ring-accent/20' : ''}`}>
+        <div className="flex items-center gap-4 text-right">
+          <div className="relative shrink-0">
+            <Avatar className="h-12 w-12 border-2 border-primary/5 shadow-sm">
+              <AvatarImage src={otherUser?.profile_image} />
+              <AvatarFallback className="bg-primary/5 text-primary font-black text-sm">{otherUser?.first_name?.charAt(0) || '?'}</AvatarFallback>
+            </Avatar>
+            {isUnread && <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-destructive rounded-full border-2 border-white" />}
+          </div>
           <div className="flex-1 overflow-hidden">
-            <div className="flex justify-between items-baseline">
-              <h4 className="font-black text-primary text-base truncate">{otherUser ? `${otherUser.first_name} ${otherUser.last_name}` : 'טוען...'}</h4>
-              <span className="text-[9px] text-muted-foreground font-bold">{chat.last_message_at?.toDate ? chat.last_message_at.toDate().toLocaleDateString('he-IL') : ''}</span>
+            <div className="flex justify-between items-baseline gap-2">
+              <span className="text-[10px] text-muted-foreground font-bold whitespace-nowrap bg-muted/30 px-2 py-0.5 rounded-full">
+                {chat.last_message_at ? new Date(chat.last_message_at).toLocaleDateString('he-IL') : ''}
+              </span>
+              <h4 className={`font-black text-primary text-sm truncate ${isUnread ? 'text-primary' : ''}`}>{otherUser ? `${otherUser.first_name} ${otherUser.last_name}` : 'טוען...'}</h4>
             </div>
-            <p className="text-xs text-muted-foreground truncate font-medium mt-1">{chat.last_message_text || 'אין הודעות עדיין'}</p>
+            <p className={`text-xs truncate mt-1 ${isUnread ? 'font-black text-primary' : 'text-muted-foreground font-medium'}`}>{chat.last_message_text || 'אין הודעות עדיין'}</p>
           </div>
         </div>
       </Card>

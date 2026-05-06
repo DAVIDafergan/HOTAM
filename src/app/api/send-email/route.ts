@@ -13,32 +13,58 @@ export async function POST(req: Request) {
     if (senderName && message) {
       const chatLink = link || 'https://hotam.shop';
       html = `
-  <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-    <div style="background-color: #000000; padding: 24px; text-align: center;">
-      <h1 style="color: #ffffff; margin: 0; font-size: 20px; letter-spacing: 1px; font-weight: 800;">HOTAM SHOP</h1>
-    </div>
-    
-    <div style="padding: 32px; color: #1f2937;">
-      <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: #111827;">היי, קיבלת הודעה חדשה</h2>
-      
-      <p style="font-size: 16px; line-height: 1.6; color: #4b5563; margin-bottom: 24px;">
-        <strong style="color: #000;">${senderName}</strong> שלח/ה לך הודעה חדשה:
-      </p>
-      
-      <div style="background-color: #f9fafb; border-right: 4px solid #000; padding: 20px; margin-bottom: 32px; border-radius: 4px; font-style: italic; color: #374151;">
-        "${message}"
+  <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 20px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.08);">
+    <!-- Header with Logo -->
+    <div style="background-color: #0a0a0a; padding: 28px 32px; text-align: center;">
+      <div style="display: inline-flex; align-items: center; gap: 10px; text-decoration: none;">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m12 19 7-7 3 3-7 7-3-3z" />
+          <path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
+          <path d="m2 2 5 5" />
+          <path d="m11 11 1 1" />
+        </svg>
+        <span style="color: #ffffff; font-size: 22px; font-weight: 900; letter-spacing: 3px; text-transform: uppercase;">HOTAM</span>
       </div>
-      
-      <div style="text-align: center;">
-        <a href="${chatLink}" style="display: inline-block; background-color: #000000; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
-          מעבר לשיחה והשבת תגובה
+      <p style="color: #D4AF37; margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; opacity: 0.8;">זירת כלי הקודש</p>
+    </div>
+
+    <!-- Accent bar -->
+    <div style="height: 3px; background: linear-gradient(to left, #D4AF37, #f5d060, #D4AF37);"></div>
+
+    <!-- Body -->
+    <div style="padding: 40px 36px; color: #1f2937; text-align: right;">
+      <h2 style="font-size: 22px; font-weight: 800; margin: 0 0 8px; color: #0a0a0a;">💬 הודעה חדשה ממתינה לך</h2>
+      <p style="font-size: 14px; color: #6b7280; margin: 0 0 28px; font-weight: 500;">קיבלת הודעה חדשה בפלטפורמת חותם</p>
+
+      <!-- Sender info -->
+      <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+        <div style="width: 44px; height: 44px; background-color: #0a0a0a; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <span style="color: #D4AF37; font-size: 18px; font-weight: 900;">${senderName.charAt(0).toUpperCase()}</span>
+        </div>
+        <div>
+          <p style="margin: 0; font-size: 16px; font-weight: 800; color: #0a0a0a;">${senderName}</p>
+          <p style="margin: 4px 0 0; font-size: 12px; color: #9ca3af; font-weight: 500;">שלח/ה לך הודעה</p>
+        </div>
+      </div>
+
+      <!-- Message bubble -->
+      <div style="background-color: #f0f9ff; border-right: 4px solid #D4AF37; border-radius: 4px 12px 12px 4px; padding: 20px 24px; margin-bottom: 32px; position: relative;">
+        <p style="margin: 0; font-size: 16px; line-height: 1.7; color: #374151; font-style: italic;">"${message}"</p>
+      </div>
+
+      <!-- CTA Button -->
+      <div style="text-align: center; padding: 8px 0;">
+        <a href="${chatLink}" style="display: inline-block; background-color: #0a0a0a; color: #ffffff; padding: 16px 40px; text-decoration: none; border-radius: 50px; font-weight: 800; font-size: 15px; letter-spacing: 0.5px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+          השב להודעה עכשיו &#x2190;
         </a>
       </div>
     </div>
-    
-    <div style="background-color: #f3f4f6; padding: 16px; text-align: center; border-top: 1px solid #e5e7eb;">
-      <p style="font-size: 12px; color: #9ca3af; margin: 0;">
-        נשלח באופן אוטומטי מ-Hotam Shop &copy; 2026
+
+    <!-- Footer -->
+    <div style="background-color: #f9fafb; padding: 20px 32px; text-align: center; border-top: 1px solid #f0f0f0;">
+      <p style="font-size: 11px; color: #9ca3af; margin: 0; font-weight: 500;">
+        הודעה זו נשלחה אוטומטית מ-<strong style="color: #6b7280;">Hotam Shop</strong> &copy; 2026<br/>
+        <span style="font-size: 10px; opacity: 0.7;">לא להשיב ישירות למייל זה &bull; כנסו לאתר להשבת תגובה</span>
       </p>
     </div>
   </div>

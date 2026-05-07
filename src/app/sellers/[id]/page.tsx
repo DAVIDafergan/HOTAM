@@ -148,27 +148,25 @@ export default function SellerProfile() {
   const handleSubmitSellerReview = async () => {
     if (!user) { router.push('/login'); return; }
     setIsReviewSubmitting(true);
-    const displayName = reviewIsAnonymous
-      ? 'אנונימי'
-      : (user.displayName || user.email || 'משתמש');
+    const realName = user.displayName || user.email || 'משתמש';
     const reviewData = {
       order_id: null,
       seller_id: id,
       product_id: null,
       buyer_id: user.uid,
-      buyer_name: displayName,
+      buyer_name: realName,
       is_anonymous: reviewIsAnonymous,
       rating: reviewRating,
       product_rating: reviewRating,
       comment: reviewComment,
     };
-    const { error } = await supabase.from('reviews').insert(reviewData);
+    const { data: inserted, error } = await supabase.from('reviews').insert(reviewData).select().single();
     setIsReviewSubmitting(false);
     if (error) {
       console.error('[reviews] insert error:', error.message);
       toast({ variant: 'destructive', title: 'שגיאה בשמירת הדירוג', description: 'אנא נסה שנית.' });
     } else {
-      setReviews(prev => [...prev, { ...reviewData, id: crypto.randomUUID(), created_at: new Date().toISOString() }]);
+      setReviews(prev => [...prev, inserted]);
       setReviewDialogOpen(false);
       setReviewComment('');
       setReviewRating(5);

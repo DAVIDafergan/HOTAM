@@ -24,7 +24,8 @@ import {
   PackageCheck,
   ShieldCheck,
   Info,
-  UserRound
+  UserRound,
+  Trash2
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -195,6 +196,33 @@ export default function CustomerDashboard() {
       setIsSaving(false);
       toast({ title: "הפרופיל עודכן" });
     }, 500);
+  };
+
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleteReason, setDeleteReason] = useState('');
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+    setIsDeletingAccount(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) throw new Error('No session');
+      const res = await fetch('/api/delete-account', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: deleteReason }),
+      });
+      if (!res.ok) throw new Error('Delete failed');
+      try { await supabase.auth.signOut({ scope: 'local' }); } catch {}
+      router.push('/');
+      router.refresh();
+    } catch (err) {
+      console.error('[delete-account]', err);
+      toast({ variant: 'destructive', title: 'שגיאה במחיקת החשבון', description: 'אנא נסה שנית.' });
+      setIsDeletingAccount(false);
+    }
   };
 
   const handleManualRating = () => {
@@ -460,10 +488,56 @@ export default function CustomerDashboard() {
                   {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} שמור שינויים
                 </Button>
               </div>
+              <div className="pt-6 border-t mt-6">
+                <div className="p-4 bg-red-50 rounded-xl border border-red-100 flex items-center justify-between gap-4">
+                  <div className="text-right">
+                    <p className="text-sm font-black text-red-700">מחיקת חשבון</p>
+                    <p className="text-[11px] text-red-500 font-medium mt-0.5">פעולה זו בלתי הפיכה — כל הנתונים יימחקו לצמיתות</p>
+                  </div>
+                  <Button variant="destructive" onClick={() => setIsDeleteDialogOpen(true)} className="rounded-full gap-2 shrink-0">
+                    <Trash2 className="w-4 h-4" /> מחק חשבון
+                  </Button>
+                </div>
+              </div>
             </Card>
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Delete Account Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl max-w-md bg-white text-slate-900" dir="rtl">
+          <div className="bg-red-600 p-8 text-white text-right">
+            <DialogTitle className="text-2xl font-headline font-black">מחיקת חשבון</DialogTitle>
+            <DialogDescription className="text-white/70 mt-1">פעולה זו בלתי הפיכה. כל הנתונים שלך יימחקו לצמיתות.</DialogDescription>
+          </div>
+          <div className="p-8 space-y-5 text-right">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-primary/50">למה אתה רוצה למחוק את החשבון? (אופציונלי)</Label>
+              <Textarea
+                placeholder="ספר לנו את הסיבה..."
+                value={deleteReason}
+                onChange={(e) => setDeleteReason(e.target.value)}
+                className="rounded-2xl min-h-[80px]"
+              />
+            </div>
+          </div>
+          <DialogFooter className="p-6 bg-muted/30 border-t flex gap-3">
+            <Button
+              variant="destructive"
+              onClick={handleDeleteAccount}
+              disabled={isDeletingAccount}
+              className="flex-1 h-12 font-black uppercase gap-2"
+            >
+              {isDeletingAccount ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+              אישור מחיקה
+            </Button>
+            <Button variant="ghost" onClick={() => setIsDeleteDialogOpen(false)} disabled={isDeletingAccount} className="h-12 font-bold">
+              ביטול
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Rating Dialog */}
       <Dialog open={!!ratingOrderId} onOpenChange={() => setRatingOrderId(null)}>

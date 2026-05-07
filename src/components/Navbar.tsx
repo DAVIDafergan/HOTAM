@@ -140,8 +140,13 @@ export function Navbar() {
   const sellerNotificationCount = activeUnreadOrders.length + unreadCount;
 
   const handleLogout = async () => {
-    await auth.signOut();
+    try {
+      await auth.signOut();
+    } catch (err) {
+      console.warn('[logout] signOut error (ignored):', err);
+    }
     router.push('/');
+    router.refresh();
   };
 
   const Logo = ({ className = "" }: { className?: string }) => (

@@ -39,6 +39,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
 type ProductType = 'מזוזה' | 'תפילין' | 'מגילה' | 'ספר תורה' | 'מוצרי יודאיקה שונים' | '';
+type ShippingPreference = 'all' | 'shipping' | 'pickup';
 
 const ISRAEL_REGIONS = [
   "ירושלים והסביבה", "תל אביב וגוש דן", "חיפה והצפון", "באר שבע והדרום", "בני ברק והמרכז", "השרון", "יהודה ושומרון"
@@ -62,6 +63,7 @@ export function HeroAnimation() {
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
   const [userCoords, setUserCoords] = useState<{lat: number, lng: number} | null>(null);
   const [detectedCity, setDetectedCity] = useState<string | null>(null);
+  const [shippingPreference, setShippingPreference] = useState<ShippingPreference>('all');
 
   // Advanced Scribe Filters
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -107,49 +109,6 @@ export function HeroAnimation() {
             const city = addr.city || addr.town || addr.village || addr.municipality || addr.county || null;
             if (city) {
               setDetectedCity(city);
-              // Map detected city to a region
-              const cityToRegion: Record<string, string> = {
-                'ירושלים': 'ירושלים והסביבה',
-                'בית שמש': 'ירושלים והסביבה',
-                'מעלה אדומים': 'יהודה ושומרון',
-                'תל אביב': 'תל אביב וגוש דן',
-                'תל אביב-יפו': 'תל אביב וגוש דן',
-                'רמת גן': 'תל אביב וגוש דן',
-                'גבעתיים': 'תל אביב וגוש דן',
-                'חולון': 'תל אביב וגוש דן',
-                'בת ים': 'תל אביב וגוש דן',
-                'חיפה': 'חיפה והצפון',
-                'קריית ביאליק': 'חיפה והצפון',
-                'קריית מוצקין': 'חיפה והצפון',
-                'נצרת': 'חיפה והצפון',
-                'עכו': 'חיפה והצפון',
-                'נהריה': 'חיפה והצפון',
-                'טבריה': 'חיפה והצפון',
-                'צפת': 'חיפה והצפון',
-                'באר שבע': 'באר שבע והדרום',
-                'אשדוד': 'באר שבע והדרום',
-                'אשקלון': 'באר שבע והדרום',
-                'קריית גת': 'באר שבע והדרום',
-                'אילת': 'באר שבע והדרום',
-                'דימונה': 'באר שבע והדרום',
-                'בני ברק': 'בני ברק והמרכז',
-                'פתח תקווה': 'בני ברק והמרכז',
-                'ראשון לציון': 'בני ברק והמרכז',
-                'רחובות': 'בני ברק והמרכז',
-                'לוד': 'בני ברק והמרכז',
-                'רמלה': 'בני ברק והמרכז',
-                'מודיעין': 'בני ברק והמרכז',
-                'נתניה': 'השרון',
-                'הרצליה': 'השרון',
-                'רעננה': 'השרון',
-                'כפר סבא': 'השרון',
-                'רא"ש העין': 'השרון',
-                'הוד השרון': 'השרון',
-                'אריאל': 'יהודה ושומרון',
-                'מעלה אדומים': 'יהודה ושומרון',
-              };
-              const mappedRegion = cityToRegion[city];
-              if (mappedRegion) setSelectedRegion(mappedRegion);
               toast({ title: `מיקום זוהה: ${city}` });
             } else {
               toast({ title: "מיקום זוהה" });
@@ -219,6 +178,7 @@ export function HeroAnimation() {
     if (qualityLevel !== 'all') params.set('quality', qualityLevel);
     if (quantity > 1) params.set('quantity', String(quantity));
     if (selectedLocation !== 'all') params.set('region', selectedLocation);
+    if (shippingPreference !== 'all') params.set('shipping', shippingPreference);
     if (userCoords) {
       params.set('lat', String(userCoords.lat));
       params.set('lng', String(userCoords.lng));
@@ -497,48 +457,60 @@ export function HeroAnimation() {
                       )}
 
                       <div className="pt-2">
-                         <Button variant="ghost" onClick={() => setShowAdvanced(!showAdvanced)} className="w-full h-14 rounded-2xl border-2 border-dashed border-primary/10 gap-3 font-black text-[10px] uppercase tracking-widest text-primary/60 hover:bg-primary/5 hover:border-primary/20 transition-all">
-                           <Settings2 className="w-5 h-5 text-accent" /> {showAdvanced ? 'הסתר הגדרות סופר מתקדמות' : 'מסנני קדושה והנהגת הסופר'}
-                         </Button>
-                         <AnimatePresence>
-                           {showAdvanced && (
-                             <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden space-y-5 pt-5 px-1">
-                               <div className="space-y-3">
-                                 <Label className="text-[9px] font-black uppercase text-primary/40 tracking-widest">הסמכת הסופר</Label>
-                                 <RadioGroup value={certStatus} onValueChange={setCertStatus} className="grid grid-cols-2 gap-2">
-                                   <CustomTile value="all" label="הכל" active={certStatus === 'all'} compact />
-                                   <CustomTile value="valid" label="תעודה בתוקף" active={certStatus === 'valid'} compact />
-                                   <CustomTile value="expired" label="תעודה בעבר" active={certStatus === 'expired'} compact />
-                                 </RadioGroup>
-                               </div>
+                        <div className="space-y-3 pb-5 border-b border-primary/5">
+                          <Label className="font-black text-[10px] uppercase text-primary/40 mr-1 tracking-widest">אופן קבלת המוצר</Label>
+                          <RadioGroup value={shippingPreference} onValueChange={(v) => setShippingPreference(v as ShippingPreference)} className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <CustomTile value="all" label="הכל" active={shippingPreference === 'all'} compact />
+                            <CustomTile value="shipping" label="משלוח בלבד" active={shippingPreference === 'shipping'} compact />
+                            <CustomTile value="pickup" label="איסוף עצמי בלבד" active={shippingPreference === 'pickup'} compact />
+                          </RadioGroup>
+                        </div>
+                        <div className="pt-5">
+                          <Button variant="ghost" onClick={() => setShowAdvanced(!showAdvanced)} className="w-full h-14 rounded-2xl border-2 border-dashed border-primary/10 gap-3 font-black text-[10px] uppercase tracking-widest text-primary/60 hover:bg-primary/5 hover:border-primary/20 transition-all">
+                            <Settings2 className="w-5 h-5 text-accent" /> {showAdvanced ? 'הסתר הגדרות סופר מתקדמות' : 'מסנני קדושה והנהגת הסופר'}
+                          </Button>
+                        </div>
+                          <AnimatePresence>
+                            {showAdvanced && (
+                              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden pt-5 px-1">
+                                <div className="grid md:grid-cols-2 gap-4">
+                                  <div className="space-y-3">
+                                    <Label className="text-[9px] font-black uppercase text-primary/40 tracking-widest">הסמכת הסופר</Label>
+                                    <RadioGroup value={certStatus} onValueChange={setCertStatus} className="grid grid-cols-2 gap-2">
+                                      <CustomTile value="all" label="הכל" active={certStatus === 'all'} compact />
+                                      <CustomTile value="valid" label="תעודה בתוקף" active={certStatus === 'valid'} compact />
+                                      <CustomTile value="expired" label="תעודה בעבר" active={certStatus === 'expired'} compact />
+                                    </RadioGroup>
+                                  </div>
 
-                               <div className="space-y-3">
-                                 <Label className="text-[9px] font-black uppercase text-primary/40 tracking-widest">לימוד תורה יומיומי</Label>
-                                 <RadioGroup value={studyFreq} onValueChange={setStudyFreq} className="grid grid-cols-2 gap-2">
-                                   <CustomTile value="all" label="הכל" active={studyFreq === 'all'} compact />
-                                   <CustomTile value="fixed" label="קובע עיתים" active={studyFreq === 'fixed'} compact />
-                                   <CustomTile value="half-day" label="אברך חצי יום" active={studyFreq === 'half-day'} compact />
-                                   <CustomTile value="full-day" label="אברך יום שלם" active={studyFreq === 'full-day'} compact />
-                                 </RadioGroup>
-                               </div>
+                                  <div className="space-y-3">
+                                    <Label className="text-[9px] font-black uppercase text-primary/40 tracking-widest">לימוד תורה יומיומי</Label>
+                                    <RadioGroup value={studyFreq} onValueChange={setStudyFreq} className="grid grid-cols-2 gap-2">
+                                      <CustomTile value="all" label="הכל" active={studyFreq === 'all'} compact />
+                                      <CustomTile value="fixed" label="קובע עיתים" active={studyFreq === 'fixed'} compact />
+                                      <CustomTile value="half-day" label="אברך חצי יום" active={studyFreq === 'half-day'} compact />
+                                      <CustomTile value="full-day" label="אברך יום שלם" active={studyFreq === 'full-day'} compact />
+                                    </RadioGroup>
+                                  </div>
 
-                               <div className="space-y-3">
-                                 <Label className="text-[9px] font-black uppercase text-primary/40 tracking-widest">מנהג טבילה</Label>
-                                 <RadioGroup value={mikvehFreq} onValueChange={setMikvehFreq} className="grid grid-cols-2 gap-2">
-                                   {['all', 'daily', 'before', 'ezra'].map(mf => (
-                                     <CustomTile key={mf} value={mf} label={mf === 'all' ? 'הכל' : mf === 'daily' ? 'כל יום' : mf === 'before' ? 'לפני כתיבה' : 'טבילת עזרא'} active={mikvehFreq === mf} compact />
-                                   ))}
-                                 </RadioGroup>
-                               </div>
+                                  <div className="space-y-3 md:col-span-2">
+                                    <Label className="text-[9px] font-black uppercase text-primary/40 tracking-widest">מנהג טבילה</Label>
+                                    <RadioGroup value={mikvehFreq} onValueChange={setMikvehFreq} className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                      {['all', 'daily', 'before', 'ezra'].map(mf => (
+                                        <CustomTile key={mf} value={mf} label={mf === 'all' ? 'הכל' : mf === 'daily' ? 'כל יום' : mf === 'before' ? 'לפני כתיבה' : 'טבילת עזרא'} active={mikvehFreq === mf} compact />
+                                      ))}
+                                    </RadioGroup>
+                                  </div>
 
-                               <Label className="flex items-center justify-between p-4 bg-white/80 border-2 border-primary/5 rounded-2xl cursor-pointer hover:bg-white hover:border-primary/10 transition-all shadow-sm">
-                                 <div className="flex items-center gap-3"><UserCheck className="w-5 h-5 text-accent" /><span className="text-[11px] font-black uppercase text-primary tracking-tight">הצג סופרים נשואים בלבד</span></div>
-                                 <Checkbox checked={marriedOnly} onCheckedChange={(v) => setMarriedOnly(!!v)} className="w-6 h-6 rounded-lg" />
-                               </Label>
-                             </motion.div>
-                           )}
-                         </AnimatePresence>
-                      </div>
+                                  <Label className="md:col-span-2 flex items-center justify-between p-4 bg-white/80 border-2 border-primary/5 rounded-2xl cursor-pointer hover:bg-white hover:border-primary/10 transition-all shadow-sm">
+                                    <div className="flex items-center gap-3"><UserCheck className="w-5 h-5 text-accent" /><span className="text-[11px] font-black uppercase text-primary tracking-tight">הצג סופרים נשואים בלבד</span></div>
+                                    <Checkbox checked={marriedOnly} onCheckedChange={(v) => setMarriedOnly(!!v)} className="w-6 h-6 rounded-lg" />
+                                  </Label>
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                       </div>
                     </div>
                   </div>
 

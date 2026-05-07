@@ -151,6 +151,11 @@ function SearchContent() {
     const reg = searchParams.get('region');
     if (reg) setSelectedRegion(reg);
 
+    const shipping = searchParams.get('shipping');
+    if (shipping === 'all' || shipping === 'shipping' || shipping === 'pickup') {
+      setShippingPreference(shipping);
+    }
+
     const city = searchParams.get('city');
     if (city) setDetectedCity(city);
 
@@ -377,7 +382,7 @@ function SearchContent() {
 
             {/* Advanced scribe filters */}
             <FilterSection title="מסנני סופר (הנהגה וקדושה)" icon={<GraduationCap className="w-3.5 h-3.5 text-accent" />}>
-              <div className="grid grid-cols-2 gap-3 pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 pt-2">
                 <div className="space-y-2">
                   <Label className="text-[9px] font-black text-primary/30">הסמכת הסופר</Label>
                   <RadioGroup value={certStatus} onValueChange={setCertStatus} className="grid gap-1.5">
@@ -399,7 +404,7 @@ function SearchContent() {
                     <CustomFilterTile value="daily" label="טובל יומיום" active={mikvehFreq === 'daily'} />
                   </RadioGroup>
                 </div>
-                <div className="flex flex-col justify-end">
+                <div className="flex flex-col justify-end sm:col-span-2 xl:col-span-3">
                   <Label className="flex items-center justify-between p-3 rounded-xl border-2 border-primary/5 hover:bg-slate-50 transition-all cursor-pointer h-full">
                     <div className="flex items-center gap-2"><UserCheck className="w-3.5 h-3.5 text-accent" /><span className="text-[9px] font-bold">סופר נשוי</span></div>
                     <Checkbox checked={marriedOnly} onCheckedChange={(v) => setMarriedOnly(!!v)} />

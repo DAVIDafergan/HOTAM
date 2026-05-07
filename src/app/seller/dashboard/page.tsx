@@ -161,7 +161,7 @@ function SellerDashboardContent() {
     return query(collection(db, 'orders'), where('seller_id', '==', user.uid));
   }, [db, user?.uid, canLoadData]);
   const { data: ordersData } = useCollection<any>(ordersQuery);
-  const orders = (ordersData || []).sort((a: any, b: any) => {
+  const orders = (ordersData || []).filter((o: any) => o.status !== 'pending_payment').sort((a: any, b: any) => {
     const timeA = a.created_at?.toDate ? a.created_at.toDate().getTime() : 0;
     const timeB = b.created_at?.toDate ? b.created_at.toDate().getTime() : 0;
     return timeB - timeA;
@@ -1157,10 +1157,10 @@ function SellerDashboardContent() {
 
                     <div className="space-y-4 p-5 rounded-[2rem] border-2 border-dashed border-primary/10">
                        <Label className="text-[10px] font-black uppercase text-primary/40">הגדרות משלוח ואיסוף</Label>
-                       <RadioGroup value={formDeliveryType} onValueChange={setFormDeliveryType} className="grid grid-cols-2 gap-3">
-                          <button 
-                            type="button" 
-                            onClick={() => setFormDeliveryType('pickup')} 
+                       <RadioGroup value={formDeliveryType} onValueChange={setFormDeliveryType} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                           <button 
+                             type="button" 
+                             onClick={() => setFormDeliveryType('pickup')} 
                             className={cn("flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all", formDeliveryType === 'pickup' ? 'bg-primary text-white border-primary shadow-lg' : 'bg-white border-primary/5')}
                           >
                             <MapPin className="w-5 h-5" />
@@ -1171,13 +1171,24 @@ function SellerDashboardContent() {
                             onClick={() => setFormDeliveryType('shipping')} 
                             className={cn("flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all", formDeliveryType === 'shipping' ? 'bg-primary text-white border-primary shadow-lg' : 'bg-white border-primary/5')}
                           >
-                            <Truck className="w-5 h-5" />
-                            <span className="text-[10px] font-black">משלוח עד הבית</span>
-                          </button>
-                       </RadioGroup>
-                       
-                       {formDeliveryType === 'shipping' && (
-                          <div className="space-y-4 pt-2 animate-in slide-in-from-top-1">
+                             <Truck className="w-5 h-5" />
+                             <span className="text-[10px] font-black">משלוח עד הבית</span>
+                           </button>
+                           <button 
+                             type="button" 
+                             onClick={() => setFormDeliveryType('both')} 
+                             className={cn("flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all", formDeliveryType === 'both' ? 'bg-primary text-white border-primary shadow-lg' : 'bg-white border-primary/5')}
+                           >
+                             <div className="flex items-center gap-1">
+                               <MapPin className="w-4 h-4" />
+                               <Truck className="w-4 h-4" />
+                             </div>
+                             <span className="text-[10px] font-black">איסוף + משלוח</span>
+                           </button>
+                        </RadioGroup>
+                        
+                       {(formDeliveryType === 'shipping' || formDeliveryType === 'both') && (
+                           <div className="space-y-4 pt-2 animate-in slide-in-from-top-1">
                              <div className="space-y-1">
                                <Label className="text-[9px] font-black">עלות משלוח (₪)</Label>
                                <Input type="number" value={formDeliveryFee} onChange={e => setFormDeliveryFee(e.target.value)} className="h-10 rounded-xl" />

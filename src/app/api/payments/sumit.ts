@@ -18,12 +18,14 @@ export interface VerifySessionInput {
 }
 
 function getSumitCredentials() {
-  const businessId = process.env.SUMMIT_BUSINESS_ID;
-  const privateKey = process.env.SUMMIT_PRIVATE_KEY;
-  const publicKey = process.env.SUMMIT_PUBLIC_KEY;
+  const businessId = process.env.SUMMIT_BUSINESS_ID || process.env.SUMIT_BUSINESS_ID;
+  const privateKey = process.env.SUMMIT_PRIVATE_KEY || process.env.SUMIT_PRIVATE_KEY;
+  const publicKey = process.env.SUMMIT_PUBLIC_KEY || process.env.SUMIT_PUBLIC_KEY;
 
   if (!businessId || !privateKey || !publicKey) {
-    throw new Error('Missing SUMIT credentials: SUMMIT_BUSINESS_ID / SUMMIT_PRIVATE_KEY / SUMMIT_PUBLIC_KEY');
+    throw new Error(
+      'Missing SUMIT credentials: SUMMIT_* (or SUMIT_*) BUSINESS_ID/PRIVATE_KEY/PUBLIC_KEY environment variables are required'
+    );
   }
 
   return { businessId, privateKey, publicKey };

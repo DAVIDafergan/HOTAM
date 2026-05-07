@@ -198,13 +198,16 @@ CREATE TABLE IF NOT EXISTS public.messages (
 
 -- ── reviews ───────────────────────────────────────────────────────────────────
 -- seller_id / product_id / buyer_id are stored as plain strings by the frontend.
+-- order_id and product_id are nullable to support reviews from non-buyers.
+-- is_anonymous hides the reviewer's name in the display.
 CREATE TABLE IF NOT EXISTS public.reviews (
   id             UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
-  order_id      TEXT        NOT NULL,
+  order_id      TEXT,
   seller_id     TEXT        NOT NULL,
-  product_id    TEXT        NOT NULL,
+  product_id    TEXT,
   buyer_id      TEXT        NOT NULL,
   buyer_name    TEXT,
+  is_anonymous  BOOLEAN     NOT NULL DEFAULT false,
   rating         INTEGER     NOT NULL CHECK (rating BETWEEN 1 AND 5),
   product_rating INTEGER    NOT NULL CHECK (product_rating BETWEEN 1 AND 5),
   comment        TEXT,
@@ -324,8 +327,9 @@ CREATE POLICY "messages_admin_all"          ON public.messages FOR ALL USING (pu
 
 -- ── reviews policies ──────────────────────────────────────────────────────────
 CREATE POLICY "Allow public read"  ON public.reviews FOR SELECT USING (true);
-CREATE POLICY "reviews_buyer_insert" ON public.reviews FOR INSERT
-  WITH CHECK (auth.uid()::TEXT = buyer_id);
+-- Any authenticated user can insert a review; buyer_id must match their uid.
+CREATE POLICY "reviews_any_user_insert" ON public.reviews FOR INSERT
+  WITH CHECK (auth.uid() IS NOT NULL AND auth.uid()::TEXT = buyer_id);
 CREATE POLICY "reviews_admin_all"    ON public.reviews FOR ALL USING (public.is_admin());
 
 -- ── reports policies ──────────────────────────────────────────────────────────

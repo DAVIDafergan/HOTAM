@@ -40,6 +40,8 @@ import { useMemo, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { useRouter } from 'next/navigation';
 
 export default function SellerProfile() {
   const params = useParams();
@@ -47,11 +49,18 @@ export default function SellerProfile() {
   const { user } = useUser();
   const db = useSupabaseClient();
   const { toast } = useToast();
+  const router = useRouter();
   const logoImg = PlaceHolderImages.find(img => img.id === 'site-logo')?.imageUrl || 'https://picsum.photos/seed/hotam-logo/400/400';
 
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [isReporting, setIsReporting] = useState(false);
+
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [reviewIsAnonymous, setReviewIsAnonymous] = useState(false);
+  const [isReviewSubmitting, setIsReviewSubmitting] = useState(false);
 
   // Fetch Seller Info
   const [seller, setSeller] = useState<any>(null);
@@ -134,6 +143,36 @@ export default function SellerProfile() {
       setReportReason('');
       toast({ title: "הדיווח נשלח למנהל המערכת לבדיקה" });
     }, 800);
+  };
+
+  const handleSubmitSellerReview = async () => {
+    if (!user) { router.push('/login'); return; }
+    setIsReviewSubmitting(true);
+    const realName = user.displayName || user.email || 'משתמש';
+    const reviewData = {
+      order_id: null,
+      seller_id: id,
+      product_id: null,
+      buyer_id: user.uid,
+      buyer_name: realName,
+      is_anonymous: reviewIsAnonymous,
+      rating: reviewRating,
+      product_rating: reviewRating,
+      comment: reviewComment,
+    };
+    const { data: inserted, error } = await supabase.from('reviews').insert(reviewData).select().single();
+    setIsReviewSubmitting(false);
+    if (error) {
+      console.error('[reviews] insert error:', error.message);
+      toast({ variant: 'destructive', title: 'שגיאה בשמירת הדירוג', description: 'אנא נסה שנית.' });
+    } else {
+      setReviews(prev => [...prev, inserted]);
+      setReviewDialogOpen(false);
+      setReviewComment('');
+      setReviewRating(5);
+      setReviewIsAnonymous(false);
+      toast({ title: 'תודה על הדירוג!' });
+    }
   };
 
   if (isSellerLoading) {
@@ -388,6 +427,15 @@ export default function SellerProfile() {
                 </TabsContent>
 
                 <TabsContent value="reviews" className="animate-in fade-in slide-in-from-bottom-2 space-y-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <Button
+                      onClick={() => user ? setReviewDialogOpen(true) : router.push('/login')}
+                      className="bg-primary text-white rounded-2xl h-11 px-6 font-black text-xs uppercase tracking-widest gap-2 shadow-md hover:bg-primary/90"
+                    >
+                      <Star className="w-4 h-4" /> דרג סופר
+                    </Button>
+                    <h4 className="text-sm font-black text-primary/40 uppercase tracking-widest">ביקורות לקוחות</h4>
+                  </div>
                   {reviews && reviews.length > 0 ? (
                     reviews.map((rev: any) => (
                       <Card key={rev.id} className="border-none shadow-premium rounded-2xl bg-muted/10 p-6 text-right">
@@ -400,9 +448,9 @@ export default function SellerProfile() {
                               </div>
                             </div>
                           </div>
-                          <span className="text-[10px] font-bold text-muted-foreground">{rev.created_at?.toDate ? rev.created_at.toDate().toLocaleDateString('he-IL') : 'היום'}</span>
+                          <span className="text-[10px] font-bold text-muted-foreground">{rev.created_at ? new Date(rev.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
                         </div>
-                        <p className="font-black text-primary text-sm mb-2">{rev.buyer_name}</p>
+                        <p className="font-black text-primary text-sm mb-2">{rev.is_anonymous ? 'אנונימי' : (rev.buyer_name || 'משתמש')}</p>
                         <p className="text-xs text-primary/70 leading-relaxed italic">"{rev.comment}"</p>
                       </Card>
                     ))
@@ -419,6 +467,55 @@ export default function SellerProfile() {
 
         </div>
       </main>
+
+      {/* Seller Review Dialog */}
+      <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
+        <DialogContent className="rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl max-w-md bg-white text-slate-900" dir="rtl">
+          <div className="bg-primary p-8 text-white text-right">
+            <DialogTitle className="text-2xl font-headline font-black">דרג את הסופר</DialogTitle>
+            <p className="text-white/60 text-sm mt-1">חוות דעתך עוזרת לקונים אחרים לבחור נכון</p>
+          </div>
+          <div className="p-8 space-y-6 text-right">
+            <div className="space-y-3">
+              <Label className="text-xs font-black uppercase tracking-widest text-primary">דירוג כוכבים</Label>
+              <div className="flex justify-center gap-3">
+                {[1, 2, 3, 4, 5].map(s => (
+                  <button key={s} type="button" onClick={() => setReviewRating(s)}>
+                    <Star className={`w-9 h-9 transition-colors ${s <= reviewRating ? 'fill-accent text-accent' : 'text-muted-foreground/30'}`} />
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-slate-500">ביקורת</Label>
+              <Textarea
+                placeholder="שתף את חווית השירות והכתיבה..."
+                value={reviewComment}
+                onChange={e => setReviewComment(e.target.value)}
+                className="rounded-2xl min-h-[100px]"
+              />
+            </div>
+            <div className="flex items-center justify-between p-4 rounded-2xl bg-muted/20 border border-muted/40">
+              <Switch
+                id="seller-review-anon"
+                checked={reviewIsAnonymous}
+                onCheckedChange={setReviewIsAnonymous}
+              />
+              <Label htmlFor="seller-review-anon" className="text-sm font-bold text-primary cursor-pointer">פרסם כאנונימי</Label>
+            </div>
+          </div>
+          <DialogFooter className="p-6 bg-muted/30 border-t flex gap-3">
+            <Button
+              onClick={handleSubmitSellerReview}
+              disabled={isReviewSubmitting}
+              className="flex-1 bg-primary text-white h-12 font-black uppercase"
+            >
+              {isReviewSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'פרסם דירוג'}
+            </Button>
+            <Button variant="ghost" onClick={() => setReviewDialogOpen(false)} className="h-12 font-bold">ביטול</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

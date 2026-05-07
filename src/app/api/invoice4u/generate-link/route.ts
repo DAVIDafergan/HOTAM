@@ -1,61 +1,33 @@
 
 import { NextResponse } from 'next/server';
+import { startSumitSession } from '../../payments/sumit';
 
-/**
- * Direct bridge to Invoice4u API.
- * This handles the secure communication with the clearing provider.
- */
+function getSiteBaseUrl(req: Request) {
+  const proto = req.headers.get('x-forwarded-proto');
+  const host = req.headers.get('x-forwarded-host') || req.headers.get('host');
+  if (proto && host) {
+    return `${proto}://${host}`;
+  }
+  return new URL(req.url).origin;
+}
+
 export async function POST(req: Request) {
   try {
-    const { orderId, amount, buyerName, buyerEmail, buyerPhone } = await req.json();
-    
-    // Using the provided API Key (GUID)
-    const INVOICE4U_API_KEY = "12cd76ac-5ee8-4808-b43c-fb74bfddd9d0";
-
-    const payload = {
-      "ApiKey": INVOICE4U_API_KEY,
-      "Document": {
-        "Type": 6, // InvoiceOrder
-        "Total": Number(amount),
-        "Currency": "ILS",
-        "ClientName": buyerName || "לקוח חותם",
-        "ClientEmail": buyerEmail || "customer@hotam.co.il",
-        "ClientPhone": buyerPhone || "",
-        "ApiIdentifier": orderId, 
-        "Items": [
-          {
-            "Name": "כלי קודש מהודר - חותם",
-            "Price": Number(amount),
-            "Quantity": 1
-          }
-        ]
-      }
-    };
-
-    console.log("Initiating Invoice4u request for order:", orderId);
-
-    const response = await fetch('https://api.invoice4u.co.il/Services/ApiService.svc/CreateDocument', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+    const body = await req.json();
+    const session = await startSumitSession({
+      siteBaseUrl: getSiteBaseUrl(req),
+      orderId: body?.orderId,
+      amount: Number(body?.amount),
+      productName: body?.productName || body?.name || 'מוצר קודש',
+      currency: 'ILS',
+      buyerName: body?.buyerName || body?.buyer_name,
+      buyerEmail: body?.buyerEmail || body?.buyer_email,
+      buyerPhone: body?.buyerPhone || body?.buyer_phone,
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Invoice4u API Error:", errorText);
-      return NextResponse.json({ error: "שגיאה בתקשורת מול ספק הסליקה" }, { status: 500 });
-    }
-
-    const data = await response.json();
-
-    if (data && data.PaymentUrl) {
-      return NextResponse.json({ url: data.PaymentUrl });
-    } else {
-      console.error("Invoice4u response missing URL:", data);
-      return NextResponse.json({ error: "לא נוצר קישור תשלום" }, { status: 500 });
-    }
+    return NextResponse.json({ url: session.paymentUrl });
   } catch (error: any) {
-    console.error("Internal Payment Bridge Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('Legacy invoice4u/generate-link proxy error:', error);
+    return NextResponse.json({ error: error?.message || 'Failed to create payment link' }, { status: 500 });
   }
 }

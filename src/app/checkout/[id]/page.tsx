@@ -124,23 +124,25 @@ export default function CheckoutPage() {
       // Use the short ID as the document ID
       setDocumentNonBlocking(doc(db, 'orders', shortId), orderData, { merge: true });
       
-      const response = await fetch('/api/invoice4u/generate-link', {
+      const response = await fetch('/api/payments/create-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           orderId: shortId,
           amount: totalPrice,
-          buyer_name: recipientName,
-          buyer_email: user?.email,
-          buyer_phone: recipientPhone
+          productName: product.product_type || 'מוצר קודש',
+          currency: 'ILS',
+          buyerName: recipientName,
+          buyerEmail: user?.email,
+          buyerPhone: recipientPhone
         })
       });
 
       const data = await response.json();
       
-      if (data.url) {
+      if (data.paymentUrl || data.PaymentURL || data.url) {
         updateDocumentNonBlocking(productRef!, { quantity: increment(-1) });
-        window.location.href = data.url;
+        window.location.href = data.paymentUrl || data.PaymentURL || data.url;
       } else {
         throw new Error(data.error || 'לא ניתן היה ליצור קישור לתשלום.');
       }

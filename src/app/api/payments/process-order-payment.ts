@@ -12,7 +12,7 @@ export async function markOrderAsPaidAndNotify(orderId: string, paymentProvider:
   const supabase = createClient(supabaseUrl, serviceRoleKey);
   const { data: order, error: fetchError } = await supabase
     .from('orders')
-    .select('status, buyer_email, buyer_name, seller_id')
+    .select('status, buyer_email, buyer_name, seller_id, product_id')
     .eq('id', orderId)
     .single();
 
@@ -39,6 +39,30 @@ export async function markOrderAsPaidAndNotify(orderId: string, paymentProvider:
 
   if (updateError) {
     throw new Error(`Order update failed: ${updateError.message}`);
+  }
+
+  if (order.product_id) {
+    const { data: product, error: productFetchError } = await supabase
+      .from('products')
+      .select('quantity')
+      .eq('id', order.product_id)
+      .single();
+
+    if (!productFetchError && product) {
+      const currentQuantity = Number(product.quantity || 0);
+      if (currentQuantity <= 0) {
+        console.warn(`Product ${order.product_id} quantity is already ${currentQuantity} while processing paid order ${orderId}`);
+      } else {
+        const nextQuantity = Math.max(0, currentQuantity - 1);
+        const { error: productUpdateError } = await supabase
+          .from('products')
+          .update({ quantity: nextQuantity })
+          .eq('id', order.product_id);
+        if (productUpdateError) {
+          console.error('Failed to decrement product quantity after payment:', productUpdateError.message);
+        }
+      }
+    }
   }
 
   if (order.buyer_email) {

@@ -140,6 +140,10 @@ export default function AdminDashboard() {
     return query(collection(db, 'orders'), orderBy('created_at', 'desc'));
   }, [db, canLoadData]);
   const { data: allOrders } = useCollection<any>(ordersQuery);
+  const visibleOrders = useMemo(
+    () => (allOrders || []).filter((order: any) => order.status !== 'pending_payment'),
+    [allOrders]
+  );
 
   const reportsQuery = useMemoStable(() => {
     if (!canLoadData) return null;
@@ -150,7 +154,7 @@ export default function AdminDashboard() {
   const stats = useMemo(() => {
     const s = allSellers || [];
     const c = allCustomers || [];
-    const o = (allOrders || []).filter((x: any) => x.status === 'completed');
+    const o = visibleOrders.filter((x: any) => x.status === 'completed');
     const totalVolume = o.reduce((acc: number, x: any) => acc + Number(x.amount || 0), 0);
     
     return {
@@ -160,7 +164,7 @@ export default function AdminDashboard() {
       totalVolume: totalVolume,
       siteEarnings: totalVolume * 0.20,
     };
-  }, [allSellers, allCustomers, allOrders]);
+  }, [allSellers, allCustomers, visibleOrders]);
 
   // Filtering Logic
   const filteredSellersPending = useMemo(() => {
@@ -191,8 +195,7 @@ export default function AdminDashboard() {
   }, [allCustomers, searchTerm]);
 
   const filteredOrders = useMemo(() => {
-    if (!allOrders) return [];
-    return allOrders.filter(o => {
+    return visibleOrders.filter(o => {
       if (o.status === 'torah_request') return false; 
       const matchSearch = (o.id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                           (o.buyer_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -204,15 +207,14 @@ export default function AdminDashboard() {
       
       return matchSearch && matchStatus;
     });
-  }, [allOrders, searchTerm, salesStatusFilter]);
+  }, [visibleOrders, searchTerm, salesStatusFilter]);
 
   const torahOrders = useMemo(() => {
-    if (!allOrders) return [];
-    return allOrders.filter(o => o.status === 'torah_request' && (
+    return visibleOrders.filter(o => o.status === 'torah_request' && (
       (o.id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (o.buyer_name || '').toLowerCase().includes(searchTerm.toLowerCase())
     ));
-  }, [allOrders, searchTerm]);
+  }, [visibleOrders, searchTerm]);
 
   const handleTabLink = (tab: string, search: string = '') => {
     setActiveTab(tab);
@@ -320,7 +322,7 @@ export default function AdminDashboard() {
               onApprove={approveScribe} 
               onDelete={deleteScribe} 
               isLoading={isSellersLoading} 
-              orders={allOrders} 
+              orders={visibleOrders} 
               page={pendingPage}
               setPage={setPendingPage}
             />
@@ -332,7 +334,7 @@ export default function AdminDashboard() {
               onApprove={approveScribe} 
               onDelete={deleteScribe} 
               isLoading={isSellersLoading} 
-              orders={allOrders} 
+              orders={visibleOrders} 
               page={activePage}
               setPage={setActivePage}
             />
@@ -341,7 +343,7 @@ export default function AdminDashboard() {
           <TabsContent value="customers">
             <CustomerTable 
               customers={filteredCustomers} 
-              orders={allOrders}
+              orders={visibleOrders}
               onDelete={deleteCustomer}
               page={customersPage}
               setPage={setCustomersPage}

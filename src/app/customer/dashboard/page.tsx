@@ -156,7 +156,7 @@ export default function CustomerDashboard() {
           console.error(error);
           toast({ title: "שגיאה בטעינת ההזמנות", variant: "destructive" });
         } else {
-          setOrders(data);
+          setOrders((data || []).filter((order: any) => order.status !== 'pending_payment'));
         }
         setIsOrdersLoading(false);
       });

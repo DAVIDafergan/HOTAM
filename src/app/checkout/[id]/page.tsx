@@ -18,8 +18,8 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
-import { useUser, useSupabaseClient, useDoc, useMemoStable, updateDocumentNonBlocking, setDocumentNonBlocking } from '@/lib/supabase-hooks';
-import { doc, collection, serverTimestamp, increment } from '@/lib/supabase-compat';
+import { useUser, useSupabaseClient, useDoc, useMemoStable, setDocumentNonBlocking } from '@/lib/supabase-hooks';
+import { doc, serverTimestamp } from '@/lib/supabase-compat';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import unsplashLoader from '@/lib/unsplashLoader';
@@ -79,6 +79,26 @@ export default function CheckoutPage() {
     if (!product?.delivery_area) return [];
     return Array.isArray(product.delivery_area) ? product.delivery_area : [product.delivery_area];
   }, [product]);
+
+  const normalizedDeliveryType = useMemo(() => {
+    const raw = String(product?.delivery_type || '').toLowerCase();
+    if (raw === 'shipping' || raw === 'shipping_only') return 'shipping';
+    if (raw === 'pickup' || raw === 'pickup_only') return 'pickup';
+    return 'both';
+  }, [product?.delivery_type]);
+
+  const canShip = normalizedDeliveryType === 'shipping' || normalizedDeliveryType === 'both';
+  const canPickup = normalizedDeliveryType === 'pickup' || normalizedDeliveryType === 'both';
+
+  useEffect(() => {
+    if (!product) return;
+    setDeliveryChoice((prev) => {
+      if (!prev) return canShip ? 'shipping' : 'pickup';
+      if (prev === 'shipping' && !canShip) return canPickup ? 'pickup' : '';
+      if (prev === 'pickup' && !canPickup) return canShip ? 'shipping' : '';
+      return prev;
+    });
+  }, [product, canShip, canPickup]);
 
   const generateVerificationCode = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
@@ -141,7 +161,6 @@ export default function CheckoutPage() {
       const data = await response.json();
       
       if (data.paymentUrl || data.PaymentURL || data.url) {
-        updateDocumentNonBlocking(productRef!, { quantity: increment(-1) });
         window.location.href = data.paymentUrl || data.PaymentURL || data.url;
       } else {
         throw new Error(data.error || 'לא ניתן היה ליצור קישור לתשלום.');
@@ -194,7 +213,7 @@ export default function CheckoutPage() {
                         <span className="text-xs text-muted-foreground">עד הבית (+₪{product.delivery_fee || 0})</span>
                       </div>
                     </div>
-                    <RadioGroupItem value="shipping" id="delivery" />
+                    <RadioGroupItem value="shipping" id="delivery" disabled={!canShip} />
                   </Label>
                   <Label htmlFor="pickup" className={`flex items-center justify-between p-5 rounded-2xl border-2 cursor-pointer transition-all ${deliveryChoice === 'pickup' ? 'border-primary bg-primary/5' : 'border-slate-100'}`}>
                     <div className="flex items-center gap-4">
@@ -204,7 +223,7 @@ export default function CheckoutPage() {
                         <span className="text-xs text-muted-foreground">בתיאום מול הסופר (חינם)</span>
                       </div>
                     </div>
-                    <RadioGroupItem value="pickup" id="pickup" />
+                    <RadioGroupItem value="pickup" id="pickup" disabled={!canPickup} />
                   </Label>
                 </RadioGroup>
 
@@ -217,7 +236,7 @@ export default function CheckoutPage() {
                         <SelectContent>
                           {allowedCities.includes('כל הארץ') ? (
                              <SelectItem value="כל הארץ">כל הארץ</SelectItem>
-                          ) : allowedCities.map(city => (<SelectItem key={city} value={city}>{city}</SelectItem>))}
+                          ) : allowedCities.map((city: string) => (<SelectItem key={city} value={city}>{city}</SelectItem>))}
                         </SelectContent>
                       </Select>
                     </div>

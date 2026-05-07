@@ -440,7 +440,7 @@ function SellerDashboardContent() {
         return;
       }
       if (insertedProduct) {
-        setProductsData(prev => [insertedProduct, ...prev.filter(p => p.id !== insertedProduct.id)]);
+        setProductsData(prev => [insertedProduct, ...prev]);
       }
     }
     

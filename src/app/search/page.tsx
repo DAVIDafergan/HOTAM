@@ -58,6 +58,12 @@ type ShippingPreference = 'all' | 'shipping' | 'pickup';
 const ISRAEL_REGIONS = [
   "ירושלים והסביבה", "תל אביב וגוש דן", "חיפה והצפון", "באר שבע והדרום", "בני ברק והמרכז", "השרון", "יהודה ושומרון"
 ];
+const CITY_ALIASES: Record<string, string[]> = {
+  raanana: ['רעננה'],
+  'tel aviv': ['תל אביב', 'תל אביב-יפו'],
+  jerusalem: ['ירושלים'],
+  haifa: ['חיפה'],
+};
 
 function SearchContent() {
   const router = useRouter();
@@ -193,20 +199,13 @@ function SearchContent() {
           .trim()
           .toLowerCase();
 
-      const cityAliases: Record<string, string[]> = {
-        raanana: ['רעננה'],
-        'tel aviv': ['תל אביב', 'תל אביב-יפו'],
-        jerusalem: ['ירושלים'],
-        haifa: ['חיפה'],
-      };
-
       const normalizedDetectedCity = detectedCity ? normalizeCity(detectedCity) : '';
       const cityCandidates = normalizedDetectedCity
         ? Array.from(
             new Set([
               normalizedDetectedCity,
               normalizedDetectedCity.replace(/^ה/, '').replace(/^עיר\s+/, '').trim(),
-              ...(cityAliases[normalizedDetectedCity] || []).map(normalizeCity),
+              ...(CITY_ALIASES[normalizedDetectedCity] || []).map(normalizeCity),
             ].filter(Boolean))
           )
         : [];
@@ -235,7 +234,7 @@ function SearchContent() {
             ? 'shipping'
             : p.delivery_type === 'both'
               ? 'both'
-              : 'shipping';
+              : 'both';
       const matchShipping =
         shippingPreference === 'all' ||
         (shippingPreference === 'shipping' && (productDeliveryType === 'shipping' || productDeliveryType === 'both')) ||

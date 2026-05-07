@@ -58,11 +58,17 @@ type ShippingPreference = 'all' | 'shipping' | 'pickup';
 const ISRAEL_REGIONS = [
   "ירושלים והסביבה", "תל אביב וגוש דן", "חיפה והצפון", "באר שבע והדרום", "בני ברק והמרכז", "השרון", "יהודה ושומרון"
 ];
+const HEBREW_ARTICLE_PREFIX = /^ה/;
+const HEBREW_CITY_PREFIX = /^עיר\s+/;
 const CITY_ALIASES: Record<string, string[]> = {
   raanana: ['רעננה'],
+  רעננה: ['raanana'],
   'tel aviv': ['תל אביב', 'תל אביב-יפו'],
+  'תל אביב': ['tel aviv', 'תל אביב-יפו'],
   jerusalem: ['ירושלים'],
+  ירושלים: ['jerusalem'],
   haifa: ['חיפה'],
+  חיפה: ['haifa'],
 };
 const normalizeCity = (value: string) =>
   value
@@ -173,6 +179,9 @@ function SearchContent() {
         
         try {
           const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1&accept-language=he`);
+          if (!response.ok) {
+            throw new Error(`Location lookup failed (${response.status})`);
+          }
           const data = await response.json();
           const city = data.address.city || data.address.town || data.address.village || data.address.suburb || "עיר לא ידועה";
           setDetectedCity(city);
@@ -203,7 +212,7 @@ function SearchContent() {
         ? Array.from(
             new Set([
               normalizedDetectedCity,
-              normalizedDetectedCity.replace(/^ה/, '').replace(/^עיר\s+/, '').trim(),
+              normalizedDetectedCity.replace(HEBREW_ARTICLE_PREFIX, '').replace(HEBREW_CITY_PREFIX, '').trim(),
               ...(CITY_ALIASES[normalizedDetectedCity] || []).map(normalizeCity),
             ].filter(Boolean))
           )

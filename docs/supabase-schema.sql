@@ -176,6 +176,7 @@ CREATE TABLE IF NOT EXISTS public.chats (
   last_violation_at   TIMESTAMPTZ,
   last_violation_text TEXT,
   unread_state        JSONB       NOT NULL DEFAULT '{}',
+  last_email_notif_at TIMESTAMPTZ,
   created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at         TIMESTAMPTZ
 );
@@ -191,7 +192,8 @@ CREATE TABLE IF NOT EXISTS public.messages (
   amount            NUMERIC(10,2),
   product_name     TEXT,
   product_image    TEXT,
-  product_id       TEXT
+  product_id       TEXT,
+  is_read          BOOLEAN     NOT NULL DEFAULT FALSE
 );
 
 -- ── reviews ───────────────────────────────────────────────────────────────────
@@ -308,6 +310,16 @@ CREATE POLICY "chats_admin_all"          ON public.chats FOR ALL USING (public.i
 CREATE POLICY "Allow public read"           ON public.messages FOR SELECT USING (true);
 CREATE POLICY "messages_participant_insert" ON public.messages FOR INSERT
   WITH CHECK (auth.uid()::TEXT = sender_id);
+-- Allow the recipient (a chat participant who is not the sender) to mark is_read = true
+CREATE POLICY "messages_recipient_update_read" ON public.messages FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.chats
+      WHERE chats.id = messages.chat_id
+        AND auth.uid()::TEXT = ANY(chats.participants)
+        AND auth.uid()::TEXT != messages.sender_id
+    )
+  );
 CREATE POLICY "messages_admin_all"          ON public.messages FOR ALL USING (public.is_admin());
 
 -- ── reviews policies ──────────────────────────────────────────────────────────

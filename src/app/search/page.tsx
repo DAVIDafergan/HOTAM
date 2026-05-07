@@ -60,16 +60,14 @@ const ISRAEL_REGIONS = [
 ];
 const HEBREW_ARTICLE_PREFIX = /^ה/;
 const HEBREW_CITY_PREFIX = /^עיר\s+/;
-const CITY_ALIASES: Record<string, string[]> = {
-  raanana: ['רעננה'],
-  רעננה: ['raanana'],
-  'tel aviv': ['תל אביב', 'תל אביב-יפו'],
-  'תל אביב': ['tel aviv', 'תל אביב-יפו'],
-  jerusalem: ['ירושלים'],
-  ירושלים: ['jerusalem'],
-  haifa: ['חיפה'],
-  חיפה: ['haifa'],
-};
+const CITY_MATCH_SEPARATORS = [' ', '-'];
+const CITY_ALIAS_PAIRS = [
+  ['raanana', 'רעננה'],
+  ['tel aviv', 'תל אביב'],
+  ['tel aviv', 'תל אביב-יפו'],
+  ['jerusalem', 'ירושלים'],
+  ['haifa', 'חיפה'],
+] as const;
 const normalizeCity = (value: string) =>
   value
     .normalize('NFKD')
@@ -78,6 +76,13 @@ const normalizeCity = (value: string) =>
     .replace(/\s+/g, ' ')
     .trim()
     .toLowerCase();
+const CITY_ALIASES: Record<string, string[]> = CITY_ALIAS_PAIRS.reduce((acc, [a, b]) => {
+  const left = normalizeCity(a);
+  const right = normalizeCity(b);
+  acc[left] = Array.from(new Set([...(acc[left] || []), right]));
+  acc[right] = Array.from(new Set([...(acc[right] || []), left]));
+  return acc;
+}, {} as Record<string, string[]>);
 
 function SearchContent() {
   const router = useRouter();
@@ -187,9 +192,13 @@ function SearchContent() {
           setDetectedCity(city);
           setIsDetecting(false);
           toast({ title: "המיקום זוהה", description: `זוהית ב: ${city}` });
-        } catch (error) {
+        } catch (error: any) {
           setIsDetecting(false);
-          toast({ title: "מיקום זוהה" });
+          toast({
+            variant: "destructive",
+            title: "לא הצלחנו לזהות מיקום",
+            description: error?.message || "בדוק הרשאות מיקום וחיבור אינטרנט ונסה שוב.",
+          });
         }
       },
       () => { setIsDetecting(false); }
@@ -233,7 +242,7 @@ function SearchContent() {
         normalizedAreaValues.includes(normalizeCity('כל הארץ')) ||
         cityCandidates.some((candidate) =>
           normalizedAreaValues.some((area: string) =>
-            area === candidate || area.startsWith(`${candidate} `) || area.startsWith(`${candidate}-`)
+            area === candidate || CITY_MATCH_SEPARATORS.some((separator) => area.startsWith(`${candidate}${separator}`))
           )
         );
 

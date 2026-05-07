@@ -49,7 +49,11 @@ export async function markOrderAsPaidAndNotify(orderId: string, paymentProvider:
       .single();
 
     if (!productFetchError && product) {
-      const nextQuantity = Math.max(0, Number(product.quantity || 0) - 1);
+      const currentQuantity = Number(product.quantity || 0);
+      if (currentQuantity <= 0) {
+        console.warn(`Product ${order.product_id} quantity is already ${currentQuantity} while processing paid order ${orderId}`);
+      }
+      const nextQuantity = Math.max(0, currentQuantity - 1);
       const { error: productUpdateError } = await supabase
         .from('products')
         .update({ quantity: nextQuantity })

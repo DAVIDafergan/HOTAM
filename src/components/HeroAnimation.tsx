@@ -208,6 +208,7 @@ export function HeroAnimation() {
     return ['all'];
   };
   const hasSubTypes = getSubTypesForProduct(selectedProduct).length > 0;
+  const finalSearchButtonClass = "w-full max-w-3xl bg-accent text-primary hover:bg-accent/90 rounded-full px-12 md:px-20 h-16 font-black text-base md:text-lg uppercase tracking-[0.16em] md:tracking-[0.2em] shadow-2xl gap-4 hover:scale-[1.02] focus:ring-4 focus:ring-accent/30 transition-all duration-300 group active:scale-95";
 
   const handleFinalSearch = () => {
     const params = new URLSearchParams();
@@ -542,7 +543,7 @@ export function HeroAnimation() {
                   </div>
 
                   <div className="flex justify-center pt-8">
-                    <Button onClick={handleFinalSearch} className="w-full max-w-3xl bg-accent text-primary hover:bg-accent/90 rounded-full px-12 md:px-20 h-16 font-black text-base md:text-lg uppercase tracking-[0.16em] md:tracking-[0.2em] shadow-2xl gap-4 hover:scale-[1.02] focus:ring-4 focus:ring-accent/30 transition-all duration-300 group active:scale-95">
+                    <Button onClick={handleFinalSearch} className={finalSearchButtonClass}>
                       <Search className="w-6 h-6 group-hover:rotate-12 transition-transform" /> הצג כלי קודש מתאימים
                     </Button>
                   </div>

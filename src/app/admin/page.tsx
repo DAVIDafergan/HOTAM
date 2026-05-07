@@ -224,7 +224,7 @@ export default function AdminDashboard() {
     setActiveTab('active');
     setSearchTerm('');
     setActivePage(1);
-    toast({ title: "הסופר עודכן לסטטוס פעיל ומאומת" });
+    toast({ title: "הסופר הועבר לסופרים הפעילים והמאומתים" });
   };
 
   const deleteScribe = (id: string) => {

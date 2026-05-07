@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { verifySumitPayment } from '../sumit';
 import { markOrderAsPaidAndNotify } from '../process-order-payment';
 
+const PAYMENT_PROVIDER = 'sumit';
+
 async function readWebhookPayload(req: Request) {
   const url = new URL(req.url);
   let body: any = {};
@@ -59,7 +61,7 @@ async function handleWebhook(req: Request) {
       return NextResponse.json({ message: 'Payment not verified as successful', verification: verification.data }, { status: 400 });
     }
 
-    const result = await markOrderAsPaidAndNotify(payload.orderId, 'sumit');
+    const result = await markOrderAsPaidAndNotify(payload.orderId, PAYMENT_PROVIDER);
     return NextResponse.json({ message: 'OK', verified: true, alreadyProcessed: result.alreadyProcessed });
   } catch (error: any) {
     console.error('SUMIT webhook error:', error);

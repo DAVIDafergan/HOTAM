@@ -69,8 +69,8 @@ export async function startSumitSession(input: StartSessionInput) {
     Description: input.productName,
     RedirectURL: redirectURL,
     WebhookURL: webhookURL,
-    ClientName: input.buyerName || 'לקוח חותם',
-    ClientEmail: input.buyerEmail || 'customer@hotam.co.il',
+    ClientName: input.buyerName || '',
+    ClientEmail: input.buyerEmail || '',
     ClientPhone: input.buyerPhone || '',
     Items: [
       {

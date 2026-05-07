@@ -92,17 +92,13 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (!product) return;
-    if (!deliveryChoice) {
-      setDeliveryChoice(canShip ? 'shipping' : 'pickup');
-      return;
-    }
-    if (deliveryChoice === 'shipping' && !canShip) {
-      setDeliveryChoice(canPickup ? 'pickup' : '');
-    }
-    if (deliveryChoice === 'pickup' && !canPickup) {
-      setDeliveryChoice(canShip ? 'shipping' : '');
-    }
-  }, [product, canShip, canPickup, deliveryChoice]);
+    setDeliveryChoice((prev) => {
+      if (!prev) return canShip ? 'shipping' : 'pickup';
+      if (prev === 'shipping' && !canShip) return canPickup ? 'pickup' : '';
+      if (prev === 'pickup' && !canPickup) return canShip ? 'shipping' : '';
+      return prev;
+    });
+  }, [product, canShip, canPickup]);
 
   const generateVerificationCode = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();

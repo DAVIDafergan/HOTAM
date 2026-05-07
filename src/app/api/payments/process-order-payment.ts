@@ -20,10 +20,6 @@ export async function markOrderAsPaidAndNotify(orderId: string, paymentProvider:
     throw new Error(`Order ${orderId} not found`);
   }
 
-  if (order.status === 'paid' || order.status === 'completed') {
-    return { alreadyProcessed: true };
-  }
-
   if (order.status !== 'pending_payment') {
     return { alreadyProcessed: true };
   }

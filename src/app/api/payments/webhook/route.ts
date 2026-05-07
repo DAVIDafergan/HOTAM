@@ -59,7 +59,10 @@ async function handleWebhook(req: Request) {
     });
 
     if (!verification.success) {
-      return NextResponse.json({ message: 'Payment not verified as successful', verification: verification.data }, { status: 400 });
+      return NextResponse.json(
+        { message: verification.message || 'Payment verification failed', verification: verification.data },
+        { status: 400 }
+      );
     }
 
     const result = await markOrderAsPaidAndNotify(payload.orderId, PAYMENT_PROVIDER);

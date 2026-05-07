@@ -130,7 +130,7 @@ export default function CheckoutPage() {
         body: JSON.stringify({
           orderId: shortId,
           amount: totalPrice,
-          productName: product.product_type || 'מוצר קודש',
+          productName: product.product_name || product.product_type || 'מוצר קודש',
           currency: 'ILS',
           buyerName: recipientName,
           buyerEmail: user?.email,

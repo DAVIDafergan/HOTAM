@@ -431,12 +431,16 @@ function SellerDashboardContent() {
 
     if (editingProduct) {
       updateDocumentNonBlocking(doc(db, 'products', editingProduct.id), data);
+      setProductsData(prev => prev.map(p => p.id === editingProduct.id ? { ...p, ...data } : p));
     } else {
-      const { error } = await supabase.from('products').insert([data]);
+      const { data: insertedProduct, error } = await supabase.from('products').insert([data]).select('*').single();
       if (error) {
         console.error("Supabase insert error:", error);
         toast({ variant: "destructive", title: "שגיאה בהוספת המוצר", description: error.message });
         return;
+      }
+      if (insertedProduct) {
+        setProductsData(prev => [insertedProduct, ...prev.filter(p => p.id !== insertedProduct.id)]);
       }
     }
     

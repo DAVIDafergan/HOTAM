@@ -53,6 +53,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { TorahExpertBanner } from '@/components/TorahExpertBanner';
 
 type ProductType = 'מזוזה' | 'תפילין' | 'מגילה' | 'ספר תורה' | 'מוצרי יודאיקה שונים' | '';
+type ShippingPreference = 'all' | 'shipping' | 'pickup';
 
 const ISRAEL_REGIONS = [
   "ירושלים והסביבה", "תל אביב וגוש דן", "חיפה והצפון", "באר שבע והדרום", "בני ברק והמרכז", "השרון", "יהודה ושומרון"
@@ -64,7 +65,7 @@ function SearchContent() {
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [step, setStep] = useState(1);
-  const [shippingOnly, setShippingOnly] = useState(false);
+  const [shippingPreference, setShippingPreference] = useState<ShippingPreference>('all');
   const [sortOrder, setSortOrder] = useState('newest');
   const searchParams = useSearchParams();
   const db = useSupabaseClient();
@@ -157,7 +158,7 @@ function SearchContent() {
         setUserCoords({ lat: latitude, lng: longitude });
         
         try {
-          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`);
+          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1&accept-language=he`);
           const data = await response.json();
           const city = data.address.city || data.address.town || data.address.village || data.address.suburb || "עיר לא ידועה";
           setDetectedCity(city);
@@ -183,12 +184,62 @@ function SearchContent() {
       const matchQty = p.quantity >= quantity;
       const matchSize = scrollSize === 'all' || p.parchment_size === scrollSize;
       
-      const deliversToCity = !detectedCity || 
-                            (p.delivery_area && (p.delivery_area === 'כל הארץ' || 
-                             (Array.isArray(p.delivery_area) && p.delivery_area.includes(detectedCity)) ||
-                             p.delivery_area === detectedCity));
+      const normalizeCity = (value: string) =>
+        value
+          .normalize('NFKD')
+          .replace(/[\u0591-\u05C7]/g, '')
+          .replace(/[^\p{L}\p{N}\s-]/gu, '')
+          .replace(/\s+/g, ' ')
+          .trim()
+          .toLowerCase();
 
-      const matchShipping = !shippingOnly || (p.delivery_type !== 'pickup_only');
+      const cityAliases: Record<string, string[]> = {
+        raanana: ['רעננה'],
+        'tel aviv': ['תל אביב', 'תל אביב-יפו'],
+        jerusalem: ['ירושלים'],
+        haifa: ['חיפה'],
+      };
+
+      const normalizedDetectedCity = detectedCity ? normalizeCity(detectedCity) : '';
+      const cityCandidates = normalizedDetectedCity
+        ? Array.from(
+            new Set([
+              normalizedDetectedCity,
+              normalizedDetectedCity.replace(/^ה/, '').replace(/^עיר\s+/, '').trim(),
+              ...(cityAliases[normalizedDetectedCity] || []).map(normalizeCity),
+            ].filter(Boolean))
+          )
+        : [];
+
+      const deliveryAreaValues = Array.isArray(p.delivery_area)
+        ? p.delivery_area
+        : p.delivery_area
+          ? [p.delivery_area]
+          : [];
+      const normalizedAreaValues = deliveryAreaValues
+        .flatMap((area: string) => area.split(','))
+        .map(normalizeCity)
+        .filter(Boolean);
+
+      const deliversToCity =
+        !detectedCity ||
+        normalizedAreaValues.includes(normalizeCity('כל הארץ')) ||
+        cityCandidates.some((candidate) =>
+          normalizedAreaValues.some((area: string) => area.includes(candidate) || candidate.includes(area))
+        );
+
+      const productDeliveryType =
+        p.delivery_type === 'pickup_only' || p.delivery_type === 'pickup'
+          ? 'pickup'
+          : p.delivery_type === 'shipping_only' || p.delivery_type === 'shipping'
+            ? 'shipping'
+            : p.delivery_type === 'both'
+              ? 'both'
+              : 'shipping';
+      const matchShipping =
+        shippingPreference === 'all' ||
+        (shippingPreference === 'shipping' && (productDeliveryType === 'shipping' || productDeliveryType === 'both')) ||
+        (shippingPreference === 'pickup' && (productDeliveryType === 'pickup' || productDeliveryType === 'both'));
       
       const seller = allSellers?.find(s => s.id === p.seller_id);
       const matchRegion = selectedRegion === 'all' || (seller && (seller.address || '').includes(selectedRegion.split(' ')[0]));
@@ -212,13 +263,13 @@ function SearchContent() {
     }
 
     return results;
-  }, [allProducts, allSellers, allReviews, selectedProduct, subType, scriptType, qualityLevel, quantity, shippingOnly, sortOrder, scrollSize, selectedRegion, certStatus, studyFreq, marriedOnly, mikvehFreq, detectedCity]);
+  }, [allProducts, allSellers, allReviews, selectedProduct, subType, scriptType, qualityLevel, quantity, shippingPreference, sortOrder, scrollSize, selectedRegion, certStatus, studyFreq, marriedOnly, mikvehFreq, detectedCity]);
 
   const resetFilters = () => {
     setSelectedProduct(''); setSubType('all'); setScriptType('all'); setQualityLevel('all');
     setQuantity(1); setScrollSize('all'); setSelectedRegion('all'); setUserCoords(null); setDetectedCity(null);
     setMarriedOnly(false); setMikvehFreq('all'); setCertStatus('all'); setStudyFreq('all');
-    setShippingOnly(false); setSortOrder('newest');
+    setShippingPreference('all'); setSortOrder('newest');
     setShowResults(isViewingAll); setStep(1);
   };
 
@@ -297,6 +348,14 @@ function SearchContent() {
                     {ISRAEL_REGIONS.map(r => <SelectItem key={r} value={r} className="font-bold py-2 rounded-lg">{r}</SelectItem>)}
                   </SelectContent>
                 </Select>
+                <div className="pt-2 space-y-2">
+                  <Label className="text-[9px] font-black text-primary/30">אופן קבלת המוצר</Label>
+                  <RadioGroup value={shippingPreference} onValueChange={(v) => setShippingPreference(v as ShippingPreference)} className="grid gap-1.5">
+                    <CustomFilterTile value="all" label="משלוח + איסוף עצמי" active={shippingPreference === 'all'} />
+                    <CustomFilterTile value="shipping" label="משלוח בלבד" active={shippingPreference === 'shipping'} />
+                    <CustomFilterTile value="pickup" label="איסוף עצמי בלבד" active={shippingPreference === 'pickup'} />
+                  </RadioGroup>
+                </div>
               </div>
             </FilterSection>
 
@@ -413,7 +472,7 @@ function SearchContent() {
                     <Button onClick={() => setIsWizardOpen(true)} className="rounded-xl md:rounded-2xl h-10 md:h-14 px-4 md:px-8 text-[10px] md:text-xs font-black uppercase tracking-widest border-2 border-primary/5 bg-white text-primary hover:bg-primary hover:text-white active:scale-95 transition-all duration-200 shadow-sm group">
                       <SlidersHorizontal className="w-4 h-4 md:w-5 md:h-5 ml-2 md:ml-3 text-accent group-hover:text-white transition-colors" /> סינון מותאם
                     </Button>
-                    <Button variant={shippingOnly ? "default" : "outline"} onClick={() => setShippingOnly(!shippingOnly)} className={cn("rounded-xl md:rounded-2xl h-10 md:h-14 px-4 md:px-8 text-[10px] md:text-xs font-black uppercase tracking-widest shrink-0 shadow-sm transition-all duration-200 active:scale-95", shippingOnly ? 'bg-primary text-white border-none' : 'bg-white border-2 border-primary/5 text-primary/60 hover:border-primary/15 hover:text-primary/80')}>
+                    <Button variant={shippingPreference === "shipping" ? "default" : "outline"} onClick={() => setShippingPreference(prev => prev === 'shipping' ? 'all' : 'shipping')} className={cn("rounded-xl md:rounded-2xl h-10 md:h-14 px-4 md:px-8 text-[10px] md:text-xs font-black uppercase tracking-widest shrink-0 shadow-sm transition-all duration-200 active:scale-95", shippingPreference === 'shipping' ? 'bg-primary text-white border-none' : 'bg-white border-2 border-primary/5 text-primary/60 hover:border-primary/15 hover:text-primary/80')}>
                       <Truck className="w-4 h-4 md:w-5 md:h-5 ml-2 md:ml-3" /> משלוח
                     </Button>
                     

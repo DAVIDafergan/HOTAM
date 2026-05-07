@@ -25,7 +25,15 @@ export async function POST(req: Request) {
     const uid = user.id;
     const role = user.user_metadata?.role as string | undefined;
 
-    // Delete all products uploaded by the seller
+    let body: { reason?: string } = {};
+    try { body = await req.json(); } catch {}
+    if (body.reason) {
+      console.info(`[delete-account] uid=${uid} role=${role} reason="${body.reason}"`);
+    }
+
+    // Delete all products uploaded by the seller.
+    // Even if this fails we still proceed to delete the auth user so the account
+    // is fully removed; any orphaned rows can be cleaned up by a DB admin.
     if (role === 'seller') {
       const { error: productsError } = await serviceClient
         .from('products')
@@ -35,9 +43,15 @@ export async function POST(req: Request) {
         console.error('[delete-account] products delete error:', productsError);
       }
 
-      await serviceClient.from('sellers').delete().eq('id', uid);
+      const { error: sellerError } = await serviceClient.from('sellers').delete().eq('id', uid);
+      if (sellerError) {
+        console.error('[delete-account] sellers row delete error:', sellerError);
+      }
     } else {
-      await serviceClient.from('customers').delete().eq('id', uid);
+      const { error: customerError } = await serviceClient.from('customers').delete().eq('id', uid);
+      if (customerError) {
+        console.error('[delete-account] customers row delete error:', customerError);
+      }
     }
 
     // Finally, delete the auth user (this cascades via DB trigger if set up)

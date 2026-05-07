@@ -211,7 +211,8 @@ export default function CustomerDashboard() {
       if (!token) throw new Error('No session');
       const res = await fetch('/api/delete-account', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: deleteReason }),
       });
       if (!res.ok) throw new Error('Delete failed');
       try { await supabase.auth.signOut({ scope: 'local' }); } catch {}

@@ -20,6 +20,7 @@ import { supabase } from '@/lib/supabase';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 interface Message {
   id: string;
@@ -477,7 +478,16 @@ function ChatContent() {
                             <p className="text-xl font-black leading-none">₪{msg.amount}</p>
                           </div>
                         </div>
-                        <Button variant="outline" asChild className="w-full h-9 rounded-xl bg-white/10 border-white/20 text-white hover:bg-white/20 text-[10px] font-black">
+                        <Button
+                          variant="outline"
+                          asChild
+                          className={cn(
+                            "w-full h-9 rounded-xl text-[10px] font-black",
+                            isMine
+                              ? "bg-white/10 border-white/20 text-white hover:bg-white/20"
+                              : "bg-primary/5 border-primary/20 text-primary hover:bg-primary/10"
+                          )}
+                        >
                           <Link href={`/checkout/${msg.product_id}`}>מעבר לתשלום מאובטח</Link>
                         </Button>
                       </div>

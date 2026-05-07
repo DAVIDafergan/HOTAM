@@ -235,6 +235,7 @@ export default function CustomerDashboard() {
       product_id: ratingOrderId.product_id,
       buyer_id: user.uid,
       buyer_name: `${customer?.first_name || 'לקוח'} ${customer?.last_name || 'חותם'}`,
+      is_anonymous: false,
       rating: scribeRatingVal,
       product_rating: productRatingVal,
       comment: ratingComment,

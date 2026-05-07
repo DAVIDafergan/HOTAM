@@ -132,7 +132,13 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
 
   // ── Auth proxy ─────────────────────────────────────────────────────────────
   const auth: AuthProxy = useMemo(() => ({
-    signOut: () => client.auth.signOut().then(() => undefined),
+    signOut: async () => {
+      try {
+        await client.auth.signOut({ scope: 'local' });
+      } catch (err) {
+        console.warn('[auth] signOut error (ignored):', err);
+      }
+    },
     _client: client,
   }), [client]);
 

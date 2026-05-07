@@ -11,7 +11,8 @@ async function readWebhookPayload(req: Request) {
   if (req.method === 'POST') {
     try {
       body = await req.json();
-    } catch {
+    } catch (error) {
+      console.error('Failed to parse SUMIT webhook JSON payload:', error);
       body = {};
     }
   }

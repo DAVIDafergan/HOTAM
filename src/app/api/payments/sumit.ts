@@ -155,9 +155,9 @@ export async function verifySumitPayment(input: VerifySessionInput) {
     data?.Data?.PaymentStatus,
   ];
 
-  const boolSuccess = [data?.Success, data?.IsSuccess, data?.Data?.Success, data?.Data?.IsSuccess].some((value) => value === true);
+  const hasSuccessFlag = [data?.Success, data?.IsSuccess, data?.Data?.Success, data?.Data?.IsSuccess].some((value) => value === true);
   const statusSuccess = statuses.some((status) => isSuccessStatus(status));
-  const success = boolSuccess || statusSuccess;
+  const success = hasSuccessFlag || statusSuccess;
 
   return {
     success,

@@ -221,7 +221,10 @@ export default function AdminDashboard() {
 
   const approveScribe = (id: string) => {
     updateDocumentNonBlocking(doc(db, 'sellers', id), { is_approved: true });
-    toast({ title: "הסופר אושר בהצלחה" });
+    setActiveTab('active');
+    setSearchTerm('');
+    setActivePage(1);
+    toast({ title: "הסופר עודכן לסטטוס פעיל ומאומת" });
   };
 
   const deleteScribe = (id: string) => {
@@ -295,7 +298,7 @@ export default function AdminDashboard() {
               <Clock className="w-4 h-4" /> ממתינים לאישור
             </TabsTrigger>
             <TabsTrigger value="active" className="px-8 rounded-[1.5rem] data-[state=active]:bg-primary data-[state=active]:text-white font-black text-[10px] uppercase tracking-widest gap-2">
-              <CheckCircle2 className="w-4 h-4" /> סופרים פעילים
+              <CheckCircle2 className="w-4 h-4" /> סופרים פעילים ומאומתים
             </TabsTrigger>
             <TabsTrigger value="customers" className="px-8 rounded-[1.5rem] data-[state=active]:bg-primary data-[state=active]:text-white font-black text-[10px] uppercase tracking-widest gap-2">
               <UserRound className="w-4 h-4" /> לקוחות
@@ -475,7 +478,7 @@ function ScribeTable({ scribes, onApprove, onDelete, isLoading, orders, page, se
                       {!scribe.is_approved ? (
                         <Button onClick={() => onApprove(scribe.id)} className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-full px-5 h-8 text-[9px] font-black uppercase tracking-widest">אשר סופר</Button>
                       ) : (
-                        <Badge className="bg-emerald-50 text-emerald-700 border-none px-4 py-1 text-[8px] font-black uppercase tracking-widest">מאושר</Badge>
+                        <Badge className="bg-emerald-50 text-emerald-700 border-none px-4 py-1 text-[8px] font-black uppercase tracking-widest">סופר פעיל ומאומת</Badge>
                       )}
                       <Button variant="ghost" size="icon" onClick={() => onDelete(scribe.id)} className="h-8 w-8 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive"><Trash2 className="w-3.5 h-3.5" /></Button>
                     </div>
@@ -949,4 +952,3 @@ function Pagination({ current, total, onChange }: any) {
     </div>
   );
 }
-

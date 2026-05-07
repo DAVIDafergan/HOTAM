@@ -42,9 +42,8 @@ const steps = [
       icon: (
         <div className="relative">
           <motion.div
-            initial={{ rotate: -10 }}
-            animate={{ rotate: 10 }}
-            transition={{ repeat: Infinity, duration: 2, repeatType: "reverse" }}
+            animate={{ rotate: [-6, 6, -6], y: [0, -3, 0] }}
+            transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
           >
             <PenTool className="w-12 h-12 text-accent" />
           </motion.div>
@@ -61,8 +60,8 @@ const steps = [
       icon: (
         <div className="relative">
           <motion.div
-            animate={{ x: [0, 5, -5, 0], y: [0, -5, 5, 0] }}
-            transition={{ repeat: Infinity, duration: 4 }}
+            animate={{ x: [0, 4, -4, 0], y: [0, -2, 2, 0], scale: [1, 1.04, 1] }}
+            transition={{ repeat: Infinity, duration: 4.5, ease: "easeInOut" }}
           >
             <Search className="w-12 h-12 text-accent" />
           </motion.div>
@@ -142,6 +141,7 @@ export function WorkFlow() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.2 }}
+                whileHover={{ y: -8 }}
                 className="flex flex-col items-center md:items-center text-center md:text-center space-y-6 relative"
               >
                 {/* Icon Container */}

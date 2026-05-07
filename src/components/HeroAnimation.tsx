@@ -207,6 +207,7 @@ export function HeroAnimation() {
     }
     return ['all'];
   };
+  const hasSubTypes = getSubTypesForProduct(selectedProduct).length > 0;
 
   const handleFinalSearch = () => {
     const params = new URLSearchParams();
@@ -354,7 +355,7 @@ export function HeroAnimation() {
               )}
 
               {step === 2 && (
-                <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6 text-right">
+                <motion.div key="step2" initial={{ opacity: 0, x: 28 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ type: "spring", stiffness: 220, damping: 22 }} className="space-y-6 text-right">
                   <div className="flex justify-between items-center border-b border-primary/5 pb-4">
                     <Button variant="ghost" onClick={() => setStep(1)} className="font-black text-[11px] uppercase tracking-widest h-10 px-4 rounded-xl hover:bg-primary/5 gap-1"><ChevronRight className="w-4 h-4" /> חזור</Button>
                     <div className="text-right">
@@ -363,9 +364,9 @@ export function HeroAnimation() {
                     </div>
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-8 pt-4">
-                    {getSubTypesForProduct(selectedProduct).length > 0 && (
-                      <div className="space-y-4">
+                  <div className={cn("grid gap-6 pt-4", hasSubTypes ? "md:grid-cols-2" : "grid-cols-1 max-w-3xl mx-auto")}>
+                    {hasSubTypes && (
+                      <div className="space-y-4 rounded-3xl bg-white/60 border border-primary/5 p-5 shadow-sm">
                         <Label className="font-black text-[10px] uppercase text-primary/40 mr-1 tracking-widest">תת-סוג המוצר</Label>
                         <RadioGroup value={subType} onValueChange={setSubType} className="grid grid-cols-2 gap-3">
                           {selectedProduct !== 'מזוזה' && <CustomTile value="all" label="כל הסוגים" active={subType === 'all'} />}
@@ -374,9 +375,9 @@ export function HeroAnimation() {
                       </div>
                     )}
 
-                    <div className="space-y-4">
+                    <div className="space-y-4 rounded-3xl bg-white/60 border border-primary/5 p-5 shadow-sm">
                       <Label className="font-black text-[10px] uppercase text-primary/40 mr-1 tracking-widest">סוג הכתב (מסורת)</Label>
-                      <RadioGroup value={scriptType} onValueChange={setScriptType} className="grid grid-cols-1 gap-2">
+                      <RadioGroup value={scriptType} onValueChange={setScriptType} className={cn("grid gap-2", hasSubTypes ? "grid-cols-1" : "sm:grid-cols-2")}>
                         {[
                           {v: 'all', l: 'כל המסורות'},
                           {v: 'ספרדי', l: 'ספרדי (עדות המזרח)'},
@@ -399,7 +400,7 @@ export function HeroAnimation() {
               )}
 
               {step === 3 && (
-                <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6 text-right">
+                <motion.div key="step3" initial={{ opacity: 0, x: 28 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ type: "spring", stiffness: 220, damping: 22 }} className="space-y-6 text-right">
                   <div className="flex justify-between items-center border-b border-primary/5 pb-4">
                     <Button variant="ghost" onClick={() => setStep(2)} className="font-black text-[11px] uppercase tracking-widest h-10 px-4 rounded-xl hover:bg-primary/5 gap-1"><ChevronRight className="w-4 h-4" /> חזור</Button>
                     <div className="text-right">
@@ -408,8 +409,8 @@ export function HeroAnimation() {
                     </div>
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-10 pt-4">
-                    <div className="space-y-6">
+                  <div className="grid lg:grid-cols-2 gap-6 pt-4">
+                    <div className="space-y-6 rounded-3xl bg-white/60 border border-primary/5 p-5 shadow-sm">
                       <div className="space-y-4">
                         <Label className="font-black text-[10px] uppercase text-primary/40 mr-1 tracking-widest">רמת הידור מבוקשת</Label>
                         <RadioGroup value={qualityLevel} onValueChange={setQualityLevel} className="grid grid-cols-2 gap-3">
@@ -437,7 +438,7 @@ export function HeroAnimation() {
                       </div>
                     </div>
 
-                    <div className="space-y-6">
+                    <div className="space-y-6 rounded-3xl bg-white/60 border border-primary/5 p-5 shadow-sm">
                       {selectedProduct === 'מגילה' ? (
                         <div className="space-y-6">
                           <div className="space-y-4">
@@ -540,8 +541,8 @@ export function HeroAnimation() {
                     </div>
                   </div>
 
-                  <div className="flex justify-center pt-10">
-                    <Button onClick={handleFinalSearch} className="w-full bg-accent text-primary hover:bg-accent/90 rounded-full px-20 h-16 font-black text-lg uppercase tracking-[0.2em] shadow-2xl gap-4 hover:scale-105 focus:ring-4 focus:ring-accent/30 transition-all duration-300 group active:scale-95">
+                  <div className="flex justify-center pt-8">
+                    <Button onClick={handleFinalSearch} className="w-full max-w-3xl bg-accent text-primary hover:bg-accent/90 rounded-full px-12 md:px-20 h-16 font-black text-base md:text-lg uppercase tracking-[0.16em] md:tracking-[0.2em] shadow-2xl gap-4 hover:scale-[1.02] focus:ring-4 focus:ring-accent/30 transition-all duration-300 group active:scale-95">
                       <Search className="w-6 h-6 group-hover:rotate-12 transition-transform" /> הצג כלי קודש מתאימים
                     </Button>
                   </div>

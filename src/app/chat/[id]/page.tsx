@@ -32,6 +32,7 @@ interface Message {
   product_name?: string;
   product_image?: string;
   product_id?: string;
+  is_read?: boolean;
 }
 
 function ChatContent() {
@@ -60,6 +61,8 @@ function ChatContent() {
   const [otherSellerData, setOtherSellerData] = useState<any>(null);
   const [sellerProducts, setSellerProducts] = useState<any[]>([]);
   const [myProfile, setMyProfile] = useState<any>(null);
+  // Presence: true when the other user is actively viewing this chat
+  const [isOtherUserPresent, setIsOtherUserPresent] = useState(false);
 
   // שומר על משתמשים לא מחוברים בחוץ
   useEffect(() => {
@@ -96,7 +99,24 @@ function ChatContent() {
         .eq('chat_id', chatId)
         .order('timestamp', { ascending: true });
       
-      if (msgs) setMessages(msgs);
+      if (msgs) {
+        setMessages(msgs);
+        // Mark unread messages from the other user as read
+        const unreadIds = msgs
+          .filter(m => m.sender_id === otherUserId && m.is_read === false)
+          .map(m => m.id);
+        if (unreadIds.length > 0) {
+          const unreadSet = new Set(unreadIds);
+          supabase.from('messages')
+            .update({ is_read: true })
+            .in('id', unreadIds)
+            .then(({ error }) => {
+              if (!error) {
+                setMessages(prev => prev.map(m => unreadSet.has(m.id) ? { ...m, is_read: true } : m));
+              }
+            });
+        }
+      }
       setIsMessagesLoading(false);
     };
 
@@ -107,11 +127,26 @@ function ChatContent() {
       .channel(`chat_${chatId}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `chat_id=eq.${chatId}` }, 
         (payload) => {
+          const newMsg = payload.new as Message;
           setMessages((prev) => {
             // Deduplicate: skip if a message with this id already exists (e.g. optimistic update was replaced)
-            if (prev.some(m => m.id === (payload.new as Message).id)) return prev;
-            return [...prev, payload.new as Message];
+            if (prev.some(m => m.id === newMsg.id)) return prev;
+            return [...prev, newMsg];
           });
+          // If this incoming message is from the other user, mark it as read immediately
+          if (newMsg.sender_id === otherUserId) {
+            supabase.from('messages').update({ is_read: true }).eq('id', newMsg.id)
+              .then(({ error }) => {
+                if (!error) {
+                  setMessages(prev => prev.map(m => m.id === newMsg.id ? { ...m, is_read: true } : m));
+                }
+              });
+          }
+        }
+      )
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages', filter: `chat_id=eq.${chatId}` },
+        (payload) => {
+          setMessages(prev => prev.map(m => m.id === (payload.new as Message).id ? { ...m, ...(payload.new as Message) } : m));
         }
       )
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chats', filter: `id=eq.${chatId}` },
@@ -131,6 +166,26 @@ function ChatContent() {
         .then(({ error }) => { if (error) console.error('mark read error:', error); });
     }
   }, [chatData, user?.uid, chatId]);
+
+  // Presence: track current user in the chat channel and detect if the other user is present
+  useEffect(() => {
+    if (!chatId || !user?.uid || !otherUserId) return;
+
+    const presenceChannel = supabase.channel(`presence_${chatId}`);
+    presenceChannel
+      .on('presence', { event: 'sync' }, () => {
+        const state = presenceChannel.presenceState<{ user_id: string }>();
+        const allPresent = (Object.values(state).flat() as Array<{ user_id: string }>);
+        setIsOtherUserPresent(allPresent.some(p => p.user_id === otherUserId));
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await presenceChannel.track({ user_id: user.uid });
+        }
+      });
+
+    return () => { supabase.removeChannel(presenceChannel); };
+  }, [chatId, user?.uid, otherUserId]);
 
   // Fetch Origin Product
   const effectiveOriginProductId = chatData?.origin_product_id || originProductIdFromUrl;
@@ -276,7 +331,7 @@ function ChatContent() {
       updated_at: new Date().toISOString()
     }).eq('id', chatId);
 
-    if (otherUserData?.email) {
+    if (otherUserData?.email && !isOtherUserPresent) {
       // Respect the recipient's email notification preference.
       // Sellers use `notification_email`; customers use `notif_msg_email`.
       const emailNotifEnabled = otherSellerData
@@ -430,6 +485,11 @@ function ChatContent() {
                       <p className="leading-relaxed font-medium text-right whitespace-pre-wrap">{msg.text}</p>
                     )}
                     <p className={`text-[8px] mt-1.5 opacity-40 font-bold text-right`}>{timeString}</p>
+                    {isMine && (
+                      <p className={`text-[9px] font-black text-right leading-none -mt-0.5 ${msg.is_read ? 'text-blue-400 opacity-100' : 'text-white/40'}`}>
+                        {msg.is_read ? '✓✓' : '✓'}
+                      </p>
+                    )}
                   </div>
                 </div>
               );

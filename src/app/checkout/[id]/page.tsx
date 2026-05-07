@@ -240,7 +240,7 @@ export default function CheckoutPage() {
                         <SelectContent>
                           {allowedCities.includes('כל הארץ') ? (
                              <SelectItem value="כל הארץ">כל הארץ</SelectItem>
-                          ) : allowedCities.map(city => (<SelectItem key={city} value={city}>{city}</SelectItem>))}
+                          ) : allowedCities.map((city: string) => (<SelectItem key={city} value={city}>{city}</SelectItem>))}
                         </SelectContent>
                       </Select>
                     </div>

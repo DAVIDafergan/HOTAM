@@ -591,7 +591,7 @@ function WizardSmallCard({ value, selected, icon, label }: any) {
         "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300",
         selected ? "bg-primary text-white shadow-lg" : "bg-primary/5 text-primary group-hover:bg-accent/10 group-hover:scale-110"
       )}>
-        {React.cloneElement(icon as React.ReactElement, { className: "w-5 h-5" })}
+        {React.cloneElement(icon as React.ReactElement<{ className?: string }>, { className: "w-5 h-5" })}
       </div>
       <div className="text-center">
         <h4 className={cn("font-black text-[10px] tracking-tight transition-colors", selected ? "text-primary" : "text-primary/60 group-hover:text-primary/80")}>

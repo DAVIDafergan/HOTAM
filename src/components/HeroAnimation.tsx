@@ -557,7 +557,7 @@ function CategoryCard({ icon, label, onClick, color = 'primary' }: CategoryCardP
         "w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center text-primary transition-all duration-300 group-hover:text-white group-hover:scale-110",
         c.bg, c.hover
       )}>
-        {React.cloneElement(icon, { className: "w-6 h-6 md:w-7 md:h-7" })}
+        {React.cloneElement(icon as React.ReactElement<{ className?: string }>, { className: "w-6 h-6 md:w-7 md:h-7" })}
       </div>
       <span className={cn("font-black text-primary text-[11px] md:text-xs tracking-tight transition-colors duration-300", c.text)}>{label}</span>
     </button>

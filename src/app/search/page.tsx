@@ -64,6 +64,14 @@ const CITY_ALIASES: Record<string, string[]> = {
   jerusalem: ['ירושלים'],
   haifa: ['חיפה'],
 };
+const normalizeCity = (value: string) =>
+  value
+    .normalize('NFKD')
+    .replace(/[\u0591-\u05C7]/g, '')
+    .replace(/[^\p{L}\p{N}\s-]/gu, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
 
 function SearchContent() {
   const router = useRouter();
@@ -190,15 +198,6 @@ function SearchContent() {
       const matchQty = p.quantity >= quantity;
       const matchSize = scrollSize === 'all' || p.parchment_size === scrollSize;
       
-      const normalizeCity = (value: string) =>
-        value
-          .normalize('NFKD')
-          .replace(/[\u0591-\u05C7]/g, '')
-          .replace(/[^\p{L}\p{N}\s-]/gu, '')
-          .replace(/\s+/g, ' ')
-          .trim()
-          .toLowerCase();
-
       const normalizedDetectedCity = detectedCity ? normalizeCity(detectedCity) : '';
       const cityCandidates = normalizedDetectedCity
         ? Array.from(
@@ -224,7 +223,9 @@ function SearchContent() {
         !detectedCity ||
         normalizedAreaValues.includes(normalizeCity('כל הארץ')) ||
         cityCandidates.some((candidate) =>
-          normalizedAreaValues.some((area: string) => area.includes(candidate) || candidate.includes(area))
+          normalizedAreaValues.some((area: string) =>
+            area === candidate || area.startsWith(`${candidate} `) || area.startsWith(`${candidate}-`)
+          )
         );
 
       const productDeliveryType =
@@ -232,9 +233,7 @@ function SearchContent() {
           ? 'pickup'
           : p.delivery_type === 'shipping_only' || p.delivery_type === 'shipping'
             ? 'shipping'
-            : p.delivery_type === 'both'
-              ? 'both'
-              : 'both';
+            : 'both';
       const matchShipping =
         shippingPreference === 'all' ||
         (shippingPreference === 'shipping' && (productDeliveryType === 'shipping' || productDeliveryType === 'both')) ||

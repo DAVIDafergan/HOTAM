@@ -1,4 +1,5 @@
-const SUMIT_BASE_URL = (process.env.SUMIT_BASE_URL || 'https://api.sumit.co.il').replace(/\/+$/, '');
+export const FALLBACK_SUMIT_API_BASE_URL = 'https://api.sumit.co.il';
+const SUMIT_BASE_URL = (process.env.SUMIT_BASE_URL || FALLBACK_SUMIT_API_BASE_URL).replace(/\/+$/, '');
 
 export class SumitApiError extends Error {
   status: number;
@@ -12,9 +13,22 @@ export class SumitApiError extends Error {
   }
 }
 
-function buildSumitUrl(path: string) {
+function resolveSumitBaseUrl(overrideBaseUrl?: string) {
+  const candidate = (overrideBaseUrl || SUMIT_BASE_URL).trim();
+  try {
+    const parsed = new URL(candidate);
+    if (parsed.hostname.toLowerCase() === 'help.sumit.co.il') {
+      return FALLBACK_SUMIT_API_BASE_URL;
+    }
+    return `${parsed.protocol}//${parsed.host}`;
+  } catch {
+    return FALLBACK_SUMIT_API_BASE_URL;
+  }
+}
+
+function buildSumitUrl(path: string, overrideBaseUrl?: string) {
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-  return `${SUMIT_BASE_URL}${normalizedPath}`;
+  return `${resolveSumitBaseUrl(overrideBaseUrl)}${normalizedPath}`;
 }
 
 export interface StartSessionInput {
@@ -26,6 +40,7 @@ export interface StartSessionInput {
   buyerName?: string;
   buyerEmail?: string;
   buyerPhone?: string;
+  sumitBaseUrl?: string;
 }
 
 export interface VerifySessionInput {
@@ -107,7 +122,7 @@ export async function startSumitSession(input: StartSessionInput) {
     ],
   };
 
-  const response = await fetch(buildSumitUrl('/Payment/StartSession'), {
+  const response = await fetch(buildSumitUrl('/Payment/StartSession', input.sumitBaseUrl), {
     method: 'POST',
     headers: {
       'User-Agent': 'Hotam-Marketplace/1.0',

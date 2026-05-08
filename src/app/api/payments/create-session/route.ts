@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { startSumitSession, SumitApiError } from '../sumit';
+import { startSumitSession, SumitApiError, FALLBACK_SUMIT_API_BASE_URL } from '../sumit';
 
 function getSiteBaseUrl(req: Request) {
   const proto = req.headers.get('x-forwarded-proto');
@@ -24,6 +24,7 @@ export async function POST(req: Request) {
 
     const session = await startSumitSession({
       siteBaseUrl: getSiteBaseUrl(req),
+      sumitBaseUrl: FALLBACK_SUMIT_API_BASE_URL,
       orderId,
       amount,
       productName,

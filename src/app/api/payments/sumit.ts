@@ -1,9 +1,8 @@
-const SUMIT_BASE_URL = process.env.SUMIT_BASE_URL || 'https://api.sumit.co.il';
+const SUMIT_BASE_URL = (process.env.SUMIT_BASE_URL || 'https://api.sumit.co.il').replace(/\/+$/, '');
 
 function buildSumitUrl(path: string) {
-  const base = SUMIT_BASE_URL.replace(/\/+$/, '');
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-  return `${base}${normalizedPath}`;
+  return `${SUMIT_BASE_URL}${normalizedPath}`;
 }
 
 export interface StartSessionInput {

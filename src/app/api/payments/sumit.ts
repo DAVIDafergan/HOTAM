@@ -1,5 +1,17 @@
 const SUMIT_BASE_URL = (process.env.SUMIT_BASE_URL || 'https://api.sumit.co.il').replace(/\/+$/, '');
 
+export class SumitApiError extends Error {
+  status: number;
+  payload: any;
+
+  constructor(message: string, status: number, payload: any) {
+    super(message);
+    this.name = 'SumitApiError';
+    this.status = status;
+    this.payload = payload;
+  }
+}
+
 function buildSumitUrl(path: string) {
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
   return `${SUMIT_BASE_URL}${normalizedPath}`;
@@ -42,10 +54,16 @@ function extractPaymentUrl(payload: any): string | null {
     payload?.PaymentUrl ||
     payload?.paymentUrl ||
     payload?.url ||
+    payload?.Data?.RedirectUrl ||
+    payload?.data?.RedirectUrl ||
     payload?.Data?.PaymentURL ||
     payload?.data?.PaymentURL ||
     null
   );
+}
+
+function getSumitErrorMessage(payload: any) {
+  return payload?.ErrorMessage || payload?.Message || payload?.error || JSON.stringify(payload);
 }
 
 function normalizeStatus(status: unknown) {
@@ -99,21 +117,23 @@ export async function startSumitSession(input: StartSessionInput) {
     body: JSON.stringify(payload),
   });
 
-  const rawText = await response.text();
+  const responseClone = response.clone();
   let data: any = {};
   try {
-    data = rawText ? JSON.parse(rawText) : {};
+    data = await response.json();
   } catch {
-    data = { raw: rawText };
+    const rawText = await responseClone.text();
+    data = rawText ? { raw: rawText } : {};
   }
 
   if (!response.ok) {
-    throw new Error(data?.Message || data?.error || 'SUMIT StartSession failed');
+    throw new SumitApiError(getSumitErrorMessage(data) || 'SUMIT StartSession failed', response.status, data);
   }
 
   const paymentUrl = extractPaymentUrl(data);
   if (!paymentUrl) {
-    throw new Error('SUMIT response did not include PaymentURL');
+    console.error('SUMIT RAW RESPONSE:', data);
+    throw new SumitApiError(getSumitErrorMessage(data), 400, data);
   }
 
   return {

@@ -54,9 +54,9 @@ function getSumitCredentials() {
   const privateKey = process.env.SUMMIT_PRIVATE_KEY || process.env.SUMIT_PRIVATE_KEY;
   const publicKey = process.env.SUMMIT_PUBLIC_KEY || process.env.SUMIT_PUBLIC_KEY;
 
-  if (!businessId || !privateKey || !publicKey) {
+  if (!businessId || !privateKey) {
     throw new Error(
-      'Missing SUMIT credentials: SUMMIT_* (or SUMIT_*) BUSINESS_ID/PRIVATE_KEY/PUBLIC_KEY environment variables are required'
+      'Missing SUMIT credentials: SUMMIT_BUSINESS_ID (or SUMIT_BUSINESS_ID) and SUMMIT_PRIVATE_KEY (or SUMIT_PRIVATE_KEY) environment variables are required'
     );
   }
 
@@ -69,7 +69,9 @@ function extractPaymentUrl(payload: any): string | null {
     payload?.PaymentUrl ||
     payload?.paymentUrl ||
     payload?.url ||
+    payload?.Data?.RedirectURL ||
     payload?.Data?.RedirectUrl ||
+    payload?.data?.RedirectURL ||
     payload?.data?.RedirectUrl ||
     payload?.Data?.PaymentURL ||
     payload?.data?.PaymentURL ||
@@ -91,38 +93,40 @@ function isSuccessStatus(status: unknown) {
 }
 
 export async function startSumitSession(input: StartSessionInput) {
-  const { businessId, privateKey, publicKey } = getSumitCredentials();
-  const currency = input.currency || 'ILS';
+  const { businessId, privateKey } = getSumitCredentials();
   const redirectURL = new URL(
     `/customer/dashboard?payment=success&orderId=${encodeURIComponent(input.orderId)}`,
     input.siteBaseUrl
   ).toString();
-  const webhookURL = new URL('/api/payments/webhook', input.siteBaseUrl).toString();
+  const ipnURL = new URL(
+    `/api/payments/webhook?orderId=${encodeURIComponent(input.orderId)}`,
+    input.siteBaseUrl
+  ).toString();
 
   const payload = {
-    BusinessId: businessId,
-    PrivateKey: privateKey,
-    PublicKey: publicKey,
-    Sum: Number(input.amount),
-    Currency: currency,
-    ApiIdentifier: input.orderId,
-    Description: input.productName,
-    RedirectURL: redirectURL,
-    WebhookURL: webhookURL,
-    ClientName: input.buyerName || '',
-    ClientEmail: input.buyerEmail || '',
-    ClientPhone: input.buyerPhone || '',
+    Credentials: {
+      CompanyID: businessId,
+      APIPrivateKey: privateKey,
+    },
+    Amount: Number(input.amount),
+    Customer: {
+      ExternalIdentifier: input.orderId,
+      Name: input.buyerName || '',
+      Email: input.buyerEmail || '',
+      Phone: input.buyerPhone || '',
+    },
     Items: [
       {
         Name: input.productName,
+        UnitPrice: Number(input.amount),
         Quantity: 1,
-        Price: Number(input.amount),
-        Currency: currency,
       },
     ],
+    RedirectURL: redirectURL,
+    IPNURL: ipnURL,
   };
 
-  const response = await fetch(buildSumitUrl('/Payment/StartSession', input.sumitBaseUrl), {
+  const response = await fetch(buildSumitUrl('/billing/payments/beginredirect/', input.sumitBaseUrl), {
     method: 'POST',
     headers: {
       'User-Agent': 'Hotam-Marketplace/1.0',
@@ -142,7 +146,7 @@ export async function startSumitSession(input: StartSessionInput) {
   }
 
   if (!response.ok) {
-    throw new SumitApiError(getSumitErrorMessage(data) || 'SUMIT StartSession failed', response.status, data);
+    throw new SumitApiError(getSumitErrorMessage(data) || 'SUMIT beginredirect failed', response.status, data);
   }
 
   const paymentUrl = extractPaymentUrl(data);

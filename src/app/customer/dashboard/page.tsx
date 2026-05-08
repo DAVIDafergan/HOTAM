@@ -190,7 +190,7 @@ export default function CustomerDashboard() {
     setIsSaving(true);
     updateDocumentNonBlocking(customerRef, {
       ...formData,
-      updatedAt: new Date().toISOString()
+      updated_at: new Date().toISOString()
     });
     setTimeout(() => {
       setIsSaving(false);

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { startSumitSession } from '../sumit';
+import { startSumitSession, SumitApiError } from '../sumit';
 
 function getSiteBaseUrl(req: Request) {
   const proto = req.headers.get('x-forwarded-proto');
@@ -39,6 +39,12 @@ export async function POST(req: Request) {
     });
   } catch (error: any) {
     console.error('SUMIT create-session error:', error);
+    if (error instanceof SumitApiError) {
+      return NextResponse.json(
+        { error: error.payload?.ErrorMessage || JSON.stringify(error.payload) || error.message },
+        { status: error.status }
+      );
+    }
     return NextResponse.json({ error: error?.message || 'Failed to create SUMIT payment session' }, { status: 500 });
   }
 }

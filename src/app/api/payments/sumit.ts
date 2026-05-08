@@ -1,4 +1,9 @@
-const SUMIT_BASE_URL = process.env.SUMIT_BASE_URL || 'https://services.invoice4u.co.il/api';
+const SUMIT_BASE_URL = (process.env.SUMIT_BASE_URL || 'https://api.sumit.co.il').replace(/\/+$/, '');
+
+function buildSumitUrl(path: string) {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `${SUMIT_BASE_URL}${normalizedPath}`;
+}
 
 export interface StartSessionInput {
   siteBaseUrl: string;
@@ -84,9 +89,11 @@ export async function startSumitSession(input: StartSessionInput) {
     ],
   };
 
-  const response = await fetch(`${SUMIT_BASE_URL}/Payment/StartSession`, {
+  const response = await fetch(buildSumitUrl('/Payment/StartSession'), {
     method: 'POST',
     headers: {
+      'User-Agent': 'Hotam-Marketplace/1.0',
+      Accept: 'application/json',
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(payload),
@@ -129,9 +136,11 @@ export async function verifySumitPayment(input: VerifySessionInput) {
     TransactionId: input.transactionId || undefined,
   };
 
-  const response = await fetch(`${SUMIT_BASE_URL}/Payment/GetSessionStatus`, {
+  const response = await fetch(buildSumitUrl('/Payment/GetSessionStatus'), {
     method: 'POST',
     headers: {
+      'User-Agent': 'Hotam-Marketplace/1.0',
+      Accept: 'application/json',
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(payload),

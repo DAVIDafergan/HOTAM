@@ -56,7 +56,7 @@ function getSumitCredentials() {
 
   if (!businessId || !privateKey) {
     throw new Error(
-      'Missing SUMIT credentials: SUMMIT_BUSINESS_ID (or SUMIT_BUSINESS_ID) and SUMMIT_PRIVATE_KEY (or SUMIT_PRIVATE_KEY) environment variables are required'
+      'Missing SUMIT credentials: SUMMIT_BUSINESS_ID and SUMMIT_PRIVATE_KEY (or SUMIT_BUSINESS_ID and SUMIT_PRIVATE_KEY) environment variables are required'
     );
   }
 

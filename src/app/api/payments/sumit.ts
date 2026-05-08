@@ -106,7 +106,7 @@ export async function startSumitSession(input: StartSessionInput) {
   const payload = {
     Credentials: {
       CompanyID: businessId,
-      APIPrivateKey: privateKey,
+      APIKey: privateKey,
     },
     Amount: Number(input.amount),
     Customer: {

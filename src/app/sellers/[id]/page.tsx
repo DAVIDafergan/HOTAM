@@ -105,11 +105,11 @@ export default function SellerProfile() {
   useEffect(() => {
     if (!id) return;
     supabase
-      .from('reviews')
+      .from('supermarket_reviews')
       .select('*')
-      .eq('seller_id', id)
+      .eq('supermarket_id', id)
       .then(({ data, error }) => {
-        if (error) console.error('[reviews] fetch error:', error.message);
+        if (error) console.error('[supermarket_reviews] fetch error:', error.message);
         else setReviews(data ?? []);
       });
   }, [id]);
@@ -176,20 +176,17 @@ export default function SellerProfile() {
     setIsReviewSubmitting(true);
     const realName = user.displayName || user.email || 'משתמש';
     const reviewData = {
-      order_id: null,
-      seller_id: id,
-      product_id: null,
+      supermarket_id: id,
       buyer_id: user.uid,
       buyer_name: realName,
       is_anonymous: reviewIsAnonymous,
       rating: reviewRating,
-      product_rating: reviewRating,
       comment: reviewComment,
     };
-    const { data: inserted, error } = await supabase.from('reviews').insert(reviewData).select().single();
+    const { data: inserted, error } = await supabase.from('supermarket_reviews').insert(reviewData).select().single();
     setIsReviewSubmitting(false);
     if (error) {
-      console.error('[reviews] insert error:', error.message);
+      console.error('[supermarket_reviews] insert error:', error.message);
       toast({ variant: 'destructive', title: 'שגיאה בשמירת הדירוג', description: 'אנא נסה שנית.' });
     } else {
       setReviews(prev => [...prev, inserted]);

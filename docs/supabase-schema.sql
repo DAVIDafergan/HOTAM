@@ -27,9 +27,10 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- indexes/foreign-key constraints automatically)
 -- =============================================================================
 
-DROP TABLE IF EXISTS public.messages  CASCADE;
-DROP TABLE IF EXISTS public.reviews   CASCADE;
-DROP TABLE IF EXISTS public.reports   CASCADE;
+DROP TABLE IF EXISTS public.messages              CASCADE;
+DROP TABLE IF EXISTS public.supermarket_reviews   CASCADE;
+DROP TABLE IF EXISTS public.reviews               CASCADE;
+DROP TABLE IF EXISTS public.reports               CASCADE;
 DROP TABLE IF EXISTS public.orders    CASCADE;
 DROP TABLE IF EXISTS public.products  CASCADE;
 DROP TABLE IF EXISTS public.chats     CASCADE;
@@ -214,6 +215,20 @@ CREATE TABLE IF NOT EXISTS public.reviews (
   created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- ── supermarket_reviews ────────────────────────────────────────────────────────
+-- Stores vendor/supermarket ratings submitted from the seller profile page.
+-- Completely separate from product reviews (reviews table).
+CREATE TABLE IF NOT EXISTS public.supermarket_reviews (
+  id              UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+  supermarket_id  TEXT        NOT NULL,
+  buyer_id        TEXT        NOT NULL,
+  buyer_name      TEXT,
+  is_anonymous    BOOLEAN     NOT NULL DEFAULT false,
+  rating          INTEGER     NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  comment         TEXT,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- ── reports ───────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.reports (
   id             UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -238,6 +253,7 @@ CREATE INDEX IF NOT EXISTS idx_messages_chat_id       ON public.messages (chat_i
 CREATE INDEX IF NOT EXISTS idx_messages_timestamp     ON public.messages (timestamp);
 CREATE INDEX IF NOT EXISTS idx_reviews_seller_id      ON public.reviews  (seller_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_product_id     ON public.reviews  (product_id);
+CREATE INDEX IF NOT EXISTS idx_supermarket_reviews_id ON public.supermarket_reviews (supermarket_id);
 CREATE INDEX IF NOT EXISTS idx_chats_participants     ON public.chats USING GIN (participants);
 CREATE INDEX IF NOT EXISTS idx_chats_unread_state     ON public.chats USING GIN (unread_state);
 CREATE INDEX IF NOT EXISTS idx_sellers_is_approved    ON public.sellers (is_approved);
@@ -253,8 +269,9 @@ ALTER TABLE public.products   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.orders     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.chats      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages   ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.reviews    ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.reports    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.reviews               ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.supermarket_reviews   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.reports               ENABLE ROW LEVEL SECURITY;
 
 -- ── Admin helper (SECURITY DEFINER avoids infinite recursion when policies
 --    on other tables query the admins table, which itself has policies) ────────
@@ -331,6 +348,12 @@ CREATE POLICY "Allow public read"  ON public.reviews FOR SELECT USING (true);
 CREATE POLICY "reviews_any_user_insert" ON public.reviews FOR INSERT
   WITH CHECK (auth.uid() IS NOT NULL AND auth.uid()::TEXT = buyer_id);
 CREATE POLICY "reviews_admin_all"    ON public.reviews FOR ALL USING (public.is_admin());
+
+-- ── supermarket_reviews policies ──────────────────────────────────────────────
+CREATE POLICY "supermarket_reviews_public_read"  ON public.supermarket_reviews FOR SELECT USING (true);
+CREATE POLICY "supermarket_reviews_user_insert"  ON public.supermarket_reviews FOR INSERT
+  WITH CHECK (auth.uid() IS NOT NULL AND auth.uid()::TEXT = buyer_id);
+CREATE POLICY "supermarket_reviews_admin_all"    ON public.supermarket_reviews FOR ALL USING (public.is_admin());
 
 -- ── reports policies ──────────────────────────────────────────────────────────
 CREATE POLICY "Allow public read"       ON public.reports FOR SELECT USING (true);
@@ -433,7 +456,7 @@ GRANT EXECUTE ON FUNCTION public.update_unread_state   TO authenticated;
 
 -- In Supabase Dashboard → Database → Replication, enable the following tables:
 -- • sellers   • customers  • products  • orders
--- • chats     • messages   • reviews   • reports
+-- • chats     • messages   • reviews   • supermarket_reviews  • reports
 --
 -- Or run the statements below. Each uses IF EXISTS to avoid errors on re-runs.
 DO $$

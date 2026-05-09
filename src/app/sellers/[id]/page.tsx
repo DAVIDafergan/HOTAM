@@ -189,8 +189,15 @@ export default function SellerProfile() {
       return;
     }
     setIsReviewSubmitting(true);
-    const metadataFullName = user._raw?.user_metadata?.full_name;
-    const realName = metadataFullName || user.displayName || user.email || 'משתמש';
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError || !authData?.user) {
+      setIsReviewSubmitting(false);
+      router.push('/login');
+      return;
+    }
+    const fullName = authData.user.user_metadata?.full_name;
+    const fallbackName = user.displayName || user.email || 'משתמש';
+    const realName = fullName || fallbackName;
     const reviewData = {
       supermarket_id: id,
       buyer_id: user.uid,

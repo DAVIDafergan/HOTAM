@@ -247,7 +247,7 @@ export default function SellerProfile() {
       }
       toast({ variant: 'destructive', title: 'שגיאה בשמירת הדירוג', description: 'אנא נסה שנית.' });
     } else {
-      const reviewerImage = profileRow?.avatar_url || user.photoURL || null;
+      const reviewerImage = profileRow?.avatar_url || null;
       setReviews(prev => [...prev, { ...inserted, buyer_name: realName, reviewer_image: reviewerImage }]);
       router.refresh();
       setReviewDialogOpen(false);

@@ -288,7 +288,7 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
       }
       toast({ variant: 'destructive', title: 'שגיאה בשמירת הביקורת', description: 'אנא נסה שנית.' });
     } else {
-      const reviewerImage = profileRow?.avatar_url || user.photoURL || null;
+      const reviewerImage = profileRow?.avatar_url || null;
       setReviews(prev => [...prev, { ...inserted, buyer_name: realName, reviewer_image: reviewerImage }]);
       setReviewDialogOpen(false);
       setReviewComment('');

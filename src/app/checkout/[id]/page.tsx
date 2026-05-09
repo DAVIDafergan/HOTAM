@@ -324,7 +324,8 @@ export default function CheckoutPage() {
             }
 
             setIsSuccess(true);
-            router.push('/checkout/success');
+            const paidOrderId = data?.orderId || cartData.orderId;
+            router.push(`/checkout/success?orderId=${encodeURIComponent(paidOrderId)}`);
           } catch (err: any) {
             console.error('Payment Charge Error:', err);
             setChargeError(err.message || 'חלה שגיאה בחיבור למערכת הסליקה.');

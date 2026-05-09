@@ -5,6 +5,12 @@ const SUMIT_CHARGE_URL = 'https://api.sumit.co.il/billing/payments/charge/';
 const PAYMENT_PROVIDER = 'sumit';
 const SUMIT_USER_AGENT = 'Hotam-Marketplace/1.0';
 
+type CartItem = {
+  Description?: string;
+  Quantity?: number;
+  UnitAmount?: number;
+};
+
 function getSumitCredentials() {
   const companyId =
     process.env.SUMIT_COMPANY_ID ||
@@ -94,7 +100,7 @@ export async function POST(req: Request) {
     }
 
     const items = Array.isArray(cartData?.items) && cartData.items.length > 0
-      ? cartData.items.map((item: any) => ({
+      ? (cartData.items as CartItem[]).map((item) => ({
           Description: item?.Description || 'רכישת מוצר',
           Quantity: Number(item?.Quantity ?? 1),
           UnitAmount: Number(item?.UnitAmount ?? price),

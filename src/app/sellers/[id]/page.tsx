@@ -106,11 +106,21 @@ export default function SellerProfile() {
     if (!id) return;
     supabase
       .from('supermarket_reviews')
-      .select('*')
+      .select('*, profiles(full_name)')
       .eq('supermarket_id', id)
       .then(({ data, error }) => {
         if (error) console.error('[supermarket_reviews] fetch error:', error.message);
-        else setReviews(data ?? []);
+        else {
+          const normalized = (data ?? []).map((review: any) => {
+            const profile = Array.isArray(review?.profiles) ? review.profiles[0] : review?.profiles;
+            const fullName = profile?.full_name;
+            return {
+              ...review,
+              buyer_name: fullName || review?.buyer_name || 'משתמש',
+            };
+          });
+          setReviews(normalized);
+        }
       });
   }, [id]);
 

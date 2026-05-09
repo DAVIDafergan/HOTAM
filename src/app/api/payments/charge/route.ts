@@ -147,7 +147,7 @@ export async function POST(req: Request) {
     });
 
     if (hasInvalidItems) {
-      return NextResponse.json({ error: 'Invalid items payload' }, { status: 400 });
+      return NextResponse.json({ error: 'Items must have positive quantity and unit amount' }, { status: 400 });
     }
 
     const sumitPayload = {

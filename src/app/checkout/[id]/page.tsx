@@ -283,11 +283,11 @@ export default function CheckoutPage() {
 
     try {
       const orderId = await upsertPendingOrder();
-      const productName = product?.product_name || product?.product_type || FALLBACK_PRODUCT_DESCRIPTION;
+      const productDescription = product?.product_name || product?.product_type || FALLBACK_PRODUCT_DESCRIPTION;
       const cartData = {
         orderId,
         price: totalPrice,
-        productName,
+        productName: productDescription,
         customerEmail: user?.email || '',
         customerPhone: recipientPhone,
       };

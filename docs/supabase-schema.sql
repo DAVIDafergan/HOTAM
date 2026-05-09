@@ -229,9 +229,9 @@ CREATE TABLE IF NOT EXISTS public.reviews (
   is_anonymous  BOOLEAN     NOT NULL DEFAULT false,
   rating         INTEGER     NOT NULL CHECK (rating BETWEEN 1 AND 5),
   product_rating INTEGER    NOT NULL CHECK (product_rating BETWEEN 1 AND 5),
-  CONSTRAINT reviews_not_self_review CHECK (buyer_id <> seller_id),
   comment        TEXT,
-  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT reviews_not_self_review CHECK (buyer_id <> seller_id)
 );
 
 -- ── supermarket_reviews ────────────────────────────────────────────────────────
@@ -251,9 +251,9 @@ CREATE TABLE IF NOT EXISTS public.supermarket_reviews (
   buyer_name      TEXT,
   is_anonymous    BOOLEAN     NOT NULL DEFAULT false,
   rating          INTEGER     NOT NULL CHECK (rating BETWEEN 1 AND 5),
-  CONSTRAINT supermarket_reviews_not_self_review CHECK (buyer_id <> supermarket_id),
   comment         TEXT,
-  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT supermarket_reviews_not_self_review CHECK (buyer_id <> supermarket_id)
 );
 
 -- ── reports ───────────────────────────────────────────────────────────────────

@@ -242,7 +242,7 @@ export default function SellerProfile() {
       }
       toast({ variant: 'destructive', title: 'שגיאה בשמירת הדירוג', description: 'אנא נסה שנית.' });
     } else {
-      const reviewerImage = authData?.user?.user_metadata?.avatar_url || authData?.user?.user_metadata?.picture || null;
+      const reviewerImage = user.photoURL || null;
       setReviews(prev => [...prev, { ...inserted, buyer_name: realName, reviewer_image: reviewerImage }]);
       router.refresh();
       setReviewDialogOpen(false);

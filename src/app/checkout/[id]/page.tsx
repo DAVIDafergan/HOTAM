@@ -50,7 +50,7 @@ function generateShortId(length = 8) {
   return result;
 }
 
-const PAYMENT_SUCCESS_REDIRECT_DELAY_MS = 800;
+const PAYMENT_SUCCESS_REDIRECT_DELAY_MS = 2000;
 
 export default function CheckoutPage() {
   const params = useParams();
@@ -63,6 +63,7 @@ export default function CheckoutPage() {
   const [deliveryChoice, setDeliveryChoice] = useState(''); 
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [chargeError, setChargeError] = useState<string | null>(null);
   const [isSumitReady, setIsSumitReady] = useState(false);
   const [sumitError, setSumitError] = useState<string | null>(null);
   
@@ -321,6 +322,7 @@ export default function CheckoutPage() {
       if (chargeInFlightRef.current) return;
       chargeInFlightRef.current = true;
       setIsProcessing(true);
+      setChargeError(null);
 
       try {
         const orderId = await upsertPendingOrder();
@@ -343,13 +345,12 @@ export default function CheckoutPage() {
         }
 
         setIsSuccess(true);
-        toast({ title: "התשלום הושלם", description: "ההזמנה אושרה בהצלחה." });
         setTimeout(() => {
-          router.push(`/customer/dashboard?payment=success&orderId=${encodeURIComponent(orderId)}`);
+          router.push(`/checkout/success?orderId=${encodeURIComponent(data.orderId || orderId)}`);
         }, PAYMENT_SUCCESS_REDIRECT_DELAY_MS);
       } catch (err: any) {
         console.error('Payment Charge Error:', err);
-        toast({ variant: "destructive", title: "שגיאת תשלום", description: err.message || "חלה שגיאה בחיבור למערכת הסליקה." });
+        setChargeError(err.message || 'חלה שגיאה בחיבור למערכת הסליקה.');
       } finally {
         chargeInFlightRef.current = false;
         setIsProcessing(false);
@@ -382,6 +383,7 @@ export default function CheckoutPage() {
 
     chargeInFlightRef.current = true;
     setIsProcessing(true);
+    setChargeError(null);
 
     try {
       const orderId = await upsertPendingOrder();
@@ -405,13 +407,12 @@ export default function CheckoutPage() {
       }
 
       setIsSuccess(true);
-      toast({ title: "התשלום הושלם", description: "ההזמנה אושרה בהצלחה." });
       setTimeout(() => {
-        router.push(`/customer/dashboard?payment=success&orderId=${encodeURIComponent(orderId)}`);
+        router.push(`/checkout/success?orderId=${encodeURIComponent(data.orderId || orderId)}`);
       }, PAYMENT_SUCCESS_REDIRECT_DELAY_MS);
     } catch (err: any) {
       console.error('Payment Charge Error:', err);
-      toast({ variant: "destructive", title: "שגיאת תשלום", description: err.message || "חלה שגיאה בחיבור למערכת הסליקה." });
+      setChargeError(err.message || 'חלה שגיאה בחיבור למערכת הסליקה.');
     } finally {
       chargeInFlightRef.current = false;
       setIsProcessing(false);
@@ -543,14 +544,29 @@ export default function CheckoutPage() {
                 </form>
 
                 <div className="pt-2">
+                  {chargeError && (
+                    <div className="flex items-start gap-2 rounded-2xl bg-red-50 text-red-600 px-4 py-3 text-sm font-bold mb-4">
+                      <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                      <span>{chargeError}</span>
+                    </div>
+                  )}
                   <Button
                     type="button"
                     onClick={handleStartPayment}
                     disabled={isProcessing || !deliveryChoice || !isSumitReady}
                     className="w-full bg-primary text-white hover:bg-primary/90 h-16 rounded-2xl shadow-xl font-black text-xl uppercase tracking-widest gap-3"
                   >
-                    {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : <CreditCard className="w-6 h-6" />}
-                    בצע תשלום מאובטח - ₪{totalPrice}
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                        מעבד תשלום מאובטח...
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard className="w-6 h-6" />
+                        בצע תשלום מאובטח - ₪{totalPrice}
+                      </>
+                    )}
                   </Button>
                 </div>
               </Card>
@@ -589,10 +605,10 @@ export default function CheckoutPage() {
         ) : (
           <Card className="border-none shadow-premium rounded-[2.5rem] bg-white p-10 text-center max-w-xl mx-auto">
             <div className="flex justify-center mb-4">
-              <CheckCircle2 className="w-16 h-16 text-emerald-500" />
+              <CheckCircle2 className="w-24 h-24 text-emerald-500" />
             </div>
-            <h1 className="text-2xl font-black text-primary mb-2">התשלום התקבל בהצלחה</h1>
-            <p className="text-muted-foreground font-bold">מעבירים אותך לאיזור האישי...</p>
+            <h1 className="text-2xl font-black text-primary mb-2">התשלום עבר בהצלחה!</h1>
+            <p className="text-muted-foreground font-bold">מייד תועבר לאישור ההזמנה.</p>
           </Card>
         )}
       </main>

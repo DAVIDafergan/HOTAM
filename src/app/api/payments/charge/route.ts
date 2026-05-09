@@ -93,25 +93,27 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid price value' }, { status: 400 });
     }
 
+    const items = Array.isArray(cartData?.items) && cartData.items.length > 0
+      ? cartData.items.map((item: any) => ({
+          Description: item?.Description || 'רכישת מוצר',
+          Quantity: Number(item?.Quantity ?? 1),
+          UnitAmount: Number(item?.UnitAmount ?? price),
+        }))
+      : [
+          {
+            Description: body?.productName || cartData?.productName || 'רכישת מוצר',
+            Quantity: 1,
+            UnitAmount: price,
+          },
+        ];
+
     const sumitPayload = {
       Credentials: {
         CompanyID: companyId,
         APIKey: apiKey,
       },
       SingleUseToken: token,
-      Items: Array.isArray(cartData?.items) && cartData.items.length > 0
-        ? cartData.items.map((item: any) => ({
-            Description: item?.Description || item?.description || body?.productName || cartData?.productName || 'רכישת מוצר',
-            Quantity: Number(item?.Quantity ?? item?.quantity ?? 1),
-            UnitAmount: Number(item?.UnitAmount ?? item?.unitAmount ?? price),
-          }))
-        : [
-            {
-              Description: body?.productName || cartData?.productName || 'רכישת מוצר',
-              Quantity: 1,
-              UnitAmount: price,
-            },
-          ],
+      Items: items,
       Amount: price,
       Customer: {
         PhoneNumber: body?.customerPhone || cartData?.customerPhone || '',

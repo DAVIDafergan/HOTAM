@@ -121,11 +121,21 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
     if (!productId) return;
     supabase
       .from('reviews')
-      .select('*')
+      .select('*, profiles(full_name)')
       .eq('product_id', productId)
       .then(({ data, error }) => {
         if (error) console.error('[reviews] fetch error:', error.message);
-        else setReviews(data ?? []);
+        else {
+          const normalized = (data ?? []).map((review: any) => {
+            const profile = Array.isArray(review?.profiles) ? review.profiles[0] : review?.profiles;
+            const fullName = profile?.full_name;
+            return {
+              ...review,
+              buyer_name: fullName || review?.buyer_name || 'משתמש',
+            };
+          });
+          setReviews(normalized);
+        }
       });
   }, [productId]);
 

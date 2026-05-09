@@ -28,6 +28,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- =============================================================================
 
 DROP TABLE IF EXISTS public.messages              CASCADE;
+DROP TABLE IF EXISTS public.profiles              CASCADE;
 DROP TABLE IF EXISTS public.supermarket_reviews   CASCADE;
 DROP TABLE IF EXISTS public.reviews               CASCADE;
 DROP TABLE IF EXISTS public.reports               CASCADE;
@@ -107,6 +108,15 @@ CREATE TABLE IF NOT EXISTS public.admins (
   id         UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
   email      TEXT        NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ── profiles ─────────────────────────────────────────────────────────────────
+-- Canonical display name for any authenticated user.
+CREATE TABLE IF NOT EXISTS public.profiles (
+  id         UUID        PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  full_name  TEXT        NOT NULL DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ
 );
 
 -- ── products ──────────────────────────────────────────────────────────────────
@@ -207,6 +217,13 @@ CREATE TABLE IF NOT EXISTS public.reviews (
   seller_id     TEXT        NOT NULL,
   product_id    TEXT,
   buyer_id      TEXT        NOT NULL,
+  buyer_user_id UUID GENERATED ALWAYS AS (
+    CASE
+      WHEN buyer_id ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+      THEN buyer_id::UUID
+      ELSE NULL
+    END
+  ) STORED REFERENCES public.profiles(id) ON DELETE SET NULL,
   buyer_name    TEXT,
   is_anonymous  BOOLEAN     NOT NULL DEFAULT false,
   rating         INTEGER     NOT NULL CHECK (rating BETWEEN 1 AND 5),
@@ -222,6 +239,13 @@ CREATE TABLE IF NOT EXISTS public.supermarket_reviews (
   id              UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
   supermarket_id  TEXT        NOT NULL,
   buyer_id        TEXT        NOT NULL,
+  buyer_user_id   UUID GENERATED ALWAYS AS (
+    CASE
+      WHEN buyer_id ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+      THEN buyer_id::UUID
+      ELSE NULL
+    END
+  ) STORED REFERENCES public.profiles(id) ON DELETE SET NULL,
   buyer_name      TEXT,
   is_anonymous    BOOLEAN     NOT NULL DEFAULT false,
   rating          INTEGER     NOT NULL CHECK (rating BETWEEN 1 AND 5),
@@ -253,7 +277,9 @@ CREATE INDEX IF NOT EXISTS idx_messages_chat_id       ON public.messages (chat_i
 CREATE INDEX IF NOT EXISTS idx_messages_timestamp     ON public.messages (timestamp);
 CREATE INDEX IF NOT EXISTS idx_reviews_seller_id      ON public.reviews  (seller_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_product_id     ON public.reviews  (product_id);
+CREATE INDEX IF NOT EXISTS idx_reviews_buyer_user_id  ON public.reviews  (buyer_user_id);
 CREATE INDEX IF NOT EXISTS idx_supermarket_reviews_id ON public.supermarket_reviews (supermarket_id);
+CREATE INDEX IF NOT EXISTS idx_supermarket_reviews_buyer_user_id ON public.supermarket_reviews (buyer_user_id);
 CREATE INDEX IF NOT EXISTS idx_chats_participants     ON public.chats USING GIN (participants);
 CREATE INDEX IF NOT EXISTS idx_chats_unread_state     ON public.chats USING GIN (unread_state);
 CREATE INDEX IF NOT EXISTS idx_sellers_is_approved    ON public.sellers (is_approved);
@@ -269,6 +295,7 @@ ALTER TABLE public.products   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.orders     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.chats      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.profiles              ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reviews               ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.supermarket_reviews   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reports               ENABLE ROW LEVEL SECURITY;
@@ -341,6 +368,12 @@ CREATE POLICY "messages_recipient_update_read" ON public.messages FOR UPDATE
     )
   );
 CREATE POLICY "messages_admin_all"          ON public.messages FOR ALL USING (public.is_admin());
+
+-- ── profiles policies ─────────────────────────────────────────────────────────
+CREATE POLICY "profiles_public_read"  ON public.profiles FOR SELECT USING (true);
+CREATE POLICY "profiles_own_insert"   ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id);
+CREATE POLICY "profiles_own_update"   ON public.profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "profiles_admin_all"    ON public.profiles FOR ALL USING (public.is_admin());
 
 -- ── reviews policies ──────────────────────────────────────────────────────────
 CREATE POLICY "Allow public read"  ON public.reviews FOR SELECT USING (true);
@@ -456,7 +489,8 @@ GRANT EXECUTE ON FUNCTION public.update_unread_state   TO authenticated;
 
 -- In Supabase Dashboard → Database → Replication, enable the following tables:
 -- • sellers   • customers  • products  • orders
--- • chats     • messages   • reviews   • supermarket_reviews  • reports
+-- • chats     • messages   • profiles  • reviews
+-- • supermarket_reviews     • reports
 --
 -- Or run the statements below. Each uses IF EXISTS to avoid errors on re-runs.
 DO $$
@@ -469,6 +503,7 @@ BEGIN
       public.orders,
       public.chats,
       public.messages,
+      public.profiles,
       public.reviews,
       public.reports;
   EXCEPTION WHEN others THEN
@@ -504,6 +539,7 @@ DECLARE
   v_role      TEXT;
   v_first     TEXT;
   v_last      TEXT;
+  v_full_name TEXT;
 BEGIN
   v_role  := NEW.raw_user_meta_data->>'role';
   -- Accept both snake_case (first_name) and camelCase (firstName) to be robust
@@ -523,6 +559,22 @@ BEGIN
                         ''
                       ),
                       '');
+  v_full_name := NULLIF(trim(concat_ws(' ', v_first, v_last)), '');
+
+  INSERT INTO public.profiles (
+    id, full_name, updated_at
+  ) VALUES (
+    NEW.id,
+    COALESCE(v_full_name,
+             NEW.raw_user_meta_data->>'full_name',
+             NEW.raw_user_meta_data->>'name',
+             split_part(NEW.email, '@', 1),
+             'משתמש'),
+    NOW()
+  )
+  ON CONFLICT (id) DO UPDATE
+    SET full_name  = EXCLUDED.full_name,
+        updated_at = NOW();
 
   IF v_role = 'seller' THEN
     INSERT INTO public.sellers (
@@ -556,6 +608,27 @@ BEGIN
   RETURN NEW;
 END;
 $$;
+
+-- Backfill profiles for already-existing auth users.
+INSERT INTO public.profiles (id, full_name, updated_at)
+SELECT
+  u.id,
+  COALESCE(
+    NULLIF(trim(concat_ws(
+      ' ',
+      COALESCE(u.raw_user_meta_data->>'first_name', u.raw_user_meta_data->>'firstName'),
+      COALESCE(u.raw_user_meta_data->>'last_name', u.raw_user_meta_data->>'lastName')
+    )), ''),
+    NULLIF(u.raw_user_meta_data->>'full_name', ''),
+    NULLIF(u.raw_user_meta_data->>'name', ''),
+    split_part(u.email, '@', 1),
+    'משתמש'
+  ),
+  NOW()
+FROM auth.users u
+ON CONFLICT (id) DO UPDATE
+  SET full_name  = EXCLUDED.full_name,
+      updated_at = NOW();
 
 -- Attach trigger to auth.users
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;

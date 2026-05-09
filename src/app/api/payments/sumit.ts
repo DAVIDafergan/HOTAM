@@ -134,7 +134,7 @@ export async function startSumitSession(input: StartSessionInput) {
       Item: items.map((item) => ({
         Description: item.name,
         Quantity: Number(item.quantity),
-        Total: Number(item.price) * Number(item.quantity),
+        UnitAmount: Number(item.price),
       })),
     },
     RedirectURL: redirectURL,

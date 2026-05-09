@@ -14,33 +14,16 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const orderId = body?.orderId;
-    const amount = Number(body?.amount);
-    const productName = body?.productName || body?.name || 'מוצר קודש';
+    const productName: string = body?.productName || body?.name || 'רכישת מוצר';
+    const unitPrice = Number(body?.price || body?.amount) || 0;
+    const amount = unitPrice;
     const currency = body?.currency || 'ILS';
-    const rawItems = Array.isArray(body?.items)
-      ? body.items
-      : Array.isArray(body?.Items?.Item)
-        ? body.Items.Item
-        : [];
-    const items = rawItems
-      .map((item: any) => {
-        const quantity = Number(item?.quantity ?? item?.Quantity ?? 1);
-        const unitPrice = Number(
-          item?.price ??
-            item?.Price ??
-            (item?.Total != null && quantity > 0 ? Number(item.Total) / quantity : undefined) ??
-            amount
-        );
-        const name = item?.name ?? item?.Description ?? item?.Name ?? productName;
-        return { name, quantity, price: unitPrice };
-      })
-      .filter(
-        (item: { name: string; quantity: number; price: number }) =>
-          !!item.name && Number.isFinite(item.quantity) && item.quantity > 0 && Number.isFinite(item.price) && item.price >= 0
-      );
 
-    if (!orderId || !amount || Number.isNaN(amount) || amount <= 0) {
-      return NextResponse.json({ error: 'Missing required fields: orderId, amount' }, { status: 400 });
+    // Single item always wrapped in an array as required by the SUMIT API
+    const items = [{ name: productName, quantity: 1, price: unitPrice }];
+
+    if (!orderId || !unitPrice || Number.isNaN(unitPrice) || unitPrice <= 0) {
+      return NextResponse.json({ error: 'Missing required fields: orderId, price/amount' }, { status: 400 });
     }
 
     const session = await startSumitSession({
@@ -52,8 +35,8 @@ export async function POST(req: Request) {
       currency,
       items,
       buyerName: body?.buyerName || body?.buyer_name,
-      buyerEmail: body?.buyerEmail || body?.buyer_email,
-      buyerPhone: body?.buyerPhone || body?.buyer_phone,
+      buyerEmail: body?.customerEmail || body?.email || body?.buyerEmail || body?.buyer_email,
+      buyerPhone: body?.customerPhone || body?.phone || body?.buyerPhone || body?.buyer_phone,
     });
 
     return NextResponse.json({

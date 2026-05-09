@@ -32,7 +32,7 @@ type ChargeRequestBody = {
   cartData?: ChargeCartData;
 };
 
-function buildItemsFromCartData(cartData: ChargeCartData, body: ChargeRequestBody, price: number): CartItem[] {
+function buildItemsFromCartData(cartData: ChargeCartData, price: number): CartItem[] {
   if (Array.isArray(cartData?.items) && cartData.items.length > 0) {
     return (cartData.items as CartItem[]).map((item) => ({
       Description: item?.Description || FALLBACK_ITEM_DESCRIPTION,
@@ -43,7 +43,7 @@ function buildItemsFromCartData(cartData: ChargeCartData, body: ChargeRequestBod
 
   return [
     {
-      Description: body?.productName || cartData?.productName || FALLBACK_ITEM_DESCRIPTION,
+      Description: cartData?.productName || FALLBACK_ITEM_DESCRIPTION,
       Quantity: 1,
       UnitAmount: price,
     },
@@ -138,7 +138,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid price value' }, { status: 400 });
     }
 
-    const items = buildItemsFromCartData(cartData, body, price);
+    const items = buildItemsFromCartData(cartData, price);
 
     const hasInvalidItems = items.some((item) => {
       const quantity = Number(item.Quantity);
@@ -159,8 +159,8 @@ export async function POST(req: Request) {
       Items: items,
       Amount: price,
       Customer: {
-        PhoneNumber: body?.customerPhone || cartData?.customerPhone || '',
-        EmailAddress: body?.customerEmail || cartData?.customerEmail || '',
+        PhoneNumber: cartData?.customerPhone || '',
+        EmailAddress: cartData?.customerEmail || '',
       },
     };
 

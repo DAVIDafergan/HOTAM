@@ -36,6 +36,11 @@ export interface StartSessionInput {
   orderId: string;
   amount: number;
   productName: string;
+  items?: Array<{
+    name: string;
+    quantity: number;
+    price: number;
+  }>;
   currency?: string;
   buyerName?: string;
   buyerEmail?: string;
@@ -102,6 +107,16 @@ export async function startSumitSession(input: StartSessionInput) {
     `/api/payments/webhook?orderId=${encodeURIComponent(input.orderId)}`,
     input.siteBaseUrl
   ).toString();
+  const items =
+    input.items && input.items.length > 0
+      ? input.items
+      : [
+          {
+            name: input.productName,
+            quantity: 1,
+            price: Number(input.amount),
+          },
+        ];
 
   const payload = {
     Credentials: {
@@ -116,13 +131,11 @@ export async function startSumitSession(input: StartSessionInput) {
       Phone: input.buyerPhone || '',
     },
     Items: {
-      Item: [
-        {
-          Name: input.productName,
-          Price: Number(input.amount),
-          Quantity: 1,
-        },
-      ],
+      Item: items.map((item) => ({
+        Description: item.name,
+        Quantity: Number(item.quantity),
+        Total: Number(item.price) * Number(item.quantity),
+      })),
     },
     RedirectURL: redirectURL,
     IPNURL: ipnURL,

@@ -73,6 +73,7 @@ export default function CheckoutPage() {
   const [recipientAddress, setRecipientAddress] = useState('');
   const [recipientCity, setRecipientCity] = useState('');
   const formRef = useRef<HTMLFormElement | null>(null);
+  const sumitErrorsRef = useRef<HTMLDivElement | null>(null);
   const pendingOrderRef = useRef<{ orderId: string; verificationCode: string } | null>(null);
   const chargeInFlightRef = useRef(false);
   const sumitBindRef = useRef(false);
@@ -224,6 +225,7 @@ export default function CheckoutPage() {
     const { error } = await db.from('orders').upsert(orderData, { onConflict: 'id' });
 
     if (error) {
+      console.error('Failed to persist pending order before charge:', error);
       throw new Error(error.message || 'לא ניתן היה לשמור את פרטי ההזמנה.');
     }
 
@@ -232,7 +234,7 @@ export default function CheckoutPage() {
   }, [db, deliveryChoice, product, productId, recipientAddress, recipientCity, recipientName, recipientPhone, totalPrice, user?.email, user?.uid]);
 
   const extractOgToken = (form: HTMLFormElement) => {
-    // SUMIT injects `og-token`; the data-og selector is kept as a defensive fallback.
+    // SUMIT injects `og-token`; the data-og selector is kept because some examples reference it for token access.
     const namedToken = form.querySelector('input[name="og-token"]') as HTMLInputElement | null;
     const tokenField = namedToken || (form.querySelector('input[data-og="token"]') as HTMLInputElement | null);
     return tokenField?.value?.trim() || '';
@@ -269,7 +271,7 @@ export default function CheckoutPage() {
 
     const token = extractOgToken(event.currentTarget);
     if (!token) {
-      const tokenizationError = event.currentTarget.querySelector('.og-errors')?.textContent?.trim();
+      const tokenizationError = sumitErrorsRef.current?.textContent?.trim();
       if (tokenizationError) {
         toast({ variant: "destructive", title: "פרטי התשלום אינם תקינים", description: tokenizationError });
       }
@@ -411,7 +413,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <form ref={formRef} data-og="form" method="post" className="space-y-4" onSubmit={handlePaymentFormSubmit}>
-                  <div className="og-errors rounded-2xl bg-destructive/10 text-destructive text-sm font-bold empty:hidden px-4 py-3" />
+                  <div ref={sumitErrorsRef} className="og-errors rounded-2xl bg-destructive/10 text-destructive text-sm font-bold empty:hidden px-4 py-3" />
 
                   <div className="space-y-2">
                     <Label htmlFor="sumit-card-number">מספר כרטיס</Label>

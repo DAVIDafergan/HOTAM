@@ -3,6 +3,7 @@ import { markOrderAsPaidAndNotify } from '../process-order-payment';
 
 const SUMIT_CHARGE_URL = 'https://api.sumit.co.il/billing/payments/charge/';
 const PAYMENT_PROVIDER = 'sumit';
+const SUMIT_USER_AGENT = 'Hotam-Marketplace/1.0';
 
 function getSumitCredentials() {
   // Keep supporting the legacy SUMMIT_* server env names until deployment config is normalized.
@@ -74,8 +75,16 @@ export async function POST(req: Request) {
     const price = Number(body?.price);
     const { businessId, privateKey } = getSumitCredentials();
 
-    if (!token || !orderId || Number.isNaN(price) || price <= 0) {
-      return NextResponse.json({ error: 'Missing required fields: token, orderId, price' }, { status: 400 });
+    if (!token) {
+      return NextResponse.json({ error: 'Missing required field: token' }, { status: 400 });
+    }
+
+    if (!orderId) {
+      return NextResponse.json({ error: 'Missing required field: orderId' }, { status: 400 });
+    }
+
+    if (Number.isNaN(price) || price <= 0) {
+      return NextResponse.json({ error: 'Invalid price value' }, { status: 400 });
     }
 
     const sumitPayload = {
@@ -101,7 +110,7 @@ export async function POST(req: Request) {
     const response = await fetch(SUMIT_CHARGE_URL, {
       method: 'POST',
       headers: {
-        'User-Agent': 'Hotam-Marketplace/1.0',
+        'User-Agent': SUMIT_USER_AGENT,
         Accept: 'application/json',
         'Content-Type': 'application/json',
       },

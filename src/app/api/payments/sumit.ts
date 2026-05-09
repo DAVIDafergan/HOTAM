@@ -115,13 +115,15 @@ export async function startSumitSession(input: StartSessionInput) {
       Email: input.buyerEmail || '',
       Phone: input.buyerPhone || '',
     },
-    Items: [
-      {
-        Name: input.productName,
-        UnitPrice: Number(input.amount),
-        Quantity: 1,
-      },
-    ],
+    Items: {
+      Item: [
+        {
+          Name: input.productName,
+          Price: Number(input.amount),
+          Quantity: 1,
+        },
+      ],
+    },
     RedirectURL: redirectURL,
     IPNURL: ipnURL,
   };

@@ -45,7 +45,7 @@ import { useRouter } from 'next/navigation';
 
 export default function SellerProfile() {
   const params = useParams();
-  const id = Array.isArray(params?.id) ? params.id[0] : (params?.id as string | undefined);
+  const id = Array.isArray(params?.id) ? params.id[0] : params?.id;
   const { user } = useUser();
   const db = useSupabaseClient();
   const { toast } = useToast();
@@ -188,8 +188,8 @@ export default function SellerProfile() {
       return;
     }
     setIsReviewSubmitting(true);
-    const fullNameFromMetadata = user._raw?.user_metadata?.full_name;
-    const realName = fullNameFromMetadata || user.displayName || user.email || 'משתמש';
+    const metadataFullName = user._raw?.user_metadata?.full_name;
+    const realName = metadataFullName || user.displayName || user.email || 'משתמש';
     const reviewData = {
       supermarket_id: id,
       buyer_id: user.uid,

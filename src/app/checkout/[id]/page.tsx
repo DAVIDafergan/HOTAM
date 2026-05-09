@@ -78,8 +78,8 @@ export default function CheckoutPage() {
   const chargeInFlightRef = useRef(false);
   const sumitBindRef = useRef(false);
 
-  const sumitCompanyId = process.env.NEXT_PUBLIC_SUMMIT_BUSINESS_ID || process.env.NEXT_PUBLIC_SUMIT_BUSINESS_ID;
-  const sumitPublicKey = process.env.NEXT_PUBLIC_SUMMIT_PUBLIC_KEY || process.env.NEXT_PUBLIC_SUMIT_PUBLIC_KEY;
+  const sumitCompanyId = process.env.NEXT_PUBLIC_SUMIT_BUSINESS_ID || process.env.NEXT_PUBLIC_SUMMIT_BUSINESS_ID;
+  const sumitPublicKey = process.env.NEXT_PUBLIC_SUMIT_PUBLIC_KEY || process.env.NEXT_PUBLIC_SUMMIT_PUBLIC_KEY;
 
   const productRef = useMemoStable(() => productId ? doc(db, 'products', productId) : null, [db, productId]);
   const { data: product, isLoading: isProductLoading } = useDoc<any>(productRef);
@@ -151,7 +151,7 @@ export default function CheckoutPage() {
     const tryBind = () => {
       if (cancelled || sumitBindRef.current) return;
 
-      if (typeof window.jQuery !== 'function' || !window.OfficeGuy?.Payments?.BindFormSubmit) {
+      if (!window.jQuery || !window.OfficeGuy?.Payments?.BindFormSubmit) {
         attempts += 1;
         if (attempts >= MAX_SUMIT_BIND_ATTEMPTS) {
           setSumitError('מערכת הסליקה לא נטענה. נסו לרענן את העמוד.');
@@ -324,8 +324,13 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] pb-20 text-right" dir="rtl">
-      <Script src="https://code.jquery.com/jquery-3.7.1.min.js" strategy="beforeInteractive" />
-      <Script src="https://app.sumit.co.il/scripts/payments.js" strategy="beforeInteractive" />
+      <Script
+        src="https://code.jquery.com/jquery-3.7.1.min.js"
+        strategy="beforeInteractive"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+        crossOrigin="anonymous"
+      />
+      <Script src="https://app.sumit.co.il/scripts/payments.js" strategy="beforeInteractive" crossOrigin="anonymous" />
       <Navbar />
 
       <main className="container mx-auto px-4 py-20 md:py-28 max-w-4xl">
@@ -405,28 +410,28 @@ export default function CheckoutPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="sumit-card-number">מספר כרטיס</Label>
-                    <Input id="sumit-card-number" name="cardnumber" type="text" inputMode="numeric" autoComplete="cc-number" maxLength={20} data-og="cardnumber" className="text-left h-12 rounded-xl" />
+                    <Input id="sumit-card-number" name="cardnumber" type="text" inputMode="numeric" autoComplete="cc-number" maxLength={20} data-og="cardnumber" required aria-required="true" className="text-left h-12 rounded-xl" />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="sumit-expiration-month">חודש</Label>
-                      <Input id="sumit-expiration-month" name="expirationmonth" type="text" inputMode="numeric" autoComplete="cc-exp-month" maxLength={2} data-og="expirationmonth" className="text-left h-12 rounded-xl" />
+                      <Input id="sumit-expiration-month" name="expirationmonth" type="text" inputMode="numeric" autoComplete="cc-exp-month" maxLength={2} data-og="expirationmonth" required aria-required="true" className="text-left h-12 rounded-xl" />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="sumit-expiration-year">שנה</Label>
-                      <Input id="sumit-expiration-year" name="expirationyear" type="text" inputMode="numeric" autoComplete="cc-exp-year" maxLength={4} data-og="expirationyear" className="text-left h-12 rounded-xl" />
+                      <Input id="sumit-expiration-year" name="expirationyear" type="text" inputMode="numeric" autoComplete="cc-exp-year" maxLength={4} data-og="expirationyear" required aria-required="true" className="text-left h-12 rounded-xl" />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="sumit-cvv">CVV</Label>
-                      <Input id="sumit-cvv" name="cvv" type="password" inputMode="numeric" autoComplete="cc-csc" maxLength={4} data-og="cvv" className="text-left h-12 rounded-xl" />
+                      <Input id="sumit-cvv" name="cvv" type="password" inputMode="numeric" autoComplete="cc-csc" maxLength={4} data-og="cvv" required aria-required="true" className="text-left h-12 rounded-xl" />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="sumit-citizen-id">תעודת זהות</Label>
-                      <Input id="sumit-citizen-id" name="citizenid" type="text" inputMode="numeric" maxLength={9} data-og="citizenid" className="text-left h-12 rounded-xl" />
+                      <Input id="sumit-citizen-id" name="citizenid" type="text" inputMode="numeric" maxLength={9} data-og="citizenid" required aria-required="true" className="text-left h-12 rounded-xl" />
                     </div>
                   </div>
 

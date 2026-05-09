@@ -5,8 +5,8 @@ const SUMIT_CHARGE_URL = 'https://api.sumit.co.il/billing/payments/charge/';
 const PAYMENT_PROVIDER = 'sumit';
 
 function getSumitCredentials() {
-  const businessId = process.env.SUMMIT_BUSINESS_ID || process.env.SUMIT_BUSINESS_ID;
-  const privateKey = process.env.SUMMIT_PRIVATE_KEY || process.env.SUMIT_PRIVATE_KEY;
+  const businessId = process.env.SUMIT_BUSINESS_ID || process.env.SUMMIT_BUSINESS_ID;
+  const privateKey = process.env.SUMIT_PRIVATE_KEY || process.env.SUMMIT_PRIVATE_KEY;
 
   if (!businessId || !privateKey) {
     throw new Error('Missing SUMIT credentials for charge request');

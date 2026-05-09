@@ -328,7 +328,6 @@ export default function CheckoutPage() {
           setSumitError(null);
         }}
         onError={() => {
-          setIsJqueryLoaded(false);
           setSumitError('טעינת jQuery נכשלה. נסו לרענן את העמוד.');
         }}
       />
@@ -343,7 +342,6 @@ export default function CheckoutPage() {
             setSumitError(null);
           }}
           onError={() => {
-            setIsSumitLoaded(false);
             setSumitError('טעינת מערכת הסליקה נכשלה. נסו לרענן את העמוד.');
           }}
         />

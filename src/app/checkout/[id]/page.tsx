@@ -77,6 +77,7 @@ export default function CheckoutPage() {
   const chargeInFlightRef = useRef(false);
   const sumitBindRef = useRef(false);
 
+  // Keep supporting the legacy SUMMIT_* client env names until deployment config is normalized.
   const sumitCompanyId = process.env.NEXT_PUBLIC_SUMIT_BUSINESS_ID || process.env.NEXT_PUBLIC_SUMMIT_BUSINESS_ID;
   const sumitPublicKey = process.env.NEXT_PUBLIC_SUMIT_PUBLIC_KEY || process.env.NEXT_PUBLIC_SUMMIT_PUBLIC_KEY;
 
@@ -231,6 +232,7 @@ export default function CheckoutPage() {
   }, [db, deliveryChoice, product, productId, recipientAddress, recipientCity, recipientName, recipientPhone, totalPrice, user?.email, user?.uid]);
 
   const extractOgToken = (form: HTMLFormElement) => {
+    // SUMIT injects `og-token`; the data-og selector is kept as a defensive fallback.
     const namedToken = form.querySelector('input[name="og-token"]') as HTMLInputElement | null;
     const tokenField = namedToken || (form.querySelector('input[data-og="token"]') as HTMLInputElement | null);
     return tokenField?.value?.trim() || '';
@@ -267,6 +269,10 @@ export default function CheckoutPage() {
 
     const token = extractOgToken(event.currentTarget);
     if (!token) {
+      const tokenizationError = event.currentTarget.querySelector('.og-errors')?.textContent?.trim();
+      if (tokenizationError) {
+        toast({ variant: "destructive", title: "פרטי התשלום אינם תקינים", description: tokenizationError });
+      }
       return;
     }
 
@@ -328,6 +334,7 @@ export default function CheckoutPage() {
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
         crossOrigin="anonymous"
       />
+      {/* SUMIT does not publish a stable SRI hash for this hosted script, so it is loaded by origin only. */}
       <Script src="https://app.sumit.co.il/scripts/payments.js" strategy="beforeInteractive" crossOrigin="anonymous" />
       <Navbar />
 

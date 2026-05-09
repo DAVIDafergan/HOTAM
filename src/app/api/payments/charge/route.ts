@@ -5,6 +5,7 @@ const SUMIT_CHARGE_URL = 'https://api.sumit.co.il/billing/payments/charge/';
 const PAYMENT_PROVIDER = 'sumit';
 
 function getSumitCredentials() {
+  // Keep supporting the legacy SUMMIT_* server env names until deployment config is normalized.
   const businessId = process.env.SUMIT_BUSINESS_ID || process.env.SUMMIT_BUSINESS_ID;
   const privateKey = process.env.SUMIT_PRIVATE_KEY || process.env.SUMMIT_PRIVATE_KEY;
 

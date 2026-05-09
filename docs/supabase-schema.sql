@@ -115,6 +115,7 @@ CREATE TABLE IF NOT EXISTS public.admins (
 CREATE TABLE IF NOT EXISTS public.profiles (
   id         UUID        PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   full_name  TEXT        NOT NULL DEFAULT '',
+  avatar_url TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ
 );
@@ -228,6 +229,7 @@ CREATE TABLE IF NOT EXISTS public.reviews (
   is_anonymous  BOOLEAN     NOT NULL DEFAULT false,
   rating         INTEGER     NOT NULL CHECK (rating BETWEEN 1 AND 5),
   product_rating INTEGER    NOT NULL CHECK (product_rating BETWEEN 1 AND 5),
+  CONSTRAINT reviews_not_self_review CHECK (buyer_id <> seller_id),
   comment        TEXT,
   created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -249,6 +251,7 @@ CREATE TABLE IF NOT EXISTS public.supermarket_reviews (
   buyer_name      TEXT,
   is_anonymous    BOOLEAN     NOT NULL DEFAULT false,
   rating          INTEGER     NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  CONSTRAINT supermarket_reviews_not_self_review CHECK (buyer_id <> supermarket_id),
   comment         TEXT,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -278,8 +281,13 @@ CREATE INDEX IF NOT EXISTS idx_messages_timestamp     ON public.messages (timest
 CREATE INDEX IF NOT EXISTS idx_reviews_seller_id      ON public.reviews  (seller_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_product_id     ON public.reviews  (product_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_buyer_user_id  ON public.reviews  (buyer_user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_reviews_one_per_product_per_buyer
+  ON public.reviews (product_id, buyer_id)
+  WHERE product_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_supermarket_reviews_id ON public.supermarket_reviews (supermarket_id);
 CREATE INDEX IF NOT EXISTS idx_supermarket_reviews_buyer_user_id ON public.supermarket_reviews (buyer_user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_supermarket_reviews_one_per_seller_per_buyer
+  ON public.supermarket_reviews (supermarket_id, buyer_id);
 CREATE INDEX IF NOT EXISTS idx_chats_participants     ON public.chats USING GIN (participants);
 CREATE INDEX IF NOT EXISTS idx_chats_unread_state     ON public.chats USING GIN (unread_state);
 CREATE INDEX IF NOT EXISTS idx_sellers_is_approved    ON public.sellers (is_approved);
@@ -380,12 +388,16 @@ CREATE POLICY "Allow public read"  ON public.reviews FOR SELECT USING (true);
 -- Any authenticated user can insert a review; buyer_id must match their uid.
 CREATE POLICY "reviews_any_user_insert" ON public.reviews FOR INSERT
   WITH CHECK (auth.uid() IS NOT NULL AND auth.uid()::TEXT = buyer_id);
+CREATE POLICY "reviews_user_delete_own" ON public.reviews FOR DELETE
+  USING (auth.uid() IS NOT NULL AND auth.uid()::TEXT = buyer_id);
 CREATE POLICY "reviews_admin_all"    ON public.reviews FOR ALL USING (public.is_admin());
 
 -- ── supermarket_reviews policies ──────────────────────────────────────────────
 CREATE POLICY "supermarket_reviews_public_read"  ON public.supermarket_reviews FOR SELECT USING (true);
 CREATE POLICY "supermarket_reviews_user_insert"  ON public.supermarket_reviews FOR INSERT
   WITH CHECK (auth.uid() IS NOT NULL AND auth.uid()::TEXT = buyer_id);
+CREATE POLICY "supermarket_reviews_user_delete_own" ON public.supermarket_reviews FOR DELETE
+  USING (auth.uid() IS NOT NULL AND auth.uid()::TEXT = buyer_id);
 CREATE POLICY "supermarket_reviews_admin_all"    ON public.supermarket_reviews FOR ALL USING (public.is_admin());
 
 -- ── reports policies ──────────────────────────────────────────────────────────
@@ -562,7 +574,7 @@ BEGIN
   v_full_name := NULLIF(trim(concat_ws(' ', v_first, v_last)), '');
 
   INSERT INTO public.profiles (
-    id, full_name, updated_at
+    id, full_name, avatar_url, updated_at
   ) VALUES (
     NEW.id,
     COALESCE(v_full_name,
@@ -570,10 +582,12 @@ BEGIN
              NEW.raw_user_meta_data->>'name',
              split_part(NEW.email, '@', 1),
              'משתמש'),
+    COALESCE(NEW.raw_user_meta_data->>'avatar_url', NEW.raw_user_meta_data->>'picture'),
     NOW()
   )
   ON CONFLICT (id) DO UPDATE
     SET full_name  = EXCLUDED.full_name,
+        avatar_url = EXCLUDED.avatar_url,
         updated_at = NOW();
 
   IF v_role = 'seller' THEN
@@ -610,7 +624,7 @@ END;
 $$;
 
 -- Backfill profiles for already-existing auth users.
-INSERT INTO public.profiles (id, full_name, updated_at)
+INSERT INTO public.profiles (id, full_name, avatar_url, updated_at)
 SELECT
   u.id,
   COALESCE(
@@ -624,10 +638,12 @@ SELECT
     split_part(u.email, '@', 1),
     'משתמש'
   ),
+  COALESCE(NULLIF(u.raw_user_meta_data->>'avatar_url', ''), NULLIF(u.raw_user_meta_data->>'picture', '')),
   NOW()
 FROM auth.users u
 ON CONFLICT (id) DO UPDATE
   SET full_name  = EXCLUDED.full_name,
+      avatar_url = EXCLUDED.avatar_url,
       updated_at = NOW();
 
 -- Attach trigger to auth.users

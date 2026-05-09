@@ -50,8 +50,6 @@ function generateShortId(length = 8) {
   return result;
 }
 
-const MAX_SUMIT_BIND_ATTEMPTS = 50;
-const SUMIT_BIND_RETRY_DELAY_MS = 200;
 const PAYMENT_SUCCESS_REDIRECT_DELAY_MS = 800;
 
 export default function CheckoutPage() {
@@ -65,6 +63,8 @@ export default function CheckoutPage() {
   const [deliveryChoice, setDeliveryChoice] = useState(''); 
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isJqueryLoaded, setIsJqueryLoaded] = useState(false);
+  const [isSumitLoaded, setIsSumitLoaded] = useState(false);
   const [isSumitReady, setIsSumitReady] = useState(false);
   const [sumitError, setSumitError] = useState<string | null>(null);
   
@@ -140,47 +140,35 @@ export default function CheckoutPage() {
       setSumitError('חסרים פרטי הזדהות של מערכת הסליקה.');
       return;
     }
+    if (!isJqueryLoaded || !isSumitLoaded) {
+      return;
+    }
     if (sumitBindRef.current) {
       setIsSumitReady(true);
       return;
     }
 
     let cancelled = false;
-    let attempts = 0;
-    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    if (!window.jQuery || !window.OfficeGuy?.Payments?.BindFormSubmit) {
+      setSumitError('מערכת הסליקה לא נטענה. נסו לרענן את העמוד.');
+      return;
+    }
 
-    const tryBind = () => {
+    window.jQuery(function() {
       if (cancelled || sumitBindRef.current) return;
-
-      if (!window.jQuery || !window.OfficeGuy?.Payments?.BindFormSubmit) {
-        attempts += 1;
-        if (attempts >= MAX_SUMIT_BIND_ATTEMPTS) {
-          setSumitError('מערכת הסליקה לא נטענה. נסו לרענן את העמוד.');
-          return;
-        }
-        timeoutId = setTimeout(tryBind, SUMIT_BIND_RETRY_DELAY_MS);
-        return;
-      }
-
-      window.jQuery(function() {
-        if (cancelled || sumitBindRef.current) return;
-        window.OfficeGuy?.Payments?.BindFormSubmit({
-          CompanyID: sumitCompanyId,
-          APIPublicKey: sumitPublicKey,
-        });
-        sumitBindRef.current = true;
-        setIsSumitReady(true);
-        setSumitError(null);
+      window.OfficeGuy?.Payments?.BindFormSubmit({
+        CompanyID: sumitCompanyId,
+        APIPublicKey: sumitPublicKey,
       });
-    };
-
-    tryBind();
+      sumitBindRef.current = true;
+      setIsSumitReady(true);
+      setSumitError(null);
+    });
 
     return () => {
       cancelled = true;
-      if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [sumitCompanyId, sumitPublicKey]);
+  }, [isJqueryLoaded, isSumitLoaded, sumitCompanyId, sumitPublicKey]);
 
   const generateVerificationCode = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
@@ -332,12 +320,32 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-[#F8F9FA] pb-20 text-right" dir="rtl">
       <Script
         src="https://code.jquery.com/jquery-3.7.1.min.js"
-        strategy="beforeInteractive"
+        strategy="afterInteractive"
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
         crossOrigin="anonymous"
+        onLoad={() => {
+          setIsJqueryLoaded(true);
+          setSumitError(null);
+        }}
+        onError={() => {
+          setSumitError('טעינת jQuery נכשלה. נסו לרענן את העמוד.');
+        }}
       />
       {/* SUMIT does not publish a stable SRI hash for this hosted script, so it is loaded by origin only. */}
-      <Script src="https://app.sumit.co.il/scripts/payments.js" strategy="beforeInteractive" crossOrigin="anonymous" />
+      {isJqueryLoaded ? (
+        <Script
+          src="https://app.sumit.co.il/scripts/payments.js"
+          strategy="afterInteractive"
+          crossOrigin="anonymous"
+          onLoad={() => {
+            setIsSumitLoaded(true);
+            setSumitError(null);
+          }}
+          onError={() => {
+            setSumitError('טעינת מערכת הסליקה נכשלה. נסו לרענן את העמוד.');
+          }}
+        />
+      ) : null}
       <Navbar />
 
       <main className="container mx-auto px-4 py-20 md:py-28 max-w-4xl">

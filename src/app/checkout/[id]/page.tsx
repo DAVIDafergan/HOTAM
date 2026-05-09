@@ -164,7 +164,7 @@ export default function CheckoutPage() {
       const ogForm = document.querySelector('[data-og="form"]') as HTMLFormElement | null;
       if (ogForm) {
         ogForm.submit = function () {
-          nativeSubmitHandlerRef.current?.(this as HTMLFormElement);
+          nativeSubmitHandlerRef.current?.(this);
         };
       }
 

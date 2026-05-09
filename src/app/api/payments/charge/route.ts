@@ -4,6 +4,7 @@ import { markOrderAsPaidAndNotify } from '../process-order-payment';
 const SUMIT_CHARGE_URL = 'https://api.sumit.co.il/billing/payments/charge/';
 const PAYMENT_PROVIDER = 'sumit';
 const SUMIT_USER_AGENT = 'Hotam-Marketplace/1.0';
+const FALLBACK_ITEM_DESCRIPTION = 'רכישת מוצר';
 
 type CartItem = {
   Description?: string;
@@ -11,10 +12,30 @@ type CartItem = {
   UnitAmount?: number;
 };
 
-function buildItemsFromCartData(cartData: any, body: any, price: number): CartItem[] {
+type ChargeCartData = {
+  orderId?: string;
+  price?: number;
+  productName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  items?: CartItem[];
+};
+
+type ChargeRequestBody = {
+  token?: string;
+  ['og-token']?: string;
+  orderId?: string;
+  price?: number;
+  productName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  cartData?: ChargeCartData;
+};
+
+function buildItemsFromCartData(cartData: ChargeCartData, body: ChargeRequestBody, price: number): CartItem[] {
   if (Array.isArray(cartData?.items) && cartData.items.length > 0) {
     return (cartData.items as CartItem[]).map((item) => ({
-      Description: item?.Description || 'רכישת מוצר',
+      Description: item?.Description || FALLBACK_ITEM_DESCRIPTION,
       Quantity: Number(item?.Quantity ?? 1),
       UnitAmount: Number(item?.UnitAmount ?? price),
     }));
@@ -22,7 +43,7 @@ function buildItemsFromCartData(cartData: any, body: any, price: number): CartIt
 
   return [
     {
-      Description: body?.productName || cartData?.productName || 'רכישת מוצר',
+      Description: body?.productName || cartData?.productName || FALLBACK_ITEM_DESCRIPTION,
       Quantity: 1,
       UnitAmount: price,
     },
@@ -98,7 +119,7 @@ function isSuccessfulCharge(payload: any) {
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const body = (await req.json()) as ChargeRequestBody;
     const token = body?.token || body?.['og-token'];
     const cartData = body?.cartData || {};
     const orderId = body?.orderId || cartData?.orderId;

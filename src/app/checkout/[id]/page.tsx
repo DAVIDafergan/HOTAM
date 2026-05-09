@@ -234,7 +234,7 @@ export default function CheckoutPage() {
   }, [db, deliveryChoice, product, productId, recipientAddress, recipientCity, recipientName, recipientPhone, totalPrice, user?.email, user?.uid]);
 
   const extractOgToken = (form: HTMLFormElement) => {
-    // SUMIT injects `og-token`; the data-og selector is kept because some examples reference it for token access.
+    // SUMIT injects `og-token`; some older examples also reference `data-og="token"`, so we check both selectors.
     const namedToken = form.querySelector('input[name="og-token"]') as HTMLInputElement | null;
     const tokenField = namedToken || (form.querySelector('input[data-og="token"]') as HTMLInputElement | null);
     return tokenField?.value?.trim() || '';

@@ -17,6 +17,27 @@ export async function POST(req: Request) {
     const amount = Number(body?.amount);
     const productName = body?.productName || body?.name || 'מוצר קודש';
     const currency = body?.currency || 'ILS';
+    const rawItems = Array.isArray(body?.items)
+      ? body.items
+      : Array.isArray(body?.Items?.Item)
+        ? body.Items.Item
+        : [];
+    const items = rawItems
+      .map((item: any) => {
+        const quantity = Number(item?.quantity ?? item?.Quantity ?? 1);
+        const unitPrice = Number(
+          item?.price ??
+            item?.Price ??
+            (item?.Total != null && quantity > 0 ? Number(item.Total) / quantity : undefined) ??
+            amount
+        );
+        const name = item?.name ?? item?.Description ?? item?.Name ?? productName;
+        return { name, quantity, price: unitPrice };
+      })
+      .filter(
+        (item: { name: string; quantity: number; price: number }) =>
+          !!item.name && Number.isFinite(item.quantity) && item.quantity > 0 && Number.isFinite(item.price) && item.price >= 0
+      );
 
     if (!orderId || !amount || Number.isNaN(amount) || amount <= 0) {
       return NextResponse.json({ error: 'Missing required fields: orderId, amount' }, { status: 400 });
@@ -29,6 +50,7 @@ export async function POST(req: Request) {
       amount,
       productName,
       currency,
+      items,
       buyerName: body?.buyerName || body?.buyer_name,
       buyerEmail: body?.buyerEmail || body?.buyer_email,
       buyerPhone: body?.buyerPhone || body?.buyer_phone,

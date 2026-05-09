@@ -24,7 +24,7 @@ import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import unsplashLoader from '@/lib/unsplashLoader';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import Script from 'next/script';
+
 
 declare global {
   interface Window {
@@ -63,8 +63,6 @@ export default function CheckoutPage() {
   const [deliveryChoice, setDeliveryChoice] = useState(''); 
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [isJqueryLoaded, setIsJqueryLoaded] = useState(false);
-  const [isSumitLoaded, setIsSumitLoaded] = useState(false);
   const [isSumitReady, setIsSumitReady] = useState(false);
   const [sumitError, setSumitError] = useState<string | null>(null);
   
@@ -140,35 +138,77 @@ export default function CheckoutPage() {
       setSumitError('חסרים פרטי הזדהות של מערכת הסליקה.');
       return;
     }
-    if (!isJqueryLoaded || !isSumitLoaded) {
-      return;
-    }
-    if (sumitBindRef.current) {
-      setIsSumitReady(true);
-      return;
-    }
 
-    let cancelled = false;
-    if (!window.jQuery || !window.OfficeGuy?.Payments?.BindFormSubmit) {
-      setSumitError('מערכת הסליקה לא נטענה. נסו לרענן את העמוד.');
-      return;
-    }
+    // Track whether this effect instance appended the scripts (for cleanup)
+    let jqAppended = false;
+    let sumitAppended = false;
+    let sumitScript: HTMLScriptElement | null = null;
 
-    window.jQuery(function() {
-      if (cancelled || sumitBindRef.current) return;
-      window.OfficeGuy?.Payments?.BindFormSubmit({
+    const initSumit = () => {
+      if (sumitBindRef.current) {
+        setIsSumitReady(true);
+        return;
+      }
+      if (!window.OfficeGuy?.Payments?.BindFormSubmit) {
+        setSumitError('מערכת הסליקה לא נטענה. נסו לרענן את העמוד.');
+        return;
+      }
+      window.OfficeGuy.Payments.BindFormSubmit({
         CompanyID: sumitCompanyId,
         APIPublicKey: sumitPublicKey,
       });
       sumitBindRef.current = true;
       setIsSumitReady(true);
       setSumitError(null);
-    });
-
-    return () => {
-      cancelled = true;
     };
-  }, [isJqueryLoaded, isSumitLoaded, sumitCompanyId, sumitPublicKey]);
+
+    const injectSumit = () => {
+      // Guard against duplicate injection
+      if (document.querySelector('script[data-hotam="sumit"]')) {
+        initSumit();
+        return;
+      }
+      sumitScript = document.createElement('script');
+      sumitScript.src = 'https://app.sumit.co.il/scripts/payments.js';
+      sumitScript.async = true;
+      sumitScript.dataset.hotam = 'sumit';
+      sumitScript.onload = initSumit;
+      sumitScript.onerror = () => {
+        setSumitError('טעינת מערכת הסליקה נכשלה. נסו לרענן את העמוד.');
+      };
+      document.body.appendChild(sumitScript);
+      sumitAppended = true;
+    };
+
+    // Guard against duplicate jQuery injection
+    if (document.querySelector('script[data-hotam="jquery"]')) {
+      injectSumit();
+    } else {
+      // 1. Inject jQuery
+      const jqScript = document.createElement('script');
+      jqScript.src = 'https://code.jquery.com/jquery-3.7.1.min.js';
+      jqScript.integrity = 'sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=';
+      jqScript.crossOrigin = 'anonymous';
+      jqScript.async = true;
+      jqScript.dataset.hotam = 'jquery';
+      jqScript.onload = injectSumit;
+      jqScript.onerror = () => {
+        setSumitError('טעינת jQuery נכשלה. נסו לרענן את העמוד.');
+      };
+      document.body.appendChild(jqScript);
+      jqAppended = true;
+
+      return () => {
+        if (jqAppended) {
+          const el = document.querySelector('script[data-hotam="jquery"]');
+          if (el) document.body.removeChild(el);
+        }
+        if (sumitAppended && sumitScript && document.body.contains(sumitScript)) {
+          document.body.removeChild(sumitScript);
+        }
+      };
+    }
+  }, [sumitCompanyId, sumitPublicKey]);
 
   const generateVerificationCode = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
@@ -318,34 +358,6 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] pb-20 text-right" dir="rtl">
-      <Script
-        src="https://code.jquery.com/jquery-3.7.1.min.js"
-        strategy="afterInteractive"
-        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
-        crossOrigin="anonymous"
-        onLoad={() => {
-          setIsJqueryLoaded(true);
-          setSumitError(null);
-        }}
-        onError={() => {
-          setSumitError('טעינת jQuery נכשלה. נסו לרענן את העמוד.');
-        }}
-      />
-      {/* SUMIT does not publish a stable SRI hash for this hosted script, so it is loaded by origin only. */}
-      {isJqueryLoaded ? (
-        <Script
-          src="https://app.sumit.co.il/scripts/payments.js"
-          strategy="afterInteractive"
-          crossOrigin="anonymous"
-          onLoad={() => {
-            setIsSumitLoaded(true);
-            setSumitError(null);
-          }}
-          onError={() => {
-            setSumitError('טעינת מערכת הסליקה נכשלה. נסו לרענן את העמוד.');
-          }}
-        />
-      ) : null}
       <Navbar />
 
       <main className="container mx-auto px-4 py-20 md:py-28 max-w-4xl">

@@ -113,6 +113,18 @@ export async function POST(req: Request) {
           },
         ];
 
+    const hasInvalidItems = items.some(
+      (item) =>
+        !Number.isFinite(item.Quantity) ||
+        item.Quantity <= 0 ||
+        !Number.isFinite(item.UnitAmount) ||
+        item.UnitAmount <= 0
+    );
+
+    if (hasInvalidItems) {
+      return NextResponse.json({ error: 'Invalid items payload' }, { status: 400 });
+    }
+
     const sumitPayload = {
       Credentials: {
         CompanyID: companyId,

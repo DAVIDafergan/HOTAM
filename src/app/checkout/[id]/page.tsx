@@ -52,6 +52,8 @@ function generateShortId(length = 8) {
   return result;
 }
 
+const DEFAULT_PAYMENT_ITEM_DESCRIPTION = 'מוצר קודש';
+
 export default function CheckoutPage() {
   const params = useParams();
   const productId = params?.id as string;
@@ -281,15 +283,16 @@ export default function CheckoutPage() {
 
     try {
       const orderId = await upsertPendingOrder();
+      const paymentItemDescription = product?.product_name || product?.product_type || DEFAULT_PAYMENT_ITEM_DESCRIPTION;
       const cartData = {
         orderId,
         price: totalPrice,
-        productName: product?.product_name || product?.product_type || 'מוצר קודש',
+        productName: paymentItemDescription,
         customerEmail: user?.email || '',
         customerPhone: recipientPhone,
         items: [
           {
-            Description: product?.product_name || product?.product_type || 'מוצר קודש',
+            Description: paymentItemDescription,
             UnitAmount: totalPrice,
             Quantity: 1,
           },
@@ -324,8 +327,8 @@ export default function CheckoutPage() {
             }
 
             setIsSuccess(true);
-            const paidOrderId = data?.orderId || cartData.orderId;
-            router.push(`/checkout/success?orderId=${encodeURIComponent(paidOrderId)}`);
+            const orderIdForRedirect = data?.orderId || cartData.orderId;
+            router.push(`/checkout/success?orderId=${encodeURIComponent(orderIdForRedirect)}`);
           } catch (err: any) {
             console.error('Payment Charge Error:', err);
             setChargeError(err.message || 'חלה שגיאה בחיבור למערכת הסליקה.');

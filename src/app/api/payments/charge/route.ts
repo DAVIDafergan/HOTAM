@@ -134,6 +134,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
+      orderId,
       alreadyProcessed: result.alreadyProcessed,
       data,
     });

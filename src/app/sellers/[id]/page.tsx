@@ -123,17 +123,21 @@ export default function SellerProfile() {
 
   const isOwnSellerReviewBlocked = Boolean(user && user.role === 'seller' && user.uid === id);
 
+  const showSelfReviewBlockedToast = () => {
+    toast({
+      variant: 'destructive',
+      title: 'לא ניתן לדרג את עצמך',
+      description: 'סופר לא יכול לפרסם דירוג או ביקורת על עצמו.',
+    });
+  };
+
   const openSellerReviewDialog = () => {
     if (!user) {
       router.push('/login');
       return;
     }
     if (isOwnSellerReviewBlocked) {
-      toast({
-        variant: 'destructive',
-        title: 'לא ניתן לדרג את עצמך',
-        description: 'סופר לא יכול לפרסם דירוג או ביקורת על עצמו.',
-      });
+      showSelfReviewBlockedToast();
       return;
     }
     setReviewDialogOpen(true);
@@ -166,11 +170,7 @@ export default function SellerProfile() {
   const handleSubmitSellerReview = async () => {
     if (!user) { router.push('/login'); return; }
     if (isOwnSellerReviewBlocked) {
-      toast({
-        variant: 'destructive',
-        title: 'לא ניתן לדרג את עצמך',
-        description: 'סופר לא יכול לפרסם דירוג או ביקורת על עצמו.',
-      });
+      showSelfReviewBlockedToast();
       return;
     }
     setIsReviewSubmitting(true);

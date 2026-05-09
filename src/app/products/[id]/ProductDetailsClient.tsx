@@ -97,17 +97,21 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
     user && user.role === 'seller' && user.uid === product?.seller_id
   );
 
+  const showOwnProductReviewBlockedToast = () => {
+    toast({
+      variant: 'destructive',
+      title: 'לא ניתן לדרג מוצר שהעלית',
+      description: 'סופר לא יכול לפרסם ביקורת או דירוג על מוצר שלו.',
+    });
+  };
+
   const openProductReviewDialog = () => {
     if (!user) {
       router.push('/login');
       return;
     }
     if (isOwnProductReviewBlocked) {
-      toast({
-        variant: 'destructive',
-        title: 'לא ניתן לדרג מוצר שהעלית',
-        description: 'סופר לא יכול לפרסם ביקורת או דירוג על מוצר שלו.',
-      });
+      showOwnProductReviewBlockedToast();
       return;
     }
     setReviewDialogOpen(true);
@@ -218,11 +222,7 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
   const handleSubmitProductReview = async () => {
     if (!user) { router.push('/login'); return; }
     if (isOwnProductReviewBlocked) {
-      toast({
-        variant: 'destructive',
-        title: 'לא ניתן לדרג מוצר שהעלית',
-        description: 'סופר לא יכול לפרסם ביקורת או דירוג על מוצר שלו.',
-      });
+      showOwnProductReviewBlockedToast();
       return;
     }
     setIsReviewSubmitting(true);

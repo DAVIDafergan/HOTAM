@@ -87,10 +87,10 @@ export async function POST(req: Request) {
         {
           Description: body?.productName || 'רכישת מוצר',
           Quantity: 1,
-          UnitAmount: price || 0,
+          UnitAmount: price,
         },
       ],
-      Amount: price || 0,
+      Amount: price,
       Customer: {
         PhoneNumber: body?.customerPhone || '',
         EmailAddress: body?.customerEmail || '',

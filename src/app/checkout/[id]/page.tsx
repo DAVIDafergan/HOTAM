@@ -25,6 +25,7 @@ import { useToast } from '@/hooks/use-toast';
 import unsplashLoader from '@/lib/unsplashLoader';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Script from 'next/script';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 declare global {
   interface Window {
@@ -49,6 +50,10 @@ function generateShortId(length = 8) {
   }
   return result;
 }
+
+const MAX_SUMIT_BIND_ATTEMPTS = 50;
+const SUMIT_BIND_RETRY_DELAY_MS = 200;
+const PAYMENT_SUCCESS_REDIRECT_DELAY_MS = 800;
 
 export default function CheckoutPage() {
   const params = useParams();
@@ -148,11 +153,11 @@ export default function CheckoutPage() {
 
       if (typeof window.jQuery !== 'function' || !window.OfficeGuy?.Payments?.BindFormSubmit) {
         attempts += 1;
-        if (attempts >= 50) {
+        if (attempts >= MAX_SUMIT_BIND_ATTEMPTS) {
           setSumitError('מערכת הסליקה לא נטענה. נסו לרענן את העמוד.');
           return;
         }
-        timeoutId = window.setTimeout(tryBind, 200);
+        timeoutId = window.setTimeout(tryBind, SUMIT_BIND_RETRY_DELAY_MS);
         return;
       }
 
@@ -216,7 +221,8 @@ export default function CheckoutPage() {
       created_at: serverTimestamp()
     };
 
-    const { error } = await (db as any).from('orders').upsert(orderData, { onConflict: 'id' });
+    const supabaseClient = db as SupabaseClient;
+    const { error } = await supabaseClient.from('orders').upsert(orderData, { onConflict: 'id' });
 
     if (error) {
       throw new Error(error.message || 'לא ניתן היה לשמור את פרטי ההזמנה.');
@@ -300,7 +306,7 @@ export default function CheckoutPage() {
       toast({ title: "התשלום הושלם", description: "ההזמנה אושרה בהצלחה." });
       setTimeout(() => {
         router.push(`/customer/dashboard?payment=success&orderId=${encodeURIComponent(orderId)}`);
-      }, 800);
+      }, PAYMENT_SUCCESS_REDIRECT_DELAY_MS);
     } catch (err: any) {
       console.error('Payment Charge Error:', err);
       toast({ variant: "destructive", title: "שגיאת תשלום", description: err.message || "חלה שגיאה בחיבור למערכת הסליקה." });

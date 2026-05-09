@@ -195,12 +195,12 @@ export default function SellerProfile() {
       router.push('/login');
       return;
     }
-    const fullName = authData.user.user_metadata?.full_name ?? null;
+    const fullName = authData.user.user_metadata?.full_name;
     const realName = fullName || user.displayName || user.email || 'משתמש';
     const reviewData = {
       supermarket_id: id,
       buyer_id: user.uid,
-      user_name: fullName,
+      user_name: authData.user.user_metadata?.full_name ?? realName,
       buyer_name: realName,
       is_anonymous: reviewIsAnonymous,
       rating: reviewRating,

@@ -45,7 +45,7 @@ import { useRouter } from 'next/navigation';
 
 export default function SellerProfile() {
   const params = useParams();
-  const id = params?.id as string;
+  const id = Array.isArray(params?.id) ? params.id[0] : (params?.id as string | undefined);
   const { user } = useUser();
   const db = useSupabaseClient();
   const { toast } = useToast();
@@ -116,7 +116,7 @@ export default function SellerProfile() {
             const fullName = profile?.full_name;
             return {
               ...review,
-              buyer_name: fullName || review?.buyer_name || 'משתמש',
+              buyer_name: fullName || review?.user_name || review?.buyer_name || 'משתמש',
             };
           });
           setReviews(normalized);
@@ -179,15 +179,21 @@ export default function SellerProfile() {
 
   const handleSubmitSellerReview = async () => {
     if (!user) { router.push('/login'); return; }
+    if (!id) {
+      toast({ variant: 'destructive', title: 'שגיאה בזיהוי הסופר', description: 'אנא רענן את העמוד ונסה שוב.' });
+      return;
+    }
     if (isOwnSellerReviewBlocked) {
       showSelfReviewBlockedToast();
       return;
     }
     setIsReviewSubmitting(true);
-    const realName = user.displayName || user.email || 'משתמש';
+    const fullNameFromMetadata = user._raw?.user_metadata?.full_name;
+    const realName = fullNameFromMetadata || user.displayName || user.email || 'משתמש';
     const reviewData = {
       supermarket_id: id,
       buyer_id: user.uid,
+      user_name: realName,
       buyer_name: realName,
       is_anonymous: reviewIsAnonymous,
       rating: reviewRating,
@@ -200,6 +206,7 @@ export default function SellerProfile() {
       toast({ variant: 'destructive', title: 'שגיאה בשמירת הדירוג', description: 'אנא נסה שנית.' });
     } else {
       setReviews(prev => [...prev, inserted]);
+      router.refresh();
       setReviewDialogOpen(false);
       setReviewComment('');
       setReviewRating(5);

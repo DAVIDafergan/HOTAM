@@ -130,11 +130,13 @@ export async function startSumitSession(input: StartSessionInput) {
       Email: input.buyerEmail || '',
       Phone: input.buyerPhone || '',
     },
-    Items: items.map((item) => ({
-      Description: item.name,
-      Quantity: Number(item.quantity),
-      UnitAmount: Number(item.price),
-    })),
+    Items: {
+      Item: items.map((item) => ({
+        Description: item.name,
+        Quantity: Number(item.quantity),
+        UnitAmount: Number(item.price),
+      })),
+    },
     RedirectURL: redirectURL,
     IPNURL: ipnURL,
   };

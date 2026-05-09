@@ -35,6 +35,12 @@ declare global {
           CompanyID?: string;
           APIPublicKey?: string;
         }) => void;
+        TokenizeForm: (config: {
+          CompanyID?: string;
+          APIPublicKey?: string;
+          OnSuccess?: (token: any) => void | Promise<void>;
+          OnError?: (error: any) => void;
+        }) => void;
       };
     };
   }
@@ -71,16 +77,13 @@ export default function CheckoutPage() {
   const [recipientPhone, setRecipientPhone] = useState('');
   const [recipientAddress, setRecipientAddress] = useState('');
   const [recipientCity, setRecipientCity] = useState('');
-  const formRef = useRef<HTMLFormElement | null>(null);
-  const sumitErrorsRef = useRef<HTMLDivElement | null>(null);
   const pendingOrderRef = useRef<{ orderId: string; verificationCode: string } | null>(null);
   const chargeInFlightRef = useRef(false);
-  const sumitBindRef = useRef(false);
-  const nativeSubmitHandlerRef = useRef<((form: HTMLFormElement) => Promise<void>) | null>(null);
 
   // Keep supporting the legacy SUMMIT_* client env names until deployment config is normalized.
   const sumitCompanyId = process.env.NEXT_PUBLIC_SUMIT_BUSINESS_ID || process.env.NEXT_PUBLIC_SUMMIT_BUSINESS_ID;
   const sumitPublicKey = process.env.NEXT_PUBLIC_SUMIT_PUBLIC_KEY || process.env.NEXT_PUBLIC_SUMMIT_PUBLIC_KEY;
+  console.log("DEBUG KEYS:", process.env.NEXT_PUBLIC_SUMMIT_BUSINESS_ID, process.env.NEXT_PUBLIC_SUMMIT_PUBLIC_KEY);
 
   const productRef = useMemoStable(() => productId ? doc(db, 'products', productId) : null, [db, productId]);
   const { data: product, isLoading: isProductLoading } = useDoc<any>(productRef);
@@ -147,29 +150,10 @@ export default function CheckoutPage() {
     let sumitScript: HTMLScriptElement | null = null;
 
     const initSumit = () => {
-      if (sumitBindRef.current) {
-        setIsSumitReady(true);
-        return;
-      }
-      if (!window.OfficeGuy?.Payments?.BindFormSubmit) {
+      if (!window.OfficeGuy?.Payments?.TokenizeForm) {
         setSumitError('מערכת הסליקה לא נטענה. נסו לרענן את העמוד.');
         return;
       }
-      window.OfficeGuy.Payments.BindFormSubmit({
-        CompanyID: sumitCompanyId,
-        APIPublicKey: sumitPublicKey,
-      });
-
-      // Hijack the native form.submit() that SUMIT calls after tokenization to
-      // prevent a full-page reload and instead process the charge via fetch.
-      const ogForm = document.querySelector('[data-og="form"]') as HTMLFormElement | null;
-      if (ogForm) {
-        ogForm.submit = function () {
-          nativeSubmitHandlerRef.current?.(this);
-        };
-      }
-
-      sumitBindRef.current = true;
       setIsSumitReady(true);
       setSumitError(null);
     };
@@ -273,14 +257,7 @@ export default function CheckoutPage() {
     return shortId;
   }, [db, deliveryChoice, product, productId, recipientAddress, recipientCity, recipientName, recipientPhone, totalPrice, user?.email, user?.uid]);
 
-  const extractOgToken = (form: HTMLFormElement) => {
-    // SUMIT injects `og-token`; some older examples also reference `data-og="token"`, so we check both selectors.
-    const namedToken = form.querySelector('input[name="og-token"]') as HTMLInputElement | null;
-    const tokenField = namedToken || (form.querySelector('input[data-og="token"]') as HTMLInputElement | null);
-    return tokenField?.value?.trim() || '';
-  };
-
-  const handleStartPayment = async () => {
+  const executePayment = async () => {
     const validationError = validateCheckout();
     if (validationError) {
       toast({ variant: "destructive", title: "פרטים חסרים", description: validationError });
@@ -292,90 +269,10 @@ export default function CheckoutPage() {
       return;
     }
 
-    try {
-      await upsertPendingOrder();
-      formRef.current?.requestSubmit();
-    } catch (err: any) {
-      console.error('Payment Preparation Error:', err);
-      toast({ variant: "destructive", title: "שגיאת תשלום", description: err.message || "חלה שגיאה בחיבור למערכת הסליקה." });
-    }
-  };
-
-  // Keep a ref to the latest charge handler so form.submit override never captures stale values.
-  useEffect(() => {
-    nativeSubmitHandlerRef.current = async (form: HTMLFormElement) => {
-      const validationError = validateCheckout();
-      if (validationError) {
-        toast({ variant: "destructive", title: "פרטים חסרים", description: validationError });
-        return;
-      }
-
-      const token = extractOgToken(form);
-      if (!token) {
-        const tokenizationError = sumitErrorsRef.current?.textContent?.trim();
-        if (tokenizationError) {
-          toast({ variant: "destructive", title: "פרטי התשלום אינם תקינים", description: tokenizationError });
-        }
-        return;
-      }
-
-      if (chargeInFlightRef.current) return;
-      chargeInFlightRef.current = true;
-      setIsProcessing(true);
-      setChargeError(null);
-
-      try {
-        const orderId = await upsertPendingOrder();
-        const response = await fetch('/api/payments/charge', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            orderId,
-            token,
-            price: totalPrice,
-            productName: product?.product_name || product?.product_type || 'מוצר קודש',
-            customerEmail: user?.email,
-            customerPhone: recipientPhone,
-          }),
-        });
-
-        const data = await response.json();
-        if (!response.ok || !data?.success) {
-          throw new Error(data.error || 'לא ניתן היה להשלים את החיוב.');
-        }
-
-        setIsSuccess(true);
-        setTimeout(() => {
-          router.push(`/checkout/success?orderId=${encodeURIComponent(data.orderId || orderId)}`);
-        }, PAYMENT_SUCCESS_REDIRECT_DELAY_MS);
-      } catch (err: any) {
-        console.error('Payment Charge Error:', err);
-        setChargeError(err.message || 'חלה שגיאה בחיבור למערכת הסליקה.');
-      } finally {
-        chargeInFlightRef.current = false;
-        setIsProcessing(false);
-      }
-    };
-  });
-
-  const handlePaymentFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    const validationError = validateCheckout();
-    if (validationError) {
-      event.preventDefault();
-      toast({ variant: "destructive", title: "פרטים חסרים", description: validationError });
+    if (!window.OfficeGuy?.Payments?.TokenizeForm) {
+      alert("מערכת הסליקה לא נטענה, נא לרענן");
       return;
     }
-
-    const token = extractOgToken(event.currentTarget);
-    if (!token) {
-      const tokenizationError = sumitErrorsRef.current?.textContent?.trim();
-      if (tokenizationError) {
-        toast({ variant: "destructive", title: "פרטי התשלום אינם תקינים", description: tokenizationError });
-      }
-      return;
-    }
-
-    event.preventDefault();
 
     if (chargeInFlightRef.current) {
       return;
@@ -387,36 +284,73 @@ export default function CheckoutPage() {
 
     try {
       const orderId = await upsertPendingOrder();
-      const response = await fetch('/api/payments/charge', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          orderId,
-          token,
-          price: totalPrice,
-          productName: product.product_name || product.product_type || 'מוצר קודש',
-          customerEmail: user?.email,
-          customerPhone: recipientPhone
-        })
+
+      window.OfficeGuy.Payments.TokenizeForm({
+        CompanyID: sumitCompanyId,
+        APIPublicKey: sumitPublicKey,
+        OnSuccess: async (tokenPayload: any) => {
+          try {
+            const token = typeof tokenPayload === 'string'
+              ? tokenPayload
+              : tokenPayload?.Token || tokenPayload?.SingleUseToken || tokenPayload?.token || '';
+
+            if (!token) {
+              throw new Error('לא התקבל טוקן סליקה תקין.');
+            }
+
+            const response = await fetch('/api/payments/charge', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                orderId,
+                token,
+                price: totalPrice,
+                productName: product?.product_name || product?.product_type || 'מוצר קודש',
+                customerEmail: user?.email,
+                customerPhone: recipientPhone,
+              }),
+            });
+
+            const data = await response.json();
+            if (!response.ok || !data?.success) {
+              throw new Error(data.error || 'לא ניתן היה להשלים את החיוב.');
+            }
+
+            setIsSuccess(true);
+            setTimeout(() => {
+              router.push(`/checkout/success?orderId=${encodeURIComponent(data.orderId || orderId)}`);
+            }, PAYMENT_SUCCESS_REDIRECT_DELAY_MS);
+          } catch (err: any) {
+            console.error('Payment Charge Error:', err);
+            setChargeError(err.message || 'חלה שגיאה בחיבור למערכת הסליקה.');
+            setIsProcessing(false);
+            chargeInFlightRef.current = false;
+          }
+        },
+        OnError: (error: any) => {
+          alert("שגיאת סליקה: " + (error?.Message || 'אירעה שגיאה לא ידועה.'));
+          setIsProcessing(false);
+          chargeInFlightRef.current = false;
+        },
       });
-
-      const data = await response.json();
-
-      if (!response.ok || !data?.success) {
-        throw new Error(data.error || 'לא ניתן היה להשלים את החיוב.');
-      }
-
-      setIsSuccess(true);
-      setTimeout(() => {
-        router.push(`/checkout/success?orderId=${encodeURIComponent(data.orderId || orderId)}`);
-      }, PAYMENT_SUCCESS_REDIRECT_DELAY_MS);
     } catch (err: any) {
-      console.error('Payment Charge Error:', err);
-      setChargeError(err.message || 'חלה שגיאה בחיבור למערכת הסליקה.');
-    } finally {
-      chargeInFlightRef.current = false;
+      console.error('Payment Preparation Error:', err);
+      toast({ variant: "destructive", title: "שגיאת תשלום", description: err.message || "חלה שגיאה בחיבור למערכת הסליקה." });
       setIsProcessing(false);
+      chargeInFlightRef.current = false;
     }
+  };
+
+  const handlePaymentFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    await executePayment();
+  };
+
+  const handlePayment = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    await executePayment();
   };
 
   if (isUserLoading || isProductLoading) {
@@ -501,8 +435,8 @@ export default function CheckoutPage() {
                   <CreditCard className="w-6 h-6 text-accent" />
                 </div>
 
-                <form ref={formRef} data-og="form" method="post" className="space-y-4" onSubmit={handlePaymentFormSubmit}>
-                  <div ref={sumitErrorsRef} className="og-errors rounded-2xl bg-destructive/10 text-destructive text-sm font-bold empty:hidden px-4 py-3" />
+                <form data-og="form" method="post" className="space-y-4" onSubmit={handlePaymentFormSubmit}>
+                  <div className="og-errors rounded-2xl bg-destructive/10 text-destructive text-sm font-bold empty:hidden px-4 py-3" />
 
                   <div className="space-y-2">
                     <Label htmlFor="sumit-card-number">מספר כרטיס</Label>
@@ -552,7 +486,7 @@ export default function CheckoutPage() {
                   )}
                   <Button
                     type="button"
-                    onClick={handleStartPayment}
+                    onClick={handlePayment}
                     disabled={isProcessing || !deliveryChoice || !isSumitReady}
                     className="w-full bg-primary text-white hover:bg-primary/90 h-16 rounded-2xl shadow-xl font-black text-xl uppercase tracking-widest gap-3"
                   >

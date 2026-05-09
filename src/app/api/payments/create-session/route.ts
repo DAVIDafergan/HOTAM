@@ -22,8 +22,8 @@ export async function POST(req: Request) {
     // Single item always wrapped in an array as required by the SUMIT API
     const items = [{ name: productName, quantity: 1, price: unitPrice }];
 
-    if (!orderId || !amount || Number.isNaN(amount) || amount <= 0) {
-      return NextResponse.json({ error: 'Missing required fields: orderId, amount' }, { status: 400 });
+    if (!orderId || !unitPrice || Number.isNaN(unitPrice) || unitPrice <= 0) {
+      return NextResponse.json({ error: 'Missing required fields: orderId, price/amount' }, { status: 400 });
     }
 
     const session = await startSumitSession({

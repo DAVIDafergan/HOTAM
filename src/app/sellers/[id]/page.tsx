@@ -121,6 +121,24 @@ export default function SellerProfile() {
     return sum / revs.length;
   }, [reviews]);
 
+  const isOwnSellerReviewBlocked = Boolean(user && user.role === 'seller' && user.uid === id);
+
+  const openSellerReviewDialog = () => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    if (isOwnSellerReviewBlocked) {
+      toast({
+        variant: 'destructive',
+        title: 'לא ניתן לדרג את עצמך',
+        description: 'סופר לא יכול לפרסם דירוג או ביקורת על עצמו.',
+      });
+      return;
+    }
+    setReviewDialogOpen(true);
+  };
+
   const handleSendReport = () => {
     if (!user) { toast({ title: "עליך להתחבר כדי לדווח" }); return; }
     if (!reportReason.trim()) { toast({ variant: "destructive", title: "אנא ציין סיבה לדיווח" }); return; }
@@ -147,6 +165,14 @@ export default function SellerProfile() {
 
   const handleSubmitSellerReview = async () => {
     if (!user) { router.push('/login'); return; }
+    if (isOwnSellerReviewBlocked) {
+      toast({
+        variant: 'destructive',
+        title: 'לא ניתן לדרג את עצמך',
+        description: 'סופר לא יכול לפרסם דירוג או ביקורת על עצמו.',
+      });
+      return;
+    }
     setIsReviewSubmitting(true);
     const realName = user.displayName || user.email || 'משתמש';
     const reviewData = {
@@ -315,7 +341,7 @@ export default function SellerProfile() {
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white text-right" dir="rtl">
-                    <div className="bg-destructive p-6 text-white text-right">
+                    <div className="bg-gradient-to-l from-red-700 to-destructive p-6 text-white text-right">
                        <DialogHeader>
                           <DialogTitle className="text-xl font-headline font-black flex items-center gap-3 text-white">
                             <Flag className="w-6 h-6 text-white" /> דיווח למנהל המערכת
@@ -323,27 +349,27 @@ export default function SellerProfile() {
                        </DialogHeader>
                     </div>
                     <div className="p-8 space-y-4 bg-white text-slate-900">
-                       <div className="space-y-2">
-                          <Label className="text-xs font-black uppercase text-slate-900">מה סיבת הדיווח?</Label>
-                          <Textarea 
-                            value={reportReason} 
-                            onChange={e => setReportReason(e.target.value)} 
-                            placeholder="פרט כאן את הבעיה..." 
-                            className="min-h-[120px] rounded-2xl text-slate-900 bg-white border-slate-200 placeholder:text-slate-400 focus:ring-destructive/20" 
-                          />
-                       </div>
-                       <p className="text-[11px] font-medium text-slate-500 leading-relaxed">
+                        <div className="space-y-2">
+                           <Label className="text-xs font-black uppercase tracking-wide text-slate-900">מה סיבת הדיווח?</Label>
+                           <Textarea 
+                             value={reportReason} 
+                             onChange={e => setReportReason(e.target.value)} 
+                             placeholder="פרט כאן את הבעיה..." 
+                             className="min-h-[120px] rounded-2xl text-slate-900 bg-slate-50 border-slate-300 placeholder:text-slate-500 focus-visible:ring-destructive/40" 
+                           />
+                        </div>
+                        <p className="text-[11px] font-medium text-slate-500 leading-relaxed">
                          * הדיווח ישלח באופן דיסקרטי למנהלי 'חותם'. אנו לוקחים כל פנייה ברצינות רבה לשמירה על כשרות וקדושת המערכת.
                        </p>
                     </div>
-                    <DialogFooter className="p-6 bg-slate-50 border-t border-slate-100 flex gap-3">
-                       <Button onClick={handleSendReport} disabled={isReporting} className="flex-1 bg-destructive text-white h-12 rounded-xl font-black uppercase shadow-md hover:bg-red-700 transition-colors">
-                         {isReporting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'שלח דיווח'}
-                       </Button>
-                       <Button variant="outline" onClick={() => setIsReportDialogOpen(false)} className="h-12 rounded-xl font-bold text-slate-700 border-slate-200 hover:bg-slate-100">ביטול</Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
+                     <DialogFooter className="p-6 bg-slate-50 border-t border-slate-100 flex gap-3">
+                        <Button onClick={handleSendReport} disabled={isReporting} className="flex-1 bg-destructive text-white h-12 rounded-xl font-black uppercase shadow-md hover:bg-red-700 transition-colors">
+                          {isReporting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'שלח דיווח'}
+                        </Button>
+                        <Button variant="outline" onClick={() => setIsReportDialogOpen(false)} className="h-12 rounded-xl font-bold text-slate-800 border-slate-300 hover:bg-slate-100">ביטול</Button>
+                     </DialogFooter>
+                   </DialogContent>
+                 </Dialog>
               </div>
             </Card>
           </div>
@@ -429,10 +455,11 @@ export default function SellerProfile() {
                 <TabsContent value="reviews" className="animate-in fade-in slide-in-from-bottom-2 space-y-4">
                   <div className="flex justify-between items-center mb-4">
                     <Button
-                      onClick={() => user ? setReviewDialogOpen(true) : router.push('/login')}
+                      onClick={openSellerReviewDialog}
+                      disabled={isOwnSellerReviewBlocked}
                       className="bg-primary text-white rounded-2xl h-11 px-6 font-black text-xs uppercase tracking-widest gap-2 shadow-md hover:bg-primary/90"
                     >
-                      <Star className="w-4 h-4" /> דרג סופר
+                      <Star className="w-4 h-4" /> {isOwnSellerReviewBlocked ? 'לא ניתן לדרג את עצמך' : 'דרג סופר'}
                     </Button>
                     <h4 className="text-sm font-black text-primary/40 uppercase tracking-widest">ביקורות לקוחות</h4>
                   </div>
@@ -507,7 +534,7 @@ export default function SellerProfile() {
           <DialogFooter className="p-6 bg-muted/30 border-t flex gap-3">
             <Button
               onClick={handleSubmitSellerReview}
-              disabled={isReviewSubmitting}
+              disabled={isReviewSubmitting || isOwnSellerReviewBlocked}
               className="flex-1 bg-primary text-white h-12 font-black uppercase"
             >
               {isReviewSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'פרסם דירוג'}

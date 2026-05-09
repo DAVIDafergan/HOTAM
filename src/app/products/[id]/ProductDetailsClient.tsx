@@ -93,6 +93,26 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
   const [reviewIsAnonymous, setReviewIsAnonymous] = useState(false);
   const [isReviewSubmitting, setIsReviewSubmitting] = useState(false);
 
+  const isOwnProductReviewBlocked = Boolean(
+    user && user.role === 'seller' && user.uid === product?.seller_id
+  );
+
+  const openProductReviewDialog = () => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    if (isOwnProductReviewBlocked) {
+      toast({
+        variant: 'destructive',
+        title: 'לא ניתן לדרג מוצר שהעלית',
+        description: 'סופר לא יכול לפרסם ביקורת או דירוג על מוצר שלו.',
+      });
+      return;
+    }
+    setReviewDialogOpen(true);
+  };
+
   useEffect(() => {
     if (!productId) return;
     supabase
@@ -197,6 +217,14 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
 
   const handleSubmitProductReview = async () => {
     if (!user) { router.push('/login'); return; }
+    if (isOwnProductReviewBlocked) {
+      toast({
+        variant: 'destructive',
+        title: 'לא ניתן לדרג מוצר שהעלית',
+        description: 'סופר לא יכול לפרסם ביקורת או דירוג על מוצר שלו.',
+      });
+      return;
+    }
     setIsReviewSubmitting(true);
     const realName = (profileData ? `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() : user.displayName || user.email || 'משתמש') || 'משתמש';
     const reviewData = {
@@ -408,10 +436,11 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
               <Card className="border-none shadow-premium rounded-[3rem] bg-white p-8 md:p-12">
                 <div className="flex justify-between items-center mb-8">
                   <Button
-                    onClick={() => user ? setReviewDialogOpen(true) : router.push('/login')}
+                    onClick={openProductReviewDialog}
+                    disabled={isOwnProductReviewBlocked}
                     className="bg-primary text-white rounded-2xl h-11 px-6 font-black text-xs uppercase tracking-widest gap-2 shadow-md hover:bg-primary/90"
                   >
-                    <Star className="w-4 h-4" /> כתוב ביקורת
+                    <Star className="w-4 h-4" /> {isOwnProductReviewBlocked ? 'לא ניתן לדרג מוצר שלך' : 'כתוב ביקורת'}
                   </Button>
                   <h4 className="text-sm font-black text-primary/40 uppercase tracking-widest">ביקורות לקוחות</h4>
                 </div>
@@ -532,7 +561,7 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
           <DialogFooter className="p-6 bg-muted/30 border-t flex gap-3">
             <Button
               onClick={handleSubmitProductReview}
-              disabled={isReviewSubmitting}
+              disabled={isReviewSubmitting || isOwnProductReviewBlocked}
               className="flex-1 bg-primary text-white h-12 font-black uppercase"
             >
               {isReviewSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'פרסם ביקורת'}

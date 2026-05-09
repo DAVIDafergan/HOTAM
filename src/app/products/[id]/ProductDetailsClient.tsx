@@ -25,7 +25,8 @@ import {
   Clock,
   ArrowLeft,
   ShieldCheck,
-  ChevronRight
+  ChevronRight,
+  Trash2
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -49,6 +50,7 @@ import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export function ProductDetailsClient({ productId }: { productId: string }) {
   const { user } = useUser();
@@ -92,16 +94,30 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
   const [reviewComment, setReviewComment] = useState('');
   const [reviewIsAnonymous, setReviewIsAnonymous] = useState(false);
   const [isReviewSubmitting, setIsReviewSubmitting] = useState(false);
+  const [deletingReviewId, setDeletingReviewId] = useState<string | null>(null);
 
   const isOwnProductReviewBlocked = Boolean(
     user && user.role === 'seller' && user.uid === product?.seller_id
   );
+  const currentUserProductReview = useMemo(
+    () => (user ? (reviews || []).find((rev: any) => rev?.buyer_id === user.uid) : null),
+    [reviews, user]
+  );
+  const hasUserReviewedProduct = Boolean(currentUserProductReview);
 
   const showOwnProductReviewBlockedToast = () => {
     toast({
       variant: 'destructive',
       title: 'לא ניתן לדרג מוצר שהעלית',
       description: 'סופר לא יכול לפרסם ביקורת או דירוג על מוצר שלו.',
+    });
+  };
+
+  const showAlreadyReviewedProductToast = () => {
+    toast({
+      variant: 'destructive',
+      title: 'כבר פרסמת ביקורת על מוצר זה',
+      description: 'ניתן לפרסם ביקורת אחת בלבד לכל מוצר.',
     });
   };
 
@@ -114,6 +130,10 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
       showOwnProductReviewBlockedToast();
       return;
     }
+    if (hasUserReviewedProduct) {
+      showAlreadyReviewedProductToast();
+      return;
+    }
     setReviewDialogOpen(true);
   };
 
@@ -121,7 +141,7 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
     if (!productId) return;
     supabase
       .from('reviews')
-      .select('*, profiles(full_name)')
+      .select('*, profiles(full_name, avatar_url)')
       .eq('product_id', productId)
       .then(({ data, error }) => {
         if (error) console.error('[reviews] fetch error:', error.message);
@@ -132,6 +152,7 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
             return {
               ...review,
               buyer_name: fullName || review?.buyer_name || 'משתמש',
+              reviewer_image: profile?.avatar_url || null,
             };
           });
           setReviews(normalized);
@@ -235,7 +256,19 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
       showOwnProductReviewBlockedToast();
       return;
     }
+    if (hasUserReviewedProduct) {
+      showAlreadyReviewedProductToast();
+      return;
+    }
     setIsReviewSubmitting(true);
+    const { data: profileRow, error: profileError } = await supabase
+      .from('profiles')
+      .select('avatar_url')
+      .eq('id', user.uid)
+      .maybeSingle();
+    if (profileError) {
+      console.error('[profiles] avatar fetch error:', profileError.message);
+    }
     const realName = (profileData ? `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() : user.displayName || user.email || 'משתמש') || 'משתמש';
     const reviewData = {
       order_id: null,
@@ -252,15 +285,41 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
     setIsReviewSubmitting(false);
     if (error) {
       console.error('[reviews] insert error:', error.message);
+      if (error?.code === '23505') {
+        showAlreadyReviewedProductToast();
+        return;
+      }
       toast({ variant: 'destructive', title: 'שגיאה בשמירת הביקורת', description: 'אנא נסה שנית.' });
     } else {
-      setReviews(prev => [...prev, inserted]);
+      const reviewerImage = profileRow?.avatar_url || null;
+      setReviews(prev => [...prev, { ...inserted, buyer_name: realName, reviewer_image: reviewerImage }]);
       setReviewDialogOpen(false);
       setReviewComment('');
       setReviewRating(5);
       setReviewIsAnonymous(false);
       toast({ title: 'תודה על הביקורת!' });
     }
+  };
+
+  const handleDeleteProductReview = async (reviewId: string) => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    setDeletingReviewId(reviewId);
+    const { error } = await supabase
+      .from('reviews')
+      .delete()
+      .eq('id', reviewId)
+      .eq('buyer_id', user.uid);
+    setDeletingReviewId(null);
+    if (error) {
+      console.error('[reviews] delete error:', error.message);
+      toast({ variant: 'destructive', title: 'שגיאה במחיקת הביקורת', description: 'אנא נסה שוב.' });
+      return;
+    }
+    setReviews(prev => prev.filter((rev: any) => rev.id !== reviewId));
+    toast({ title: 'הביקורת נמחקה בהצלחה' });
   };
 
   if (isProductLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-12 h-12 animate-spin text-primary" /></div>;
@@ -447,10 +506,10 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
                 <div className="flex justify-between items-center mb-8">
                   <Button
                     onClick={openProductReviewDialog}
-                    disabled={isOwnProductReviewBlocked}
+                    disabled={isOwnProductReviewBlocked || hasUserReviewedProduct}
                     className="bg-primary text-white rounded-2xl h-11 px-6 font-black text-xs uppercase tracking-widest gap-2 shadow-md hover:bg-primary/90"
                   >
-                    <Star className="w-4 h-4" /> {isOwnProductReviewBlocked ? 'לא ניתן לדרג מוצר שלך' : 'כתוב ביקורת'}
+                    <Star className="w-4 h-4" /> {isOwnProductReviewBlocked ? 'לא ניתן לדרג מוצר שלך' : hasUserReviewedProduct ? 'כבר פרסמת ביקורת' : 'כתוב ביקורת'}
                   </Button>
                   <h4 className="text-sm font-black text-primary/40 uppercase tracking-widest">ביקורות לקוחות</h4>
                 </div>
@@ -468,7 +527,28 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
                           </div>
                           <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{rev.created_at ? new Date(rev.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
                         </div>
-                        <h5 className="font-black text-primary text-lg mb-2">{rev.is_anonymous ? 'אנונימי' : (rev.buyer_name || 'משתמש')}</h5>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-9 w-9 border border-primary/10">
+                              {!rev.is_anonymous && <AvatarImage src={rev.reviewer_image || undefined} />}
+                              <AvatarFallback className="bg-primary/5 text-primary font-black text-xs">
+                                {rev.is_anonymous ? 'א' : (rev.buyer_name || 'מ').charAt(0)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <h5 className="font-black text-primary text-lg">{rev.is_anonymous ? 'אנונימי' : (rev.buyer_name || 'משתמש')}</h5>
+                          </div>
+                          {user?.uid === rev.buyer_id && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteProductReview(rev.id)}
+                              disabled={deletingReviewId === rev.id}
+                              className="h-8 px-2 text-destructive hover:bg-destructive/5"
+                            >
+                              {deletingReviewId === rev.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                            </Button>
+                          )}
+                        </div>
                         <p className="text-base text-primary/70 leading-relaxed italic font-medium">"{rev.comment}"</p>
                       </div>
                     ))}
@@ -571,7 +651,7 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
           <DialogFooter className="p-6 bg-muted/30 border-t flex gap-3">
             <Button
               onClick={handleSubmitProductReview}
-              disabled={isReviewSubmitting || isOwnProductReviewBlocked}
+              disabled={isReviewSubmitting || isOwnProductReviewBlocked || hasUserReviewedProduct}
               className="flex-1 bg-primary text-white h-12 font-black uppercase"
             >
               {isReviewSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'פרסם ביקורת'}

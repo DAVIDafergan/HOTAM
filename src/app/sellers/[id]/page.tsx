@@ -27,7 +27,8 @@ import {
   UserRound,
   FileText,
   Flag,
-  ArrowLeft
+  ArrowLeft,
+  Trash2
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -42,6 +43,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useRouter } from 'next/navigation';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function SellerProfile() {
   const params = useParams();
@@ -62,6 +64,7 @@ export default function SellerProfile() {
   const [reviewComment, setReviewComment] = useState('');
   const [reviewIsAnonymous, setReviewIsAnonymous] = useState(false);
   const [isReviewSubmitting, setIsReviewSubmitting] = useState(false);
+  const [deletingReviewId, setDeletingReviewId] = useState<string | null>(null);
 
   // Fetch Seller Info
   const [seller, setSeller] = useState<any>(null);
@@ -107,7 +110,7 @@ export default function SellerProfile() {
     if (!id) return;
     supabase
       .from('supermarket_reviews')
-      .select('*, profiles(full_name)')
+      .select('*, profiles(full_name, avatar_url)')
       .eq('supermarket_id', id)
       .then(({ data, error }) => {
         if (error) console.error('[supermarket_reviews] fetch error:', error.message);
@@ -118,6 +121,7 @@ export default function SellerProfile() {
             return {
               ...review,
               buyer_name: fullName || review?.user_name || review?.buyer_name || 'משתמש',
+              reviewer_image: profile?.avatar_url || null,
             };
           });
           setReviews(normalized);
@@ -133,12 +137,25 @@ export default function SellerProfile() {
   }, [reviews]);
 
   const isOwnSellerReviewBlocked = Boolean(user && user.role === 'seller' && user.uid === id);
+  const currentUserSellerReview = useMemo(
+    () => (user ? (reviews || []).find((rev: any) => rev?.buyer_id === user.uid) : null),
+    [reviews, user]
+  );
+  const hasUserReviewedSeller = Boolean(currentUserSellerReview);
 
   const showSelfReviewBlockedToast = () => {
     toast({
       variant: 'destructive',
       title: 'לא ניתן לדרג את עצמך',
       description: 'סופר לא יכול לפרסם דירוג או ביקורת על עצמו.',
+    });
+  };
+
+  const showAlreadyReviewedSellerToast = () => {
+    toast({
+      variant: 'destructive',
+      title: 'כבר פרסמת ביקורת על סופר זה',
+      description: 'ניתן לפרסם ביקורת אחת בלבד לכל סופר.',
     });
   };
 
@@ -149,6 +166,10 @@ export default function SellerProfile() {
     }
     if (isOwnSellerReviewBlocked) {
       showSelfReviewBlockedToast();
+      return;
+    }
+    if (hasUserReviewedSeller) {
+      showAlreadyReviewedSellerToast();
       return;
     }
     setReviewDialogOpen(true);
@@ -188,6 +209,10 @@ export default function SellerProfile() {
       showSelfReviewBlockedToast();
       return;
     }
+    if (hasUserReviewedSeller) {
+      showAlreadyReviewedSellerToast();
+      return;
+    }
     setIsReviewSubmitting(true);
     const { data: authData, error: authError } = await supabase.auth.getUser();
     if (authError || !authData?.user) {
@@ -198,6 +223,14 @@ export default function SellerProfile() {
     const fullName = authData.user.user_metadata?.full_name;
     const fallbackName = user.displayName || user.email || 'משתמש';
     const realName = fullName || fallbackName;
+    const { data: profileRow, error: profileError } = await supabase
+      .from('profiles')
+      .select('avatar_url')
+      .eq('id', user.uid)
+      .maybeSingle();
+    if (profileError) {
+      console.error('[profiles] avatar fetch error:', profileError.message);
+    }
     const reviewData = {
       supermarket_id: id,
       buyer_id: user.uid,
@@ -211,9 +244,14 @@ export default function SellerProfile() {
     setIsReviewSubmitting(false);
     if (error) {
       console.error('[supermarket_reviews] insert error:', error.message);
+      if (error?.code === '23505') {
+        showAlreadyReviewedSellerToast();
+        return;
+      }
       toast({ variant: 'destructive', title: 'שגיאה בשמירת הדירוג', description: 'אנא נסה שנית.' });
     } else {
-      setReviews(prev => [...prev, inserted]);
+      const reviewerImage = profileRow?.avatar_url || null;
+      setReviews(prev => [...prev, { ...inserted, buyer_name: realName, reviewer_image: reviewerImage }]);
       router.refresh();
       setReviewDialogOpen(false);
       setReviewComment('');
@@ -221,6 +259,27 @@ export default function SellerProfile() {
       setReviewIsAnonymous(false);
       toast({ title: 'תודה על הדירוג!' });
     }
+  };
+
+  const handleDeleteSellerReview = async (reviewId: string) => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    setDeletingReviewId(reviewId);
+    const { error } = await supabase
+      .from('supermarket_reviews')
+      .delete()
+      .eq('id', reviewId)
+      .eq('buyer_id', user.uid);
+    setDeletingReviewId(null);
+    if (error) {
+      console.error('[supermarket_reviews] delete error:', error.message);
+      toast({ variant: 'destructive', title: 'שגיאה במחיקת הביקורת', description: 'אנא נסה שוב.' });
+      return;
+    }
+    setReviews(prev => prev.filter((rev: any) => rev.id !== reviewId));
+    toast({ title: 'הביקורת נמחקה בהצלחה' });
   };
 
   if (isSellerLoading) {
@@ -478,10 +537,10 @@ export default function SellerProfile() {
                   <div className="flex justify-between items-center mb-4">
                     <Button
                       onClick={openSellerReviewDialog}
-                      disabled={isOwnSellerReviewBlocked}
+                      disabled={isOwnSellerReviewBlocked || hasUserReviewedSeller}
                       className="bg-primary text-white rounded-2xl h-11 px-6 font-black text-xs uppercase tracking-widest gap-2 shadow-md hover:bg-primary/90"
                     >
-                      <Star className="w-4 h-4" /> {isOwnSellerReviewBlocked ? 'לא ניתן לדרג את עצמך' : 'דרג סופר'}
+                      <Star className="w-4 h-4" /> {isOwnSellerReviewBlocked ? 'לא ניתן לדרג את עצמך' : hasUserReviewedSeller ? 'כבר פרסמת ביקורת' : 'דרג סופר'}
                     </Button>
                     <h4 className="text-sm font-black text-primary/40 uppercase tracking-widest">ביקורות לקוחות</h4>
                   </div>
@@ -499,7 +558,28 @@ export default function SellerProfile() {
                           </div>
                           <span className="text-[10px] font-bold text-muted-foreground">{rev.created_at ? new Date(rev.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
                         </div>
-                        <p className="font-black text-primary text-sm mb-2">{rev.is_anonymous ? 'אנונימי' : (rev.buyer_name || 'משתמש')}</p>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-8 w-8 border border-primary/10">
+                              {!rev.is_anonymous && <AvatarImage src={rev.reviewer_image || undefined} />}
+                              <AvatarFallback className="bg-primary/5 text-primary font-black text-[10px]">
+                                {rev.is_anonymous ? 'א' : (rev.buyer_name || 'מ').charAt(0)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <p className="font-black text-primary text-sm">{rev.is_anonymous ? 'אנונימי' : (rev.buyer_name || 'משתמש')}</p>
+                          </div>
+                          {user?.uid === rev.buyer_id && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteSellerReview(rev.id)}
+                              disabled={deletingReviewId === rev.id}
+                              className="h-8 px-2 text-destructive hover:bg-destructive/5"
+                            >
+                              {deletingReviewId === rev.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                            </Button>
+                          )}
+                        </div>
                         <p className="text-xs text-primary/70 leading-relaxed italic">"{rev.comment}"</p>
                       </Card>
                     ))
@@ -556,7 +636,7 @@ export default function SellerProfile() {
           <DialogFooter className="p-6 bg-muted/30 border-t flex gap-3">
             <Button
               onClick={handleSubmitSellerReview}
-              disabled={isReviewSubmitting || isOwnSellerReviewBlocked}
+              disabled={isReviewSubmitting || isOwnSellerReviewBlocked || hasUserReviewedSeller}
               className="flex-1 bg-primary text-white h-12 font-black uppercase"
             >
               {isReviewSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'פרסם דירוג'}

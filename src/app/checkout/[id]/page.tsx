@@ -31,10 +31,6 @@ declare global {
     jQuery?: (callback: () => void) => void;
     OfficeGuy?: {
       Payments?: {
-        BindFormSubmit: (config: {
-          CompanyID?: string;
-          APIPublicKey?: string;
-        }) => void;
         TokenizeForm: (config: {
           CompanyID?: string;
           APIPublicKey?: string;
@@ -56,7 +52,7 @@ function generateShortId(length = 8) {
   return result;
 }
 
-const PAYMENT_SUCCESS_REDIRECT_DELAY_MS = 2000;
+const FALLBACK_PRODUCT_DESCRIPTION = 'מוצר';
 
 export default function CheckoutPage() {
   const params = useParams();
@@ -257,7 +253,10 @@ export default function CheckoutPage() {
     return shortId;
   }, [db, deliveryChoice, product, productId, recipientAddress, recipientCity, recipientName, recipientPhone, totalPrice, user?.email, user?.uid]);
 
-  const executePayment = async () => {
+  const handlePayment = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+
     const validationError = validateCheckout();
     if (validationError) {
       toast({ variant: "destructive", title: "פרטים חסרים", description: validationError });
@@ -284,6 +283,14 @@ export default function CheckoutPage() {
 
     try {
       const orderId = await upsertPendingOrder();
+      const productDescription = product?.product_name || product?.product_type || FALLBACK_PRODUCT_DESCRIPTION;
+      const cartData = {
+        orderId,
+        price: totalPrice,
+        productName: productDescription,
+        customerEmail: user?.email || '',
+        customerPhone: recipientPhone,
+      };
 
       window.OfficeGuy.Payments.TokenizeForm({
         CompanyID: sumitCompanyId,
@@ -302,12 +309,8 @@ export default function CheckoutPage() {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                orderId,
                 token,
-                price: totalPrice,
-                productName: product?.product_name || product?.product_type || 'מוצר קודש',
-                customerEmail: user?.email,
-                customerPhone: recipientPhone,
+                cartData,
               }),
             });
 
@@ -317,9 +320,7 @@ export default function CheckoutPage() {
             }
 
             setIsSuccess(true);
-            setTimeout(() => {
-              router.push(`/checkout/success?orderId=${encodeURIComponent(data.orderId || orderId)}`);
-            }, PAYMENT_SUCCESS_REDIRECT_DELAY_MS);
+            router.push('/checkout/success');
           } catch (err: any) {
             console.error('Payment Charge Error:', err);
             setChargeError(err.message || 'חלה שגיאה בחיבור למערכת הסליקה.');
@@ -341,16 +342,9 @@ export default function CheckoutPage() {
     }
   };
 
-  const handlePaymentFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const preventNativeFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     event.stopPropagation();
-    await executePayment();
-  };
-
-  const handlePayment = async (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    await executePayment();
   };
 
   if (isUserLoading || isProductLoading) {
@@ -435,7 +429,7 @@ export default function CheckoutPage() {
                   <CreditCard className="w-6 h-6 text-accent" />
                 </div>
 
-                <form data-og="form" method="post" className="space-y-4" onSubmit={handlePaymentFormSubmit}>
+                <form data-og="form" className="space-y-4" onSubmit={preventNativeFormSubmit}>
                   <div className="og-errors rounded-2xl bg-destructive/10 text-destructive text-sm font-bold empty:hidden px-4 py-3" />
 
                   <div className="space-y-2">

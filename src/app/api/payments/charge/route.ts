@@ -4,17 +4,67 @@ import { markOrderAsPaidAndNotify } from '../process-order-payment';
 const SUMIT_CHARGE_URL = 'https://api.sumit.co.il/billing/payments/charge/';
 const PAYMENT_PROVIDER = 'sumit';
 const SUMIT_USER_AGENT = 'Hotam-Marketplace/1.0';
+const FALLBACK_ITEM_DESCRIPTION = 'רכישת מוצר';
+
+type CartItem = {
+  Description?: string;
+  Quantity?: number;
+  UnitAmount?: number;
+};
+
+type ChargeCartData = {
+  orderId?: string;
+  price?: number;
+  productName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  items?: CartItem[];
+};
+
+type ChargeRequestBody = {
+  token?: string;
+  ['og-token']?: string;
+  orderId?: string;
+  price?: number;
+  productName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  cartData?: ChargeCartData;
+};
+
+function buildItemsFromCartData(cartData: ChargeCartData, price: number): CartItem[] {
+  if (Array.isArray(cartData?.items) && cartData.items.length > 0) {
+    return (cartData.items as CartItem[]).map((item) => ({
+      Description: item?.Description || FALLBACK_ITEM_DESCRIPTION,
+      Quantity: Number(item?.Quantity ?? 1),
+      UnitAmount: Number(item?.UnitAmount ?? price),
+    }));
+  }
+
+  return [
+    {
+      Description: cartData?.productName || FALLBACK_ITEM_DESCRIPTION,
+      Quantity: 1,
+      UnitAmount: price,
+    },
+  ];
+}
 
 function getSumitCredentials() {
-  // Keep supporting the legacy SUMMIT_* server env names until deployment config is normalized.
-  const businessId = process.env.SUMIT_BUSINESS_ID || process.env.SUMMIT_BUSINESS_ID;
-  const privateKey = process.env.SUMIT_PRIVATE_KEY || process.env.SUMMIT_PRIVATE_KEY;
+  const companyId =
+    process.env.SUMIT_COMPANY_ID ||
+    process.env.SUMIT_BUSINESS_ID ||
+    process.env.SUMMIT_BUSINESS_ID;
+  const apiKey =
+    process.env.SUMIT_API_KEY ||
+    process.env.SUMIT_PRIVATE_KEY ||
+    process.env.SUMMIT_PRIVATE_KEY;
 
-  if (!businessId || !privateKey) {
+  if (!companyId || !apiKey) {
     throw new Error('Missing SUMIT credentials for charge request');
   }
 
-  return { businessId, privateKey };
+  return { companyId, apiKey };
 }
 
 function parseJsonResponse(rawText: string) {
@@ -69,11 +119,12 @@ function isSuccessfulCharge(payload: any) {
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const body = (await req.json()) as ChargeRequestBody;
     const token = body?.token || body?.['og-token'];
-    const orderId = body?.orderId;
-    const price = Number(body?.price);
-    const { businessId, privateKey } = getSumitCredentials();
+    const cartData = body?.cartData || {};
+    const orderId = body?.orderId || cartData?.orderId;
+    const price = Number(body?.price ?? cartData?.price);
+    const { companyId, apiKey } = getSumitCredentials();
 
     if (!token) {
       return NextResponse.json({ error: 'Missing required field: token' }, { status: 400 });
@@ -87,23 +138,29 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid price value' }, { status: 400 });
     }
 
+    const items = buildItemsFromCartData(cartData, price);
+
+    const hasInvalidItems = items.some((item) => {
+      const quantity = Number(item.Quantity);
+      const unitAmount = Number(item.UnitAmount);
+      return !Number.isFinite(quantity) || quantity <= 0 || !Number.isFinite(unitAmount) || unitAmount <= 0;
+    });
+
+    if (hasInvalidItems) {
+      return NextResponse.json({ error: 'Items must have positive quantity and unit amount' }, { status: 400 });
+    }
+
     const sumitPayload = {
       Credentials: {
-        CompanyID: businessId,
-        APIKey: privateKey,
+        CompanyID: companyId,
+        APIKey: apiKey,
       },
       SingleUseToken: token,
-      Items: [
-        {
-          Description: body?.productName || 'רכישת מוצר',
-          Quantity: 1,
-          UnitAmount: price,
-        },
-      ],
+      Items: items,
       Amount: price,
       Customer: {
-        PhoneNumber: body?.customerPhone || '',
-        EmailAddress: body?.customerEmail || '',
+        PhoneNumber: cartData?.customerPhone || '',
+        EmailAddress: cartData?.customerEmail || '',
       },
     };
 

@@ -25,7 +25,6 @@ import { useToast } from '@/hooks/use-toast';
 import unsplashLoader from '@/lib/unsplashLoader';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Script from 'next/script';
-import type { SupabaseClient } from '@supabase/supabase-js';
 
 declare global {
   interface Window {
@@ -146,7 +145,7 @@ export default function CheckoutPage() {
 
     let cancelled = false;
     let attempts = 0;
-    let timeoutId: number | undefined;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
     const tryBind = () => {
       if (cancelled || sumitBindRef.current) return;
@@ -157,7 +156,7 @@ export default function CheckoutPage() {
           setSumitError('מערכת הסליקה לא נטענה. נסו לרענן את העמוד.');
           return;
         }
-        timeoutId = window.setTimeout(tryBind, SUMIT_BIND_RETRY_DELAY_MS);
+        timeoutId = setTimeout(tryBind, SUMIT_BIND_RETRY_DELAY_MS);
         return;
       }
 
@@ -177,7 +176,7 @@ export default function CheckoutPage() {
 
     return () => {
       cancelled = true;
-      if (timeoutId) window.clearTimeout(timeoutId);
+      if (timeoutId) clearTimeout(timeoutId);
     };
   }, [sumitCompanyId, sumitPublicKey]);
 
@@ -221,8 +220,7 @@ export default function CheckoutPage() {
       created_at: serverTimestamp()
     };
 
-    const supabaseClient = db as SupabaseClient;
-    const { error } = await supabaseClient.from('orders').upsert(orderData, { onConflict: 'id' });
+    const { error } = await db.from('orders').upsert(orderData, { onConflict: 'id' });
 
     if (error) {
       throw new Error(error.message || 'לא ניתן היה לשמור את פרטי ההזמנה.');
@@ -410,28 +408,28 @@ export default function CheckoutPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="sumit-card-number">מספר כרטיס</Label>
-                    <Input id="sumit-card-number" name="cardnumber" type="text" inputMode="numeric" autoComplete="cc-number" maxLength={20} data-og="cardnumber" required aria-required="true" className="text-left h-12 rounded-xl" />
+                    <Input id="sumit-card-number" name="cardnumber" type="text" inputMode="numeric" autoComplete="cc-number" maxLength={20} data-og="cardnumber" required className="text-left h-12 rounded-xl" />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="sumit-expiration-month">חודש</Label>
-                      <Input id="sumit-expiration-month" name="expirationmonth" type="text" inputMode="numeric" autoComplete="cc-exp-month" maxLength={2} data-og="expirationmonth" required aria-required="true" className="text-left h-12 rounded-xl" />
+                      <Input id="sumit-expiration-month" name="expirationmonth" type="text" inputMode="numeric" autoComplete="cc-exp-month" maxLength={2} data-og="expirationmonth" required className="text-left h-12 rounded-xl" />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="sumit-expiration-year">שנה</Label>
-                      <Input id="sumit-expiration-year" name="expirationyear" type="text" inputMode="numeric" autoComplete="cc-exp-year" maxLength={4} data-og="expirationyear" required aria-required="true" className="text-left h-12 rounded-xl" />
+                      <Input id="sumit-expiration-year" name="expirationyear" type="text" inputMode="numeric" autoComplete="cc-exp-year" maxLength={4} data-og="expirationyear" required className="text-left h-12 rounded-xl" />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="sumit-cvv">CVV</Label>
-                      <Input id="sumit-cvv" name="cvv" type="password" inputMode="numeric" autoComplete="cc-csc" maxLength={4} data-og="cvv" required aria-required="true" className="text-left h-12 rounded-xl" />
+                      <Input id="sumit-cvv" name="cvv" type="password" inputMode="numeric" autoComplete="cc-csc" maxLength={4} data-og="cvv" required className="text-left h-12 rounded-xl" />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="sumit-citizen-id">תעודת זהות</Label>
-                      <Input id="sumit-citizen-id" name="citizenid" type="text" inputMode="numeric" maxLength={9} data-og="citizenid" required aria-required="true" className="text-left h-12 rounded-xl" />
+                      <Input id="sumit-citizen-id" name="citizenid" type="text" inputMode="numeric" maxLength={9} data-og="citizenid" required className="text-left h-12 rounded-xl" />
                     </div>
                   </div>
 

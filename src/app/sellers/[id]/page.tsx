@@ -241,7 +241,7 @@ export default function SellerProfile() {
     setIsReviewSubmitting(false);
     if (error) {
       console.error('[supermarket_reviews] insert error:', error.message);
-      if ((error as any)?.code === '23505') {
+      if (error?.code === '23505') {
         showAlreadyReviewedSellerToast();
         return;
       }

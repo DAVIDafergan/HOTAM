@@ -282,7 +282,7 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
     setIsReviewSubmitting(false);
     if (error) {
       console.error('[reviews] insert error:', error.message);
-      if ((error as any)?.code === '23505') {
+      if (error?.code === '23505') {
         showAlreadyReviewedProductToast();
         return;
       }

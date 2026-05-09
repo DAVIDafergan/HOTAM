@@ -45,7 +45,8 @@ import { useRouter } from 'next/navigation';
 
 export default function SellerProfile() {
   const params = useParams();
-  const id = Array.isArray(params?.id) ? params.id[0] : params?.id;
+  const idParam = params?.id;
+  const id = typeof idParam === 'string' ? idParam : Array.isArray(idParam) ? idParam[0] : undefined;
   const { user } = useUser();
   const db = useSupabaseClient();
   const { toast } = useToast();

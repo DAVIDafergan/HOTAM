@@ -75,6 +75,7 @@ export default function CheckoutPage() {
   const pendingOrderRef = useRef<{ orderId: string; verificationCode: string } | null>(null);
   const chargeInFlightRef = useRef(false);
   const sumitBindRef = useRef(false);
+  const nativeSubmitHandlerRef = useRef<((form: HTMLFormElement) => Promise<void>) | null>(null);
 
   // Keep supporting the legacy SUMMIT_* client env names until deployment config is normalized.
   const sumitCompanyId = process.env.NEXT_PUBLIC_SUMIT_BUSINESS_ID || process.env.NEXT_PUBLIC_SUMMIT_BUSINESS_ID;
@@ -157,6 +158,16 @@ export default function CheckoutPage() {
         CompanyID: sumitCompanyId,
         APIPublicKey: sumitPublicKey,
       });
+
+      // Hijack the native form.submit() that SUMIT calls after tokenization to
+      // prevent a full-page reload and instead process the charge via fetch.
+      const ogForm = document.querySelector('[data-og="form"]') as HTMLFormElement | null;
+      if (ogForm) {
+        ogForm.submit = function () {
+          nativeSubmitHandlerRef.current?.(this);
+        };
+      }
+
       sumitBindRef.current = true;
       setIsSumitReady(true);
       setSumitError(null);
@@ -288,6 +299,63 @@ export default function CheckoutPage() {
       toast({ variant: "destructive", title: "שגיאת תשלום", description: err.message || "חלה שגיאה בחיבור למערכת הסליקה." });
     }
   };
+
+  // Keep a ref to the latest charge handler so form.submit override never captures stale values.
+  useEffect(() => {
+    nativeSubmitHandlerRef.current = async (form: HTMLFormElement) => {
+      const validationError = validateCheckout();
+      if (validationError) {
+        toast({ variant: "destructive", title: "פרטים חסרים", description: validationError });
+        return;
+      }
+
+      const token = extractOgToken(form);
+      if (!token) {
+        const tokenizationError = sumitErrorsRef.current?.textContent?.trim();
+        if (tokenizationError) {
+          toast({ variant: "destructive", title: "פרטי התשלום אינם תקינים", description: tokenizationError });
+        }
+        return;
+      }
+
+      if (chargeInFlightRef.current) return;
+      chargeInFlightRef.current = true;
+      setIsProcessing(true);
+
+      try {
+        const orderId = await upsertPendingOrder();
+        const response = await fetch('/api/payments/charge', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderId,
+            token,
+            price: totalPrice,
+            productName: product?.product_name || product?.product_type || 'מוצר קודש',
+            customerEmail: user?.email,
+            customerPhone: recipientPhone,
+          }),
+        });
+
+        const data = await response.json();
+        if (!response.ok || !data?.success) {
+          throw new Error(data.error || 'לא ניתן היה להשלים את החיוב.');
+        }
+
+        setIsSuccess(true);
+        toast({ title: "התשלום הושלם", description: "ההזמנה אושרה בהצלחה." });
+        setTimeout(() => {
+          router.push(`/customer/dashboard?payment=success&orderId=${encodeURIComponent(orderId)}`);
+        }, PAYMENT_SUCCESS_REDIRECT_DELAY_MS);
+      } catch (err: any) {
+        console.error('Payment Charge Error:', err);
+        toast({ variant: "destructive", title: "שגיאת תשלום", description: err.message || "חלה שגיאה בחיבור למערכת הסליקה." });
+      } finally {
+        chargeInFlightRef.current = false;
+        setIsProcessing(false);
+      }
+    };
+  });
 
   const handlePaymentFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     const validationError = validateCheckout();

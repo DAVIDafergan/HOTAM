@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,12 +18,27 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
-import { useUser, useSupabaseClient, useDoc, useMemoStable, setDocumentNonBlocking } from '@/lib/supabase-hooks';
+import { useUser, useSupabaseClient, useDoc, useMemoStable } from '@/lib/supabase-hooks';
 import { doc, serverTimestamp } from '@/lib/supabase-compat';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import unsplashLoader from '@/lib/unsplashLoader';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import Script from 'next/script';
+
+declare global {
+  interface Window {
+    jQuery?: (callback: () => void) => void;
+    OfficeGuy?: {
+      Payments?: {
+        BindFormSubmit: (config: {
+          CompanyID?: string;
+          APIPublicKey?: string;
+        }) => void;
+      };
+    };
+  }
+}
 
 // Helper to generate short alphanumeric ID
 function generateShortId(length = 8) {
@@ -46,11 +61,20 @@ export default function CheckoutPage() {
   const [deliveryChoice, setDeliveryChoice] = useState(''); 
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isSumitReady, setIsSumitReady] = useState(false);
+  const [sumitError, setSumitError] = useState<string | null>(null);
   
   const [recipientName, setRecipientName] = useState('');
   const [recipientPhone, setRecipientPhone] = useState('');
   const [recipientAddress, setRecipientAddress] = useState('');
   const [recipientCity, setRecipientCity] = useState('');
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const pendingOrderRef = useRef<{ orderId: string; verificationCode: string } | null>(null);
+  const chargeInFlightRef = useRef(false);
+  const sumitBindRef = useRef(false);
+
+  const sumitCompanyId = process.env.NEXT_PUBLIC_SUMMIT_BUSINESS_ID || process.env.NEXT_PUBLIC_SUMIT_BUSINESS_ID;
+  const sumitPublicKey = process.env.NEXT_PUBLIC_SUMMIT_PUBLIC_KEY || process.env.NEXT_PUBLIC_SUMIT_PUBLIC_KEY;
 
   const productRef = useMemoStable(() => productId ? doc(db, 'products', productId) : null, [db, productId]);
   const { data: product, isLoading: isProductLoading } = useDoc<any>(productRef);
@@ -100,26 +124,78 @@ export default function CheckoutPage() {
     });
   }, [product, canShip, canPickup]);
 
+  useEffect(() => {
+    pendingOrderRef.current = null;
+  }, [deliveryChoice, recipientName, recipientPhone, recipientAddress, recipientCity, totalPrice, productId, user?.uid]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!sumitCompanyId || !sumitPublicKey) {
+      setSumitError('חסרים פרטי הזדהות של מערכת הסליקה.');
+      return;
+    }
+    if (sumitBindRef.current) {
+      setIsSumitReady(true);
+      return;
+    }
+
+    let cancelled = false;
+    let attempts = 0;
+    let timeoutId: number | undefined;
+
+    const tryBind = () => {
+      if (cancelled || sumitBindRef.current) return;
+
+      if (typeof window.jQuery !== 'function' || !window.OfficeGuy?.Payments?.BindFormSubmit) {
+        attempts += 1;
+        if (attempts >= 50) {
+          setSumitError('מערכת הסליקה לא נטענה. נסו לרענן את העמוד.');
+          return;
+        }
+        timeoutId = window.setTimeout(tryBind, 200);
+        return;
+      }
+
+      window.jQuery(function() {
+        if (cancelled || sumitBindRef.current) return;
+        window.OfficeGuy?.Payments?.BindFormSubmit({
+          CompanyID: sumitCompanyId,
+          APIPublicKey: sumitPublicKey,
+        });
+        sumitBindRef.current = true;
+        setIsSumitReady(true);
+        setSumitError(null);
+      });
+    };
+
+    tryBind();
+
+    return () => {
+      cancelled = true;
+      if (timeoutId) window.clearTimeout(timeoutId);
+    };
+  }, [sumitCompanyId, sumitPublicKey]);
+
   const generateVerificationCode = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
   };
 
-  const handleConfirmOrder = async () => {
+  const validateCheckout = useCallback(() => {
     if (!recipientName || !recipientPhone || (deliveryChoice === 'shipping' && (!recipientAddress || !recipientCity))) {
-      toast({ variant: "destructive", title: "פרטים חסרים", description: "אנא מלא את כל פרטי החובה למשלוח." });
-      return;
+      return 'אנא מלא את כל פרטי החובה למשלוח.';
     }
 
     if (deliveryChoice === 'shipping' && allowedCities.length > 0 && !allowedCities.includes('כל הארץ') && !allowedCities.includes(recipientCity)) {
-      toast({ variant: "destructive", title: "עיר לא נתמכת", description: "הסופר אינו מבצע משלוחים לעיר זו." });
-      return;
+      return 'הסופר אינו מבצע משלוחים לעיר זו.';
     }
-
-    setIsProcessing(true);
     
-    // Generate a shorter display ID
-    const shortId = generateShortId(10);
-    const vCode = generateVerificationCode();
+    return null;
+  }, [allowedCities, deliveryChoice, recipientAddress, recipientCity, recipientName, recipientPhone]);
+
+  const upsertPendingOrder = useCallback(async () => {
+    const existingOrder = pendingOrderRef.current;
+    const shortId = existingOrder?.orderId || generateShortId(10);
+    const vCode = existingOrder?.verificationCode || generateVerificationCode();
 
     const orderData = {
       id: shortId,
@@ -140,34 +216,96 @@ export default function CheckoutPage() {
       created_at: serverTimestamp()
     };
 
+    const { error } = await (db as any).from('orders').upsert(orderData, { onConflict: 'id' });
+
+    if (error) {
+      throw new Error(error.message || 'לא ניתן היה לשמור את פרטי ההזמנה.');
+    }
+
+    pendingOrderRef.current = { orderId: shortId, verificationCode: vCode };
+    return shortId;
+  }, [db, deliveryChoice, product, productId, recipientAddress, recipientCity, recipientName, recipientPhone, totalPrice, user?.email, user?.uid]);
+
+  const extractOgToken = (form: HTMLFormElement) => {
+    const namedToken = form.querySelector('input[name="og-token"]') as HTMLInputElement | null;
+    const tokenField = namedToken || (form.querySelector('input[data-og="token"]') as HTMLInputElement | null);
+    return tokenField?.value?.trim() || '';
+  };
+
+  const handleStartPayment = async () => {
+    const validationError = validateCheckout();
+    if (validationError) {
+      toast({ variant: "destructive", title: "פרטים חסרים", description: validationError });
+      return;
+    }
+
+    if (!isSumitReady || !sumitCompanyId || !sumitPublicKey) {
+      toast({ variant: "destructive", title: "מערכת הסליקה לא מוכנה", description: sumitError || 'נסו שוב בעוד רגע.' });
+      return;
+    }
+
     try {
-      // Use the short ID as the document ID
-      setDocumentNonBlocking(doc(db, 'orders', shortId), orderData, { merge: true });
-      
-      const response = await fetch('/api/payments/create-session', {
+      await upsertPendingOrder();
+      formRef.current?.requestSubmit();
+    } catch (err: any) {
+      console.error('Payment Preparation Error:', err);
+      toast({ variant: "destructive", title: "שגיאת תשלום", description: err.message || "חלה שגיאה בחיבור למערכת הסליקה." });
+    }
+  };
+
+  const handlePaymentFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    const validationError = validateCheckout();
+    if (validationError) {
+      event.preventDefault();
+      toast({ variant: "destructive", title: "פרטים חסרים", description: validationError });
+      return;
+    }
+
+    const token = extractOgToken(event.currentTarget);
+    if (!token) {
+      return;
+    }
+
+    event.preventDefault();
+
+    if (chargeInFlightRef.current) {
+      return;
+    }
+
+    chargeInFlightRef.current = true;
+    setIsProcessing(true);
+
+    try {
+      const orderId = await upsertPendingOrder();
+      const response = await fetch('/api/payments/charge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          orderId: shortId,
-          amount: totalPrice,
+          orderId,
+          token,
+          price: totalPrice,
           productName: product.product_name || product.product_type || 'מוצר קודש',
-          currency: 'ILS',
-          buyerName: recipientName,
-          buyerEmail: user?.email,
-          buyerPhone: recipientPhone
+          customerEmail: user?.email,
+          customerPhone: recipientPhone
         })
       });
 
       const data = await response.json();
-      
-      if (data.paymentUrl || data.PaymentURL || data.url) {
-        window.location.href = data.paymentUrl || data.PaymentURL || data.url;
-      } else {
-        throw new Error(data.error || 'לא ניתן היה ליצור קישור לתשלום.');
+
+      if (!response.ok || !data?.success) {
+        throw new Error(data.error || 'לא ניתן היה להשלים את החיוב.');
       }
+
+      setIsSuccess(true);
+      toast({ title: "התשלום הושלם", description: "ההזמנה אושרה בהצלחה." });
+      setTimeout(() => {
+        router.push(`/customer/dashboard?payment=success&orderId=${encodeURIComponent(orderId)}`);
+      }, 800);
     } catch (err: any) {
-      console.error('Payment Flow Error:', err);
+      console.error('Payment Charge Error:', err);
       toast({ variant: "destructive", title: "שגיאת תשלום", description: err.message || "חלה שגיאה בחיבור למערכת הסליקה." });
+    } finally {
+      chargeInFlightRef.current = false;
       setIsProcessing(false);
     }
   };
@@ -180,6 +318,8 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] pb-20 text-right" dir="rtl">
+      <Script src="https://code.jquery.com/jquery-3.7.1.min.js" strategy="beforeInteractive" />
+      <Script src="https://app.sumit.co.il/scripts/payments.js" strategy="beforeInteractive" />
       <Navbar />
 
       <main className="container mx-auto px-4 py-20 md:py-28 max-w-4xl">
@@ -248,12 +388,66 @@ export default function CheckoutPage() {
                 )}
               </Card>
 
-              <div className="pt-4">
-                <Button onClick={handleConfirmOrder} disabled={isProcessing || !deliveryChoice} className="w-full bg-primary text-white hover:bg-primary/90 h-16 rounded-2xl shadow-xl font-black text-xl uppercase tracking-widest gap-3">
-                  {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : <CreditCard className="w-6 h-6" />}
-                  בצע תשלום מאובטח - ₪{totalPrice}
-                </Button>
-              </div>
+              <Card className="border-none shadow-premium rounded-[2.5rem] bg-white p-5 sm:p-8 space-y-6">
+                <div className="flex items-center justify-between border-b pb-4">
+                  <h3 className="text-xl font-black">פרטי תשלום</h3>
+                  <CreditCard className="w-6 h-6 text-accent" />
+                </div>
+
+                <form ref={formRef} data-og="form" method="post" className="space-y-4" onSubmit={handlePaymentFormSubmit}>
+                  <div className="og-errors rounded-2xl bg-destructive/10 text-destructive text-sm font-bold empty:hidden px-4 py-3" />
+
+                  <div className="space-y-2">
+                    <Label htmlFor="sumit-card-number">מספר כרטיס</Label>
+                    <Input id="sumit-card-number" name="cardnumber" type="text" inputMode="numeric" autoComplete="cc-number" maxLength={20} data-og="cardnumber" className="text-left h-12 rounded-xl" />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="sumit-expiration-month">חודש</Label>
+                      <Input id="sumit-expiration-month" name="expirationmonth" type="text" inputMode="numeric" autoComplete="cc-exp-month" maxLength={2} data-og="expirationmonth" className="text-left h-12 rounded-xl" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="sumit-expiration-year">שנה</Label>
+                      <Input id="sumit-expiration-year" name="expirationyear" type="text" inputMode="numeric" autoComplete="cc-exp-year" maxLength={4} data-og="expirationyear" className="text-left h-12 rounded-xl" />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="sumit-cvv">CVV</Label>
+                      <Input id="sumit-cvv" name="cvv" type="password" inputMode="numeric" autoComplete="cc-csc" maxLength={4} data-og="cvv" className="text-left h-12 rounded-xl" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="sumit-citizen-id">תעודת זהות</Label>
+                      <Input id="sumit-citizen-id" name="citizenid" type="text" inputMode="numeric" maxLength={9} data-og="citizenid" className="text-left h-12 rounded-xl" />
+                    </div>
+                  </div>
+
+                  {sumitError ? (
+                    <div className="flex items-start gap-2 rounded-2xl bg-amber-50 text-amber-700 px-4 py-3 text-sm font-bold">
+                      <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                      <span>{sumitError}</span>
+                    </div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground font-bold">
+                      {!isSumitReady ? 'מערכת הסליקה נטענת...' : 'פרטי האשראי נשארים בטופס המאובטח של SUMIT.'}
+                    </div>
+                  )}
+                </form>
+
+                <div className="pt-2">
+                  <Button
+                    type="button"
+                    onClick={handleStartPayment}
+                    disabled={isProcessing || !deliveryChoice || !isSumitReady}
+                    className="w-full bg-primary text-white hover:bg-primary/90 h-16 rounded-2xl shadow-xl font-black text-xl uppercase tracking-widest gap-3"
+                  >
+                    {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : <CreditCard className="w-6 h-6" />}
+                    בצע תשלום מאובטח - ₪{totalPrice}
+                  </Button>
+                </div>
+              </Card>
             </div>
             
             <div className="md:col-span-2 space-y-6">
@@ -286,7 +480,15 @@ export default function CheckoutPage() {
               </Card>
             </div>
           </div>
-        ) : null}
+        ) : (
+          <Card className="border-none shadow-premium rounded-[2.5rem] bg-white p-10 text-center max-w-xl mx-auto">
+            <div className="flex justify-center mb-4">
+              <CheckCircle2 className="w-16 h-16 text-emerald-500" />
+            </div>
+            <h1 className="text-2xl font-black text-primary mb-2">התשלום התקבל בהצלחה</h1>
+            <p className="text-muted-foreground font-bold">מעבירים אותך לאיזור האישי...</p>
+          </Card>
+        )}
       </main>
     </div>
   );

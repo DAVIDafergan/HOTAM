@@ -52,7 +52,7 @@ function generateShortId(length = 8) {
   return result;
 }
 
-const DEFAULT_PAYMENT_ITEM_DESCRIPTION = 'מוצר קודש';
+const FALLBACK_PRODUCT_DESCRIPTION = 'מוצר';
 
 export default function CheckoutPage() {
   const params = useParams();
@@ -283,20 +283,13 @@ export default function CheckoutPage() {
 
     try {
       const orderId = await upsertPendingOrder();
-      const paymentItemDescription = product?.product_name || product?.product_type || DEFAULT_PAYMENT_ITEM_DESCRIPTION;
+      const paymentItemDescription = product?.product_name || product?.product_type || FALLBACK_PRODUCT_DESCRIPTION;
       const cartData = {
         orderId,
         price: totalPrice,
         productName: paymentItemDescription,
         customerEmail: user?.email || '',
         customerPhone: recipientPhone,
-        items: [
-          {
-            Description: paymentItemDescription,
-            UnitAmount: totalPrice,
-            Quantity: 1,
-          },
-        ],
       };
 
       window.OfficeGuy.Payments.TokenizeForm({

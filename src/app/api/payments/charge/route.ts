@@ -11,6 +11,24 @@ type CartItem = {
   UnitAmount?: number;
 };
 
+function buildItemsFromCartData(cartData: any, body: any, price: number): CartItem[] {
+  if (Array.isArray(cartData?.items) && cartData.items.length > 0) {
+    return (cartData.items as CartItem[]).map((item) => ({
+      Description: item?.Description || 'רכישת מוצר',
+      Quantity: Number(item?.Quantity ?? 1),
+      UnitAmount: Number(item?.UnitAmount ?? price),
+    }));
+  }
+
+  return [
+    {
+      Description: body?.productName || cartData?.productName || 'רכישת מוצר',
+      Quantity: 1,
+      UnitAmount: price,
+    },
+  ];
+}
+
 function getSumitCredentials() {
   const companyId =
     process.env.SUMIT_COMPANY_ID ||
@@ -99,27 +117,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid price value' }, { status: 400 });
     }
 
-    const items = Array.isArray(cartData?.items) && cartData.items.length > 0
-      ? (cartData.items as CartItem[]).map((item) => ({
-          Description: item?.Description || 'רכישת מוצר',
-          Quantity: Number(item?.Quantity ?? 1),
-          UnitAmount: Number(item?.UnitAmount ?? price),
-        }))
-      : [
-          {
-            Description: body?.productName || cartData?.productName || 'רכישת מוצר',
-            Quantity: 1,
-            UnitAmount: price,
-          },
-        ];
+    const items = buildItemsFromCartData(cartData, body, price);
 
-    const hasInvalidItems = items.some(
-      (item) =>
-        !Number.isFinite(item.Quantity) ||
-        item.Quantity <= 0 ||
-        !Number.isFinite(item.UnitAmount) ||
-        item.UnitAmount <= 0
-    );
+    const hasInvalidItems = items.some((item) => {
+      const quantity = Number(item.Quantity);
+      const unitAmount = Number(item.UnitAmount);
+      return !Number.isFinite(quantity) || quantity <= 0 || !Number.isFinite(unitAmount) || unitAmount <= 0;
+    });
 
     if (hasInvalidItems) {
       return NextResponse.json({ error: 'Invalid items payload' }, { status: 400 });

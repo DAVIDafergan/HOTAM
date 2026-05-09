@@ -320,8 +320,7 @@ export default function CheckoutPage() {
             }
 
             setIsSuccess(true);
-            const orderIdForRedirect = data?.orderId || cartData.orderId;
-            router.push(`/checkout/success?orderId=${encodeURIComponent(orderIdForRedirect)}`);
+            router.push('/checkout/success');
           } catch (err: any) {
             console.error('Payment Charge Error:', err);
             setChargeError(err.message || 'חלה שגיאה בחיבור למערכת הסליקה.');

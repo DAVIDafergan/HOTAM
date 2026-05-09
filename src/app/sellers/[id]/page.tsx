@@ -350,7 +350,7 @@ export default function SellerProfile() {
                     </div>
                     <div className="p-8 space-y-4 bg-white text-slate-900">
                         <div className="space-y-2">
-                           <Label className="text-xs font-black uppercase tracking-wide text-slate-900">מה סיבת הדיווח?</Label>
+                           <Label className="text-xs font-black uppercase text-slate-900">מה סיבת הדיווח?</Label>
                            <Textarea 
                              value={reportReason} 
                              onChange={e => setReportReason(e.target.value)} 

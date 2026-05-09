@@ -261,11 +261,14 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
       return;
     }
     setIsReviewSubmitting(true);
-    const { data: profileRow } = await supabase
+    const { data: profileRow, error: profileError } = await supabase
       .from('profiles')
       .select('avatar_url')
       .eq('id', user.uid)
       .maybeSingle();
+    if (profileError) {
+      console.error('[profiles] avatar fetch error:', profileError.message);
+    }
     const realName = (profileData ? `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() : user.displayName || user.email || 'משתמש') || 'משתמש';
     const reviewData = {
       order_id: null,

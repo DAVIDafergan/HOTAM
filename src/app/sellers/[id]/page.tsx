@@ -223,11 +223,14 @@ export default function SellerProfile() {
     const fullName = authData.user.user_metadata?.full_name;
     const fallbackName = user.displayName || user.email || 'משתמש';
     const realName = fullName || fallbackName;
-    const { data: profileRow } = await supabase
+    const { data: profileRow, error: profileError } = await supabase
       .from('profiles')
       .select('avatar_url')
       .eq('id', user.uid)
       .maybeSingle();
+    if (profileError) {
+      console.error('[profiles] avatar fetch error:', profileError.message);
+    }
     const reviewData = {
       supermarket_id: id,
       buyer_id: user.uid,

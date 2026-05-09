@@ -231,7 +231,7 @@ CREATE TABLE IF NOT EXISTS public.reviews (
   product_rating INTEGER    NOT NULL CHECK (product_rating BETWEEN 1 AND 5),
   comment        TEXT,
   created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  CONSTRAINT reviews_not_self_review CHECK (buyer_id <> seller_id)
+  CONSTRAINT reviews_buyer_not_seller CHECK (buyer_id <> seller_id)
 );
 
 -- ── supermarket_reviews ────────────────────────────────────────────────────────
@@ -253,7 +253,7 @@ CREATE TABLE IF NOT EXISTS public.supermarket_reviews (
   rating          INTEGER     NOT NULL CHECK (rating BETWEEN 1 AND 5),
   comment         TEXT,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  CONSTRAINT supermarket_reviews_not_self_review CHECK (buyer_id <> supermarket_id)
+  CONSTRAINT supermarket_reviews_buyer_not_owner CHECK (buyer_id <> supermarket_id)
 );
 
 -- ── reports ───────────────────────────────────────────────────────────────────

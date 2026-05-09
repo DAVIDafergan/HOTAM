@@ -261,6 +261,11 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
       return;
     }
     setIsReviewSubmitting(true);
+    const { data: profileRow } = await supabase
+      .from('profiles')
+      .select('avatar_url')
+      .eq('id', user.uid)
+      .maybeSingle();
     const realName = (profileData ? `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() : user.displayName || user.email || 'משתמש') || 'משתמש';
     const reviewData = {
       order_id: null,
@@ -283,7 +288,7 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
       }
       toast({ variant: 'destructive', title: 'שגיאה בשמירת הביקורת', description: 'אנא נסה שנית.' });
     } else {
-      const reviewerImage = user.photoURL || null;
+      const reviewerImage = profileRow?.avatar_url || user.photoURL || null;
       setReviews(prev => [...prev, { ...inserted, buyer_name: realName, reviewer_image: reviewerImage }]);
       setReviewDialogOpen(false);
       setReviewComment('');

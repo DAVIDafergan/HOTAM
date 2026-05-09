@@ -223,6 +223,11 @@ export default function SellerProfile() {
     const fullName = authData.user.user_metadata?.full_name;
     const fallbackName = user.displayName || user.email || 'משתמש';
     const realName = fullName || fallbackName;
+    const { data: profileRow } = await supabase
+      .from('profiles')
+      .select('avatar_url')
+      .eq('id', user.uid)
+      .maybeSingle();
     const reviewData = {
       supermarket_id: id,
       buyer_id: user.uid,
@@ -242,7 +247,7 @@ export default function SellerProfile() {
       }
       toast({ variant: 'destructive', title: 'שגיאה בשמירת הדירוג', description: 'אנא נסה שנית.' });
     } else {
-      const reviewerImage = user.photoURL || null;
+      const reviewerImage = profileRow?.avatar_url || user.photoURL || null;
       setReviews(prev => [...prev, { ...inserted, buyer_name: realName, reviewer_image: reviewerImage }]);
       router.refresh();
       setReviewDialogOpen(false);

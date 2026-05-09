@@ -196,11 +196,12 @@ export default function SellerProfile() {
       return;
     }
     const fullName = authData.user.user_metadata?.full_name;
-    const realName = fullName || user.displayName || user.email || 'משתמש';
+    const fallbackName = user.displayName || user.email || 'משתמש';
+    const realName = fullName || fallbackName;
     const reviewData = {
       supermarket_id: id,
       buyer_id: user.uid,
-      user_name: authData.user.user_metadata?.full_name ?? realName,
+      user_name: authData.user.user_metadata?.full_name ?? fallbackName,
       buyer_name: realName,
       is_anonymous: reviewIsAnonymous,
       rating: reviewRating,

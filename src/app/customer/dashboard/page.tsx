@@ -37,6 +37,7 @@ import { doc, collection, query, where, documentId } from '@/lib/supabase-compat
 import { supabase } from '@/lib/supabase';
 import { ProductCard } from '@/components/ProductCard';
 import { useToast } from '@/hooks/use-toast';
+import { PROFILE_NOT_FOUND_CODE } from '@/lib/supabase-errors';
 import { useRouter } from 'next/navigation';
 import { 
   Dialog, 
@@ -225,28 +226,43 @@ export default function CustomerDashboard() {
     }
   };
 
-  const handleManualRating = () => {
+  const handleManualRating = async () => {
     if (!ratingOrderId || !user) return;
     setIsRatingSubmitting(true);
+
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', user.uid)
+      .maybeSingle();
+    if (profileError) {
+      console.error('[profiles] fetch error:', profileError.message);
+      if (profileError.code !== PROFILE_NOT_FOUND_CODE) {
+        toast({ variant: 'destructive', title: 'שגיאה בשמירת הדירוג', description: 'אנא נסה שנית.' });
+        setIsRatingSubmitting(false);
+        return;
+      }
+    }
 
     const reviewData = {
       order_id: ratingOrderId.id,
       seller_id: ratingOrderId.seller_id,
       product_id: ratingOrderId.product_id,
       buyer_id: user.uid,
-      buyer_name: `${customer?.first_name || 'לקוח'} ${customer?.last_name || 'חותם'}`,
+      buyer_name: profile?.full_name || user.displayName || 'משתמש',
       is_anonymous: false,
       rating: scribeRatingVal,
       product_rating: productRatingVal,
       comment: ratingComment,
     };
 
-    supabase.from('reviews').insert(reviewData).then(({ error }) => {
-      if (error) {
-        console.error('[reviews] insert error:', error.message);
-        toast({ variant: 'destructive', title: 'שגיאה בשמירת הדירוג', description: 'אנא נסה שנית.' });
-      }
-    });
+    const { error } = await supabase.from('reviews').insert(reviewData);
+    if (error) {
+      console.error('[reviews] insert error:', error.message);
+      toast({ variant: 'destructive', title: 'שגיאה בשמירת הדירוג', description: 'אנא נסה שנית.' });
+      setIsRatingSubmitting(false);
+      return;
+    }
     updateDocumentNonBlocking(doc(db, 'orders', ratingOrderId.id), { is_rated: true });
 
     setTimeout(() => {

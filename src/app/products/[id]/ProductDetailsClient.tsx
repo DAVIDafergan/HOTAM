@@ -48,6 +48,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import unsplashLoader from '@/lib/unsplashLoader';
 import { cn } from '@/lib/utils';
+import { PROFILE_NOT_FOUND_CODE } from '@/lib/supabase-errors';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -270,13 +271,18 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
     setIsReviewSubmitting(true);
     const { data: profileRow, error: profileError } = await supabase
       .from('profiles')
-      .select('avatar_url')
+      .select('avatar_url, full_name')
       .eq('id', user.uid)
       .maybeSingle();
     if (profileError) {
-      console.error('[profiles] avatar fetch error:', profileError.message);
+      console.error('[profiles] fetch error:', profileError.message);
+      if (profileError.code !== PROFILE_NOT_FOUND_CODE) {
+        setIsReviewSubmitting(false);
+        toast({ variant: 'destructive', title: 'שגיאה בשמירת הביקורת', description: 'אנא נסה שנית.' });
+        return;
+      }
     }
-    const realName = (profileData ? `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() : user.displayName || user.email || 'משתמש') || 'משתמש';
+    const realName = profileRow?.full_name || user.displayName || 'משתמש';
     const reviewData = {
       order_id: null,
       seller_id: product?.seller_id || '',

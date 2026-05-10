@@ -44,6 +44,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { PROFILE_NOT_FOUND_CODE } from '@/lib/supabase-errors';
 
 export default function SellerProfile() {
   const params = useParams();
@@ -213,27 +214,29 @@ export default function SellerProfile() {
       showAlreadyReviewedSellerToast();
       return;
     }
-    setIsReviewSubmitting(true);
-    const { data: authData, error: authError } = await supabase.auth.getUser();
-    if (authError || !authData?.user) {
-      setIsReviewSubmitting(false);
+    const userId = user?.uid;
+    if (!userId) {
       router.push('/login');
       return;
     }
-    const fullName = authData.user.user_metadata?.full_name;
-    const fallbackName = user.displayName || user.email || 'משתמש';
-    const realName = fullName || fallbackName;
+    setIsReviewSubmitting(true);
     const { data: profileRow, error: profileError } = await supabase
       .from('profiles')
-      .select('avatar_url')
-      .eq('id', user.uid)
+      .select('avatar_url, full_name')
+      .eq('id', userId)
       .maybeSingle();
     if (profileError) {
-      console.error('[profiles] avatar fetch error:', profileError.message);
+      console.error('[profiles] fetch error:', profileError.message);
+      if (profileError.code !== PROFILE_NOT_FOUND_CODE) {
+        setIsReviewSubmitting(false);
+        toast({ variant: 'destructive', title: 'שגיאה בשמירת הדירוג', description: 'אנא נסה שנית.' });
+        return;
+      }
     }
+    const realName = profileRow?.full_name || user.displayName || 'משתמש';
     const reviewData = {
       supermarket_id: id,
-      buyer_id: user.uid,
+      buyer_id: userId,
       user_name: realName,
       buyer_name: realName,
       is_anonymous: reviewIsAnonymous,

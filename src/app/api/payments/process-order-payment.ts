@@ -1,6 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 import { sendEmail } from '@/lib/send-email';
 
+const EMAIL_PRIMARY = '#1a1a2e';
+const EMAIL_BACKGROUND = '#ffffff';
+
 export async function markOrderAsPaidAndNotify(orderId: string, paymentProvider: string) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -76,23 +79,23 @@ export async function markOrderAsPaidAndNotify(orderId: string, paymentProvider:
       subject: '✅ אישור הזמנה - הקוד הסודי שלך | Hotam Shop',
       text: `תודה על הרכישה שלך ב-Hotam Shop. המוכר יצור איתך קשר בהקדם לתיאום המסירה. הקוד הסודי שלך הוא ${verificationCode}. קבל את המוצר מהמוכר, בדוק שהוא תקין ומתאים למה שהזמנת, ורק לאחר מכן מסור למוכר את הקוד. אל תמסור את הקוד לפני שבדקת את המוצר.`,
       html: `
-        <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff;">
+        <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: ${EMAIL_BACKGROUND};">
           
-          <div style="background: #1a1a2e; padding: 30px; text-align: center;">
-            <h1 style="color: #ffffff; margin: 0; font-size: 28px; letter-spacing: 2px;">HOTAM</h1>
+          <div style="background: ${EMAIL_PRIMARY}; padding: 30px; text-align: center;">
+            <h1 style="color: ${EMAIL_BACKGROUND}; margin: 0; font-size: 28px; letter-spacing: 2px;">HOTAM</h1>
             <p style="color: #a0a0b0; margin: 5px 0 0;">שוק המוצרים המובחרים</p>
           </div>
 
           <div style="padding: 40px 30px;">
-            <h2 style="color: #1a1a2e; margin-top: 0;">🎉 הרכישה בוצעה בהצלחה!</h2>
+            <h2 style="color: ${EMAIL_PRIMARY}; margin-top: 0;">🎉 הרכישה בוצעה בהצלחה!</h2>
             <p style="color: #444; font-size: 16px; line-height: 1.6;">
               תודה על הרכישה שלך ב-Hotam Shop.<br/>
               המוכר יצור איתך קשר בהקדם לתיאום המסירה.
             </p>
 
-            <div style="background: #f0f4ff; border: 2px solid #1a1a2e; border-radius: 16px; padding: 30px; text-align: center; margin: 30px 0;">
-              <p style="color: #1a1a2e; font-size: 16px; font-weight: bold; margin: 0 0 15px;">🔐 הקוד הסודי שלך</p>
-              <div style="background: #1a1a2e; color: #ffffff; font-size: 42px; font-weight: bold; letter-spacing: 12px; padding: 20px; border-radius: 12px;">
+            <div style="background: #f0f4ff; border: 2px solid ${EMAIL_PRIMARY}; border-radius: 16px; padding: 30px; text-align: center; margin: 30px 0;">
+              <p style="color: ${EMAIL_PRIMARY}; font-size: 16px; font-weight: bold; margin: 0 0 15px;">🔐 הקוד הסודי שלך</p>
+              <div style="background: ${EMAIL_PRIMARY}; color: ${EMAIL_BACKGROUND}; font-size: 42px; font-weight: bold; letter-spacing: 12px; padding: 20px; border-radius: 12px;">
                 ${verificationCode}
               </div>
             </div>

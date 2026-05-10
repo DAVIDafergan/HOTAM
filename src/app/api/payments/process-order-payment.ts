@@ -13,13 +13,13 @@ export async function markOrderAsPaidAndNotify(orderId: string, paymentProvider:
   }
 
   const supabase = createClient(supabaseUrl, serviceRoleKey);
+  console.log('DB lookup orderId:', orderId);
   const { data: order, error: fetchError } = await supabase
     .from('orders')
     .select('status, buyer_email, buyer_name, seller_id, product_id')
     .eq('id', orderId)
     .single();
-  console.log('fetchError:', fetchError?.message);
-  console.log('order:', order);
+  console.log('DB result:', JSON.stringify(order), 'error:', fetchError?.message);
 
   if (fetchError || !order) {
     throw new Error(`Order ${orderId} not found`);

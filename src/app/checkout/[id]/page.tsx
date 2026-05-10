@@ -53,6 +53,8 @@ function generateShortId(length = 8) {
 }
 
 const FALLBACK_PRODUCT_DESCRIPTION = 'מוצר';
+const SUMIT_READY_POLL_INTERVAL_MS = 250;
+const SUMIT_READY_POLL_ATTEMPTS = 20;
 
 export default function CheckoutPage() {
   const params = useParams();
@@ -152,7 +154,7 @@ export default function CheckoutPage() {
     }
 
     const pollForOfficeGuy = async () => {
-      for (let attempt = 0; attempt < 20; attempt++) {
+      for (let attempt = 0; attempt < SUMIT_READY_POLL_ATTEMPTS; attempt++) {
         if (destroyed) return;
         if (window.OfficeGuy?.Payments?.TokenizeForm) {
           setIsSumitReady(true);
@@ -160,7 +162,7 @@ export default function CheckoutPage() {
           return;
         }
 
-        await new Promise((resolve) => window.setTimeout(resolve, 250));
+        await new Promise((resolve) => setTimeout(resolve, SUMIT_READY_POLL_INTERVAL_MS));
       }
 
       if (destroyed) return;

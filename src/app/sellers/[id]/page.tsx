@@ -267,11 +267,8 @@ export default function SellerProfile() {
       return;
     }
     setDeletingReviewId(reviewId);
-    const { error } = await supabase
-      .from('supermarket_reviews')
-      .delete()
-      .eq('id', reviewId)
-      .eq('buyer_id', user.uid);
+    const { error } = await supabase.from('supermarket_reviews').delete().eq('id', reviewId);
+    console.log('[supermarket_reviews] delete response error:', error);
     setDeletingReviewId(null);
     if (error) {
       console.error('[supermarket_reviews] delete error:', error.message);
@@ -279,6 +276,7 @@ export default function SellerProfile() {
       return;
     }
     setReviews(prev => prev.filter((rev: any) => rev.id !== reviewId));
+    router.refresh();
     toast({ title: 'הביקורת נמחקה בהצלחה' });
   };
 

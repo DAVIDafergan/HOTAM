@@ -33,8 +33,7 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, usePathname } from 'next/navigation';
-import { useSupabaseClient, useUser, addDocumentNonBlocking } from '@/lib/supabase-hooks';
-import { collection, serverTimestamp } from '@/lib/supabase-compat';
+import { useSupabaseClient, useUser } from '@/lib/supabase-hooks';
 import { supabase } from '@/lib/supabase';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useMemo, useState, useEffect } from 'react';
@@ -176,7 +175,7 @@ export default function SellerProfile() {
     });
   };
 
-  const handleSendReport = () => {
+  const handleSendReport = async () => {
     if (!user) { toast({ title: "עליך להתחבר כדי לדווח" }); return; }
     if (!reportReason.trim()) { toast({ variant: "destructive", title: "אנא ציין סיבה לדיווח" }); return; }
     
@@ -186,18 +185,18 @@ export default function SellerProfile() {
       seller_name: `${seller.first_name} ${seller.last_name}`,
       reporter_id: user.uid,
       reporter_name: user.displayName || user.email || 'משתמש באתר',
-      reason: reportReason,
-      created_at: serverTimestamp()
+      reason: reportReason.trim(),
+      created_at: new Date().toISOString()
     };
-
-    addDocumentNonBlocking(collection(db, 'reports'), reportData);
-    
-    setTimeout(() => {
-      setIsReporting(false);
-      setIsReportDialogOpen(false);
-      setReportReason('');
-      toast({ title: "הדיווח נשלח למנהל המערכת לבדיקה" });
-    }, 800);
+    const { error } = await db.from('reports').insert(reportData);
+    setIsReporting(false);
+    if (error) {
+      toast({ variant: 'destructive', title: 'שליחת הדיווח נכשלה', description: error.message });
+      return;
+    }
+    setIsReportDialogOpen(false);
+    setReportReason('');
+    toast({ title: "הדיווח נשלח בהצלחה", description: "הפנייה הועברה למנהלי המערכת לבדיקה דיסקרטית." });
   };
 
   const handleSubmitSellerReview = async () => {
@@ -429,7 +428,7 @@ export default function SellerProfile() {
                       <Flag className="w-3.5 h-3.5" /> דיווח על סופר זה
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white text-right" dir="rtl">
+                  <DialogContent className="max-w-lg rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white text-right" dir="rtl">
                     <div className="bg-gradient-to-l from-red-700 to-destructive p-6 text-white text-right">
                        <DialogHeader>
                           <DialogTitle className="text-xl font-headline font-black flex items-center gap-3 text-white">
@@ -437,22 +436,28 @@ export default function SellerProfile() {
                           </DialogTitle>
                        </DialogHeader>
                     </div>
-                    <div className="p-8 space-y-4 bg-white text-slate-900">
+                    <div className="p-8 space-y-5 bg-white text-slate-900">
+                        <div className="rounded-2xl bg-red-50 border border-red-100 p-4 text-right">
+                          <p className="text-sm font-black text-red-700">מתי כדאי לדווח?</p>
+                          <p className="text-[12px] text-red-700/80 mt-1 leading-relaxed">
+                            השתמש בדיווח במקרה של חשש להטעיה, תוכן פוגעני, התנהלות לא תקינה או מידע שגוי בפרופיל.
+                          </p>
+                        </div>
                         <div className="space-y-2">
-                           <Label className="text-xs font-black uppercase text-slate-900">מה סיבת הדיווח?</Label>
+                           <Label className="text-xs font-black uppercase text-slate-900">פרט את סיבת הדיווח</Label>
                            <Textarea 
-                             value={reportReason} 
-                             onChange={e => setReportReason(e.target.value)} 
-                             placeholder="פרט כאן את הבעיה..." 
-                             className="min-h-[120px] rounded-2xl text-slate-900 bg-slate-50 border-slate-300 placeholder:text-slate-500 focus-visible:ring-destructive/40" 
-                           />
+                              value={reportReason} 
+                              onChange={e => setReportReason(e.target.value)} 
+                              placeholder="כתוב כאן מה קרה, מתי, ומה נדרש לבדיקה..." 
+                              className="min-h-[120px] rounded-2xl text-slate-900 bg-slate-50 border-slate-300 placeholder:text-slate-500 focus-visible:ring-destructive/40" 
+                            />
                         </div>
                         <p className="text-[11px] font-medium text-slate-500 leading-relaxed">
-                         * הדיווח ישלח באופן דיסקרטי למנהלי 'חותם'. אנו לוקחים כל פנייה ברצינות רבה לשמירה על כשרות וקדושת המערכת.
-                       </p>
+                         הדיווח יישלח בצורה דיסקרטית למנהלי 'חותם'. נבדוק כל פנייה במהירות וברצינות.
+                        </p>
                     </div>
-                     <DialogFooter className="p-6 bg-slate-50 border-t border-slate-100 flex gap-3">
-                        <Button onClick={handleSendReport} disabled={isReporting} className="flex-1 bg-destructive text-white h-12 rounded-xl font-black uppercase shadow-md hover:bg-red-700 transition-colors">
+                      <DialogFooter className="p-6 bg-slate-50 border-t border-slate-100 flex gap-3">
+                        <Button onClick={handleSendReport} disabled={isReporting || !reportReason.trim()} className="flex-1 bg-destructive text-white h-12 rounded-xl font-black uppercase shadow-md hover:bg-red-700 transition-colors disabled:opacity-50">
                           {isReporting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'שלח דיווח'}
                         </Button>
                         <Button variant="outline" onClick={() => setIsReportDialogOpen(false)} className="h-12 rounded-xl font-bold text-slate-800 border-slate-300 hover:bg-slate-100">ביטול</Button>

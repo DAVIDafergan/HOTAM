@@ -37,6 +37,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { reverseGeocodeWithGoogle } from '@/lib/google-maps';
 
 type ProductType = 'מזוזה' | 'תפילין' | 'מגילה' | 'ספר תורה' | 'מוצרי יודאיקה שונים' | '';
 type ShippingPreference = 'all' | 'shipping' | 'pickup';
@@ -97,27 +98,15 @@ export function HeroAnimation() {
         const { latitude, longitude } = position.coords;
         setUserCoords({ lat: latitude, lng: longitude });
 
-        // Reverse-geocode to get city name using Nominatim (OpenStreetMap)
         try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=he`,
-            { headers: { 'Accept-Language': 'he' } }
-          );
-          if (res.ok) {
-            const data = await res.json();
-            const addr = data.address || {};
-            const city = addr.city || addr.town || addr.village || addr.municipality || addr.county || null;
-            if (city) {
-              setDetectedCity(city);
-              toast({ title: `מיקום זוהה: ${city}` });
-            } else {
-              toast({ title: "מיקום זוהה" });
-            }
+          const { city } = await reverseGeocodeWithGoogle(latitude, longitude);
+          if (city) {
+            setDetectedCity(city);
+            toast({ title: `מיקום זוהה: ${city}` });
           } else {
             toast({ title: "מיקום זוהה" });
           }
         } catch {
-          // Reverse geocode failed silently, still use coords
           toast({ title: "מיקום זוהה" });
         }
 

@@ -560,6 +560,11 @@ export default function SellerProfile() {
 
                   <div className="mb-2 bg-muted/10 rounded-3xl border border-muted/40 p-5 space-y-4 text-right">
                     <h5 className="text-sm font-black text-primary">הוסף ביקורות שלך או דרג</h5>
+                    {!user && (
+                      <p className="text-xs font-bold text-muted-foreground">
+                        כדי לפרסם ביקורת צריך <Link href={`/login?redirect=${encodeURIComponent(pathname)}`} className="underline text-primary">להתחבר לחשבון</Link>.
+                      </p>
+                    )}
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase text-slate-500">ביקורת</Label>
                       <Textarea
@@ -567,14 +572,14 @@ export default function SellerProfile() {
                         value={reviewComment}
                         onChange={e => setReviewComment(e.target.value)}
                         className="rounded-2xl min-h-[100px]"
-                        disabled={isOwnSellerReviewBlocked || hasUserReviewedSeller || isReviewSubmitting}
+                        disabled={!user || isOwnSellerReviewBlocked || hasUserReviewedSeller || isReviewSubmitting}
                       />
                     </div>
                     <div className="space-y-2">
                       <Label className="text-xs font-black uppercase tracking-widest text-primary">דירוג כוכבים</Label>
                       <div className="flex justify-center gap-3">
                         {[1, 2, 3, 4, 5].map(s => (
-                          <button key={s} type="button" onClick={() => setReviewRating(s)} disabled={isOwnSellerReviewBlocked || hasUserReviewedSeller || isReviewSubmitting}>
+                          <button key={s} type="button" onClick={() => setReviewRating(s)} disabled={!user || isOwnSellerReviewBlocked || hasUserReviewedSeller || isReviewSubmitting}>
                             <Star className={`w-8 h-8 transition-colors ${s <= reviewRating ? 'fill-accent text-accent' : 'text-muted-foreground/30'}`} />
                           </button>
                         ))}
@@ -591,10 +596,10 @@ export default function SellerProfile() {
                     </div>
                     <Button
                       onClick={handleSubmitSellerReview}
-                      disabled={isReviewSubmitting || isOwnSellerReviewBlocked || hasUserReviewedSeller}
+                      disabled={!user || isReviewSubmitting || isOwnSellerReviewBlocked || hasUserReviewedSeller}
                       className="w-full bg-primary text-white h-11 font-black"
                     >
-                      {isReviewSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : (isOwnSellerReviewBlocked ? 'לא ניתן לדרג את עצמך' : hasUserReviewedSeller ? 'כבר פרסמת ביקורת' : 'פרסם דירוג')}
+                      {isReviewSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : (!user ? 'התחבר כדי לפרסם דירוג' : isOwnSellerReviewBlocked ? 'לא ניתן לדרג את עצמך' : hasUserReviewedSeller ? 'כבר פרסמת ביקורת' : 'פרסם דירוג')}
                     </Button>
                   </div>
 

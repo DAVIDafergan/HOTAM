@@ -385,7 +385,7 @@ function SellerDashboardContent() {
       }
 
       try {
-         const uploadedUrls = await Promise.all(filesToUpload.map(uploadImage));
+        const uploadedUrls = await Promise.all(filesToUpload.map(uploadImage));
         setFormImages(prev => [...prev, ...uploadedUrls]);
 
         if (allFiles.length > remainingSlots) {

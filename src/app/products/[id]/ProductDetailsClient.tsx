@@ -746,7 +746,7 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
           }
         }}
       >
-      <DialogContent className="max-w-5xl rounded-[2rem] border-none bg-black/95 p-3 sm:p-6 shadow-2xl" dir="rtl">
+        <DialogContent className="max-w-5xl rounded-[2rem] border-none bg-black/95 p-3 sm:p-6 shadow-2xl" dir="rtl">
           <DialogHeader className="space-y-2 pr-12 text-right">
             <DialogTitle className="text-white">{product.product_type}</DialogTitle>
             <p className="text-xs font-bold text-white/70">בחר רמת זום וגרור לצדדים לעיון נוח בתמונה</p>

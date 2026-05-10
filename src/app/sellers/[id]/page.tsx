@@ -218,7 +218,7 @@ export default function SellerProfile() {
       .from('profiles')
       .select('avatar_url, full_name')
       .eq('id', user.uid)
-      .single();
+      .maybeSingle();
     if (profileError) {
       console.error('[profiles] fetch error:', profileError.message);
     }

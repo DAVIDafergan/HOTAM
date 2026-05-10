@@ -229,11 +229,14 @@ export default function CustomerDashboard() {
     if (!ratingOrderId || !user) return;
     setIsRatingSubmitting(true);
 
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('full_name')
       .eq('id', user.uid)
-      .single();
+      .maybeSingle();
+    if (profileError) {
+      console.error('[profiles] fetch error:', profileError.message);
+    }
 
     const reviewData = {
       order_id: ratingOrderId.id,

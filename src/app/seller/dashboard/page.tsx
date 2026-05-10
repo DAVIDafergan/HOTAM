@@ -351,7 +351,7 @@ function SellerDashboardContent() {
     setTimeout(() => { setIsVerifying(null); toast({ title: "העסקה הושלמה!" }); }, 1000);
   };
 
-  const uploadProductImage = async (file: File): Promise<string> => {
+  const uploadImage = async (file: File): Promise<string> => {
     const formData = new FormData();
     formData.append('file', file);
 
@@ -385,7 +385,7 @@ function SellerDashboardContent() {
       }
 
       try {
-        const uploadedUrls = await Promise.all(filesToUpload.map(uploadProductImage));
+         const uploadedUrls = await Promise.all(filesToUpload.map(uploadImage));
         setFormImages(prev => [...prev, ...uploadedUrls]);
 
         if (allFiles.length > remainingSlots) {
@@ -401,13 +401,20 @@ function SellerDashboardContent() {
       return;
     }
 
-    allFiles.forEach(file => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfileData(prev => ({ ...prev, profile_image: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
-    });
+    const firstFile = allFiles[0];
+    if (!firstFile) {
+      e.target.value = '';
+      return;
+    }
+
+    try {
+      const uploadedUrl = await uploadImage(firstFile);
+      setProfileData(prev => ({ ...prev, profile_image: uploadedUrl }));
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'העלאת תמונת הפרופיל נכשלה.';
+      console.error('Profile image upload error:', error);
+      toast({ variant: 'destructive', title: 'שגיאת העלאה', description: message });
+    }
     e.target.value = '';
   };
 

@@ -110,24 +110,48 @@ export default function SellerOnboarding() {
     }));
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, target: 'cert' | 'samples') => {
+  const uploadImage = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const res = await fetch('/api/upload-image', {
+      method: 'POST',
+      body: formData,
+    });
+
+    const payload = await res.json();
+    if (!res.ok || !payload?.url) {
+      throw new Error(payload?.error || 'Upload failed');
+    }
+
+    return payload.url as string;
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: 'cert' | 'samples') => {
     const files = e.target.files;
     if (!files) return;
+    const allFiles = Array.from(files);
+    e.target.value = '';
 
-    Array.from(files).forEach(file => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (target === 'cert') {
-          updateField('certificateUrl', reader.result as string);
-        } else {
-          setFormData(prev => ({
-            ...prev,
-            writingSamples: [...prev.writingSamples, reader.result as string]
-          }));
-        }
-      };
-      reader.readAsDataURL(file);
-    });
+    try {
+      if (target === 'cert') {
+        const firstFile = allFiles[0];
+        if (!firstFile) return;
+        const uploadedUrl = await uploadImage(firstFile);
+        updateField('certificateUrl', uploadedUrl);
+        return;
+      }
+
+      const uploadedUrls = await Promise.all(allFiles.map(uploadImage));
+      setFormData(prev => ({
+        ...prev,
+        writingSamples: [...prev.writingSamples, ...uploadedUrls]
+      }));
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'העלאת התמונה נכשלה.';
+      console.error('Onboarding image upload error:', error);
+      toast({ variant: 'destructive', title: 'שגיאת העלאה', description: message });
+    }
   };
 
   const removeSample = (idx: number) => {

@@ -85,4 +85,3 @@ export async function reverseGeocodeWithGoogle(lat: number, lng: number): Promis
 
   return { city };
 }
-

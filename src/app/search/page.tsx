@@ -289,15 +289,15 @@ function SearchContent() {
       const seller = allSellers?.find(s => s.id === p.seller_id);
       const selectedRegionCities = REGION_CITY_MAP[selectedRegion] || [];
       const sellerAddressNormalized = normalizeCity(seller?.address || '');
-      const deliveryAreasText = deliveryAreaValues.join(',');
+      const normalizedRegionCities = selectedRegionCities.map(normalizeCity);
       const matchRegion =
         selectedRegion === 'all' ||
         (
           seller &&
           (
             (seller.address || '').includes(selectedRegion.split(' ')[0]) ||
-            selectedRegionCities.some((city) => sellerAddressNormalized.includes(normalizeCity(city))) ||
-            selectedRegionCities.some((city) => deliveryAreasText.includes(city))
+            normalizedRegionCities.some((city) => sellerAddressNormalized.includes(city)) ||
+            normalizedRegionCities.some((city) => normalizedAreaValues.some((area: string) => area.includes(city)))
           )
         );
       const matchMarried = !marriedOnly || (seller && seller.marital_status === 'married');

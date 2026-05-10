@@ -185,7 +185,7 @@ export default function SellerProfile() {
       seller_name: `${seller.first_name} ${seller.last_name}`,
       reporter_id: user.uid,
       reporter_name: user.displayName || user.email || 'משתמש באתר',
-      reason: reportReason.trim(),
+      reason: reportReason,
       created_at: new Date().toISOString()
     };
     const { error } = await db.from('reports').insert(reportData);

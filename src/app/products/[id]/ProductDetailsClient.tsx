@@ -314,30 +314,24 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
       return;
     }
     setDeletingReviewId(reviewId);
-    const { data: { session } } = await supabase.auth.getSession();
-    const token = session?.access_token;
-    if (!token) {
+    try {
+      const { error } = await supabase
+        .from('reviews')
+        .delete()
+        .eq('id', reviewId)
+        .eq('buyer_id', user.uid);
+
+      if (error) {
+        console.error('[reviews] delete error:', error.message);
+        toast({ variant: 'destructive', title: 'שגיאה במחיקת הביקורת', description: 'אנא נסה שוב.' });
+        return;
+      }
+
+      setReviews(prev => prev.filter((rev: any) => rev.id !== reviewId));
+      toast({ title: 'הביקורת נמחקה בהצלחה' });
+    } finally {
       setDeletingReviewId(null);
-      router.push('/login');
-      return;
     }
-    const response = await fetch('/api/reviews/delete', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ reviewId, reviewType: 'product' }),
-    });
-    setDeletingReviewId(null);
-    if (!response.ok) {
-      const body = await response.json().catch(() => null);
-      console.error('[reviews] delete error:', body?.error || response.statusText);
-      toast({ variant: 'destructive', title: 'שגיאה במחיקת הביקורת', description: 'אנא נסה שוב.' });
-      return;
-    }
-    setReviews(prev => prev.filter((rev: any) => rev.id !== reviewId));
-    toast({ title: 'הביקורת נמחקה בהצלחה' });
   };
 
   if (isProductLoading && !product) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-12 h-12 animate-spin text-primary" /></div>;

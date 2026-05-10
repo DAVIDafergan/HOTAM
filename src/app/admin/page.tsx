@@ -227,7 +227,10 @@ export default function AdminDashboard() {
       .eq('id', id);
 
     if (error || count === null || count === 0) {
-      const failureMessage = error?.message ?? 'העדכון לא בוצע (לא נמצאו שורות לעדכון)';
+      const failureMessage = error?.message
+        ?? (count === null
+          ? 'אישור המוכר נכשל: לא התקבל מידע על מספר השורות שעודכנו'
+          : 'אישור המוכר נכשל: לא נמצאו שורות לעדכון');
       console.error('approve failed:', failureMessage, 'count:', count);
       toast({
         variant: "destructive",

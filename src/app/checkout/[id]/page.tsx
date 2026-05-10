@@ -53,6 +53,10 @@ function generateShortId(length = 8) {
 }
 
 const FALLBACK_PRODUCT_DESCRIPTION = 'מוצר';
+const JQUERY_SCRIPT_SELECTOR = 'script[data-hotam="jquery"]';
+const SUMIT_SCRIPT_SELECTOR = 'script[data-hotam="sumit"]';
+const SUMIT_READY_POLL_INTERVAL_MS = 250;
+const SUMIT_READY_POLL_ATTEMPTS = 20;
 
 export default function CheckoutPage() {
   const params = useParams();
@@ -134,72 +138,90 @@ export default function CheckoutPage() {
   }, [deliveryChoice, recipientName, recipientPhone, recipientAddress, recipientCity, totalPrice, productId, user?.uid]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (!sumitCompanyId || !sumitPublicKey) {
-      setSumitError('חסרים פרטי הזדהות של מערכת הסליקה.');
-      return;
-    }
-
-    // Track whether this effect instance appended the scripts (for cleanup)
-    let jqAppended = false;
-    let sumitAppended = false;
-    let sumitScript: HTMLScriptElement | null = null;
-
-    const initSumit = () => {
-      if (!window.OfficeGuy?.Payments?.TokenizeForm) {
-        setSumitError('מערכת הסליקה לא נטענה. נסו לרענן את העמוד.');
-        return;
-      }
-      setIsSumitReady(true);
-      setSumitError(null);
+    let destroyed = false;
+    const cleanup = () => {
+      destroyed = true;
     };
 
-    const injectSumit = () => {
-      // Guard against duplicate injection
-      if (document.querySelector('script[data-hotam="sumit"]')) {
-        initSumit();
+    if (typeof window === 'undefined') return;
+    if (!sumitCompanyId || !sumitPublicKey) {
+      if (destroyed) return;
+      setIsSumitReady(false);
+      setSumitError('חסרים פרטי הזדהות של מערכת הסליקה.');
+      return cleanup;
+    }
+
+    if (!destroyed) {
+      setIsSumitReady(false);
+      setSumitError(null);
+    }
+
+    const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    const pollForOfficeGuy = async () => {
+      for (let attempt = 0; attempt < SUMIT_READY_POLL_ATTEMPTS; attempt++) {
+        if (destroyed) return;
+        if (window.OfficeGuy?.Payments?.TokenizeForm) {
+          setIsSumitReady(true);
+          setSumitError(null);
+          return;
+        }
+
+        await wait(SUMIT_READY_POLL_INTERVAL_MS);
+      }
+
+      if (destroyed) return;
+      setIsSumitReady(false);
+      setSumitError('מערכת הסליקה לא נטענה. נסו לרענן את העמוד.');
+    };
+
+    const ensureSumitScript = () => {
+      const existingSumitScript = document.querySelector<HTMLScriptElement>(SUMIT_SCRIPT_SELECTOR);
+      if (existingSumitScript) {
+        void pollForOfficeGuy();
         return;
       }
-      sumitScript = document.createElement('script');
+
+      const sumitScript = document.createElement('script');
       sumitScript.src = 'https://app.sumit.co.il/scripts/payments.js';
-      sumitScript.async = true;
+      sumitScript.async = false;
       sumitScript.dataset.hotam = 'sumit';
-      sumitScript.onload = initSumit;
+      sumitScript.onload = () => {
+        if (destroyed) return;
+        void pollForOfficeGuy();
+      };
       sumitScript.onerror = () => {
+        if (destroyed) return;
+        setIsSumitReady(false);
         setSumitError('טעינת מערכת הסליקה נכשלה. נסו לרענן את העמוד.');
       };
       document.body.appendChild(sumitScript);
-      sumitAppended = true;
     };
 
-    // Guard against duplicate jQuery injection
-    if (document.querySelector('script[data-hotam="jquery"]')) {
-      injectSumit();
-    } else {
-      // 1. Inject jQuery
-      const jqScript = document.createElement('script');
-      jqScript.src = 'https://code.jquery.com/jquery-3.7.1.min.js';
-      jqScript.integrity = 'sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=';
-      jqScript.crossOrigin = 'anonymous';
-      jqScript.async = true;
-      jqScript.dataset.hotam = 'jquery';
-      jqScript.onload = injectSumit;
-      jqScript.onerror = () => {
-        setSumitError('טעינת jQuery נכשלה. נסו לרענן את העמוד.');
-      };
-      document.body.appendChild(jqScript);
-      jqAppended = true;
-
-      return () => {
-        if (jqAppended) {
-          const el = document.querySelector('script[data-hotam="jquery"]');
-          if (el) document.body.removeChild(el);
-        }
-        if (sumitAppended && sumitScript && document.body.contains(sumitScript)) {
-          document.body.removeChild(sumitScript);
-        }
-      };
+    const existingJQueryScript = document.querySelector<HTMLScriptElement>(JQUERY_SCRIPT_SELECTOR);
+    if (existingJQueryScript) {
+      ensureSumitScript();
+      return cleanup;
     }
+
+    const jqScript = document.createElement('script');
+    jqScript.src = 'https://code.jquery.com/jquery-3.7.1.min.js';
+    jqScript.integrity = 'sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=';
+    jqScript.crossOrigin = 'anonymous';
+    jqScript.async = false;
+    jqScript.dataset.hotam = 'jquery';
+    jqScript.onload = () => {
+      if (destroyed) return;
+      ensureSumitScript();
+    };
+    jqScript.onerror = () => {
+      if (destroyed) return;
+      setIsSumitReady(false);
+      setSumitError('טעינת jQuery נכשלה. נסו לרענן את העמוד.');
+    };
+    document.body.appendChild(jqScript);
+
+    return cleanup;
   }, [sumitCompanyId, sumitPublicKey]);
 
   const generateVerificationCode = () => {

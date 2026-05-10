@@ -353,6 +353,21 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
   const images = rawImages.length > 0 ? rawImages : [logoImg];
   const currentImage = images[selectedImageIdx] || logoImg;
   const displayPrice = (Number(product.price) * 1.18).toFixed(0);
+  const normalizedDeliveryType = (() => {
+    const raw = String(product.delivery_type || '').toLowerCase();
+    if (raw === 'delivery' || raw === 'shipping' || raw === 'shipping_only') return 'delivery';
+    if (raw === 'pickup' || raw === 'pickup_only') return 'pickup';
+    return 'both';
+  })();
+  const deliveryAreaText = (Array.isArray(product.delivery_area) ? product.delivery_area : [product.delivery_area])
+    .filter(Boolean)
+    .join(', ');
+  const sellerCity =
+    product.seller_city ||
+    (typeof seller?.address === 'string' && seller.address.includes(',')
+      ? seller.address.split(',').pop()?.trim()
+      : seller?.address) ||
+    '';
   const clampZoomLevel = (zoom: number) => Math.min(MAX_IMAGE_ZOOM_LEVEL, Math.max(MIN_IMAGE_ZOOM_LEVEL, Number(zoom.toFixed(2))));
   const updateImageZoom = (zoom: number) => {
     const nextZoom = clampZoomLevel(zoom);
@@ -499,6 +514,23 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
                 "{product.description}"
               </div>
             </div>
+
+            <Card className="border-none shadow-sm rounded-[2rem] bg-white/70 p-5">
+              <div className="space-y-2 text-right">
+                {normalizedDeliveryType === 'delivery' && (
+                  <p className="font-bold text-primary">🚚 משלוח זמין לערים: {deliveryAreaText || 'כל הארץ'}</p>
+                )}
+                {normalizedDeliveryType === 'pickup' && (
+                  <p className="font-bold text-primary">📦 איסוף עצמי בלבד מ{sellerCity || 'עיר הסופר'}</p>
+                )}
+                {normalizedDeliveryType === 'both' && (
+                  <>
+                    <p className="font-bold text-primary">🚚 משלוח לערים: {deliveryAreaText || 'כל הארץ'}</p>
+                    <p className="font-bold text-primary">📦 או איסוף עצמי מ{sellerCity || 'עיר הסופר'}</p>
+                  </>
+                )}
+              </div>
+            </Card>
           </div>
         </div>
 

@@ -24,7 +24,7 @@ import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import unsplashLoader from '@/lib/unsplashLoader';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { getCityFromAddressComponents, loadGoogleMapsPlacesScript } from '@/lib/google-maps';
+import { geocodeAddressWithGoogle, getCityFromAddressComponents, loadGoogleMapsPlacesScript } from '@/lib/google-maps';
 
 
 declare global {
@@ -143,6 +143,7 @@ export default function CheckoutPage() {
   const [recipientPhone, setRecipientPhone] = useState('');
   const [recipientAddress, setRecipientAddress] = useState('');
   const [recipientCity, setRecipientCity] = useState('');
+  const [selectedCityCoords, setSelectedCityCoords] = useState<{ lat: number; lng: number } | null>(null);
   const pendingOrderRef = useRef<{ orderId: string; verificationCode: string } | null>(null);
   const chargeInFlightRef = useRef(false);
   const sumitFormRef = useRef<HTMLFormElement | null>(null);
@@ -175,6 +176,33 @@ export default function CheckoutPage() {
   }, [customer]);
 
   useEffect(() => {
+    let cancelled = false;
+    if (!recipientCity || recipientCity === 'כל הארץ') {
+      setSelectedCityCoords(null);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    geocodeAddressWithGoogle(`${recipientCity}, ישראל`)
+      .then((geo) => {
+        if (cancelled) return;
+        if (typeof geo.lat === 'number' && typeof geo.lng === 'number') {
+          setSelectedCityCoords({ lat: geo.lat, lng: geo.lng });
+          return;
+        }
+        setSelectedCityCoords(null);
+      })
+      .catch(() => {
+        if (!cancelled) setSelectedCityCoords(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [recipientCity]);
+
+  useEffect(() => {
     if (!shippingAddressInputRef.current) return;
     let autocomplete: any;
     let listener: any;
@@ -187,6 +215,13 @@ export default function CheckoutPage() {
           types: ['address'],
           fields: ['formatted_address', 'address_components'],
           componentRestrictions: { country: 'il' },
+          bounds: selectedCityCoords
+            ? new window.google.maps.LatLngBounds(
+                new window.google.maps.LatLng(selectedCityCoords.lat - 0.2, selectedCityCoords.lng - 0.2),
+                new window.google.maps.LatLng(selectedCityCoords.lat + 0.2, selectedCityCoords.lng + 0.2),
+              )
+            : undefined,
+          strictBounds: Boolean(selectedCityCoords),
         });
         listener = autocomplete.addListener('place_changed', () => {
           const place = autocomplete.getPlace();
@@ -207,7 +242,7 @@ export default function CheckoutPage() {
         window.google.maps.event.removeListener(listener);
       }
     };
-  }, []);
+  }, [selectedCityCoords]);
 
   const basePrice = useMemo(() => Number(product?.price || 0), [product]);
   const vatAmount = useMemo(() => Math.round(basePrice * 0.18), [basePrice]);

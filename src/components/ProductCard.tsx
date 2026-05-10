@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import unsplashLoader from '@/lib/unsplashLoader';
 import { cn } from '@/lib/utils';
 
-export function ProductCard({ product }: { product: any }) {
+export function ProductCard({ product, distanceKm }: { product: any; distanceKm?: number }) {
   const { user } = useUser();
   const db = useSupabaseClient();
   const router = useRouter();
@@ -106,9 +106,14 @@ export function ProductCard({ product }: { product: any }) {
              <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-primary/5 flex items-center justify-center text-primary group-hover:bg-accent group-hover:text-primary transition-all">
                <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4" />
              </div>
-             <div className="flex items-center gap-1 sm:gap-2 text-[8px] sm:text-[10px] font-black text-primary/60">
-               <span>{product.script_level}</span>
-               <CheckCircle2 className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-accent" />
+             <div className="flex flex-col items-end gap-0.5">
+               <div className="flex items-center gap-1 sm:gap-2 text-[8px] sm:text-[10px] font-black text-primary/60">
+                 <span>{product.script_level}</span>
+                 <CheckCircle2 className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-accent" />
+               </div>
+               {typeof distanceKm === 'number' && (
+                 <span className="text-[8px] sm:text-[10px] font-bold text-emerald-700">{distanceKm} ק״מ ממך</span>
+               )}
              </div>
           </div>
         </CardContent>

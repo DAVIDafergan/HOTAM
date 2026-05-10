@@ -28,8 +28,10 @@ import { useUser, useSupabaseClient, useDoc, useMemoStable, useCollection } from
 import { collection, query, where, orderBy, doc } from '@/lib/supabase-compat';
 import unsplashLoader from '@/lib/unsplashLoader';
 import { motion } from 'framer-motion';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { TorahExpertBanner } from '@/components/TorahExpertBanner';
+import { reverseGeocodeWithGoogle } from '@/lib/google-maps';
+import { useRouter } from 'next/navigation';
 
 const HeroAnimation = dynamic(() => import('@/components/HeroAnimation').then(mod => mod.HeroAnimation), {
   ssr: false
@@ -43,6 +45,9 @@ const TOP_SCRIBES_SECTION_TITLE = `${TOP_SCRIBES_LIMIT} סופרים מוביל�
 export default function Home() {
   const { user } = useUser();
   const db = useSupabaseClient();
+  const router = useRouter();
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+  const [detectedCity, setDetectedCity] = useState<string | null>(null);
   
   const sellerRef = useMemoStable(() => (user?.uid ? doc(db, 'sellers', user.uid) : null), [db, user?.uid]);
   const { data: sellerData } = useDoc<any>(sellerRef);
@@ -103,6 +108,36 @@ export default function Home() {
       })
       .slice(0, TOP_SCRIBES_LIMIT);
   }, [allSellers, sellerReviewStats]);
+
+  const handleNearMeClick = () => {
+    if (!navigator.geolocation) return;
+    setIsDetectingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        try {
+          const { city } = await reverseGeocodeWithGoogle(latitude, longitude);
+          if (!city) {
+            setIsDetectingLocation(false);
+            return;
+          }
+
+          setDetectedCity(city);
+          const params = new URLSearchParams({
+            view: 'all',
+            nearMe: 'true',
+            city,
+            lat: String(latitude),
+            lng: String(longitude),
+          });
+          router.push(`/search?${params.toString()}`);
+        } finally {
+          setIsDetectingLocation(false);
+        }
+      },
+      () => setIsDetectingLocation(false),
+    );
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -228,13 +263,29 @@ export default function Home() {
             </div>
 
             <div className="mt-12 md:mt-20 text-center">
-              <Button size="lg" asChild className="rounded-full gap-3 font-black text-white bg-primary hover:bg-primary/90 hover:scale-105 active:scale-95 focus:ring-4 focus:ring-primary/30 transition-all duration-300 px-12 h-16 shadow-xl">
-                <Link href="/search?view=all">
-                  <Search className="w-5 h-5" />
-                  צפה בכל המוצרים באתר
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                </Link>
-              </Button>
+              <div className="flex flex-col items-center gap-3">
+                <Button size="lg" asChild className="rounded-full gap-3 font-black text-white bg-primary hover:bg-primary/90 hover:scale-105 active:scale-95 focus:ring-4 focus:ring-primary/30 transition-all duration-300 px-12 h-16 shadow-xl">
+                  <Link href="/search?view=all">
+                    <Search className="w-5 h-5" />
+                    צפה בכל המוצרים באתר
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                  </Link>
+                </Button>
+                <div className="flex flex-col items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleNearMeClick}
+                    disabled={isDetectingLocation}
+                    className="rounded-full h-12 px-8 font-black"
+                  >
+                    {isDetectingLocation ? 'מזהה מיקום...' : '📍 קרוב אליי'}
+                  </Button>
+                  {detectedCity && (
+                    <p className="text-sm font-bold text-emerald-600">זיהינו: {detectedCity}</p>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </section>

@@ -51,7 +51,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import { TorahExpertBanner } from '@/components/TorahExpertBanner';
-import { reverseGeocodeWithGoogle } from '@/lib/google-maps';
+import { geocodeAddressWithGoogle, reverseGeocodeWithGoogle } from '@/lib/google-maps';
 
 type ProductType = 'מזוזה' | 'תפילין' | 'מגילה' | 'ספר תורה' | 'מוצרי יודאיקה שונים' | '';
 type ShippingPreference = 'all' | 'shipping' | 'pickup';
@@ -98,6 +98,19 @@ const CITY_ALIASES: Record<string, string[]> = CITY_ALIAS_PAIRS.reduce((acc, [a,
   return acc;
 }, {} as Record<string, string[]>);
 
+function haversineDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+const getDeliveryAreaValues = (product: any): string[] =>
+  Array.isArray(product?.delivery_area) ? product.delivery_area : product?.delivery_area ? [product.delivery_area] : [];
+
 function SearchContent() {
   const router = useRouter();
   const { toast } = useToast();
@@ -131,6 +144,8 @@ function SearchContent() {
   const [detectedCity, setDetectedCity] = useState<string | null>(null);
   const [userCoords, setUserCoords] = useState<{lat: number, lng: number} | null>(null);
   const [preferNearMe, setPreferNearMe] = useState(false);
+  const [nearbyDistanceMap, setNearbyDistanceMap] = useState<Record<string, number>>({});
+  const [nearbySortedProducts, setNearbySortedProducts] = useState<any[]>([]);
 
   const productsQuery = useMemoStable(() => {
     return query(collection(db, 'products'), where('quantity', '>', 0));
@@ -222,16 +237,7 @@ function SearchContent() {
     );
   };
 
-  const detectedRegionCities = useMemo(() => {
-    if (!preferNearMe || !detectedCity) return [];
-    const normalizedDetectedCity = normalizeCity(detectedCity);
-    const regionMatch = Object.values(NORMALIZED_REGION_CITY_MAP).find((cities) =>
-      cities.includes(normalizedDetectedCity),
-    );
-    return regionMatch || [];
-  }, [preferNearMe, detectedCity]);
-
-  const filteredProducts = useMemo(() => {
+  const baseFilteredProducts = useMemo(() => {
     if (!allProducts) return [];
     
     let results = allProducts.filter(p => {
@@ -242,43 +248,10 @@ function SearchContent() {
       const matchQty = p.quantity >= quantity;
       const matchSize = scrollSize === 'all' || p.parchment_size === scrollSize;
       
-      const normalizedDetectedCity = detectedCity ? normalizeCity(detectedCity) : '';
-      const cityCandidates = normalizedDetectedCity
-        ? Array.from(
-            new Set([
-              normalizedDetectedCity,
-              normalizedDetectedCity.replace(HEBREW_ARTICLE_PREFIX, '').replace(HEBREW_CITY_PREFIX, '').trim(),
-              ...(CITY_ALIASES[normalizedDetectedCity] || []).map(normalizeCity),
-            ].filter(Boolean))
-          )
-        : [];
-
-      const deliveryAreaValues = Array.isArray(p.delivery_area)
-        ? p.delivery_area
-        : p.delivery_area
-          ? [p.delivery_area]
-          : [];
-      const normalizedAreaValues = deliveryAreaValues
+      const normalizedAreaValues = getDeliveryAreaValues(p)
         .flatMap((area: string) => area.split(','))
         .map(normalizeCity)
         .filter(Boolean);
-
-      const deliversToCity =
-        !detectedCity ||
-        normalizedAreaValues.includes(normalizeCity('כל הארץ')) ||
-        cityCandidates.some((candidate) =>
-          normalizedAreaValues.some((area: string) =>
-            area === candidate || CITY_MATCH_SEPARATORS.some((separator) => area.startsWith(`${candidate}${separator}`))
-          )
-        );
-      const deliversNearCity =
-        preferNearMe &&
-        !deliversToCity &&
-        detectedRegionCities.some((city) =>
-          normalizedAreaValues.some((area: string) =>
-            area === city || CITY_MATCH_SEPARATORS.some((separator) => area.startsWith(`${city}${separator}`)),
-          ),
-        );
 
       const productDeliveryType =
         p.delivery_type === 'pickup_only' || p.delivery_type === 'pickup'
@@ -311,7 +284,7 @@ function SearchContent() {
       const matchStudy = studyFreq === 'all' || (seller && seller.torah_study_frequency === studyFreq);
       
       return matchType && matchSub && matchScript && matchQuality && matchQty && matchSize && 
-             matchShipping && matchRegion && matchMarried && matchMikveh && matchCert && matchStudy && (deliversToCity || deliversNearCity);
+             matchShipping && matchRegion && matchMarried && matchMikveh && matchCert && matchStudy;
     });
 
     if (sortOrder === 'price_asc') results = [...results].sort((a, b) => Number(a.price) - Number(b.price));
@@ -325,13 +298,120 @@ function SearchContent() {
     }
 
     return results;
-  }, [allProducts, allSellers, allReviews, selectedProduct, subType, scriptType, qualityLevel, quantity, shippingPreference, sortOrder, scrollSize, selectedRegion, certStatus, studyFreq, marriedOnly, mikvehFreq, detectedCity, preferNearMe, detectedRegionCities]);
+  }, [allProducts, allSellers, allReviews, selectedProduct, subType, scriptType, qualityLevel, quantity, shippingPreference, sortOrder, scrollSize, selectedRegion, certStatus, studyFreq, marriedOnly, mikvehFreq]);
+
+  const exactCityProducts = useMemo(() => {
+    if (!preferNearMe || !detectedCity) return [];
+
+    const normalizedDetectedCity = normalizeCity(detectedCity);
+    const cityCandidates = Array.from(
+      new Set([
+        normalizedDetectedCity,
+        normalizedDetectedCity.replace(HEBREW_ARTICLE_PREFIX, '').replace(HEBREW_CITY_PREFIX, '').trim(),
+        ...(CITY_ALIASES[normalizedDetectedCity] || []).map(normalizeCity),
+      ].filter(Boolean)),
+    );
+
+    return baseFilteredProducts.filter((product) => {
+      const normalizedAreaValues = getDeliveryAreaValues(product)
+        .flatMap((area: string) => area.split(','))
+        .map(normalizeCity)
+        .filter(Boolean);
+
+      if (normalizedAreaValues.includes(normalizeCity('כל הארץ'))) return true;
+
+      return cityCandidates.some((candidate) =>
+        normalizedAreaValues.some((area: string) =>
+          area === candidate || CITY_MATCH_SEPARATORS.some((separator) => area.startsWith(`${candidate}${separator}`)),
+        ),
+      );
+    });
+  }, [baseFilteredProducts, detectedCity, preferNearMe]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!preferNearMe || !detectedCity || !userCoords || exactCityProducts.length > 0) {
+      setNearbyDistanceMap({});
+      setNearbySortedProducts([]);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const geocodeAndSort = async () => {
+      const sellerById = new Map((allSellers || []).map((seller: any) => [seller.id, seller]));
+      const geocodeTargets = Array.from(
+        new Set(
+          baseFilteredProducts
+            .map((product) => {
+              const seller = sellerById.get(product.seller_id);
+              if (seller?.address) return seller.address;
+              return getDeliveryAreaValues(product).find((area: string) => area && area !== 'כל הארץ') || '';
+            })
+            .filter(Boolean),
+        ),
+      );
+
+      const geoEntries = await Promise.all(
+        geocodeTargets.map(async (target) => {
+          try {
+            const { lat, lng } = await geocodeAddressWithGoogle(target);
+            if (typeof lat === 'number' && typeof lng === 'number') {
+              return [target, { lat, lng }] as const;
+            }
+          } catch {
+            return null;
+          }
+          return null;
+        }),
+      );
+
+      const geoMap = new Map(geoEntries.filter(Boolean) as ReadonlyArray<readonly [string, { lat: number; lng: number }]>);
+      const mapped = baseFilteredProducts
+        .map((product) => {
+          const seller = sellerById.get(product.seller_id);
+          const target = seller?.address || getDeliveryAreaValues(product).find((area: string) => area && area !== 'כל הארץ') || '';
+          const coords = geoMap.get(target);
+          if (!coords) return null;
+          const distanceKm = haversineDistance(userCoords.lat, userCoords.lng, coords.lat, coords.lng);
+          return { product, distanceKm };
+        })
+        .filter((item): item is { product: any; distanceKm: number } => Boolean(item))
+        .sort((a, b) => a.distanceKm - b.distanceKm);
+
+      if (cancelled) return;
+
+      setNearbySortedProducts(mapped.map((entry) => entry.product));
+      setNearbyDistanceMap(
+        Object.fromEntries(
+          mapped.map((entry) => [entry.product.id, Math.round(entry.distanceKm)]),
+        ),
+      );
+    };
+
+    geocodeAndSort();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [allSellers, baseFilteredProducts, detectedCity, exactCityProducts.length, preferNearMe, userCoords]);
+
+  const isNearbyFallbackActive = preferNearMe && Boolean(detectedCity) && exactCityProducts.length === 0;
+
+  const filteredProducts = useMemo(() => {
+    if (!preferNearMe || !detectedCity) return baseFilteredProducts;
+    if (exactCityProducts.length > 0) return exactCityProducts;
+    if (nearbySortedProducts.length > 0) return nearbySortedProducts;
+    return baseFilteredProducts;
+  }, [baseFilteredProducts, detectedCity, exactCityProducts, nearbySortedProducts, preferNearMe]);
 
   const resetFilters = () => {
     setSelectedProduct(''); setSubType('all'); setScriptType('all'); setQualityLevel('all');
     setQuantity(1); setScrollSize('all'); setSelectedRegion('all'); setUserCoords(null); setDetectedCity(null);
     setMarriedOnly(false); setMikvehFreq('all'); setCertStatus('all'); setStudyFreq('all');
     setShippingPreference('all'); setSortOrder('newest');
+    setNearbyDistanceMap({}); setNearbySortedProducts([]);
     setPreferNearMe(false);
     setShowResults(isViewingAll); setStep(1);
   };
@@ -566,7 +646,12 @@ function SearchContent() {
 
               {detectedCity && (
                 <div className="flex items-center justify-end gap-2 text-[10px] font-black text-emerald-600 bg-emerald-50 w-fit px-4 py-1.5 rounded-full mr-1 mt-4 animate-in fade-in">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> מוצגות תוצאות עם משלוח ל{detectedCity}
+                  <CheckCircle2 className="w-3.5 h-3.5" /> זיהינו: {detectedCity}
+                </div>
+              )}
+              {isNearbyFallbackActive && detectedCity && (
+                <div className="text-right text-sm font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mt-3">
+                  לא נמצאו מוצרים ב{detectedCity}. מציג מוצרים מערים קרובות:
                 </div>
               )}
             </div>
@@ -583,7 +668,7 @@ function SearchContent() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.05 }}
                   >
-                    <ProductCard product={p} />
+                    <ProductCard product={p} distanceKm={isNearbyFallbackActive ? nearbyDistanceMap[p.id] : undefined} />
                   </motion.div>
                 ))}
                 

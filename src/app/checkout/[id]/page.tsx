@@ -140,7 +140,9 @@ export default function CheckoutPage() {
   const chargeInFlightRef = useRef(false);
   const isDelegatingSubmitRef = useRef(false);
   const sumitFormRef = useRef<HTMLFormElement | null>(null);
-  const processPaymentWithTokenRef = useRef<(token: string) => Promise<void>>(async () => {});
+  const processPaymentWithTokenRef = useRef<(token: string) => Promise<void>>(async () => {
+    throw new Error('SUMIT token handler is not ready.');
+  });
 
   const getSumitTokenInput = useCallback((form?: HTMLFormElement | null) => {
     return (form || sumitFormRef.current)?.elements.namedItem('og-token') as HTMLInputElement | null;
@@ -217,6 +219,7 @@ export default function CheckoutPage() {
           if (cancelled) return;
           const payments = (window as any).OfficeGuy?.Payments;
           if (!payments?.BindFormSubmit) {
+            setIsSumitReady(false);
             setSumitError('מערכת הסליקה לא נטענה.');
             return;
           }
@@ -224,8 +227,12 @@ export default function CheckoutPage() {
             CompanyID: SUMIT_COMPANY_ID,
             APIPublicKey: SUMIT_PUBLIC_KEY,
             Callback: async (token: string | null) => {
-              if (!token) return;
-              await processPaymentWithTokenRef.current(token);
+              try {
+                if (!token) return;
+                await processPaymentWithTokenRef.current(token);
+              } finally {
+                isDelegatingSubmitRef.current = false;
+              }
             }
           });
           setIsSumitReady(true);
@@ -245,6 +252,10 @@ export default function CheckoutPage() {
   };
 
   const validateCheckout = useCallback(() => {
+    if (!deliveryChoice) {
+      return 'אנא בחר אופן קבלת המוצר.';
+    }
+
     if (!recipientName || !recipientPhone || (deliveryChoice === 'shipping' && (!recipientAddress || !recipientCity))) {
       return 'אנא מלא את כל פרטי החובה למשלוח.';
     }
@@ -348,6 +359,7 @@ export default function CheckoutPage() {
 
     if (token) {
       await processPaymentWithToken(token);
+      isDelegatingSubmitRef.current = false;
       return;
     }
 
@@ -369,9 +381,6 @@ export default function CheckoutPage() {
     isDelegatingSubmitRef.current = true;
     window.setTimeout(() => {
       form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-      window.setTimeout(() => {
-        isDelegatingSubmitRef.current = false;
-      }, 0);
     }, 0);
   }, [getSumitTokenInput, isSumitReady, processPaymentWithToken, sumitError, toast, validateCheckout]);
 

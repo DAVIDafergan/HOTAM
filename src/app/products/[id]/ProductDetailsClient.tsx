@@ -50,6 +50,13 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
+const MIN_IMAGE_ZOOM_LEVEL = 1;
+const MAX_IMAGE_ZOOM_LEVEL = 4;
+const IMAGE_ZOOM_STEP = 0.25;
+const IMAGE_WHEEL_ZOOM_DELTA = 0.2;
+// Base horizontal/vertical pan allowance in pixels before zoom multiplier is applied.
+const BASE_IMAGE_PAN_LIMIT_PX = 220;
+
 export function ProductDetailsClient({ productId, initialProduct = null }: { productId: string; initialProduct?: any | null }) {
   const { user } = useUser();
   const db = useSupabaseClient();
@@ -142,7 +149,7 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
   useEffect(() => {
     setSelectedImageIdx(0);
     setIsImageDialogOpen(false);
-    setImageZoomLevel(1);
+    setImageZoomLevel(MIN_IMAGE_ZOOM_LEVEL);
     setImagePan({ x: 0, y: 0 });
     dragOriginRef.current = null;
     if (!productId) return;
@@ -346,25 +353,24 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
   const images = rawImages.length > 0 ? rawImages : [logoImg];
   const currentImage = images[selectedImageIdx] || logoImg;
   const displayPrice = (Number(product.price) * 1.18).toFixed(0);
-  const BASE_IMAGE_PAN_LIMIT = 220;
-  const clampZoomLevel = (zoom: number) => Math.min(4, Math.max(1, Number(zoom.toFixed(2))));
+  const clampZoomLevel = (zoom: number) => Math.min(MAX_IMAGE_ZOOM_LEVEL, Math.max(MIN_IMAGE_ZOOM_LEVEL, Number(zoom.toFixed(2))));
   const updateImageZoom = (zoom: number) => {
     const nextZoom = clampZoomLevel(zoom);
     setImageZoomLevel(nextZoom);
-    if (nextZoom <= 1) setImagePan({ x: 0, y: 0 });
+    if (nextZoom <= MIN_IMAGE_ZOOM_LEVEL) setImagePan({ x: 0, y: 0 });
   };
   const updateImagePan = (x: number, y: number) => {
-    if (imageZoomLevel <= 1) {
+    if (imageZoomLevel <= MIN_IMAGE_ZOOM_LEVEL) {
       setImagePan({ x: 0, y: 0 });
       return;
     }
-    const limit = BASE_IMAGE_PAN_LIMIT * imageZoomLevel;
+    const limit = BASE_IMAGE_PAN_LIMIT_PX * imageZoomLevel;
     setImagePan({
       x: Math.max(-limit, Math.min(limit, x)),
       y: Math.max(-limit, Math.min(limit, y)),
     });
   };
-  const imageCursor = imageZoomLevel <= 1
+  const imageCursor = imageZoomLevel <= MIN_IMAGE_ZOOM_LEVEL
     ? 'zoom-in'
     : dragOriginRef.current
       ? 'grabbing'
@@ -390,7 +396,7 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
               type="button"
               aria-label={`פתח תצוגת זום לתמונה ${selectedImageIdx + 1} מתוך ${images.length}`}
               onClick={() => {
-                setImageZoomLevel(1);
+                setImageZoomLevel(MIN_IMAGE_ZOOM_LEVEL);
                 setImagePan({ x: 0, y: 0 });
                 dragOriginRef.current = null;
                 setIsImageDialogOpen(true);
@@ -734,7 +740,7 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
         onOpenChange={(open) => {
           setIsImageDialogOpen(open);
           if (!open) {
-            setImageZoomLevel(1);
+            setImageZoomLevel(MIN_IMAGE_ZOOM_LEVEL);
             setImagePan({ x: 0, y: 0 });
             dragOriginRef.current = null;
           }
@@ -747,25 +753,25 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
           </DialogHeader>
           <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
             <Label className="text-[10px] font-black text-white/70">רמת זום</Label>
-            <Button type="button" size="sm" variant="outline" className="h-8 px-3 text-xs" onClick={() => updateImageZoom(imageZoomLevel - 0.25)}>−</Button>
+            <Button type="button" size="sm" variant="outline" className="h-8 px-3 text-xs" onClick={() => updateImageZoom(imageZoomLevel - IMAGE_ZOOM_STEP)}>−</Button>
             <input
               type="range"
-              min={1}
-              max={4}
-              step={0.25}
+              min={MIN_IMAGE_ZOOM_LEVEL}
+              max={MAX_IMAGE_ZOOM_LEVEL}
+              step={IMAGE_ZOOM_STEP}
               value={imageZoomLevel}
               onChange={e => updateImageZoom(Number(e.target.value))}
               className="w-36 accent-accent"
               aria-label="רמת זום"
             />
-            <Button type="button" size="sm" variant="outline" className="h-8 px-3 text-xs" onClick={() => updateImageZoom(imageZoomLevel + 0.25)}>+</Button>
+            <Button type="button" size="sm" variant="outline" className="h-8 px-3 text-xs" onClick={() => updateImageZoom(imageZoomLevel + IMAGE_ZOOM_STEP)}>+</Button>
             <Button
               type="button"
               size="sm"
               variant="ghost"
               className="h-8 px-3 text-xs text-white hover:text-white hover:bg-white/10"
               onClick={() => {
-                setImageZoomLevel(1);
+                setImageZoomLevel(MIN_IMAGE_ZOOM_LEVEL);
                 setImagePan({ x: 0, y: 0 });
                 dragOriginRef.current = null;
               }}
@@ -778,15 +784,15 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
             aria-label="תמונת מוצר מוגדלת"
             onWheel={(event) => {
               event.preventDefault();
-              const delta = event.deltaY > 0 ? -0.2 : 0.2;
+              const delta = event.deltaY > 0 ? -IMAGE_WHEEL_ZOOM_DELTA : IMAGE_WHEEL_ZOOM_DELTA;
               updateImageZoom(imageZoomLevel + delta);
             }}
             onMouseDown={(event) => {
-              if (imageZoomLevel <= 1) return;
+              if (imageZoomLevel <= MIN_IMAGE_ZOOM_LEVEL) return;
               dragOriginRef.current = { x: event.clientX - imagePan.x, y: event.clientY - imagePan.y };
             }}
             onMouseMove={(event) => {
-              if (!dragOriginRef.current || imageZoomLevel <= 1) return;
+              if (!dragOriginRef.current || imageZoomLevel <= MIN_IMAGE_ZOOM_LEVEL) return;
               updateImagePan(event.clientX - dragOriginRef.current.x, event.clientY - dragOriginRef.current.y);
             }}
             onMouseUp={() => {

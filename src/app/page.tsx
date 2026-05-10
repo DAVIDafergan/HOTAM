@@ -38,6 +38,7 @@ const WorkFlow = dynamic(() => import('@/components/WorkFlow').then(mod => mod.W
   ssr: false
 });
 const TOP_SCRIBES_LIMIT = 5;
+const TOP_SCRIBES_HEADING = 'הסופרים המובילים';
 
 export default function Home() {
   const { user } = useUser();
@@ -125,7 +126,7 @@ export default function Home() {
                   <Trophy className="w-3.5 h-3.5" /> נבחרת הסופרים
                 </div>
                 <h2 id="top-scribes-heading" className="text-3xl md:text-4xl font-headline font-black text-primary tracking-tight">
-                   {`${TOP_SCRIBES_LIMIT} הסופרים המובילים`}
+                   {`${TOP_SCRIBES_LIMIT} ${TOP_SCRIBES_HEADING}`}
                 </h2>
                 <div className="w-16 h-1 rounded-full bg-accent mx-auto" />
               </div>

@@ -10,7 +10,7 @@ import {
   Loader2, Package, Plus, AlertTriangle, User, ShieldCheck 
 } from 'lucide-react';
 import Link from 'next/link';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useParams, useRouter, useSearchParams, usePathname } from 'next/navigation';
 
 // השארנו רק את ה-hook של המשתמש (בהנחה שהוא מנוהל על ידי Supabase Auth)
 import { useUser } from '@/lib/supabase-hooks'; 
@@ -44,6 +44,7 @@ function ChatContent() {
   
   const { user, isUserLoading } = useUser();
   const router = useRouter();
+  const pathname = usePathname();
   const { toast } = useToast();
   
   const [newMessage, setNewMessage] = useState('');
@@ -67,8 +68,8 @@ function ChatContent() {
 
   // שומר על משתמשים לא מחוברים בחוץ
   useEffect(() => {
-    if (!isUserLoading && !user) router.push('/login');
-  }, [user, isUserLoading, router]);
+    if (!isUserLoading && !user) router.push('/login?redirect=' + encodeURIComponent(pathname));
+  }, [user, isUserLoading, router, pathname]);
 
   // יצירת מזהה חדר צ'אט ייחודי
   const chatId = useMemo(() => {

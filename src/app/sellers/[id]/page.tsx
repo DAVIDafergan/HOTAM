@@ -32,7 +32,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, usePathname } from 'next/navigation';
 import { useSupabaseClient, useUser, addDocumentNonBlocking } from '@/lib/supabase-hooks';
 import { collection, serverTimestamp } from '@/lib/supabase-compat';
 import { supabase } from '@/lib/supabase';
@@ -54,6 +54,7 @@ export default function SellerProfile() {
   const db = useSupabaseClient();
   const { toast } = useToast();
   const router = useRouter();
+  const pathname = usePathname();
   const logoImg = PlaceHolderImages.find(img => img.id === 'site-logo')?.imageUrl || 'https://picsum.photos/seed/hotam-logo/400/400';
 
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
@@ -162,7 +163,7 @@ export default function SellerProfile() {
 
   const openSellerReviewDialog = () => {
     if (!user) {
-      router.push('/login');
+      router.push('/login?redirect=' + encodeURIComponent(pathname));
       return;
     }
     if (isOwnSellerReviewBlocked) {
@@ -201,7 +202,7 @@ export default function SellerProfile() {
   };
 
   const handleSubmitSellerReview = async () => {
-    if (!user) { router.push('/login'); return; }
+    if (!user) { router.push('/login?redirect=' + encodeURIComponent(pathname)); return; }
     if (!id) {
       toast({ variant: 'destructive', title: 'שגיאה בזיהוי הסופר', description: 'אנא רענן את העמוד ונסה שוב.' });
       return;
@@ -216,7 +217,7 @@ export default function SellerProfile() {
     }
     const userId = user?.uid;
     if (!userId) {
-      router.push('/login');
+      router.push('/login?redirect=' + encodeURIComponent(pathname));
       return;
     }
     setIsReviewSubmitting(true);
@@ -266,7 +267,7 @@ export default function SellerProfile() {
 
   const handleDeleteSellerReview = async (reviewId: string) => {
     if (!user) {
-      router.push('/login');
+      router.push('/login?redirect=' + encodeURIComponent(pathname));
       return;
     }
     setDeletingReviewId(reviewId);
@@ -555,42 +556,40 @@ export default function SellerProfile() {
                   </div>
                   {reviews && reviews.length > 0 ? (
                     reviews.map((rev: any) => (
-                      <Card key={rev.id} className="relative border-none shadow-premium rounded-2xl bg-muted/10 p-6 text-right">
-                        {user?.uid === rev.buyer_id && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDeleteSellerReview(rev.id)}
-                            disabled={deletingReviewId === rev.id}
-                            className="absolute left-4 top-4 h-7 w-7 rounded-full bg-white/90 text-destructive shadow-sm hover:bg-destructive/5"
-                          >
-                            {deletingReviewId === rev.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
-                          </Button>
-                        )}
-                        <div className="flex justify-between items-start mb-4">
-                          <div className="flex flex-col items-start gap-1">
-                            <div className="flex items-center gap-2">
-                              <span className="text-[9px] font-black text-primary/40 uppercase tracking-tighter">דירוג סופר:</span>
-                              <div className="flex items-center gap-0.5">
-                                {[1, 2, 3, 4, 5].map(s => <Star key={s} className={`w-3.5 h-3.5 ${s <= (rev.rating || 5) ? 'fill-accent text-accent' : 'text-muted-foreground/20'}`} />)}
-                              </div>
-                            </div>
-                          </div>
-                          <span className="text-[10px] font-bold text-muted-foreground">{rev.created_at ? new Date(rev.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
-                        </div>
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <Avatar className="h-8 w-8 border border-primary/10">
-                              {!rev.is_anonymous && <AvatarImage src={rev.reviewer_image || undefined} />}
-                              <AvatarFallback className="bg-primary/5 text-primary font-black text-[10px]">
-                                {rev.is_anonymous ? 'א' : (rev.buyer_name || 'מ').charAt(0)}
-                              </AvatarFallback>
-                            </Avatar>
+                      <div key={rev.id} className="flex flex-row-reverse items-start gap-3">
+                        <Avatar className="h-9 w-9 border border-primary/10 flex-shrink-0">
+                          {!rev.is_anonymous && <AvatarImage src={rev.reviewer_image || undefined} />}
+                          <AvatarFallback className="bg-primary/5 text-primary font-black text-[10px]">
+                            {rev.is_anonymous ? 'א' : (rev.buyer_name || 'מ').charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-baseline justify-between mb-1">
+                            <span className="text-[10px] font-bold text-muted-foreground">{rev.created_at ? new Date(rev.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
                             <p className="font-black text-primary text-sm">{rev.is_anonymous ? 'אנונימי' : (rev.buyer_name || 'משתמש')}</p>
                           </div>
+                          <div className="bg-muted/15 rounded-2xl rounded-tr-none px-4 py-3 text-right">
+                            <div className="flex items-center justify-end gap-0.5 mb-2">
+                              {[1, 2, 3, 4, 5].map(s => <Star key={s} className={`w-3.5 h-3.5 ${s <= (rev.rating || 5) ? 'fill-accent text-accent' : 'text-muted-foreground/20'}`} />)}
+                            </div>
+                            <p className="text-xs text-primary/70 leading-relaxed italic">"{rev.comment}"</p>
+                          </div>
+                          {user?.uid === rev.buyer_id && (
+                            <div className="flex justify-end mt-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteSellerReview(rev.id)}
+                                disabled={deletingReviewId === rev.id}
+                                className="h-6 px-2 text-[10px] text-destructive/50 hover:text-destructive hover:bg-destructive/5 gap-1 rounded-full"
+                              >
+                                {deletingReviewId === rev.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                                מחק
+                              </Button>
+                            </div>
+                          )}
                         </div>
-                        <p className="text-xs text-primary/70 leading-relaxed italic">"{rev.comment}"</p>
-                      </Card>
+                      </div>
                     ))
                   ) : (
                     <div className="text-center py-12 bg-muted/10 rounded-3xl border-2 border-dashed border-muted">

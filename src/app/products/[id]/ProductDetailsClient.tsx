@@ -34,7 +34,7 @@ import Link from 'next/link';
 import { useSupabaseClient, useDoc, useMemoStable, useUser, addDocumentNonBlocking } from '@/lib/supabase-hooks';
 import { doc, collection, serverTimestamp } from '@/lib/supabase-compat';
 import { supabase } from '@/lib/supabase';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { 
   Dialog, 
@@ -58,6 +58,7 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
   const { user } = useUser();
   const db = useSupabaseClient();
   const router = useRouter();
+  const pathname = usePathname();
   const { toast } = useToast();
   const [selectedImageIdx, setSelectedImageIdx] = useState(0);
   const [isProcessingRequest, setIsProcessingRequest] = useState(false);
@@ -128,7 +129,7 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
 
   const openProductReviewDialog = () => {
     if (!user) {
-      router.push('/login');
+      router.push('/login?redirect=' + encodeURIComponent(pathname));
       return;
     }
     if (isOwnProductReviewBlocked) {
@@ -211,13 +212,13 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
   };
 
   const handlePurchaseClick = () => {
-    if (!user) { router.push('/login'); return; }
+    if (!user) { router.push('/login?redirect=' + encodeURIComponent(pathname)); return; }
     if (product?.quantity <= 0) { toast({ variant: "destructive", title: "אזל מהמלאי" }); return; }
     router.push(`/checkout/${productId}`);
   };
 
   const handleTorahCoordination = () => {
-    if (!user) { router.push('/login'); return; }
+    if (!user) { router.push('/login?redirect=' + encodeURIComponent(pathname)); return; }
     setIsProcessingRequest(true);
 
     const requestData = {
@@ -259,7 +260,7 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
   };
 
   const handleSubmitProductReview = async () => {
-    if (!user) { router.push('/login'); return; }
+    if (!user) { router.push('/login?redirect=' + encodeURIComponent(pathname)); return; }
     if (isOwnProductReviewBlocked) {
       showOwnProductReviewBlockedToast();
       return;
@@ -316,7 +317,7 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
 
   const handleDeleteProductReview = async (reviewId: string) => {
     if (!user) {
-      router.push('/login');
+      router.push('/login?redirect=' + encodeURIComponent(pathname));
       return;
     }
     setDeletingReviewId(reviewId);
@@ -547,42 +548,43 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
                   <h4 className="text-sm font-black text-primary/40 uppercase tracking-widest">ביקורות לקוחות</h4>
                 </div>
                 {reviews && reviews.length > 0 ? (
-                  <div className="grid gap-8">
+                  <div className="grid gap-6">
                     {reviews.map((rev: any) => (
-                      <div key={rev.id} className="relative border-b border-muted/50 pb-8 last:border-0 last:pb-0 text-right">
-                        {user?.uid === rev.buyer_id && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDeleteProductReview(rev.id)}
-                            disabled={deletingReviewId === rev.id}
-                            className="absolute left-0 top-0 h-7 w-7 rounded-full bg-white/90 text-destructive shadow-sm hover:bg-destructive/5"
-                          >
-                            {deletingReviewId === rev.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
-                          </Button>
-                        )}
-                        <div className="flex justify-between items-start mb-4">
-                          <div className="flex flex-col items-start gap-1">
-                            <div className="flex items-center gap-1">
+                      <div key={rev.id} className="flex flex-row-reverse items-start gap-3">
+                        <Avatar className="h-9 w-9 border border-primary/10 flex-shrink-0">
+                          {!rev.is_anonymous && <AvatarImage src={rev.reviewer_image || undefined} />}
+                          <AvatarFallback className="bg-primary/5 text-primary font-black text-xs">
+                            {rev.is_anonymous ? 'א' : (rev.buyer_name || 'מ').charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-baseline justify-between mb-1">
+                            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{rev.created_at ? new Date(rev.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
+                            <h5 className="font-black text-primary text-sm">{rev.is_anonymous ? 'אנונימי' : (rev.buyer_name || 'משתמש')}</h5>
+                          </div>
+                          <div className="bg-muted/15 rounded-2xl rounded-tr-none px-4 py-3 text-right">
+                            <div className="flex justify-end gap-0.5 mb-2">
                               {[1, 2, 3, 4, 5].map(s => (
                                 <Star key={s} className={cn("w-4 h-4", s <= (rev.rating || 5) ? 'fill-accent text-accent' : 'text-muted-foreground/20')} />
                               ))}
                             </div>
+                            <p className="text-sm text-primary/70 leading-relaxed italic font-medium">"{rev.comment}"</p>
                           </div>
-                          <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{rev.created_at ? new Date(rev.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
+                          {user?.uid === rev.buyer_id && (
+                            <div className="flex justify-end mt-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteProductReview(rev.id)}
+                                disabled={deletingReviewId === rev.id}
+                                className="h-6 px-2 text-[10px] text-destructive/50 hover:text-destructive hover:bg-destructive/5 gap-1 rounded-full"
+                              >
+                                {deletingReviewId === rev.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                                מחק
+                              </Button>
+                            </div>
+                          )}
                         </div>
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <Avatar className="h-9 w-9 border border-primary/10">
-                              {!rev.is_anonymous && <AvatarImage src={rev.reviewer_image || undefined} />}
-                              <AvatarFallback className="bg-primary/5 text-primary font-black text-xs">
-                                {rev.is_anonymous ? 'א' : (rev.buyer_name || 'מ').charAt(0)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <h5 className="font-black text-primary text-lg">{rev.is_anonymous ? 'אנונימי' : (rev.buyer_name || 'משתמש')}</h5>
-                          </div>
-                        </div>
-                        <p className="text-base text-primary/70 leading-relaxed italic font-medium">"{rev.comment}"</p>
                       </div>
                     ))}
                   </div>

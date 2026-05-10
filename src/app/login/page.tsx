@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ShieldCheck, Loader2, LogIn as LogInIcon, Mail, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   useAuth, 
   useUser, 
@@ -35,6 +35,8 @@ export default function LoginPage() {
   const [isResetting, setIsResetting] = useState(false);
   
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect');
   const auth = useAuth();
   const { user, isUserLoading } = useUser();
   const { toast } = useToast();
@@ -42,6 +44,10 @@ export default function LoginPage() {
   // Route by role stored in user_metadata — no DB lookups needed.
   useEffect(() => {
     if (user && !isUserLoading) {
+      if (redirectTo) {
+        router.push(redirectTo);
+        return;
+      }
       const adminEmails = ["admin@hotam.co.il", "davidafergan999@gmail.com", "davidafergan@gmail.com", "da@101.org.il"];
       const adminUids  = ["f9hcxiHpzKYMzw7UNpi5II2F13l1", "aMqKTe1Y4NSQdupLPupviiyrdyj2"];
 
@@ -57,7 +63,7 @@ export default function LoginPage() {
         router.push('/customer/dashboard');
       }
     }
-  }, [user, isUserLoading]);
+  }, [user, isUserLoading, redirectTo]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

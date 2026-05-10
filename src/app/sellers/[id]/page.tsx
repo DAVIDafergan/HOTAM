@@ -267,30 +267,24 @@ export default function SellerProfile() {
       return;
     }
     setDeletingReviewId(reviewId);
-    const { data: { session } } = await supabase.auth.getSession();
-    const token = session?.access_token;
-    if (!token) {
+    try {
+      const { error } = await supabase
+        .from('supermarket_reviews')
+        .delete()
+        .eq('id', reviewId)
+        .eq('buyer_id', user.uid);
+
+      if (error) {
+        console.log('[supermarket_reviews] delete returned error:', error.message);
+        toast({ variant: 'destructive', title: 'שגיאה במחיקת הביקורת', description: 'אנא נסה שוב.' });
+        return;
+      }
+
+      setReviews(prev => prev.filter((rev: any) => rev.id !== reviewId));
+      toast({ title: 'הביקורת נמחקה בהצלחה' });
+    } finally {
       setDeletingReviewId(null);
-      router.push('/login');
-      return;
     }
-    const response = await fetch('/api/reviews/delete', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ reviewId, reviewType: 'seller' }),
-    });
-    setDeletingReviewId(null);
-    if (!response.ok) {
-      const body = await response.json().catch(() => null);
-      console.log('[supermarket_reviews] delete returned error:', body?.error || response.statusText);
-      toast({ variant: 'destructive', title: 'שגיאה במחיקת הביקורת', description: 'אנא נסה שוב.' });
-      return;
-    }
-    setReviews(prev => prev.filter((rev: any) => rev.id !== reviewId));
-    toast({ title: 'הביקורת נמחקה בהצלחה' });
   };
 
   if (isSellerLoading) {

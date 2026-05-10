@@ -57,6 +57,7 @@ const JQUERY_SCRIPT_SELECTOR = 'script[data-hotam="jquery"]';
 const SUMIT_SCRIPT_SELECTOR = 'script[data-hotam="sumit"]';
 const SUMIT_READY_POLL_INTERVAL_MS = 250;
 const SUMIT_READY_POLL_ATTEMPTS = 20;
+// Keep supporting legacy SUMMIT_* client env names until deployment config is normalized.
 const SUMIT_COMPANY_ID = process.env.NEXT_PUBLIC_SUMIT_BUSINESS_ID || process.env.NEXT_PUBLIC_SUMMIT_BUSINESS_ID || '';
 const SUMIT_PUBLIC_KEY = process.env.NEXT_PUBLIC_SUMIT_PUBLIC_KEY || process.env.NEXT_PUBLIC_SUMMIT_PUBLIC_KEY || '';
 let sumitLoadPromise: Promise<void> | null = null;

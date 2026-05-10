@@ -221,11 +221,21 @@ export default function AdminDashboard() {
   };
 
   const approveScribe = async (id: string) => {
-    const { error } = await db.from('sellers').update({ is_approved: true }).eq('id', id);
-    if (error) {
-      toast({ variant: "destructive", title: "האישור נכשל", description: error.message });
+    const { error, count } = await db
+      .from('sellers')
+      .update({ is_approved: true }, { count: 'exact' })
+      .eq('id', id);
+
+    if (error || count === 0) {
+      console.error('approve failed:', error?.message, 'count:', count);
+      toast({
+        variant: "destructive",
+        title: "שגיאה באישור המוכר",
+        description: error?.message,
+      });
       return;
     }
+
     setActiveTab('active');
     setSearchTerm('');
     setActivePage(1);

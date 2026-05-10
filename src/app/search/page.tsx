@@ -62,6 +62,7 @@ const ISRAEL_REGIONS = [
 const HEBREW_ARTICLE_PREFIX = /^ה/;
 const HEBREW_CITY_PREFIX = /^עיר\s+/;
 const CITY_MATCH_SEPARATORS = [' ', '-'];
+const UNKNOWN_CITY_LABEL = 'עיר לא ידועה';
 const CITY_ALIAS_PAIRS = [
   ['raanana', 'רעננה'],
   ['tel aviv', 'תל אביב'],
@@ -205,9 +206,9 @@ function SearchContent() {
         
         try {
           const { city } = await reverseGeocodeWithGoogle(latitude, longitude);
-          setDetectedCity(city || "עיר לא ידועה");
+          setDetectedCity(city || UNKNOWN_CITY_LABEL);
           setIsDetecting(false);
-          toast({ title: "המיקום זוהה", description: `זוהית ב: ${city || 'עיר לא ידועה'}` });
+          toast({ title: "המיקום זוהה", description: `זוהית ב: ${city || UNKNOWN_CITY_LABEL}` });
         } catch (error: any) {
           setIsDetecting(false);
           toast({

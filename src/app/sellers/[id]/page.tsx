@@ -268,14 +268,15 @@ export default function SellerProfile() {
     }
     setDeletingReviewId(reviewId);
     try {
-      const { error } = await supabase
+      console.log('[reviews] deleting:', { reviewId, buyerId: user.uid, authUid: (await supabase.auth.getUser()).data.user?.id });
+      const { error, count } = await supabase
         .from('supermarket_reviews')
-        .delete()
+        .delete({ count: 'exact' })
         .eq('id', reviewId)
         .eq('buyer_id', user.uid);
 
-      if (error) {
-        console.log('[supermarket_reviews] delete returned error:', error.message);
+      if (error || count === 0) {
+        console.error('[reviews] delete failed:', error?.message ?? 'no rows deleted — RLS mismatch?');
         toast({ variant: 'destructive', title: 'שגיאה במחיקת הביקורת', description: 'אנא נסה שוב.' });
         return;
       }

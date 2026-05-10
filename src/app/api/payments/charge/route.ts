@@ -26,6 +26,7 @@ type ChargeCartData = {
   orderId?: string;
   price?: number;
   productName?: string;
+  customerName?: string;
   customerEmail?: string;
   customerPhone?: string;
   items?: CartItem[];
@@ -110,32 +111,29 @@ function getErrorMessage(payload: any) {
   );
 }
 
-function normalizeStatus(status: unknown) {
-  return String(status || '').trim().toLowerCase();
-}
-
 function isSuccessfulCharge(payload: any) {
-  const statuses = [
-    payload?.Status,
-    payload?.status,
-    payload?.PaymentStatus,
-    payload?.Data?.Status,
-    payload?.Data?.status,
-    payload?.Data?.PaymentStatus,
-  ];
+  // Sumit: Code "000" = אושר בבנק
+  const code = payload?.Code ?? payload?.Data?.Code;
+  if (code === '000' || code === 0 || code === '0') return true;
 
+  // Sumit: Status 0 = הצלחה (לא מחרוזת)
+  if (payload?.Status === 0 || payload?.Data?.Status === 0) return true;
+
+  const statuses = [
+    payload?.Status, payload?.status, payload?.PaymentStatus,
+    payload?.Data?.Status, payload?.Data?.status, payload?.Data?.PaymentStatus,
+  ];
   const successFlags = [
-    payload?.Success,
-    payload?.success,
-    payload?.IsSuccess,
-    payload?.Data?.Success,
-    payload?.Data?.success,
-    payload?.Data?.IsSuccess,
+    payload?.Success, payload?.success, payload?.IsSuccess,
+    payload?.Data?.Success, payload?.Data?.success, payload?.Data?.IsSuccess,
   ];
 
   return (
     successFlags.some((flag) => flag === true) ||
-    statuses.some((status) => ['success', 'succeeded', 'approved', 'paid', 'completed'].includes(normalizeStatus(status)))
+    statuses.some((status) =>
+      ['success', 'succeeded', 'approved', 'paid', 'completed']
+        .includes(String(status || '').trim().toLowerCase())
+    )
   );
 }
 
@@ -182,7 +180,8 @@ export async function POST(req: Request) {
       Items: items,
       Amount: price,
       Customer: {
-        PhoneNumber: cartData?.customerPhone || '',
+        Name: cartData?.customerName || '',
+        Phone: cartData?.customerPhone || '',
         EmailAddress: cartData?.customerEmail || '',
       },
     };

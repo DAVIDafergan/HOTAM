@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
 
 type DeleteReviewRequest = {
@@ -11,13 +12,41 @@ const REVIEW_TABLES = {
   seller: 'supermarket_reviews',
 } as const;
 
-export async function POST(req: Request) {
-  try {
-    const authHeader = req.headers.get('Authorization');
-    const token = authHeader?.replace('Bearer ', '');
+function jsonWithCookies(
+  body: object,
+  init: ResponseInit,
+  cookies: Array<{ name: string; value: string; options: CookieOptions }>,
+): NextResponse {
+  const res = NextResponse.json(body, init);
+  for (const { name, value, options } of cookies) {
+    res.cookies.set(name, value, options);
+  }
+  return res;
+}
 
-    if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+export async function POST(req: NextRequest) {
+  const pendingCookies: Array<{ name: string; value: string; options: CookieOptions }> = [];
+
+  try {
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll: () => req.cookies.getAll(),
+          setAll: (cookiesToSet) => {
+            for (const cookie of cookiesToSet) {
+              pendingCookies.push(cookie);
+            }
+          },
+        },
+      },
+    );
+
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session) {
+      return jsonWithCookies({ error: 'Unauthorized' }, { status: 401 }, pendingCookies);
     }
 
     const body = (await req.json().catch(() => ({}))) as DeleteReviewRequest;
@@ -25,7 +54,7 @@ export async function POST(req: Request) {
     const reviewType = body.reviewType;
 
     if (!reviewId || !reviewType || !(reviewType in REVIEW_TABLES)) {
-      return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+      return jsonWithCookies({ error: 'Invalid request' }, { status: 400 }, pendingCookies);
     }
 
     const serviceClient = createClient(
@@ -34,47 +63,29 @@ export async function POST(req: Request) {
       { auth: { persistSession: false } },
     );
 
-    const { data: { user }, error: authError } = await serviceClient.auth.getUser(token);
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const table = REVIEW_TABLES[reviewType];
-    const { data: review, error: reviewError } = await serviceClient
+
+    // Delete the review only if it belongs to the authenticated user.
+    // buyer_user_id is a generated UUID column derived from buyer_id and
+    // matches session.user.id when the review was created by an authenticated user.
+    const { error: deleteError, count } = await serviceClient
       .from(table)
-      .select('id, buyer_id, buyer_user_id')
+      .delete({ count: 'exact' })
       .eq('id', reviewId)
-      .maybeSingle();
-
-    if (reviewError) {
-      console.error('[reviews/delete] fetch error:', reviewError);
-      return NextResponse.json({ error: 'Failed to load review' }, { status: 500 });
-    }
-
-    if (!review) {
-      return NextResponse.json({ error: 'Review not found' }, { status: 404 });
-    }
-
-    // buyer_id stores the original text identifier, while buyer_user_id is the
-    // normalized UUID for rows created or migrated after the generated column was added.
-    if (review.buyer_id !== user.id && review.buyer_user_id !== user.id) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    const { error: deleteError } = await serviceClient
-      .from(table)
-      .delete()
-      .eq('id', reviewId);
+      .eq('buyer_user_id', session.user.id);
 
     if (deleteError) {
       console.error('[reviews/delete] delete error:', deleteError);
-      return NextResponse.json({ error: 'Failed to delete review' }, { status: 500 });
+      return jsonWithCookies({ error: 'Failed to delete review' }, { status: 500 }, pendingCookies);
     }
 
-    return NextResponse.json({ success: true });
+    if (count === 0) {
+      return jsonWithCookies({ error: 'Review not found or access denied' }, { status: 403 }, pendingCookies);
+    }
+
+    return jsonWithCookies({ success: true }, {}, pendingCookies);
   } catch (error) {
     console.error('[reviews/delete] error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return jsonWithCookies({ error: 'Internal server error' }, { status: 500 }, pendingCookies);
   }
 }

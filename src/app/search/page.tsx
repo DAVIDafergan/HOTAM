@@ -51,6 +51,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import { TorahExpertBanner } from '@/components/TorahExpertBanner';
+import { reverseGeocodeWithGoogle } from '@/lib/google-maps';
 
 type ProductType = 'מזוזה' | 'תפילין' | 'מגילה' | 'ספר תורה' | 'מוצרי יודאיקה שונים' | '';
 type ShippingPreference = 'all' | 'shipping' | 'pickup';
@@ -61,6 +62,7 @@ const ISRAEL_REGIONS = [
 const HEBREW_ARTICLE_PREFIX = /^ה/;
 const HEBREW_CITY_PREFIX = /^עיר\s+/;
 const CITY_MATCH_SEPARATORS = [' ', '-'];
+const UNKNOWN_CITY_LABEL = 'עיר לא ידועה';
 const CITY_ALIAS_PAIRS = [
   ['raanana', 'רעננה'],
   ['tel aviv', 'תל אביב'],
@@ -76,6 +78,18 @@ const normalizeCity = (value: string) =>
     .replace(/\s+/g, ' ')
     .trim()
     .toLowerCase();
+const REGION_CITY_MAP: Record<string, string[]> = {
+  'השרון': ['נתניה', 'הרצליה', 'רעננה', 'כפר סבא', 'הוד השרון', 'רמת השרון', 'פרדסיה', 'קדימה', 'אבן יהודה'],
+  'תל אביב וגוש דן': ['תל אביב', 'תל אביב-יפו', 'רמת גן', 'גבעתיים', 'חולון', 'בת ים', 'בני ברק', 'פתח תקווה'],
+  'ירושלים והסביבה': ['ירושלים', 'בית שמש', 'מעלה אדומים'],
+  'חיפה והצפון': ['חיפה', 'נהריה', 'עכו', 'קריות', 'טבריה', 'צפת', 'כרמיאל'],
+  'באר שבע והדרום': ['באר שבע', 'אשקלון', 'אשדוד', 'אילת', 'דימונה', 'אופקים', 'ירוחם'],
+  'בני ברק והמרכז': ['בני ברק', 'ראשון לציון', 'רחובות', 'רמלה', 'לוד', 'מודיעין'],
+  'יהודה ושומרון': ['אריאל', 'מעלה אדומים', 'ביתר עילית', 'מודיעין עילית'],
+};
+const NORMALIZED_REGION_CITY_MAP: Record<string, string[]> = Object.fromEntries(
+  Object.entries(REGION_CITY_MAP).map(([region, cities]) => [region, cities.map(normalizeCity)]),
+);
 const CITY_ALIASES: Record<string, string[]> = CITY_ALIAS_PAIRS.reduce((acc, [a, b]) => {
   const left = normalizeCity(a);
   const right = normalizeCity(b);
@@ -116,6 +130,7 @@ function SearchContent() {
   const [isDetecting, setIsDetecting] = useState(false);
   const [detectedCity, setDetectedCity] = useState<string | null>(null);
   const [userCoords, setUserCoords] = useState<{lat: number, lng: number} | null>(null);
+  const [preferNearMe, setPreferNearMe] = useState(false);
 
   const productsQuery = useMemoStable(() => {
     return query(collection(db, 'products'), where('quantity', '>', 0));
@@ -158,6 +173,7 @@ function SearchContent() {
 
     const city = searchParams.get('city');
     if (city) setDetectedCity(city);
+    setPreferNearMe(searchParams.get('nearMe') === 'true');
 
     const lat = searchParams.get('lat');
     const lng = searchParams.get('lng');
@@ -186,17 +202,13 @@ function SearchContent() {
       async (pos) => {
         const { latitude, longitude } = pos.coords;
         setUserCoords({ lat: latitude, lng: longitude });
+        setPreferNearMe(true);
         
         try {
-          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1&accept-language=he`);
-          if (!response.ok) {
-            throw new Error(`Location lookup failed (${response.status})`);
-          }
-          const data = await response.json();
-          const city = data.address.city || data.address.town || data.address.village || data.address.suburb || "עיר לא ידועה";
-          setDetectedCity(city);
+          const { city } = await reverseGeocodeWithGoogle(latitude, longitude);
+          setDetectedCity(city || UNKNOWN_CITY_LABEL);
           setIsDetecting(false);
-          toast({ title: "המיקום זוהה", description: `זוהית ב: ${city}` });
+          toast({ title: "המיקום זוהה", description: `זוהית ב: ${city || UNKNOWN_CITY_LABEL}` });
         } catch (error: any) {
           setIsDetecting(false);
           toast({
@@ -209,6 +221,15 @@ function SearchContent() {
       () => { setIsDetecting(false); }
     );
   };
+
+  const detectedRegionCities = useMemo(() => {
+    if (!preferNearMe || !detectedCity) return [];
+    const normalizedDetectedCity = normalizeCity(detectedCity);
+    const regionMatch = Object.values(NORMALIZED_REGION_CITY_MAP).find((cities) =>
+      cities.includes(normalizedDetectedCity),
+    );
+    return regionMatch || [];
+  }, [preferNearMe, detectedCity]);
 
   const filteredProducts = useMemo(() => {
     if (!allProducts) return [];
@@ -250,6 +271,14 @@ function SearchContent() {
             area === candidate || CITY_MATCH_SEPARATORS.some((separator) => area.startsWith(`${candidate}${separator}`))
           )
         );
+      const deliversNearCity =
+        preferNearMe &&
+        !deliversToCity &&
+        detectedRegionCities.some((city) =>
+          normalizedAreaValues.some((area: string) =>
+            area === city || CITY_MATCH_SEPARATORS.some((separator) => area.startsWith(`${city}${separator}`)),
+          ),
+        );
 
       const productDeliveryType =
         p.delivery_type === 'pickup_only' || p.delivery_type === 'pickup'
@@ -263,14 +292,26 @@ function SearchContent() {
         (shippingPreference === 'pickup' && (productDeliveryType === 'pickup' || productDeliveryType === 'both'));
       
       const seller = allSellers?.find(s => s.id === p.seller_id);
-      const matchRegion = selectedRegion === 'all' || (seller && (seller.address || '').includes(selectedRegion.split(' ')[0]));
+      const selectedRegionCities = REGION_CITY_MAP[selectedRegion] || [];
+      const sellerAddressNormalized = normalizeCity(seller?.address || '');
+      const normalizedRegionCities = NORMALIZED_REGION_CITY_MAP[selectedRegion] || [];
+      const matchRegion =
+        selectedRegion === 'all' ||
+        (
+          seller &&
+          (
+            (seller.address || '').includes(selectedRegion.split(' ')[0]) ||
+            normalizedRegionCities.some((city) => sellerAddressNormalized.includes(city)) ||
+            normalizedRegionCities.some((city) => normalizedAreaValues.some((area: string) => area.includes(city)))
+          )
+        );
       const matchMarried = !marriedOnly || (seller && seller.marital_status === 'married');
       const matchMikveh = mikvehFreq === 'all' || (seller && seller.mikveh_frequency === mikvehFreq);
       const matchCert = certStatus === 'all' || (seller && seller.has_scribe_certificate === certStatus);
       const matchStudy = studyFreq === 'all' || (seller && seller.torah_study_frequency === studyFreq);
       
       return matchType && matchSub && matchScript && matchQuality && matchQty && matchSize && 
-             matchShipping && matchRegion && matchMarried && matchMikveh && matchCert && matchStudy && deliversToCity;
+             matchShipping && matchRegion && matchMarried && matchMikveh && matchCert && matchStudy && (deliversToCity || deliversNearCity);
     });
 
     if (sortOrder === 'price_asc') results = [...results].sort((a, b) => Number(a.price) - Number(b.price));
@@ -284,13 +325,14 @@ function SearchContent() {
     }
 
     return results;
-  }, [allProducts, allSellers, allReviews, selectedProduct, subType, scriptType, qualityLevel, quantity, shippingPreference, sortOrder, scrollSize, selectedRegion, certStatus, studyFreq, marriedOnly, mikvehFreq, detectedCity]);
+  }, [allProducts, allSellers, allReviews, selectedProduct, subType, scriptType, qualityLevel, quantity, shippingPreference, sortOrder, scrollSize, selectedRegion, certStatus, studyFreq, marriedOnly, mikvehFreq, detectedCity, preferNearMe, detectedRegionCities]);
 
   const resetFilters = () => {
     setSelectedProduct(''); setSubType('all'); setScriptType('all'); setQualityLevel('all');
     setQuantity(1); setScrollSize('all'); setSelectedRegion('all'); setUserCoords(null); setDetectedCity(null);
     setMarriedOnly(false); setMikvehFreq('all'); setCertStatus('all'); setStudyFreq('all');
     setShippingPreference('all'); setSortOrder('newest');
+    setPreferNearMe(false);
     setShowResults(isViewingAll); setStep(1);
   };
 

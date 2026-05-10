@@ -47,16 +47,15 @@ import {
   IdCard,
   Phone,
   Mail,
-  MapPin
+  MapPin,
+  FileDown
 } from 'lucide-react';
 import { 
   useUser, 
   useSupabaseClient, 
   useCollection, 
   useDoc, 
-  useMemoStable,
-  updateDocumentNonBlocking,
-  deleteDocumentNonBlocking
+  useMemoStable
 } from '@/lib/supabase-hooks';
 import { collection, query, doc, orderBy, where } from '@/lib/supabase-compat';
 import Image from 'next/image';
@@ -221,33 +220,132 @@ export default function AdminDashboard() {
     setSearchTerm(search);
   };
 
-  const approveScribe = (id: string) => {
-    updateDocumentNonBlocking(doc(db, 'sellers', id), { is_approved: true });
+  const approveScribe = async (id: string) => {
+    const { error } = await db.from('sellers').update({ is_approved: true }).eq('id', id);
+    if (error) {
+      toast({ variant: "destructive", title: "האישור נכשל", description: error.message });
+      return;
+    }
     setActiveTab('active');
     setSearchTerm('');
     setActivePage(1);
     toast({ title: "הסופר הועבר לסופרים הפעילים והמאומתים" });
   };
 
-  const deleteScribe = (id: string) => {
+  const deleteScribe = async (id: string) => {
     if (confirm('האם אתה בטוח שברצונך למחוק סופר זה לצמיתות?')) {
-      deleteDocumentNonBlocking(doc(db, 'sellers', id));
+      const { error } = await db.from('sellers').delete().eq('id', id);
+      if (error) {
+        toast({ variant: "destructive", title: "מחיקת הסופר נכשלה", description: error.message });
+        return;
+      }
       toast({ variant: "destructive", title: "הסופר נמחק" });
     }
   };
 
-  const deleteReport = (id: string) => {
+  const deleteReport = async (id: string) => {
     if (confirm('מחיקת הדיווח מהמערכת?')) {
-      deleteDocumentNonBlocking(doc(db, 'reports', id));
+      const { error } = await db.from('reports').delete().eq('id', id);
+      if (error) {
+        toast({ variant: "destructive", title: "מחיקת הדיווח נכשלה", description: error.message });
+        return;
+      }
       toast({ title: "הדיווח נמחק" });
     }
   };
 
-  const deleteCustomer = (id: string) => {
+  const deleteCustomer = async (id: string) => {
     if (confirm('האם אתה בטוח שברצונך למחוק לקוח זה לצמיתות?')) {
-      deleteDocumentNonBlocking(doc(db, 'customers', id));
+      const { error } = await db.from('customers').delete().eq('id', id);
+      if (error) {
+        toast({ variant: "destructive", title: "מחיקת הלקוח נכשלה", description: error.message });
+        return;
+      }
       toast({ variant: "destructive", title: "הלקוח נמחק" });
     }
+  };
+
+  const exportSellersToExcel = () => {
+    const sellers = allSellers || [];
+    if (sellers.length === 0) {
+      toast({ variant: 'destructive', title: 'אין נתונים לייצוא' });
+      return;
+    }
+    const certLabelMap: Record<string, string> = {
+      valid: 'תעודה בתוקף',
+      expired: 'הייתה תעודה בעבר',
+      none: 'ללא תעודה',
+    };
+
+    const headers = [
+      'מזהה סופר',
+      'סטטוס',
+      'שם פרטי',
+      'שם משפחה',
+      'אימייל',
+      'טלפון',
+      'כתובת',
+      'גיל',
+      'מצב משפחתי',
+      'ניסיון (שנים)',
+      'רמת כתב',
+      'סוגי כתב',
+      'תדירות מקווה',
+      'תדירות לימוד תורה',
+      'תעודת סופר',
+      'שם עסק',
+      'מספר עסק/ח.פ',
+      'סוג עסק',
+      'בנק',
+      'סניף',
+      'מספר חשבון',
+      'תאריך יצירה',
+    ];
+
+    const rows = sellers.map((seller: any) => [
+      seller.id || '',
+      seller.is_approved ? 'פעיל' : 'ממתין לאישור',
+      seller.first_name || '',
+      seller.last_name || '',
+      seller.email || '',
+      seller.phone || '',
+      seller.address || '',
+      seller.age ?? '',
+      seller.marital_status || '',
+      seller.experience_years ?? '',
+      seller.script_level || '',
+      Array.isArray(seller.script_types) ? seller.script_types.join(' | ') : (seller.script_types || ''),
+      seller.mikveh_frequency || '',
+      seller.torah_study_frequency || '',
+      certLabelMap[seller.has_scribe_certificate] || seller.has_scribe_certificate || '',
+      seller.business_name || '',
+      seller.business_id || '',
+      seller.business_type || '',
+      seller.bank_name || '',
+      seller.bank_branch || '',
+      seller.bank_account_number || '',
+      seller.created_at ? new Date(seller.created_at).toLocaleString('he-IL') : '',
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map((row) =>
+        row
+          .map((value) => `"${String(value ?? '').replace(/"/g, '""')}"`)
+          .join(','),
+      )
+      .join('\n');
+
+    // Prefix UTF-8 BOM so Excel opens Hebrew content correctly.
+    const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `hotam-sellers-export-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    toast({ title: 'קובץ Excel מוכן להורדה' });
   };
 
   if (isUserLoading || isAdminCheckLoading) {
@@ -284,6 +382,9 @@ export default function AdminDashboard() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+          <Button onClick={exportSellersToExcel} className="h-12 rounded-2xl px-5 font-black gap-2 bg-primary text-white hover:bg-primary/90">
+            <FileDown className="w-4 h-4" /> ייצוא סופרים לאקסל
+          </Button>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-12">

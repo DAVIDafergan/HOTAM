@@ -42,6 +42,7 @@ import {
   DialogDescription
 } from '@/components/ui/dialog';
 import { cn } from "@/lib/utils";
+import { loadGoogleMapsPlacesScript } from '@/lib/google-maps';
 
 export default function SellerOnboarding() {
   const [step, setStep] = useState(1);
@@ -58,6 +59,7 @@ export default function SellerOnboarding() {
 
   const certInputRef = useRef<HTMLInputElement>(null);
   const samplesInputRef = useRef<HTMLInputElement>(null);
+  const addressInputRef = useRef<HTMLInputElement>(null);
 
   const isExistingCustomer = !!user?.uid && user.role === 'customer';
 
@@ -100,6 +102,37 @@ export default function SellerOnboarding() {
       setFormData(prev => ({ ...prev, email: user.email! }));
     }
   }, [user?.email, isExistingCustomer]);
+
+  useEffect(() => {
+    if (!addressInputRef.current) return;
+    let autocomplete: any;
+    let listener: any;
+    let isCancelled = false;
+
+    loadGoogleMapsPlacesScript()
+      .then(() => {
+        if (isCancelled || !addressInputRef.current || !window.google?.maps?.places) return;
+        autocomplete = new window.google.maps.places.Autocomplete(addressInputRef.current, {
+          types: ['address'],
+          fields: ['formatted_address'],
+          componentRestrictions: { country: 'il' },
+        });
+        listener = autocomplete.addListener('place_changed', () => {
+          const place = autocomplete.getPlace();
+          if (place?.formatted_address) {
+            updateField('address', place.formatted_address);
+          }
+        });
+      })
+      .catch(() => undefined);
+
+    return () => {
+      isCancelled = true;
+      if (listener && window.google?.maps?.event?.removeListener) {
+        window.google.maps.event.removeListener(listener);
+      }
+    };
+  }, []);
 
   const toggleScriptType = (type: string) => {
     setFormData(prev => ({
@@ -469,7 +502,7 @@ export default function SellerOnboarding() {
                   <div className="space-y-2"><Label>טלפון *</Label><Input value={formData.phone} onChange={(e) => updateField('phone', e.target.value)} required className="text-slate-900 rounded-xl h-11" /></div>
                   <div className="space-y-2"><Label>גיל *</Label><Input type="number" value={formData.age} onChange={(e) => updateField('age', e.target.value)} required className="text-slate-900 rounded-xl h-11" /></div>
                 </div>
-                <div className="space-y-2"><Label>כתובת מלאה *</Label><Input value={formData.address} onChange={(e) => updateField('address', e.target.value)} required className="text-slate-900 rounded-xl h-11" /></div>
+                <div className="space-y-2"><Label>כתובת מלאה *</Label><Input ref={addressInputRef} value={formData.address} onChange={(e) => updateField('address', e.target.value)} required className="text-slate-900 rounded-xl h-11" /></div>
               </div>
             )}
 

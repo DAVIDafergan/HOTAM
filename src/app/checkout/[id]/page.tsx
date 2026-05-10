@@ -24,6 +24,7 @@ import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import unsplashLoader from '@/lib/unsplashLoader';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { getCityFromAddressComponents, loadGoogleMapsPlacesScript } from '@/lib/google-maps';
 
 
 declare global {
@@ -145,6 +146,7 @@ export default function CheckoutPage() {
   const pendingOrderRef = useRef<{ orderId: string; verificationCode: string } | null>(null);
   const chargeInFlightRef = useRef(false);
   const sumitFormRef = useRef<HTMLFormElement | null>(null);
+  const shippingAddressInputRef = useRef<HTMLInputElement>(null);
   const processPaymentWithTokenRef = useRef<(token: string) => Promise<void>>(async () => {
     throw new Error('מעבד התשלום לא אותחל. אנא רענן את הדף ונסה שוב.');
   });
@@ -171,6 +173,41 @@ export default function CheckoutPage() {
       setRecipientAddress(customer.address || '');
     }
   }, [customer]);
+
+  useEffect(() => {
+    if (!shippingAddressInputRef.current) return;
+    let autocomplete: any;
+    let listener: any;
+    let cancelled = false;
+
+    loadGoogleMapsPlacesScript()
+      .then(() => {
+        if (cancelled || !shippingAddressInputRef.current || !window.google?.maps?.places) return;
+        autocomplete = new window.google.maps.places.Autocomplete(shippingAddressInputRef.current, {
+          types: ['address'],
+          fields: ['formatted_address', 'address_components'],
+          componentRestrictions: { country: 'il' },
+        });
+        listener = autocomplete.addListener('place_changed', () => {
+          const place = autocomplete.getPlace();
+          if (place?.formatted_address) {
+            setRecipientAddress(place.formatted_address);
+          }
+          const city = getCityFromAddressComponents(place?.address_components);
+          if (city) {
+            setRecipientCity(city);
+          }
+        });
+      })
+      .catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+      if (listener && window.google?.maps?.event?.removeListener) {
+        window.google.maps.event.removeListener(listener);
+      }
+    };
+  }, []);
 
   const basePrice = useMemo(() => Number(product?.price || 0), [product]);
   const vatAmount = useMemo(() => Math.round(basePrice * 0.18), [basePrice]);
@@ -456,7 +493,7 @@ export default function CheckoutPage() {
                     </div>
                     <div className="space-y-2">
                       <Label>כתובת מלאה *</Label>
-                      <div className="relative"><Input placeholder="רחוב, מספר בית, דירה..." value={recipientAddress} onChange={(e) => setRecipientAddress(e.target.value)} className="text-right pr-10 h-12 rounded-xl" /><MapPin className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" /></div>
+                      <div className="relative"><Input ref={shippingAddressInputRef} placeholder="רחוב, מספר בית, דירה..." value={recipientAddress} onChange={(e) => setRecipientAddress(e.target.value)} className="text-right pr-10 h-12 rounded-xl" /><MapPin className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" /></div>
                     </div>
                   </div>
                 )}

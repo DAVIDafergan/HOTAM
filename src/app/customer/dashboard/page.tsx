@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -50,6 +50,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import unsplashLoader from '@/lib/unsplashLoader';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { loadGoogleMapsPlacesScript } from '@/lib/google-maps';
 
 export default function CustomerDashboard() {
   const { user, isUserLoading } = useUser();
@@ -57,6 +58,7 @@ export default function CustomerDashboard() {
   const db = useSupabaseClient();
   const { toast } = useToast();
   const router = useRouter();
+  const customerAddressInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState('orders');
   const [isSaving, setIsSaving] = useState(false);
 
@@ -162,6 +164,37 @@ export default function CustomerDashboard() {
         setIsOrdersLoading(false);
       });
   }, [user?.uid]);
+
+  useEffect(() => {
+    if (!customerAddressInputRef.current) return;
+    let autocomplete: any;
+    let listener: any;
+    let cancelled = false;
+
+    loadGoogleMapsPlacesScript()
+      .then(() => {
+        if (cancelled || !customerAddressInputRef.current || !window.google?.maps?.places) return;
+        autocomplete = new window.google.maps.places.Autocomplete(customerAddressInputRef.current, {
+          types: ['address'],
+          fields: ['formatted_address'],
+          componentRestrictions: { country: 'il' },
+        });
+        listener = autocomplete.addListener('place_changed', () => {
+          const place = autocomplete.getPlace();
+          if (place?.formatted_address) {
+            setFormData((prev) => ({ ...prev, address: place.formatted_address }));
+          }
+        });
+      })
+      .catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+      if (listener && window.google?.maps?.event?.removeListener) {
+        window.google.maps.event.removeListener(listener);
+      }
+    };
+  }, []);
 
    const chatsQuery = useMemoStable(() => {
     if (!canLoadData) return null;
@@ -479,7 +512,7 @@ export default function CustomerDashboard() {
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-[10px] font-black uppercase tracking-widest text-primary/50">כתובת למשלוח</Label>
-                    <Input value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} className="rounded-xl h-11 border-primary/10 focus:border-primary/30" />
+                    <Input ref={customerAddressInputRef} value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} className="rounded-xl h-11 border-primary/10 focus:border-primary/30" />
                   </div>
                 </div>
                 <div className="space-y-4">

@@ -69,8 +69,7 @@ import {
   useCollection, 
   useDoc,
   useMemoStable,
-  updateDocumentNonBlocking,
-  deleteDocumentNonBlocking
+  updateDocumentNonBlocking
 } from '@/lib/supabase-hooks';
 import { collection, query, where, doc, increment } from '@/lib/supabase-compat';
 import { supabase } from '@/lib/supabase';
@@ -84,6 +83,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
+import { loadGoogleMapsPlacesScript } from '@/lib/google-maps';
 
 const PRODUCT_SUBTYPES: Record<string, string[]> = {
   'מזוזה': ['קלף', 'קלף + בית'],
@@ -186,6 +186,7 @@ function SellerDashboardContent() {
   }, [chats, user?.uid]);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const sellerAddressInputRef = useRef<HTMLInputElement>(null);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [activeTab, setActiveTab] = useState('inventory');
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
@@ -276,6 +277,37 @@ function SellerDashboardContent() {
       });
     }
   }, [seller]);
+
+  useEffect(() => {
+    if (!sellerAddressInputRef.current) return;
+    let autocomplete: any;
+    let listener: any;
+    let cancelled = false;
+
+    loadGoogleMapsPlacesScript()
+      .then(() => {
+        if (cancelled || !sellerAddressInputRef.current || !window.google?.maps?.places) return;
+        autocomplete = new window.google.maps.places.Autocomplete(sellerAddressInputRef.current, {
+          types: ['address'],
+          fields: ['formatted_address'],
+          componentRestrictions: { country: 'il' },
+        });
+        listener = autocomplete.addListener('place_changed', () => {
+          const place = autocomplete.getPlace();
+          if (place?.formatted_address) {
+            setProfileData((prev) => ({ ...prev, address: place.formatted_address }));
+          }
+        });
+      })
+      .catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+      if (listener && window.google?.maps?.event?.removeListener) {
+        window.google.maps.event.removeListener(listener);
+      }
+    };
+  }, []);
 
   // Apply any pending seller profile that was saved in localStorage during onboarding
   // when email confirmation was required (the full profile couldn't be written to the
@@ -542,6 +574,25 @@ function SellerDashboardContent() {
     });
   };
 
+  const handleDeleteProduct = async (productId: string) => {
+    if (!user) return;
+    if (!confirm('למחוק את המוצר לצמיתות?')) return;
+
+    const { error } = await supabase
+      .from('products')
+      .delete()
+      .eq('id', productId)
+      .eq('seller_id', user.uid);
+
+    if (error) {
+      toast({ variant: 'destructive', title: 'מחיקת המוצר נכשלה', description: error.message });
+      return;
+    }
+
+    setProductsData((prev) => prev.filter((item) => item.id !== productId));
+    toast({ title: 'המוצר נמחק בהצלחה' });
+  };
+
   const totalNetEarnings = useMemo(() => orders.filter(o => o.status === 'completed').reduce((acc: number, o: any) => acc + (Number(o.seller_net) || 0), 0), [orders]);
 
   const paginatedProducts = products.slice((inventoryPage - 1) * ITEMS_PER_PAGE, inventoryPage * ITEMS_PER_PAGE);
@@ -676,10 +727,10 @@ function SellerDashboardContent() {
                  </div>
                  <div className="flex gap-2 shrink-0">
                     <Button variant="outline" size="icon" onClick={() => openEditDialog(p)} className="rounded-full hover:bg-primary hover:text-white transition-all"><Edit className="w-4 h-4" /></Button>
-                    <Button variant="outline" size="icon" onClick={() => deleteDocumentNonBlocking(doc(db, 'products', p.id))} className="text-destructive rounded-full hover:bg-destructive hover:text-white transition-all"><Trash2 className="w-4 h-4" /></Button>
-                 </div>
-               </Card>
-             ))}
+                    <Button variant="outline" size="icon" onClick={() => handleDeleteProduct(p.id)} className="text-destructive rounded-full hover:bg-destructive hover:text-white transition-all"><Trash2 className="w-4 h-4" /></Button>
+                  </div>
+                </Card>
+              ))}
              <Pagination current={inventoryPage} total={products.length} onChange={setInventoryPage} />
           </TabsContent>
 
@@ -889,7 +940,7 @@ function SellerDashboardContent() {
                            <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/40">שם משפחה</Label><Input value={profileData.last_name} onChange={e => setProfileData({...profileData, last_name: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
                         </div>
                         <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/40">טלפון</Label><Input value={profileData.phone} onChange={e => setProfileData({...profileData, phone: e.target.value})} className="h-12 rounded-xl font-bold" dir="ltr" /></div>
-                         <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/40">כתובת</Label><Input value={profileData.address} onChange={e => setProfileData({...profileData, address: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
+                         <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/40">כתובת</Label><Input ref={sellerAddressInputRef} value={profileData.address} onChange={e => setProfileData({...profileData, address: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
                         <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/40">אודותיך (יוצג ללקוח)</Label><Textarea value={profileData.notes} onChange={e => setProfileData({...profileData, notes: e.target.value})} className="rounded-2xl min-h-[100px] font-medium" placeholder="ספר ללקוחות על ההנהגה שלך..." /></div>
                       </div>
 

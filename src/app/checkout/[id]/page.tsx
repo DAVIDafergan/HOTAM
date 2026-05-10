@@ -355,7 +355,9 @@ export default function CheckoutPage() {
 
     isDelegatingSubmitRef.current = true;
     form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-    isDelegatingSubmitRef.current = false;
+    window.setTimeout(() => {
+      isDelegatingSubmitRef.current = false;
+    }, 0);
   };
 
   if (isUserLoading || isProductLoading) {

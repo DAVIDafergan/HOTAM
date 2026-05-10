@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from '@/lib/utils';
 
-const ACCESSIBILITY_BUTTON_SIZE = 56;
+const ACCESSIBILITY_BUTTON_SIZE = 48;
 const ACCESSIBILITY_BUTTON_PADDING = 16;
 const ACCESSIBILITY_DEFAULT_BOTTOM_OFFSET = 88;
 const ACCESSIBILITY_DRAG_THRESHOLD = 4;

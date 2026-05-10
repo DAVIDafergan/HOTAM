@@ -3,6 +3,7 @@
 import { Heart, ChevronLeft, Truck, CheckCircle2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -15,6 +16,7 @@ import { cn } from '@/lib/utils';
 export function ProductCard({ product }: { product: any }) {
   const { user } = useUser();
   const db = useSupabaseClient();
+  const router = useRouter();
   const { toast } = useToast();
   
   const customerRef = useMemoStable(() => user ? doc(db, 'customers', user.uid) : null, [db, user?.uid]);
@@ -49,9 +51,14 @@ export function ProductCard({ product }: { product: any }) {
   // Logic for displaying title for Judaica
   const displayTitle = product.product_type === 'מוצרי יודאיקה שונים' ? (product.sub_type || 'מוצר יודאיקה') : product.product_type;
   const displayBadge = product.product_type === 'מוצרי יודאיקה שונים' ? 'יודאיקה' : product.product_type;
+  const productHref = `/products/${product.id}`;
+
+  const prefetchProductPage = () => {
+    router.prefetch(productHref);
+  };
 
   return (
-    <Link href={`/products/${product.id}`}>
+    <Link href={productHref} prefetch onMouseEnter={prefetchProductPage} onFocus={prefetchProductPage} onTouchStart={prefetchProductPage}>
       <Card className="group overflow-hidden hover:shadow-2xl transition-all duration-500 border-none bg-white rounded-[1.5rem] sm:rounded-[2rem] shadow-premium relative">
         <div className="relative h-32 sm:h-48 overflow-hidden">
           <Image 

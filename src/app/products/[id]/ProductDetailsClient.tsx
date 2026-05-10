@@ -26,7 +26,8 @@ import {
   ArrowLeft,
   ShieldCheck,
   ChevronRight,
-  Trash2
+  Trash2,
+  ZoomIn
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -52,7 +53,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
-export function ProductDetailsClient({ productId }: { productId: string }) {
+export function ProductDetailsClient({ productId, initialProduct = null }: { productId: string; initialProduct?: any | null }) {
   const { user } = useUser();
   const db = useSupabaseClient();
   const router = useRouter();
@@ -68,7 +69,8 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
     return doc(db, 'products', productId);
   }, [db, productId]);
 
-  const { data: product, isLoading: isProductLoading } = useDoc<any>(productRef);
+  const { data: liveProduct, isLoading: isProductLoading } = useDoc<any>(productRef);
+  const product = liveProduct ?? initialProduct;
 
   const customerRef = useMemoStable(() => user ? doc(db, 'customers', user.uid) : null, [db, user?.uid]);
   const sellerOwnRef = useMemoStable(() => user ? doc(db, 'sellers', user.uid) : null, [db, user?.uid]);
@@ -95,6 +97,8 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
   const [reviewIsAnonymous, setReviewIsAnonymous] = useState(false);
   const [isReviewSubmitting, setIsReviewSubmitting] = useState(false);
   const [deletingReviewId, setDeletingReviewId] = useState<string | null>(null);
+  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
+  const [isImageZoomed, setIsImageZoomed] = useState(false);
 
   const isOwnProductReviewBlocked = Boolean(
     user && user.role === 'seller' && user.uid === product?.seller_id
@@ -158,6 +162,12 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
           setReviews(normalized);
         }
       });
+  }, [productId]);
+
+  useEffect(() => {
+    setSelectedImageIdx(0);
+    setIsImageDialogOpen(false);
+    setIsImageZoomed(false);
   }, [productId]);
 
   const handleToggleFavorite = async () => {
@@ -307,22 +317,34 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
       return;
     }
     setDeletingReviewId(reviewId);
-    const { error } = await supabase
-      .from('reviews')
-      .delete()
-      .eq('id', reviewId)
-      .eq('buyer_id', user.uid);
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+    if (!token) {
+      setDeletingReviewId(null);
+      router.push('/login');
+      return;
+    }
+    const response = await fetch('/api/reviews/delete', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ reviewId, reviewType: 'product' }),
+    });
     setDeletingReviewId(null);
-    if (error) {
-      console.error('[reviews] delete error:', error.message);
+    if (!response.ok) {
+      const body = await response.json().catch(() => null);
+      console.error('[reviews] delete error:', body?.error || response.statusText);
       toast({ variant: 'destructive', title: 'שגיאה במחיקת הביקורת', description: 'אנא נסה שוב.' });
       return;
     }
     setReviews(prev => prev.filter((rev: any) => rev.id !== reviewId));
+    router.refresh();
     toast({ title: 'הביקורת נמחקה בהצלחה' });
   };
 
-  if (isProductLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-12 h-12 animate-spin text-primary" /></div>;
+  if (isProductLoading && !product) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-12 h-12 animate-spin text-primary" /></div>;
   if (!product) return <div className="min-h-screen flex items-center justify-center">המוצר לא נמצא</div>;
 
   const rawImages = Array.isArray(product.images) ? product.images : [];
@@ -349,19 +371,32 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
           {/* Product Images */}
           <div className="space-y-4">
-            <div className="relative aspect-square rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-premium bg-white border-4 border-white">
+            <button
+              type="button"
+              onClick={() => {
+                setIsImageZoomed(false);
+                setIsImageDialogOpen(true);
+              }}
+              className="relative block aspect-square w-full rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-premium bg-white border-4 border-white text-right"
+            >
               <Image loader={unsplashLoader} src={currentImage} alt={product.product_type} fill priority className="object-cover" />
               {product.quantity <= 0 && (
                 <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center">
                   <Badge variant="destructive" className="px-8 py-3 text-sm font-black uppercase tracking-widest rounded-full shadow-2xl">אזל מהמלאי</Badge>
                 </div>
               )}
+              <div className="absolute bottom-4 left-4">
+                <div className="inline-flex items-center gap-1 rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-black text-primary shadow-md backdrop-blur-sm">
+                  <ZoomIn className="w-3.5 h-3.5" />
+                  <span>לחץ לזום</span>
+                </div>
+              </div>
               <div className="absolute top-4 right-4 hidden md:block">
                 <Badge className="bg-primary/80 backdrop-blur-md text-white border-none px-4 py-1.5 rounded-full font-black text-[10px] uppercase">
                   {product.script_level}
                 </Badge>
               </div>
-            </div>
+            </button>
             {images.length > 1 && (
               <div className="flex gap-3 overflow-x-auto py-2 no-scrollbar px-1">
                 {images.map((img: string, i: number) => (
@@ -516,7 +551,18 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
                 {reviews && reviews.length > 0 ? (
                   <div className="grid gap-8">
                     {reviews.map((rev: any) => (
-                      <div key={rev.id} className="border-b border-muted/50 pb-8 last:border-0 last:pb-0 text-right">
+                      <div key={rev.id} className="relative border-b border-muted/50 pb-8 last:border-0 last:pb-0 text-right">
+                        {user?.uid === rev.buyer_id && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteProductReview(rev.id)}
+                            disabled={deletingReviewId === rev.id}
+                            className="absolute left-0 top-0 h-7 w-7 rounded-full bg-white/90 text-destructive shadow-sm hover:bg-destructive/5"
+                          >
+                            {deletingReviewId === rev.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                          </Button>
+                        )}
                         <div className="flex justify-between items-start mb-4">
                           <div className="flex flex-col items-start gap-1">
                             <div className="flex items-center gap-1">
@@ -537,17 +583,6 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
                             </Avatar>
                             <h5 className="font-black text-primary text-lg">{rev.is_anonymous ? 'אנונימי' : (rev.buyer_name || 'משתמש')}</h5>
                           </div>
-                          {user?.uid === rev.buyer_id && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteProductReview(rev.id)}
-                              disabled={deletingReviewId === rev.id}
-                              className="h-8 px-2 text-destructive hover:bg-destructive/5"
-                            >
-                              {deletingReviewId === rev.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
-                            </Button>
-                          )}
                         </div>
                         <p className="text-base text-primary/70 leading-relaxed italic font-medium">"{rev.comment}"</p>
                       </div>
@@ -611,6 +646,41 @@ export function ProductDetailsClient({ productId }: { productId: string }) {
           </div>
         </div>
       </div>
+
+      <Dialog
+        open={isImageDialogOpen}
+        onOpenChange={(open) => {
+          setIsImageDialogOpen(open);
+          if (!open) {
+            setIsImageZoomed(false);
+          }
+        }}
+      >
+        <DialogContent className="max-w-5xl rounded-[2rem] border-none bg-black/95 p-3 sm:p-6 shadow-2xl" dir="rtl">
+          <DialogHeader className="space-y-2 pr-12 text-right">
+            <DialogTitle className="text-white">{product.product_type}</DialogTitle>
+            <p className="text-xs font-bold text-white/70">לחץ על התמונה כדי להגדיל ולהקטין</p>
+          </DialogHeader>
+          <button
+            type="button"
+            onClick={() => setIsImageZoomed(prev => !prev)}
+            className="relative block h-[60vh] w-full overflow-auto rounded-[1.5rem] bg-black text-center"
+          >
+            <div className="relative h-full min-h-[24rem] w-full">
+              <Image
+                loader={unsplashLoader}
+                src={currentImage}
+                alt={product.product_type}
+                fill
+                className={cn(
+                  'object-contain transition-transform duration-300',
+                  isImageZoomed ? 'scale-150 cursor-zoom-out' : 'scale-100 cursor-zoom-in'
+                )}
+              />
+            </div>
+          </button>
+        </DialogContent>
+      </Dialog>
 
       {/* Review Dialog */}
       <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>

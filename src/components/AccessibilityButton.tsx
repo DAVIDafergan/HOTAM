@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from '@/lib/utils';
 
-const ACCESSIBILITY_BUTTON_SIZE = 48;
+const ACCESSIBILITY_DRAG_BOUNDARY_SIZE = 48;
 const ACCESSIBILITY_BUTTON_PADDING = 16;
 const ACCESSIBILITY_DEFAULT_BOTTOM_OFFSET = 88;
 const ACCESSIBILITY_DRAG_THRESHOLD = 4;
@@ -47,8 +47,8 @@ export function AccessibilityButton() {
   const clampPosition = (x: number, y: number) => {
     if (typeof window === 'undefined') return { x, y };
     return {
-      x: Math.min(Math.max(0, x), window.innerWidth - ACCESSIBILITY_BUTTON_SIZE),
-      y: Math.min(Math.max(ACCESSIBILITY_BUTTON_PADDING, y), window.innerHeight - ACCESSIBILITY_BUTTON_SIZE),
+      x: Math.min(Math.max(0, x), window.innerWidth - ACCESSIBILITY_DRAG_BOUNDARY_SIZE),
+      y: Math.min(Math.max(ACCESSIBILITY_BUTTON_PADDING, y), window.innerHeight - ACCESSIBILITY_DRAG_BOUNDARY_SIZE),
     };
   };
 

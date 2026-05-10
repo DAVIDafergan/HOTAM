@@ -73,8 +73,53 @@ export async function markOrderAsPaidAndNotify(orderId: string, paymentProvider:
   if (order.buyer_email) {
     sendEmail({
       to: order.buyer_email,
-      subject: 'אישור הזמנה - הקוד הסודי שלך',
-      text: `תתחדש! הרכישה בוצעה בהצלחה. כדי להגן על הכסף שלך, מסור למוכר את הקוד הבא **רק לאחר שקיבלת את המוצר ובדקת אותו**: ${verificationCode}`,
+      subject: '✅ אישור הזמנה - הקוד הסודי שלך | Hotam Shop',
+      text: `תודה על הרכישה שלך ב-Hotam Shop. המוכר יצור איתך קשר בהקדם לתיאום המסירה. הקוד הסודי שלך הוא ${verificationCode}. קבל את המוצר מהמוכר, בדוק שהוא תקין ומתאים למה שהזמנת, ורק לאחר מכן מסור למוכר את הקוד. אל תמסור את הקוד לפני שבדקת את המוצר.`,
+      html: `
+        <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff;">
+          
+          <div style="background: #1a1a2e; padding: 30px; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 28px; letter-spacing: 2px;">HOTAM</h1>
+            <p style="color: #a0a0b0; margin: 5px 0 0;">שוק המוצרים המובחרים</p>
+          </div>
+
+          <div style="padding: 40px 30px;">
+            <h2 style="color: #1a1a2e; margin-top: 0;">🎉 הרכישה בוצעה בהצלחה!</h2>
+            <p style="color: #444; font-size: 16px; line-height: 1.6;">
+              תודה על הרכישה שלך ב-Hotam Shop.<br/>
+              המוכר יצור איתך קשר בהקדם לתיאום המסירה.
+            </p>
+
+            <div style="background: #f0f4ff; border: 2px solid #1a1a2e; border-radius: 16px; padding: 30px; text-align: center; margin: 30px 0;">
+              <p style="color: #1a1a2e; font-size: 16px; font-weight: bold; margin: 0 0 15px;">🔐 הקוד הסודי שלך</p>
+              <div style="background: #1a1a2e; color: #ffffff; font-size: 42px; font-weight: bold; letter-spacing: 12px; padding: 20px; border-radius: 12px;">
+                ${verificationCode}
+              </div>
+            </div>
+
+            <div style="background: #fff8e1; border-right: 4px solid #f59e0b; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <p style="color: #92400e; font-weight: bold; margin: 0 0 10px;">⚠️ הוראות חשובות:</p>
+              <ol style="color: #444; font-size: 15px; line-height: 2; margin: 0; padding-right: 20px;">
+                <li>קבל את המוצר מהמוכר</li>
+                <li>בדוק שהמוצר תקין ומתאים למה שהזמנת</li>
+                <li>רק לאחר מכן — מסור למוכר את הקוד הסודי</li>
+                <li>הקוד משחרר את התשלום למוכר</li>
+              </ol>
+            </div>
+
+            <p style="color: #e11d48; font-weight: bold; font-size: 15px;">
+              🚫 אל תמסור את הקוד לפני שבדקת את המוצר!
+            </p>
+          </div>
+
+          <div style="background: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+            <p style="color: #9ca3af; font-size: 13px; margin: 0;">
+              Hotam Shop | כל הזכויות שמורות<br/>
+              לשאלות ובירורים: support@hotam.shop
+            </p>
+          </div>
+        </div>
+      `,
     }).catch((err: Error) => console.error('Buyer email error:', err.message));
   }
 

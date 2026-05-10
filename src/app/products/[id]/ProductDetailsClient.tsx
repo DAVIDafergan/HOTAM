@@ -25,7 +25,6 @@ import {
   Clock,
   ArrowLeft,
   ShieldCheck,
-  ChevronRight,
   Trash2,
   ZoomIn
 } from 'lucide-react';
@@ -119,7 +118,6 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
   const getProductReviewSubmitLabel = () => {
     if (!user) return 'התחבר כדי לפרסם ביקורת';
     if (isOwnProductReviewBlocked) return 'לא ניתן לדרג מוצר שלך';
-    if (hasUserReviewedProduct) return 'כבר פרסמת ביקורת';
     return 'פרסם ביקורת';
   };
 
@@ -351,10 +349,7 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
       <main className="container mx-auto px-4 py-20 md:py-28 max-w-5xl">
         
         {/* Mobile Header Actions */}
-        <div className="flex items-center justify-between mb-6 md:hidden">
-          <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full bg-white/50 border">
-            <ChevronRight className="w-5 h-5" />
-          </Button>
+        <div className="mb-8 mt-4 flex justify-end md:hidden">
           <div className="flex gap-2">
             <Button variant="outline" size="icon" onClick={handleShare} className="rounded-full bg-white shadow-sm"><Share2 className="w-4 h-4" /></Button>
             <Button variant="outline" size="icon" onClick={handleToggleFavorite} className={cn("rounded-full bg-white shadow-sm transition-all", isFavorite ? 'bg-accent text-primary' : '')}><Heart className={cn("w-4 h-4", isFavorite ? 'fill-current' : '')} /></Button>
@@ -561,42 +556,48 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
                       כדי לפרסם ביקורת צריך <Link href={`/login?redirect=${encodeURIComponent(pathname)}`} className="underline text-primary">להתחבר לחשבון</Link>.
                     </p>
                   )}
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase text-slate-500">ביקורת</Label>
-                    <Textarea
-                      placeholder="שתף את הרשמך מהמוצר..."
-                      value={reviewComment}
-                      onChange={e => setReviewComment(e.target.value)}
-                      className="rounded-2xl min-h-[100px]"
-                      disabled={!user || isOwnProductReviewBlocked || hasUserReviewedProduct || isReviewSubmitting}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs font-black uppercase tracking-widest text-primary">דירוג כוכבים</Label>
-                    <div className="flex justify-center gap-3">
-                      {[1, 2, 3, 4, 5].map(s => (
-                        <button key={s} type="button" onClick={() => setReviewRating(s)} disabled={!user || isOwnProductReviewBlocked || hasUserReviewedProduct || isReviewSubmitting}>
-                          <Star className={`w-8 h-8 transition-colors ${s <= reviewRating ? 'fill-accent text-accent' : 'text-muted-foreground/30'}`} />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between p-4 rounded-2xl bg-white border border-muted/40">
-                    <Switch
-                      id="product-review-anon"
-                      checked={reviewIsAnonymous}
-                      onCheckedChange={setReviewIsAnonymous}
-                      disabled={!user || isOwnProductReviewBlocked || hasUserReviewedProduct || isReviewSubmitting}
-                    />
-                    <Label htmlFor="product-review-anon" className="text-sm font-bold text-primary cursor-pointer">פרסם כאנונימי</Label>
-                  </div>
-                  <Button
-                    onClick={handleSubmitProductReview}
-                    disabled={!user || isReviewSubmitting || isOwnProductReviewBlocked || hasUserReviewedProduct}
-                    className="w-full bg-primary text-white h-11 font-black"
-                  >
-                    {isReviewSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : getProductReviewSubmitLabel()}
-                  </Button>
+                  {hasUserReviewedProduct ? (
+                    <p className="text-xs font-medium text-muted-foreground">ניתן לתת רק ביקורת אחת לכל מוצר.</p>
+                  ) : (
+                    <>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase text-slate-500">ביקורת</Label>
+                        <Textarea
+                          placeholder="שתף את הרשמך מהמוצר..."
+                          value={reviewComment}
+                          onChange={e => setReviewComment(e.target.value)}
+                          className="rounded-2xl min-h-[100px]"
+                          disabled={!user || isOwnProductReviewBlocked || isReviewSubmitting}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs font-black uppercase tracking-widest text-primary">דירוג כוכבים</Label>
+                        <div className="flex justify-center gap-3">
+                          {[1, 2, 3, 4, 5].map(s => (
+                            <button key={s} type="button" onClick={() => setReviewRating(s)} disabled={!user || isOwnProductReviewBlocked || isReviewSubmitting}>
+                              <Star className={`w-8 h-8 transition-colors ${s <= reviewRating ? 'fill-accent text-accent' : 'text-muted-foreground/30'}`} />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between p-4 rounded-2xl bg-white border border-muted/40">
+                        <Switch
+                          id="product-review-anon"
+                          checked={reviewIsAnonymous}
+                          onCheckedChange={setReviewIsAnonymous}
+                          disabled={!user || isOwnProductReviewBlocked || isReviewSubmitting}
+                        />
+                        <Label htmlFor="product-review-anon" className="text-sm font-bold text-primary cursor-pointer">פרסם כאנונימי</Label>
+                      </div>
+                      <Button
+                        onClick={handleSubmitProductReview}
+                        disabled={!user || isReviewSubmitting || isOwnProductReviewBlocked}
+                        className="w-full bg-primary text-white h-11 font-black"
+                      >
+                        {isReviewSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : getProductReviewSubmitLabel()}
+                      </Button>
+                    </>
+                  )}
                 </div>
 
                 {sortedProductReviews.length > 0 ? (

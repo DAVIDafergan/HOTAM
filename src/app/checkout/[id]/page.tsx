@@ -323,6 +323,7 @@ export default function CheckoutPage() {
         orderId,
         price: totalPrice,
         productName: productDescription,
+        customerName: recipientName,
         customerEmail: user?.email || '',
         customerPhone: recipientPhone,
       };

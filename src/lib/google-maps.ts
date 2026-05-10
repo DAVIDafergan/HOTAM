@@ -49,7 +49,7 @@ export async function loadGoogleMapsPlacesScript(): Promise<void> {
       }
 
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&language=he&region=IL`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&loading=async&libraries=places&language=he&region=IL`;
       script.async = true;
       script.defer = true;
       script.dataset.googleMapsPlaces = 'true';

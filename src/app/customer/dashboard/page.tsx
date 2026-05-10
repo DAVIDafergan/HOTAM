@@ -37,6 +37,7 @@ import { doc, collection, query, where, documentId } from '@/lib/supabase-compat
 import { supabase } from '@/lib/supabase';
 import { ProductCard } from '@/components/ProductCard';
 import { useToast } from '@/hooks/use-toast';
+import { PROFILE_NOT_FOUND_CODE } from '@/lib/supabase-errors';
 import { useRouter } from 'next/navigation';
 import { 
   Dialog, 
@@ -236,6 +237,11 @@ export default function CustomerDashboard() {
       .maybeSingle();
     if (profileError) {
       console.error('[profiles] fetch error:', profileError.message);
+      if (profileError.code !== PROFILE_NOT_FOUND_CODE) {
+        toast({ variant: 'destructive', title: 'שגיאה בשמירת הדירוג', description: 'אנא נסה שנית.' });
+        setIsRatingSubmitting(false);
+        return;
+      }
     }
 
     const reviewData = {

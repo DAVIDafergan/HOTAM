@@ -44,6 +44,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { PROFILE_NOT_FOUND_CODE } from '@/lib/supabase-errors';
 
 export default function SellerProfile() {
   const params = useParams();
@@ -219,7 +220,6 @@ export default function SellerProfile() {
       return;
     }
     setIsReviewSubmitting(true);
-    const PROFILE_NOT_FOUND_CODE = 'PGRST116';
     const { data: profileRow, error: profileError } = await supabase
       .from('profiles')
       .select('avatar_url, full_name')

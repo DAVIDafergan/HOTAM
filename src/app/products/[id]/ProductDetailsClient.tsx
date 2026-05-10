@@ -48,6 +48,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import unsplashLoader from '@/lib/unsplashLoader';
 import { cn } from '@/lib/utils';
+import { PROFILE_NOT_FOUND_CODE } from '@/lib/supabase-errors';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -273,7 +274,6 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
       .select('avatar_url, full_name')
       .eq('id', user.uid)
       .maybeSingle();
-    const PROFILE_NOT_FOUND_CODE = 'PGRST116';
     if (profileError) {
       console.error('[profiles] fetch error:', profileError.message);
       if (profileError.code !== PROFILE_NOT_FOUND_CODE) {

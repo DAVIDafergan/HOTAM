@@ -1,0 +1,1 @@
+export const PROFILE_NOT_FOUND_CODE = 'PGRST116';

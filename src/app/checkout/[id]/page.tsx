@@ -156,8 +156,10 @@ export default function CheckoutPage() {
       setSumitError(null);
     }
 
+    const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
     const pollForOfficeGuy = async () => {
-      for (let pollAttempt = 0; pollAttempt < SUMIT_READY_POLL_ATTEMPTS; pollAttempt++) {
+      for (let attemptCount = 0; attemptCount < SUMIT_READY_POLL_ATTEMPTS; attemptCount++) {
         if (destroyed) return;
         if (window.OfficeGuy?.Payments?.TokenizeForm) {
           setIsSumitReady(true);
@@ -165,7 +167,7 @@ export default function CheckoutPage() {
           return;
         }
 
-        await new Promise((resolve) => setTimeout(resolve, SUMIT_READY_POLL_INTERVAL_MS));
+        await wait(SUMIT_READY_POLL_INTERVAL_MS);
       }
 
       if (destroyed) return;

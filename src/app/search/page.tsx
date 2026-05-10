@@ -78,6 +78,9 @@ const REGION_CITY_MAP: Record<string, string[]> = {
   'בני ברק והמרכז': ['בני ברק', 'ראשון לציון', 'רחובות', 'רמלה', 'לוד', 'מודיעין'],
   'יהודה ושומרון': ['אריאל', 'מעלה אדומים', 'ביתר עילית', 'מודיעין עילית'],
 };
+const NORMALIZED_REGION_CITY_MAP: Record<string, string[]> = Object.fromEntries(
+  Object.entries(REGION_CITY_MAP).map(([region, cities]) => [region, cities.map(normalizeCity)]),
+);
 const normalizeCity = (value: string) =>
   value
     .normalize('NFKD')
@@ -289,7 +292,7 @@ function SearchContent() {
       const seller = allSellers?.find(s => s.id === p.seller_id);
       const selectedRegionCities = REGION_CITY_MAP[selectedRegion] || [];
       const sellerAddressNormalized = normalizeCity(seller?.address || '');
-      const normalizedRegionCities = selectedRegionCities.map(normalizeCity);
+      const normalizedRegionCities = NORMALIZED_REGION_CITY_MAP[selectedRegion] || [];
       const matchRegion =
         selectedRegion === 'all' ||
         (

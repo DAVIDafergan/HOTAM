@@ -339,7 +339,7 @@ export default function AdminDashboard() {
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
-    toast({ title: 'קובץ אקסל מוכן להורדה' });
+    toast({ title: 'קובץ Excel מוכן להורדה' });
   };
 
   if (isUserLoading || isAdminCheckLoading) {

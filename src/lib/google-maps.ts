@@ -12,7 +12,7 @@ export type GoogleAddressSelection = {
   lng: number | null;
 };
 
-const getGoogleMapsApiKey = () => process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+const getGoogleMapsApiKey = () => process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
 const CITY_KEYS = ['locality', 'administrative_area_level_2', 'administrative_area_level_1'];
 

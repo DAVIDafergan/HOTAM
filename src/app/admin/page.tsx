@@ -271,6 +271,11 @@ export default function AdminDashboard() {
       toast({ variant: 'destructive', title: 'אין נתונים לייצוא' });
       return;
     }
+    const certLabelMap: Record<string, string> = {
+      valid: 'תעודה בתוקף',
+      expired: 'הייתה תעודה בעבר',
+      none: 'ללא תעודה',
+    };
 
     const headers = [
       'מזהה סופר',
@@ -312,7 +317,7 @@ export default function AdminDashboard() {
       Array.isArray(seller.script_types) ? seller.script_types.join(' | ') : (seller.script_types || ''),
       seller.mikveh_frequency || '',
       seller.torah_study_frequency || '',
-      certLabels[seller.has_scribe_certificate] || seller.has_scribe_certificate || '',
+      certLabelMap[seller.has_scribe_certificate] || seller.has_scribe_certificate || '',
       seller.business_name || '',
       seller.business_id || '',
       seller.business_type || '',

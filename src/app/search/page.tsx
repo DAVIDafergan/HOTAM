@@ -221,6 +221,15 @@ function SearchContent() {
     );
   };
 
+  const detectedRegionCities = useMemo(() => {
+    if (!preferNearMe || !detectedCity) return [];
+    const normalizedDetectedCity = normalizeCity(detectedCity);
+    const regionMatch = Object.values(NORMALIZED_REGION_CITY_MAP).find((cities) =>
+      cities.includes(normalizedDetectedCity),
+    );
+    return regionMatch || [];
+  }, [preferNearMe, detectedCity]);
+
   const filteredProducts = useMemo(() => {
     if (!allProducts) return [];
     
@@ -261,14 +270,6 @@ function SearchContent() {
             area === candidate || CITY_MATCH_SEPARATORS.some((separator) => area.startsWith(`${candidate}${separator}`))
           )
         );
-      const detectedRegionCities = (() => {
-        const detectedCandidate = cityCandidates[0];
-        if (!detectedCandidate || !preferNearMe) return [];
-        const regionMatch = Object.values(REGION_CITY_MAP).find((cities) =>
-          cities.map(normalizeCity).includes(detectedCandidate),
-        );
-        return (regionMatch || []).map(normalizeCity);
-      })();
       const deliversNearCity =
         preferNearMe &&
         !deliversToCity &&
@@ -323,7 +324,7 @@ function SearchContent() {
     }
 
     return results;
-  }, [allProducts, allSellers, allReviews, selectedProduct, subType, scriptType, qualityLevel, quantity, shippingPreference, sortOrder, scrollSize, selectedRegion, certStatus, studyFreq, marriedOnly, mikvehFreq, detectedCity, preferNearMe]);
+  }, [allProducts, allSellers, allReviews, selectedProduct, subType, scriptType, qualityLevel, quantity, shippingPreference, sortOrder, scrollSize, selectedRegion, certStatus, studyFreq, marriedOnly, mikvehFreq, detectedCity, preferNearMe, detectedRegionCities]);
 
   const resetFilters = () => {
     setSelectedProduct(''); setSubType('all'); setScriptType('all'); setQualityLevel('all');

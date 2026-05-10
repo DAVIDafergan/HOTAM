@@ -586,7 +586,7 @@ export default function SellerProfile() {
                       <div className="flex justify-center gap-3">
                         {[1, 2, 3, 4, 5].map(s => (
                           <button key={s} type="button" onClick={() => setReviewRating(s)} disabled={!user || isOwnSellerReviewBlocked || hasUserReviewedSeller || isReviewSubmitting}>
-                            <Star className={`w-8 h-8 transition-colors ${s <= reviewRating ? 'fill-accent text-accent' : 'text-muted-foreground/30'}`} />
+                            <Star className={`w-5 h-5 transition-colors ${s <= reviewRating ? 'fill-accent text-accent' : 'text-muted-foreground/30'}`} />
                           </button>
                         ))}
                       </div>
@@ -612,7 +612,7 @@ export default function SellerProfile() {
                   {sortedSellerReviews.length > 0 ? (
                     sortedSellerReviews.map((rev: any) => (
                       <div key={rev.id} className="flex flex-row-reverse items-start gap-3">
-                        <Avatar className="h-9 w-9 border border-primary/10 flex-shrink-0">
+                        <Avatar className="h-8 w-8 border border-primary/10 flex-shrink-0">
                           {!rev.is_anonymous && <AvatarImage src={rev.reviewer_image || undefined} />}
                           <AvatarFallback className="bg-primary/5 text-primary font-black text-[10px]">
                             {rev.is_anonymous ? 'א' : (rev.buyer_name || 'מ').charAt(0)}
@@ -620,14 +620,14 @@ export default function SellerProfile() {
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-baseline justify-between mb-1">
-                            <span className="text-[10px] font-bold text-muted-foreground">{rev.created_at ? new Date(rev.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
-                            <p className="font-black text-primary text-sm">{rev.is_anonymous ? 'אנונימי' : (rev.buyer_name || 'משתמש')}</p>
+                            <span className="text-[10px] font-medium text-muted-foreground">{rev.created_at ? new Date(rev.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
+                            <p className="font-semibold text-primary text-xs">{rev.is_anonymous ? 'אנונימי' : (rev.buyer_name || 'משתמש')}</p>
                           </div>
-                          <div className="bg-muted/15 rounded-2xl rounded-tr-none px-4 py-3 text-right">
+                          <div className="bg-muted/15 rounded-2xl px-4 py-3 text-right">
                             <div className="flex items-center justify-end gap-0.5 mb-2">
-                              {[1, 2, 3, 4, 5].map(s => <Star key={s} className={`w-3.5 h-3.5 ${s <= (rev.rating || 5) ? 'fill-accent text-accent' : 'text-muted-foreground/20'}`} />)}
+                              {[1, 2, 3, 4, 5].map(s => <Star key={s} className={`w-3 h-3 ${s <= (rev.rating || 5) ? 'fill-accent text-accent' : 'text-muted-foreground/20'}`} />)}
                             </div>
-                            <p className="text-xs text-primary/70 leading-relaxed italic">"{rev.comment}"</p>
+                            <p className="text-xs text-primary/70 leading-relaxed">{rev.comment}</p>
                           </div>
                           {user?.uid === rev.buyer_id && (
                             <div className="flex justify-end mt-1">

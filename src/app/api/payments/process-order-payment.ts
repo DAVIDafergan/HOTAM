@@ -3,6 +3,9 @@ import { sendEmail } from '@/lib/send-email';
 
 const EMAIL_PRIMARY = '#1a1a2e';
 const EMAIL_BACKGROUND = '#ffffff';
+const EMAIL_SECTION_PADDING = '30px';
+const EMAIL_PANEL_RADIUS = '16px';
+const EMAIL_CODE_RADIUS = '12px';
 
 export async function markOrderAsPaidAndNotify(orderId: string, paymentProvider: string) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -81,7 +84,7 @@ export async function markOrderAsPaidAndNotify(orderId: string, paymentProvider:
       html: `
         <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: ${EMAIL_BACKGROUND}; color: #111827;">
           
-          <div style="background: ${EMAIL_PRIMARY}; padding: 30px; text-align: center;">
+          <div style="background: ${EMAIL_PRIMARY}; padding: ${EMAIL_SECTION_PADDING}; text-align: center;">
             <h1 style="color: ${EMAIL_BACKGROUND}; margin: 0; font-size: 28px; letter-spacing: 2px;">HOTAM</h1>
             <p style="color: #a0a0b0; margin: 5px 0 0;">שוק המוצרים המובחרים</p>
           </div>
@@ -93,14 +96,14 @@ export async function markOrderAsPaidAndNotify(orderId: string, paymentProvider:
               המוכר יצור איתך קשר בהקדם לתיאום המסירה.
             </p>
 
-            <div style="background: #f0f4ff; border: 2px solid ${EMAIL_PRIMARY}; border-radius: 16px; padding: 30px; text-align: center; margin: 30px 0;">
+            <div style="background: #f0f4ff; border: 2px solid ${EMAIL_PRIMARY}; border-radius: ${EMAIL_PANEL_RADIUS}; padding: ${EMAIL_SECTION_PADDING}; text-align: center; margin: 30px 0;">
               <p style="color: ${EMAIL_PRIMARY}; font-size: 16px; font-weight: bold; margin: 0 0 15px;">🔐 הקוד הסודי שלך</p>
-              <div style="background: ${EMAIL_PRIMARY}; color: ${EMAIL_BACKGROUND}; font-size: 42px; font-weight: bold; letter-spacing: 8px; padding: 20px; border-radius: 12px;">
+              <div style="background: ${EMAIL_PRIMARY}; color: ${EMAIL_BACKGROUND}; font-size: 42px; font-weight: bold; letter-spacing: 8px; padding: 20px; border-radius: ${EMAIL_CODE_RADIUS};">
                 ${verificationCode}
               </div>
             </div>
 
-            <div style="background: #fff8e1; border-right: 4px solid #f59e0b; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <div style="background: #fff8e1; border-right: 4px solid #f59e0b; padding: 20px; border-radius: ${EMAIL_CODE_RADIUS}; margin: 20px 0;">
               <p style="color: #92400e; font-weight: bold; margin: 0 0 10px;">⚠️ הוראות חשובות:</p>
               <ol style="color: #444; font-size: 15px; line-height: 2; margin: 0; padding-right: 20px;">
                 <li>קבל את המוצר מהמוכר</li>

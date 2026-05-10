@@ -26,6 +26,7 @@ const ACCESSIBILITY_DRAG_BOUNDARY_SIZE_PX = 48;
 const ACCESSIBILITY_BUTTON_PADDING_PX = 16;
 const ACCESSIBILITY_DEFAULT_BOTTOM_OFFSET_PX = 88;
 const ACCESSIBILITY_DRAG_THRESHOLD_PX = 4;
+const ACCESSIBILITY_KEYBOARD_NUDGE_PX = 24;
 
 export function AccessibilityButton() {
   const [fontSize, setFontSize] = useState(100);
@@ -114,7 +115,7 @@ export function AccessibilityButton() {
     const deltaX = event.clientX - dragState.startX;
     const deltaY = event.clientY - dragState.startY;
 
-    if (!dragState.moved && Math.hypot(deltaX, deltaY) > ACCESSIBILITY_DRAG_THRESHOLD_PX) {
+    if (!dragState.moved && (deltaX * deltaX) + (deltaY * deltaY) > ACCESSIBILITY_DRAG_THRESHOLD_PX * ACCESSIBILITY_DRAG_THRESHOLD_PX) {
       dragState.moved = true;
       suppressClickRef.current = true;
     }
@@ -137,6 +138,29 @@ export function AccessibilityButton() {
     suppressClickRef.current = false;
   };
 
+  const handleTriggerKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    switch (event.key) {
+      case 'ArrowLeft':
+        event.preventDefault();
+        setPosition(prev => clampPosition(prev.x - ACCESSIBILITY_KEYBOARD_NUDGE_PX, prev.y));
+        break;
+      case 'ArrowRight':
+        event.preventDefault();
+        setPosition(prev => clampPosition(prev.x + ACCESSIBILITY_KEYBOARD_NUDGE_PX, prev.y));
+        break;
+      case 'ArrowUp':
+        event.preventDefault();
+        setPosition(prev => clampPosition(prev.x, prev.y - ACCESSIBILITY_KEYBOARD_NUDGE_PX));
+        break;
+      case 'ArrowDown':
+        event.preventDefault();
+        setPosition(prev => clampPosition(prev.x, prev.y + ACCESSIBILITY_KEYBOARD_NUDGE_PX));
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
     <div className="fixed z-[200]" style={{ left: position.x, top: position.y }}>
       <DropdownMenu>
@@ -144,12 +168,13 @@ export function AccessibilityButton() {
           <Button 
             size="icon" 
             className="h-11 w-11 rounded-full bg-primary text-white shadow-2xl transition-transform border-2 border-white/20 animate-in fade-in zoom-in md:h-12 md:w-12"
-            aria-label="תפריט נגישות"
+            aria-label="תפריט נגישות, ניתן לגרור או להזיז עם מקשי החיצים"
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerUp}
             onClick={handleTriggerClick}
+            onKeyDown={handleTriggerKeyDown}
           >
             <Accessibility className="h-5 w-5 md:h-6 md:w-6" />
           </Button>

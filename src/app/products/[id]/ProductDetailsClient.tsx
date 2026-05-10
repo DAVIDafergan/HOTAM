@@ -273,8 +273,14 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
       .select('avatar_url, full_name')
       .eq('id', user.uid)
       .maybeSingle();
+    const PROFILE_NOT_FOUND_CODE = 'PGRST116';
     if (profileError) {
       console.error('[profiles] fetch error:', profileError.message);
+      if (profileError.code !== PROFILE_NOT_FOUND_CODE) {
+        setIsReviewSubmitting(false);
+        toast({ variant: 'destructive', title: 'שגיאה בשמירת הביקורת', description: 'אנא נסה שנית.' });
+        return;
+      }
     }
     const realName = profileRow?.full_name || user.displayName || 'משתמש';
     const reviewData = {

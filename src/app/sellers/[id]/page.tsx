@@ -227,9 +227,7 @@ export default function SellerProfile() {
       .maybeSingle();
     if (profileError) {
       console.error('[profiles] fetch error:', profileError.message);
-      if (profileError.code === PROFILE_NOT_FOUND_CODE) {
-        // continue with fallback display name when profile row is missing
-      } else {
+      if (profileError.code !== PROFILE_NOT_FOUND_CODE) {
         setIsReviewSubmitting(false);
         toast({ variant: 'destructive', title: 'שגיאה בשמירת הדירוג', description: 'אנא נסה שנית.' });
         return;

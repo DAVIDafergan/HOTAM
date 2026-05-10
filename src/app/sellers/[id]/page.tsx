@@ -226,6 +226,11 @@ export default function SellerProfile() {
       .maybeSingle();
     if (profileError) {
       console.error('[profiles] fetch error:', profileError.message);
+      if (profileError.code !== 'PGRST116') {
+        setIsReviewSubmitting(false);
+        toast({ variant: 'destructive', title: 'שגיאה בשמירת הדירוג', description: 'אנא נסה שנית.' });
+        return;
+      }
     }
     const realName = profileRow?.full_name || user.displayName || 'משתמש';
     const reviewData = {

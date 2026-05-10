@@ -254,6 +254,8 @@ export default function CustomerDashboard() {
     if (error) {
       console.error('[reviews] insert error:', error.message);
       toast({ variant: 'destructive', title: 'שגיאה בשמירת הדירוג', description: 'אנא נסה שנית.' });
+      setIsRatingSubmitting(false);
+      return;
     }
     updateDocumentNonBlocking(doc(db, 'orders', ratingOrderId.id), { is_rated: true });
 

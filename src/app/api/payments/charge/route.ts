@@ -7,9 +7,19 @@ const SUMIT_USER_AGENT = 'Hotam-Marketplace/1.0';
 const FALLBACK_ITEM_DESCRIPTION = 'רכישת מוצר';
 
 type CartItem = {
+  Name?: string;
   Description?: string;
   Quantity?: number;
+  UnitPrice?: number;
   UnitAmount?: number;
+};
+
+type SumitChargeItem = {
+  Item: {
+    Name: string;
+  };
+  Quantity: number;
+  UnitPrice: number;
 };
 
 type ChargeCartData = {
@@ -32,36 +42,48 @@ type ChargeRequestBody = {
   cartData?: ChargeCartData;
 };
 
-function buildItemsFromCartData(cartData: ChargeCartData, price: number): CartItem[] {
+function buildItemsFromCartData(cartData: ChargeCartData, price: number): SumitChargeItem[] {
   if (Array.isArray(cartData?.items) && cartData.items.length > 0) {
     return (cartData.items as CartItem[]).map((item) => ({
-      Description: item?.Description || FALLBACK_ITEM_DESCRIPTION,
+      Item: {
+        Name: item?.Name || item?.Description || FALLBACK_ITEM_DESCRIPTION,
+      },
       Quantity: Number(item?.Quantity ?? 1),
-      UnitAmount: Number(item?.UnitAmount ?? price),
+      UnitPrice: Number(item?.UnitPrice ?? item?.UnitAmount ?? price),
     }));
   }
 
   return [
     {
-      Description: cartData?.productName || FALLBACK_ITEM_DESCRIPTION,
+      Item: {
+        Name: cartData?.productName || FALLBACK_ITEM_DESCRIPTION,
+      },
       Quantity: 1,
-      UnitAmount: price,
+      UnitPrice: price,
     },
   ];
 }
 
 function getSumitCredentials() {
-  const companyId =
+  const rawCompanyId =
     process.env.SUMIT_COMPANY_ID ||
     process.env.SUMIT_BUSINESS_ID ||
     process.env.SUMMIT_BUSINESS_ID;
   const apiKey =
     process.env.SUMIT_API_KEY ||
+    process.env.SUMIT_PRIVATE_API_KEY ||
+    process.env.SUMMIT_PRIVATE_API_KEY ||
     process.env.SUMIT_PRIVATE_KEY ||
     process.env.SUMMIT_PRIVATE_KEY;
 
-  if (!companyId || !apiKey) {
+  const companyId = Number(rawCompanyId);
+
+  if (!rawCompanyId || !apiKey) {
     throw new Error('Missing SUMIT credentials for charge request');
+  }
+
+  if (!Number.isFinite(companyId) || companyId <= 0) {
+    throw new Error('Invalid SUMIT CompanyID configuration');
   }
 
   return { companyId, apiKey };
@@ -142,8 +164,8 @@ export async function POST(req: Request) {
 
     const hasInvalidItems = items.some((item) => {
       const quantity = Number(item.Quantity);
-      const unitAmount = Number(item.UnitAmount);
-      return !Number.isFinite(quantity) || quantity <= 0 || !Number.isFinite(unitAmount) || unitAmount <= 0;
+      const unitPrice = Number(item.UnitPrice);
+      return !Number.isFinite(quantity) || quantity <= 0 || !Number.isFinite(unitPrice) || unitPrice <= 0;
     });
 
     if (hasInvalidItems) {
@@ -156,6 +178,7 @@ export async function POST(req: Request) {
         APIKey: apiKey,
       },
       SingleUseToken: token,
+      VATIncluded: true,
       Items: items,
       Amount: price,
       Customer: {

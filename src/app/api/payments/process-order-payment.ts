@@ -4,6 +4,9 @@ import { sendEmail } from '@/lib/send-email';
 export async function markOrderAsPaidAndNotify(orderId: string, paymentProvider: string) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  console.log('SERVICE ROLE KEY:', process.env.SUPABASE_SERVICE_ROLE_KEY ? 'EXISTS' : 'MISSING');
+  console.log('SUPABASE URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'EXISTS' : 'MISSING');
+  console.log('Looking for orderId:', orderId);
 
   if (!supabaseUrl || !serviceRoleKey) {
     throw new Error('Missing Supabase server environment configuration');
@@ -15,6 +18,8 @@ export async function markOrderAsPaidAndNotify(orderId: string, paymentProvider:
     .select('status, buyer_email, buyer_name, seller_id, product_id')
     .eq('id', orderId)
     .single();
+  console.log('fetchError:', fetchError?.message);
+  console.log('order:', order);
 
   if (fetchError || !order) {
     throw new Error(`Order ${orderId} not found`);

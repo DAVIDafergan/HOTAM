@@ -275,7 +275,6 @@ export default function SellerProfile() {
     setDeletingReviewId(null);
     if (error) {
       console.log('[supermarket_reviews] delete returned error:', error.message);
-      console.error('[supermarket_reviews] delete error:', error.message);
       toast({ variant: 'destructive', title: 'שגיאה במחיקת הביקורת', description: 'אנא נסה שוב.' });
       return;
     }

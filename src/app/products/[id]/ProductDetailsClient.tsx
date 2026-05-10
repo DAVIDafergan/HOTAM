@@ -142,6 +142,9 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
   };
 
   useEffect(() => {
+    setSelectedImageIdx(0);
+    setIsImageDialogOpen(false);
+    setIsImageZoomed(false);
     if (!productId) return;
     supabase
       .from('reviews')
@@ -162,12 +165,6 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
           setReviews(normalized);
         }
       });
-  }, [productId]);
-
-  useEffect(() => {
-    setSelectedImageIdx(0);
-    setIsImageDialogOpen(false);
-    setIsImageZoomed(false);
   }, [productId]);
 
   const handleToggleFavorite = async () => {
@@ -373,6 +370,7 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
           <div className="space-y-4">
             <button
               type="button"
+              aria-label="פתח תצוגת זום לתמונת המוצר"
               onClick={() => {
                 setIsImageZoomed(false);
                 setIsImageDialogOpen(true);
@@ -663,6 +661,7 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
           </DialogHeader>
           <button
             type="button"
+            aria-label={isImageZoomed ? 'הקטן את תמונת המוצר' : 'הגדל את תמונת המוצר'}
             onClick={() => setIsImageZoomed(prev => !prev)}
             className="relative block h-[60vh] w-full overflow-auto rounded-[1.5rem] bg-black text-center"
           >

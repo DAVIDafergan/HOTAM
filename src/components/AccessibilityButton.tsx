@@ -47,8 +47,8 @@ export function AccessibilityButton() {
   const clampPosition = (x: number, y: number) => {
     if (typeof window === 'undefined') return { x, y };
     return {
-      x: Math.min(Math.max(0, x), Math.max(0, window.innerWidth - ACCESSIBILITY_BUTTON_SIZE)),
-      y: Math.min(Math.max(ACCESSIBILITY_BUTTON_PADDING, y), Math.max(ACCESSIBILITY_BUTTON_PADDING, window.innerHeight - ACCESSIBILITY_BUTTON_SIZE)),
+      x: Math.min(Math.max(0, x), window.innerWidth - ACCESSIBILITY_BUTTON_SIZE),
+      y: Math.min(Math.max(ACCESSIBILITY_BUTTON_PADDING, y), window.innerHeight - ACCESSIBILITY_BUTTON_SIZE),
     };
   };
 
@@ -114,7 +114,7 @@ export function AccessibilityButton() {
     const deltaX = event.clientX - dragState.startX;
     const deltaY = event.clientY - dragState.startY;
 
-    if (!dragState.moved && (Math.abs(deltaX) > ACCESSIBILITY_DRAG_THRESHOLD || Math.abs(deltaY) > ACCESSIBILITY_DRAG_THRESHOLD)) {
+    if (!dragState.moved && Math.hypot(deltaX, deltaY) > ACCESSIBILITY_DRAG_THRESHOLD) {
       dragState.moved = true;
       suppressClickRef.current = true;
     }

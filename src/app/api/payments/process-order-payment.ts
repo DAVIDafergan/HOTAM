@@ -95,7 +95,7 @@ export async function markOrderAsPaidAndNotify(orderId: string, paymentProvider:
 
             <div style="background: #f0f4ff; border: 2px solid ${EMAIL_PRIMARY}; border-radius: 16px; padding: 30px; text-align: center; margin: 30px 0;">
               <p style="color: ${EMAIL_PRIMARY}; font-size: 16px; font-weight: bold; margin: 0 0 15px;">🔐 הקוד הסודי שלך</p>
-              <div style="background: ${EMAIL_PRIMARY}; color: ${EMAIL_BACKGROUND}; font-size: 42px; font-weight: bold; letter-spacing: 12px; padding: 20px; border-radius: 12px;">
+              <div style="background: ${EMAIL_PRIMARY}; color: ${EMAIL_BACKGROUND}; font-size: 42px; font-weight: bold; letter-spacing: 8px; padding: 20px; border-radius: 12px;">
                 ${verificationCode}
               </div>
             </div>

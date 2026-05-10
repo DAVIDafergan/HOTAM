@@ -53,6 +53,8 @@ function generateShortId(length = 8) {
 }
 
 const FALLBACK_PRODUCT_DESCRIPTION = 'מוצר';
+const JQUERY_SCRIPT_SELECTOR = 'script[data-hotam="jquery"]';
+const SUMIT_SCRIPT_SELECTOR = 'script[data-hotam="sumit"]';
 const SUMIT_READY_POLL_INTERVAL_MS = 250;
 const SUMIT_READY_POLL_ATTEMPTS = 20;
 
@@ -137,15 +139,16 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     let destroyed = false;
+    const cleanup = () => {
+      destroyed = true;
+    };
 
     if (typeof window === 'undefined') return;
     if (!sumitCompanyId || !sumitPublicKey) {
       if (destroyed) return;
       setIsSumitReady(false);
       setSumitError('חסרים פרטי הזדהות של מערכת הסליקה.');
-      return () => {
-        destroyed = true;
-      };
+      return cleanup;
     }
 
     if (!destroyed) {
@@ -171,7 +174,7 @@ export default function CheckoutPage() {
     };
 
     const ensureSumitScript = () => {
-      const existingSumitScript = document.querySelector<HTMLScriptElement>('script[data-hotam="sumit"]');
+      const existingSumitScript = document.querySelector<HTMLScriptElement>(SUMIT_SCRIPT_SELECTOR);
       if (existingSumitScript) {
         void pollForOfficeGuy();
         return;
@@ -193,12 +196,10 @@ export default function CheckoutPage() {
       document.body.appendChild(sumitScript);
     };
 
-    const existingJQueryScript = document.querySelector<HTMLScriptElement>('script[data-hotam="jquery"]');
+    const existingJQueryScript = document.querySelector<HTMLScriptElement>(JQUERY_SCRIPT_SELECTOR);
     if (existingJQueryScript) {
       ensureSumitScript();
-      return () => {
-        destroyed = true;
-      };
+      return cleanup;
     }
 
     const jqScript = document.createElement('script');
@@ -218,9 +219,7 @@ export default function CheckoutPage() {
     };
     document.body.appendChild(jqScript);
 
-    return () => {
-      destroyed = true;
-    };
+    return cleanup;
   }, [sumitCompanyId, sumitPublicKey]);
 
   const generateVerificationCode = () => {

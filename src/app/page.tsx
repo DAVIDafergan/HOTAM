@@ -37,6 +37,7 @@ const HeroAnimation = dynamic(() => import('@/components/HeroAnimation').then(mo
 const WorkFlow = dynamic(() => import('@/components/WorkFlow').then(mod => mod.WorkFlow), {
   ssr: false
 });
+const TOP_SCRIBES_LIMIT = 5;
 
 export default function Home() {
   const { user } = useUser();
@@ -81,7 +82,7 @@ export default function Home() {
       // Fall back to most recently joined sellers
       return [...allSellers]
         .sort((a, b) => getTimestampMillis(b.created_at) - getTimestampMillis(a.created_at))
-        .slice(0, 5);
+        .slice(0, TOP_SCRIBES_LIMIT);
     }
 
     // Sort by high ratings first, then average rating and total review count
@@ -99,7 +100,7 @@ export default function Home() {
         if (salesB !== salesA) return salesB - salesA;
         return (a.first_name || '').localeCompare(b.first_name || '');
       })
-      .slice(0, 5);
+      .slice(0, TOP_SCRIBES_LIMIT);
   }, [allSellers, sellerReviewStats]);
 
   return (
@@ -124,7 +125,7 @@ export default function Home() {
                   <Trophy className="w-3.5 h-3.5" /> נבחרת הסופרים
                 </div>
                 <h2 id="top-scribes-heading" className="text-3xl md:text-4xl font-headline font-black text-primary tracking-tight">
-                   חמשת הסופרים המובילים
+                   {`${TOP_SCRIBES_LIMIT} הסופרים המובילים`}
                 </h2>
                 <div className="w-16 h-1 rounded-full bg-accent mx-auto" />
               </div>

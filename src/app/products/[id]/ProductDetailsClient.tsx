@@ -745,7 +745,8 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
             <DialogTitle className="text-white">{product.product_type}</DialogTitle>
             <p className="text-xs font-bold text-white/70">בחר רמת זום וגרור לצדדים לעיון נוח בתמונה</p>
           </DialogHeader>
-          <div className="mb-3 flex items-center justify-end gap-2">
+          <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
+            <Label className="text-[10px] font-black text-white/70">רמת זום</Label>
             <Button type="button" size="sm" variant="outline" className="h-8 px-3 text-xs" onClick={() => updateImageZoom(imageZoomLevel - 0.25)}>−</Button>
             <input
               type="range"
@@ -802,7 +803,7 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
                 src={currentImage}
                 alt={product.product_type}
                 fill
-                className="object-contain transition-transform duration-150 select-none"
+                className="object-contain transition-transform duration-150"
                 style={{
                   transform: `translate(${imagePan.x}px, ${imagePan.y}px) scale(${imageZoomLevel})`,
                   cursor: imageCursor,

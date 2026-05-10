@@ -219,6 +219,7 @@ export default function SellerProfile() {
       return;
     }
     setIsReviewSubmitting(true);
+    const PROFILE_NOT_FOUND_CODE = 'PGRST116';
     const { data: profileRow, error: profileError } = await supabase
       .from('profiles')
       .select('avatar_url, full_name')
@@ -226,7 +227,7 @@ export default function SellerProfile() {
       .maybeSingle();
     if (profileError) {
       console.error('[profiles] fetch error:', profileError.message);
-      if (profileError.code !== 'PGRST116') {
+      if (profileError.code !== PROFILE_NOT_FOUND_CODE) {
         setIsReviewSubmitting(false);
         toast({ variant: 'destructive', title: 'שגיאה בשמירת הדירוג', description: 'אנא נסה שנית.' });
         return;

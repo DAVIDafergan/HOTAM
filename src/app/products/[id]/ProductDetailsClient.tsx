@@ -346,6 +346,7 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
   const images = rawImages.length > 0 ? rawImages : [logoImg];
   const currentImage = images[selectedImageIdx] || logoImg;
   const displayPrice = (Number(product.price) * 1.18).toFixed(0);
+  const BASE_IMAGE_PAN_LIMIT = 220;
   const clampZoomLevel = (zoom: number) => Math.min(4, Math.max(1, Number(zoom.toFixed(2))));
   const updateImageZoom = (zoom: number) => {
     const nextZoom = clampZoomLevel(zoom);
@@ -357,12 +358,17 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
       setImagePan({ x: 0, y: 0 });
       return;
     }
-    const limit = 220 * imageZoomLevel;
+    const limit = BASE_IMAGE_PAN_LIMIT * imageZoomLevel;
     setImagePan({
       x: Math.max(-limit, Math.min(limit, x)),
       y: Math.max(-limit, Math.min(limit, y)),
     });
   };
+  const imageCursor = imageZoomLevel <= 1
+    ? 'zoom-in'
+    : dragOriginRef.current
+      ? 'grabbing'
+      : 'grab';
 
   return (
     <div className="min-h-screen bg-[#FDFCF0] pb-24 sm:pb-28 md:pb-32" dir="rtl">
@@ -799,7 +805,7 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
                 className="object-contain transition-transform duration-150 select-none"
                 style={{
                   transform: `translate(${imagePan.x}px, ${imagePan.y}px) scale(${imageZoomLevel})`,
-                  cursor: imageZoomLevel > 1 ? (dragOriginRef.current ? 'grabbing' : 'grab') : 'zoom-in',
+                  cursor: imageCursor,
                   transformOrigin: 'center center',
                 }}
               />

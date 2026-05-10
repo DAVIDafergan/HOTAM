@@ -511,7 +511,7 @@ export default function SellerProfile() {
                               </h4>
                               <p className="text-lg font-black text-accent">₪{p.price}</p>
                                <Button variant="link" size="sm" asChild className="p-0 h-auto mt-1 text-[9px] font-black uppercase tracking-widest">
-                                 <Link href={`/products/${p.id}`} prefetch>לפרטים מלאים ←</Link>
+                                 <Link href={`/products/${p.id}`} prefetch={true}>לפרטים מלאים ←</Link>
                                </Button>
                             </div>
                           </Card>

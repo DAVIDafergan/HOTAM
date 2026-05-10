@@ -596,7 +596,7 @@ export default function SellerProfile() {
                         id="seller-review-anon"
                         checked={reviewIsAnonymous}
                         onCheckedChange={setReviewIsAnonymous}
-                        disabled={isOwnSellerReviewBlocked || hasUserReviewedSeller || isReviewSubmitting}
+                        disabled={!user || isOwnSellerReviewBlocked || hasUserReviewedSeller || isReviewSubmitting}
                       />
                       <Label htmlFor="seller-review-anon" className="text-sm font-bold text-primary cursor-pointer">פרסם כאנונימי</Label>
                     </div>

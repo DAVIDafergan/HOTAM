@@ -586,7 +586,7 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
                       id="product-review-anon"
                       checked={reviewIsAnonymous}
                       onCheckedChange={setReviewIsAnonymous}
-                      disabled={isOwnProductReviewBlocked || hasUserReviewedProduct || isReviewSubmitting}
+                      disabled={!user || isOwnProductReviewBlocked || hasUserReviewedProduct || isReviewSubmitting}
                     />
                     <Label htmlFor="product-review-anon" className="text-sm font-bold text-primary cursor-pointer">פרסם כאנונימי</Label>
                   </div>

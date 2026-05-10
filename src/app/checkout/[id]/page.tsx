@@ -233,7 +233,11 @@ export default function CheckoutPage() {
             APIPublicKey: SUMIT_PUBLIC_KEY,
             Callback: async (token: string | null) => {
               if (!token) return;
-              await processPaymentWithTokenRef.current(token);
+              try {
+                await processPaymentWithTokenRef.current(token);
+              } catch (err: any) {
+                setChargeError(err?.message || 'חלה שגיאה בחיוב.');
+              }
             }
           });
           setIsSumitReady(true);
@@ -366,13 +370,17 @@ export default function CheckoutPage() {
       return;
     }
 
-    (window as any).OfficeGuy.Payments.CreateToken({
+    window.OfficeGuy!.Payments!.CreateToken({
       CompanyID: SUMIT_COMPANY_ID,
       APIPublicKey: SUMIT_PUBLIC_KEY,
       FormSelector: 'form[data-og="form"]',
       Callback: async (token: string | null) => {
         if (!token) return;
-        await processPaymentWithTokenRef.current(token);
+        try {
+          await processPaymentWithTokenRef.current(token);
+        } catch (err: any) {
+          setChargeError(err?.message || 'חלה שגיאה בחיוב.');
+        }
       }
     });
   }, [isSumitReady, sumitError, toast, validateCheckout]);

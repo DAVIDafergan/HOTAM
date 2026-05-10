@@ -56,6 +56,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Review not found' }, { status: 404 });
     }
 
+    // buyer_id stores the original text identifier, while buyer_user_id is the
+    // normalized UUID for rows created or migrated after the generated column was added.
     if (review.buyer_id !== user.id && review.buyer_user_id !== user.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }

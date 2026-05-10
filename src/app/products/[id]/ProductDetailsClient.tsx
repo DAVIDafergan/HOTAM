@@ -142,9 +142,6 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
   };
 
   useEffect(() => {
-    setSelectedImageIdx(0);
-    setIsImageDialogOpen(false);
-    setIsImageZoomed(false);
     if (!productId) return;
     supabase
       .from('reviews')
@@ -165,6 +162,12 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
           setReviews(normalized);
         }
       });
+  }, [productId]);
+
+  useEffect(() => {
+    setSelectedImageIdx(0);
+    setIsImageDialogOpen(false);
+    setIsImageZoomed(false);
   }, [productId]);
 
   const handleToggleFavorite = async () => {
@@ -337,7 +340,6 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
       return;
     }
     setReviews(prev => prev.filter((rev: any) => rev.id !== reviewId));
-    router.refresh();
     toast({ title: 'הביקורת נמחקה בהצלחה' });
   };
 

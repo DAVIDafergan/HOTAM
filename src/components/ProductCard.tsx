@@ -58,7 +58,7 @@ export function ProductCard({ product }: { product: any }) {
   };
 
   return (
-    <Link href={productHref} prefetch onMouseEnter={prefetchProductPage} onFocus={prefetchProductPage} onTouchStart={prefetchProductPage}>
+    <Link href={productHref} prefetch={false} onMouseEnter={prefetchProductPage} onFocus={prefetchProductPage} onTouchStart={prefetchProductPage}>
       <Card className="group overflow-hidden hover:shadow-2xl transition-all duration-500 border-none bg-white rounded-[1.5rem] sm:rounded-[2rem] shadow-premium relative">
         <div className="relative h-32 sm:h-48 overflow-hidden">
           <Image 

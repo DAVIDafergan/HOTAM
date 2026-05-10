@@ -290,7 +290,6 @@ export default function SellerProfile() {
       return;
     }
     setReviews(prev => prev.filter((rev: any) => rev.id !== reviewId));
-    router.refresh();
     toast({ title: 'הביקורת נמחקה בהצלחה' });
   };
 

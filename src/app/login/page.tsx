@@ -44,8 +44,10 @@ export default function LoginPage() {
   // Route by role stored in user_metadata — no DB lookups needed.
   useEffect(() => {
     if (user && !isUserLoading) {
-      if (redirectTo) {
-        router.push(redirectTo);
+      // Validate redirect to prevent open redirect vulnerability (only allow relative paths)
+      const safeRedirect = redirectTo && redirectTo.startsWith('/') && !redirectTo.startsWith('//') ? redirectTo : null;
+      if (safeRedirect) {
+        router.push(safeRedirect);
         return;
       }
       const adminEmails = ["admin@hotam.co.il", "davidafergan999@gmail.com", "davidafergan@gmail.com", "da@101.org.il"];
@@ -63,7 +65,7 @@ export default function LoginPage() {
         router.push('/customer/dashboard');
       }
     }
-  }, [user, isUserLoading, redirectTo]);
+  }, [user, isUserLoading, redirectTo, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

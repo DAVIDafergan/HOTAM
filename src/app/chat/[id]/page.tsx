@@ -69,7 +69,7 @@ function ChatContent() {
   // שומר על משתמשים לא מחוברים בחוץ
   useEffect(() => {
     if (!isUserLoading && !user) router.push('/login?redirect=' + encodeURIComponent(pathname));
-  }, [user, isUserLoading, router]);
+  }, [user, isUserLoading, router, pathname]);
 
   // יצירת מזהה חדר צ'אט ייחודי
   const chatId = useMemo(() => {

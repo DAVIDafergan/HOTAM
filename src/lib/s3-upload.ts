@@ -29,7 +29,7 @@ export async function uploadImageToS3(
   fileName: string,
   contentType: string
 ): Promise<string> {
-  const key = `products/${Date.now()}_${fileName.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+  const key = `products/${Date.now()}_${Math.random().toString(36).slice(2, 10)}_${fileName.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
 
   await s3.send(
     new PutObjectCommand({

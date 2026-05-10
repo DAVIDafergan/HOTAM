@@ -391,9 +391,10 @@ function SellerDashboardContent() {
         if (allFiles.length > remainingSlots) {
           toast({ title: 'חלק מהקבצים לא הועלו', description: 'ניתן להעלות עד 6 תמונות לכל מוצר.' });
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'העלאת התמונה נכשלה.';
         console.error('Product image upload error:', error);
-        toast({ variant: 'destructive', title: 'שגיאת העלאה', description: error?.message || 'העלאת התמונה נכשלה.' });
+        toast({ variant: 'destructive', title: 'שגיאת העלאה', description: message });
       } finally {
         e.target.value = '';
       }

@@ -1,12 +1,9 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Accessibility, 
-  Type, 
-  Sun, 
-  Moon, 
   RotateCcw,
   Minus,
   Plus,
@@ -25,12 +22,40 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from '@/lib/utils';
 
+const ACCESSIBILITY_BUTTON_SIZE_PX = 48;
+const ACCESSIBILITY_BUTTON_PADDING_PX = 16;
+const ACCESSIBILITY_DEFAULT_BOTTOM_OFFSET_PX = 88;
+const ACCESSIBILITY_DRAG_THRESHOLD_PX = 4;
+const ACCESSIBILITY_KEYBOARD_NUDGE_PX = 24;
+
+function exceedsDragThreshold(deltaX: number, deltaY: number) {
+  return (deltaX * deltaX) + (deltaY * deltaY) > ACCESSIBILITY_DRAG_THRESHOLD_PX * ACCESSIBILITY_DRAG_THRESHOLD_PX;
+}
+
 export function AccessibilityButton() {
   const [fontSize, setFontSize] = useState(100);
   const [highContrast, setHighContrast] = useState(false);
   const [grayscale, setGrayscale] = useState(false);
   const [readableFont, setReadableFont] = useState(false);
   const [highlightLinks, setHighlightLinks] = useState(false);
+  const [position, setPosition] = useState({ x: 4, y: 0 });
+  const dragStateRef = useRef<{
+    pointerId: number;
+    startX: number;
+    startY: number;
+    originX: number;
+    originY: number;
+    moved: boolean;
+  } | null>(null);
+  const suppressClickRef = useRef(false);
+
+  const clampPosition = (x: number, y: number) => {
+    if (typeof window === 'undefined') return { x, y };
+    return {
+      x: Math.min(Math.max(0, x), window.innerWidth - ACCESSIBILITY_BUTTON_SIZE_PX),
+      y: Math.min(Math.max(ACCESSIBILITY_BUTTON_PADDING_PX, y), window.innerHeight - ACCESSIBILITY_BUTTON_SIZE_PX),
+    };
+  };
 
   useEffect(() => {
     // Apply settings to document root
@@ -51,6 +76,22 @@ export function AccessibilityButton() {
     
   }, [fontSize, highContrast, grayscale, readableFont, highlightLinks]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const syncToViewport = () => {
+      setPosition(prev => {
+        if (prev.y === 0) {
+          return clampPosition(prev.x, window.innerHeight - ACCESSIBILITY_DEFAULT_BOTTOM_OFFSET_PX);
+        }
+        return clampPosition(prev.x, prev.y);
+      });
+    };
+
+    syncToViewport();
+    window.addEventListener('resize', syncToViewport);
+    return () => window.removeEventListener('resize', syncToViewport);
+  }, []);
+
   const reset = () => {
     setFontSize(100);
     setHighContrast(false);
@@ -59,71 +100,144 @@ export function AccessibilityButton() {
     setHighlightLinks(false);
   };
 
+  const handlePointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
+    dragStateRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      originX: position.x,
+      originY: position.y,
+      moved: false,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handlePointerMove = (event: React.PointerEvent<HTMLButtonElement>) => {
+    const dragState = dragStateRef.current;
+    if (!dragState || dragState.pointerId !== event.pointerId) return;
+
+    const deltaX = event.clientX - dragState.startX;
+    const deltaY = event.clientY - dragState.startY;
+
+    if (!dragState.moved && exceedsDragThreshold(deltaX, deltaY)) {
+      dragState.moved = true;
+      suppressClickRef.current = true;
+    }
+
+    if (!dragState.moved) return;
+    setPosition(clampPosition(dragState.originX + deltaX, dragState.originY + deltaY));
+  };
+
+  const handlePointerUp = (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (dragStateRef.current?.pointerId === event.pointerId) {
+      dragStateRef.current = null;
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  };
+
+  const handleTriggerClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (!suppressClickRef.current) return;
+    event.preventDefault();
+    event.stopPropagation();
+    suppressClickRef.current = false;
+  };
+
+  const handleTriggerKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    switch (event.key) {
+      case 'ArrowLeft':
+        event.preventDefault();
+        setPosition(prev => clampPosition(prev.x - ACCESSIBILITY_KEYBOARD_NUDGE_PX, prev.y));
+        break;
+      case 'ArrowRight':
+        event.preventDefault();
+        setPosition(prev => clampPosition(prev.x + ACCESSIBILITY_KEYBOARD_NUDGE_PX, prev.y));
+        break;
+      case 'ArrowUp':
+        event.preventDefault();
+        setPosition(prev => clampPosition(prev.x, prev.y - ACCESSIBILITY_KEYBOARD_NUDGE_PX));
+        break;
+      case 'ArrowDown':
+        event.preventDefault();
+        setPosition(prev => clampPosition(prev.x, prev.y + ACCESSIBILITY_KEYBOARD_NUDGE_PX));
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
-    <div className="fixed left-6 bottom-6 z-[200]">
+    <div className="fixed z-[200]" style={{ left: position.x, top: position.y }}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button 
             size="icon" 
-            className="w-14 h-14 rounded-full bg-primary text-white shadow-2xl hover:scale-110 transition-all border-4 border-white/20 animate-in fade-in zoom-in"
-            aria-label="תפריט נגישות"
+            className="h-11 w-11 rounded-full bg-primary text-white shadow-2xl transition-transform border-2 border-white/20 animate-in fade-in zoom-in md:h-12 md:w-12"
+            aria-label="תפריט נגישות, ניתן לגרור או להזיז עם מקשי החיצים"
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerUp}
+            onClick={handleTriggerClick}
+            onKeyDown={handleTriggerKeyDown}
           >
-            <Accessibility className="w-7 h-7" />
+            <Accessibility className="h-5 w-5 md:h-6 md:w-6" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-72 p-3 rounded-[2rem] shadow-2xl border-none bg-white/95 backdrop-blur-xl text-right overflow-hidden" dir="rtl">
-          <div className="absolute top-0 right-0 w-full h-12 bg-primary/5 -z-10" />
-          <DropdownMenuLabel className="text-sm font-black uppercase text-primary flex items-center justify-between py-4 px-2">
-            <span>הגדרות נגישות</span>
-            <Accessibility className="w-4 h-4 text-accent" />
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator className="bg-primary/5" />
-          
-          <div className="p-2 space-y-2">
-             <div className="flex items-center justify-between p-2 rounded-xl hover:bg-primary/5 transition-colors">
-                <span className="text-xs font-bold text-primary">גודל טקסט</span>
-                <div className="flex items-center gap-1">
-                  <Button variant="outline" size="icon" className="w-9 h-9 rounded-lg border-primary/10" onClick={() => setFontSize(prev => Math.max(prev - 10, 80))}><Minus className="w-4 h-4" /></Button>
-                  <span className="text-[10px] font-black w-8 text-center">{fontSize}%</span>
-                  <Button variant="outline" size="icon" className="w-9 h-9 rounded-lg border-primary/10" onClick={() => setFontSize(prev => Math.min(prev + 10, 150))}><Plus className="w-4 h-4" /></Button>
-                </div>
-             </div>
+        <DropdownMenuContent align="start" className="w-72 p-3 rounded-[2rem] shadow-2xl border-none bg-white/95 backdrop-blur-xl text-right overflow-hidden">
+          <div dir="rtl">
+            <div className="absolute top-0 right-0 w-full h-12 bg-primary/5 -z-10" />
+            <DropdownMenuLabel className="text-sm font-black uppercase text-primary flex items-center justify-between py-4 px-2">
+              <span>הגדרות נגישות</span>
+              <Accessibility className="w-4 h-4 text-accent" />
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-primary/5" />
+            
+            <div className="p-2 space-y-2">
+               <div className="flex items-center justify-between p-2 rounded-xl hover:bg-primary/5 transition-colors">
+                  <span className="text-xs font-bold text-primary">גודל טקסט</span>
+                  <div className="flex items-center gap-1">
+                    <Button variant="outline" size="icon" className="w-9 h-9 rounded-lg border-primary/10" onClick={() => setFontSize(prev => Math.max(prev - 10, 80))}><Minus className="w-4 h-4" /></Button>
+                    <span className="text-[10px] font-black w-8 text-center">{fontSize}%</span>
+                    <Button variant="outline" size="icon" className="w-9 h-9 rounded-lg border-primary/10" onClick={() => setFontSize(prev => Math.min(prev + 10, 150))}><Plus className="w-4 h-4" /></Button>
+                  </div>
+               </div>
 
-             <AccessOption 
-               label="ניגודיות גבוהה" 
-               active={highContrast} 
-               onClick={() => setHighContrast(!highContrast)} 
-               icon={<Eye className="w-4 h-4" />} 
-             />
+               <AccessOption 
+                 label="ניגודיות גבוהה" 
+                 active={highContrast} 
+                 onClick={() => setHighContrast(!highContrast)} 
+                 icon={<Eye className="w-4 h-4" />} 
+               />
 
-             <AccessOption 
-               label="גווני אפור" 
-               active={grayscale} 
-               onClick={() => setGrayscale(!grayscale)} 
-               icon={<MousePointer2 className="w-4 h-4" />} 
-             />
+               <AccessOption 
+                 label="גווני אפור" 
+                 active={grayscale} 
+                 onClick={() => setGrayscale(!grayscale)} 
+                 icon={<MousePointer2 className="w-4 h-4" />} 
+               />
 
-             <AccessOption 
-               label="פונט קריא (אסיסטנט)" 
-               active={readableFont} 
-               onClick={() => setReadableFont(!readableFont)} 
-               icon={<ALargeSmall className="w-4 h-4" />} 
-             />
+               <AccessOption 
+                 label="פונט קריא (אסיסטנט)" 
+                 active={readableFont} 
+                 onClick={() => setReadableFont(!readableFont)} 
+                 icon={<ALargeSmall className="w-4 h-4" />} 
+               />
 
-             <AccessOption 
-               label="הדגשת קישורים" 
-               active={highlightLinks} 
-               onClick={() => setHighlightLinks(!highlightLinks)} 
-               icon={<LinkIcon className="w-4 h-4" />} 
-             />
+               <AccessOption 
+                 label="הדגשת קישורים" 
+                 active={highlightLinks} 
+                 onClick={() => setHighlightLinks(!highlightLinks)} 
+                 icon={<LinkIcon className="w-4 h-4" />} 
+               />
 
-             <Button 
-               variant="ghost" 
-               className="w-full justify-center gap-2 h-12 rounded-xl text-destructive hover:bg-destructive/5 font-black text-xs uppercase mt-2"
-               onClick={reset}
-             >
-               <RotateCcw className="w-4 h-4" /> איפוס כל ההגדרות
-             </Button>
+               <Button 
+                 variant="ghost" 
+                 className="w-full justify-center gap-2 h-12 rounded-xl text-destructive hover:bg-destructive/5 font-black text-xs uppercase mt-2"
+                 onClick={reset}
+               >
+                 <RotateCcw className="w-4 h-4" /> איפוס כל ההגדרות
+               </Button>
+            </div>
           </div>
         </DropdownMenuContent>
       </DropdownMenu>

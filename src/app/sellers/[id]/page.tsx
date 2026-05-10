@@ -267,19 +267,29 @@ export default function SellerProfile() {
       return;
     }
     setDeletingReviewId(reviewId);
-    const { error } = await supabase
-      .from('supermarket_reviews')
-      .delete()
-      .eq('id', reviewId)
-      .eq('buyer_id', user.uid);
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+    if (!token) {
+      setDeletingReviewId(null);
+      router.push('/login');
+      return;
+    }
+    const response = await fetch('/api/reviews/delete', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ reviewId, reviewType: 'seller' }),
+    });
     setDeletingReviewId(null);
-    if (error) {
-      console.log('[supermarket_reviews] delete returned error:', error.message);
+    if (!response.ok) {
+      const body = await response.json().catch(() => null);
+      console.log('[supermarket_reviews] delete returned error:', body?.error || response.statusText);
       toast({ variant: 'destructive', title: 'שגיאה במחיקת הביקורת', description: 'אנא נסה שוב.' });
       return;
     }
     setReviews(prev => prev.filter((rev: any) => rev.id !== reviewId));
-    router.refresh();
     toast({ title: 'הביקורת נמחקה בהצלחה' });
   };
 
@@ -500,9 +510,9 @@ export default function SellerProfile() {
                                 {p.product_type} {p.sub_type && `(${p.sub_type})`}
                               </h4>
                               <p className="text-lg font-black text-accent">₪{p.price}</p>
-                              <Button variant="link" size="sm" asChild className="p-0 h-auto mt-1 text-[9px] font-black uppercase tracking-widest">
-                                <Link href={`/products/${p.id}`}>לפרטים מלאים ←</Link>
-                              </Button>
+                               <Button variant="link" size="sm" asChild className="p-0 h-auto mt-1 text-[9px] font-black uppercase tracking-widest">
+                                 <Link href={`/products/${p.id}`} prefetch={true}>לפרטים מלאים ←</Link>
+                               </Button>
                             </div>
                           </Card>
                        ))}
@@ -547,7 +557,18 @@ export default function SellerProfile() {
                   </div>
                   {reviews && reviews.length > 0 ? (
                     reviews.map((rev: any) => (
-                      <Card key={rev.id} className="border-none shadow-premium rounded-2xl bg-muted/10 p-6 text-right">
+                      <Card key={rev.id} className="relative border-none shadow-premium rounded-2xl bg-muted/10 p-6 text-right">
+                        {user?.uid === rev.buyer_id && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteSellerReview(rev.id)}
+                            disabled={deletingReviewId === rev.id}
+                            className="absolute left-4 top-4 h-7 w-7 rounded-full bg-white/90 text-destructive shadow-sm hover:bg-destructive/5"
+                          >
+                            {deletingReviewId === rev.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                          </Button>
+                        )}
                         <div className="flex justify-between items-start mb-4">
                           <div className="flex flex-col items-start gap-1">
                             <div className="flex items-center gap-2">
@@ -569,17 +590,6 @@ export default function SellerProfile() {
                             </Avatar>
                             <p className="font-black text-primary text-sm">{rev.is_anonymous ? 'אנונימי' : (rev.buyer_name || 'משתמש')}</p>
                           </div>
-                          {user?.uid === rev.buyer_id && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteSellerReview(rev.id)}
-                              disabled={deletingReviewId === rev.id}
-                              className="h-8 px-2 text-destructive hover:bg-destructive/5"
-                            >
-                              {deletingReviewId === rev.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
-                            </Button>
-                          )}
                         </div>
                         <p className="text-xs text-primary/70 leading-relaxed italic">"{rev.comment}"</p>
                       </Card>

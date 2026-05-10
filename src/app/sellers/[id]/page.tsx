@@ -267,8 +267,12 @@ export default function SellerProfile() {
       return;
     }
     setDeletingReviewId(reviewId);
-    const { error } = await supabase.from('supermarket_reviews').delete().eq('id', reviewId);
-    console.log('[supermarket_reviews] delete response error:', error);
+    const { error } = await supabase
+      .from('supermarket_reviews')
+      .delete()
+      .eq('id', reviewId)
+      .eq('buyer_id', user.uid);
+    console.log('[supermarket_reviews] delete returned error:', error?.message ?? null);
     setDeletingReviewId(null);
     if (error) {
       console.error('[supermarket_reviews] delete error:', error.message);

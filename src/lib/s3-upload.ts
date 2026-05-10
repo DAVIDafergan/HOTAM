@@ -29,16 +29,16 @@ export async function uploadImageToS3(
   fileName: string,
   contentType: string
 ): Promise<string> {
-  const key = `products/${Date.now()}_${Math.random().toString(36).slice(2, 10)}_${fileName.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+  const s3Key = `products/${Date.now()}_${Math.random().toString(36).slice(2, 10)}_${fileName.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
 
   await s3.send(
     new PutObjectCommand({
       Bucket: AWS_S3_BUCKET,
-      Key: key,
+      Key: s3Key,
       Body: fileBuffer,
       ContentType: contentType,
     })
   );
 
-  return `https://${AWS_S3_BUCKET}.s3.${AWS_REGION}.amazonaws.com/${key}`;
+  return `https://${AWS_S3_BUCKET}.s3.${AWS_REGION}.amazonaws.com/${s3Key}`;
 }

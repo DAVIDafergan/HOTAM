@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     const url = await uploadImageToS3(buffer, file.name, file.type);
 
     return NextResponse.json({ url });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('S3 upload error:', error);
     return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
   }

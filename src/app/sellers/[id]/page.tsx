@@ -61,12 +61,12 @@ export default function SellerProfile() {
   const [reportReason, setReportReason] = useState('');
   const [isReporting, setIsReporting] = useState(false);
 
-  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
   const [reviewIsAnonymous, setReviewIsAnonymous] = useState(false);
   const [isReviewSubmitting, setIsReviewSubmitting] = useState(false);
   const [deletingReviewId, setDeletingReviewId] = useState<string | null>(null);
+  const [reviewSortOrder, setReviewSortOrder] = useState<'newest' | 'oldest'>('newest');
 
   // Fetch Seller Info
   const [seller, setSeller] = useState<any>(null);
@@ -144,6 +144,21 @@ export default function SellerProfile() {
     [reviews, user]
   );
   const hasUserReviewedSeller = Boolean(currentUserSellerReview);
+  const sortedSellerReviews = useMemo(() => {
+    const list = [...(reviews || [])];
+    list.sort((a: any, b: any) => {
+      const aTime = a?.created_at ? new Date(a.created_at).getTime() : 0;
+      const bTime = b?.created_at ? new Date(b.created_at).getTime() : 0;
+      return reviewSortOrder === 'newest' ? bTime - aTime : aTime - bTime;
+    });
+    return list;
+  }, [reviews, reviewSortOrder]);
+  const getSellerReviewSubmitLabel = () => {
+    if (!user) return 'התחבר כדי לפרסם ביקורת';
+    if (isOwnSellerReviewBlocked) return 'לא ניתן לדרג את עצמך';
+    if (hasUserReviewedSeller) return 'כבר פרסמת ביקורת';
+    return 'פרסם ביקורת';
+  };
 
   const showSelfReviewBlockedToast = () => {
     toast({
@@ -159,22 +174,6 @@ export default function SellerProfile() {
       title: 'כבר פרסמת ביקורת על סופר זה',
       description: 'ניתן לפרסם ביקורת אחת בלבד לכל סופר.',
     });
-  };
-
-  const openSellerReviewDialog = () => {
-    if (!user) {
-      router.push('/login?redirect=' + encodeURIComponent(pathname));
-      return;
-    }
-    if (isOwnSellerReviewBlocked) {
-      showSelfReviewBlockedToast();
-      return;
-    }
-    if (hasUserReviewedSeller) {
-      showAlreadyReviewedSellerToast();
-      return;
-    }
-    setReviewDialogOpen(true);
   };
 
   const handleSendReport = () => {
@@ -257,7 +256,6 @@ export default function SellerProfile() {
       const reviewerImage = profileRow?.avatar_url || null;
       setReviews(prev => [...prev, { ...inserted, buyer_name: realName, reviewer_image: reviewerImage }]);
       router.refresh();
-      setReviewDialogOpen(false);
       setReviewComment('');
       setReviewRating(5);
       setReviewIsAnonymous(false);
@@ -545,17 +543,74 @@ export default function SellerProfile() {
 
                 <TabsContent value="reviews" className="animate-in fade-in slide-in-from-bottom-2 space-y-4">
                   <div className="flex justify-between items-center mb-4">
-                    <Button
-                      onClick={openSellerReviewDialog}
-                      disabled={isOwnSellerReviewBlocked || hasUserReviewedSeller}
-                      className="bg-primary text-white rounded-2xl h-11 px-6 font-black text-xs uppercase tracking-widest gap-2 shadow-md hover:bg-primary/90"
-                    >
-                      <Star className="w-4 h-4" /> {isOwnSellerReviewBlocked ? 'לא ניתן לדרג את עצמך' : hasUserReviewedSeller ? 'כבר פרסמת ביקורת' : 'דרג סופר'}
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant={reviewSortOrder === 'newest' ? 'default' : 'outline'}
+                        onClick={() => setReviewSortOrder('newest')}
+                        className="rounded-full text-[10px] h-8 px-4 font-black"
+                      >
+                        החדשות ביותר
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={reviewSortOrder === 'oldest' ? 'default' : 'outline'}
+                        onClick={() => setReviewSortOrder('oldest')}
+                        className="rounded-full text-[10px] h-8 px-4 font-black"
+                      >
+                        הוותיקות ביותר
+                      </Button>
+                    </div>
                     <h4 className="text-sm font-black text-primary/40 uppercase tracking-widest">ביקורות לקוחות</h4>
                   </div>
-                  {reviews && reviews.length > 0 ? (
-                    reviews.map((rev: any) => (
+
+                  <div className="mb-2 bg-muted/10 rounded-3xl border border-muted/40 p-5 space-y-4 text-right">
+                    <h5 className="text-sm font-black text-primary">הוסף ביקורות שלך או דרג</h5>
+                    {!user && (
+                      <p className="text-xs font-bold text-muted-foreground">
+                        כדי לפרסם ביקורת צריך <Link href={`/login?redirect=${encodeURIComponent(pathname)}`} className="underline text-primary">להתחבר לחשבון</Link>.
+                      </p>
+                    )}
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase text-slate-500">ביקורת</Label>
+                      <Textarea
+                        placeholder="שתף את חווית השירות והכתיבה..."
+                        value={reviewComment}
+                        onChange={e => setReviewComment(e.target.value)}
+                        className="rounded-2xl min-h-[100px]"
+                        disabled={!user || isOwnSellerReviewBlocked || hasUserReviewedSeller || isReviewSubmitting}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-black uppercase tracking-widest text-primary">דירוג כוכבים</Label>
+                      <div className="flex justify-center gap-3">
+                        {[1, 2, 3, 4, 5].map(s => (
+                          <button key={s} type="button" onClick={() => setReviewRating(s)} disabled={!user || isOwnSellerReviewBlocked || hasUserReviewedSeller || isReviewSubmitting}>
+                            <Star className={`w-8 h-8 transition-colors ${s <= reviewRating ? 'fill-accent text-accent' : 'text-muted-foreground/30'}`} />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-4 rounded-2xl bg-white border border-muted/40">
+                      <Switch
+                        id="seller-review-anon"
+                        checked={reviewIsAnonymous}
+                        onCheckedChange={setReviewIsAnonymous}
+                        disabled={!user || isOwnSellerReviewBlocked || hasUserReviewedSeller || isReviewSubmitting}
+                      />
+                      <Label htmlFor="seller-review-anon" className="text-sm font-bold text-primary cursor-pointer">פרסם כאנונימי</Label>
+                    </div>
+                    <Button
+                      onClick={handleSubmitSellerReview}
+                      disabled={!user || isReviewSubmitting || isOwnSellerReviewBlocked || hasUserReviewedSeller}
+                      className="w-full bg-primary text-white h-11 font-black"
+                    >
+                      {isReviewSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : getSellerReviewSubmitLabel()}
+                    </Button>
+                  </div>
+
+                  {sortedSellerReviews.length > 0 ? (
+                    sortedSellerReviews.map((rev: any) => (
                       <div key={rev.id} className="flex flex-row-reverse items-start gap-3">
                         <Avatar className="h-9 w-9 border border-primary/10 flex-shrink-0">
                           {!rev.is_anonymous && <AvatarImage src={rev.reviewer_image || undefined} />}
@@ -605,54 +660,6 @@ export default function SellerProfile() {
         </div>
       </main>
 
-      {/* Seller Review Dialog */}
-      <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
-        <DialogContent className="rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl max-w-md bg-white text-slate-900" dir="rtl">
-          <div className="bg-primary p-8 text-white text-right">
-            <DialogTitle className="text-2xl font-headline font-black">דרג את הסופר</DialogTitle>
-            <p className="text-white/60 text-sm mt-1">חוות דעתך עוזרת לקונים אחרים לבחור נכון</p>
-          </div>
-          <div className="p-8 space-y-6 text-right">
-            <div className="space-y-3">
-              <Label className="text-xs font-black uppercase tracking-widest text-primary">דירוג כוכבים</Label>
-              <div className="flex justify-center gap-3">
-                {[1, 2, 3, 4, 5].map(s => (
-                  <button key={s} type="button" onClick={() => setReviewRating(s)}>
-                    <Star className={`w-9 h-9 transition-colors ${s <= reviewRating ? 'fill-accent text-accent' : 'text-muted-foreground/30'}`} />
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase text-slate-500">ביקורת</Label>
-              <Textarea
-                placeholder="שתף את חווית השירות והכתיבה..."
-                value={reviewComment}
-                onChange={e => setReviewComment(e.target.value)}
-                className="rounded-2xl min-h-[100px]"
-              />
-            </div>
-            <div className="flex items-center justify-between p-4 rounded-2xl bg-muted/20 border border-muted/40">
-              <Switch
-                id="seller-review-anon"
-                checked={reviewIsAnonymous}
-                onCheckedChange={setReviewIsAnonymous}
-              />
-              <Label htmlFor="seller-review-anon" className="text-sm font-bold text-primary cursor-pointer">פרסם כאנונימי</Label>
-            </div>
-          </div>
-          <DialogFooter className="p-6 bg-muted/30 border-t flex gap-3">
-            <Button
-              onClick={handleSubmitSellerReview}
-              disabled={isReviewSubmitting || isOwnSellerReviewBlocked || hasUserReviewedSeller}
-              className="flex-1 bg-primary text-white h-12 font-black uppercase"
-            >
-              {isReviewSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'פרסם דירוג'}
-            </Button>
-            <Button variant="ghost" onClick={() => setReviewDialogOpen(false)} className="h-12 font-bold">ביטול</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

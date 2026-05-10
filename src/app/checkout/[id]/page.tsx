@@ -36,6 +36,12 @@ declare global {
           APIPublicKey?: string;
           Callback?: (token: string | null) => void | Promise<void>;
         }) => void;
+        CreateToken: (config: {
+          CompanyID: string;
+          APIPublicKey: string;
+          FormSelector: string;
+          Callback: (token: string | null) => void | Promise<void>;
+        }) => void;
       };
     };
   }
@@ -138,7 +144,6 @@ export default function CheckoutPage() {
   const [recipientCity, setRecipientCity] = useState('');
   const pendingOrderRef = useRef<{ orderId: string; verificationCode: string } | null>(null);
   const chargeInFlightRef = useRef(false);
-  const isDelegatingSubmitRef = useRef(false);
   const sumitFormRef = useRef<HTMLFormElement | null>(null);
   const processPaymentWithTokenRef = useRef<(token: string) => Promise<void>>(async () => {
     throw new Error('מעבד התשלום לא אותחל. אנא רענן את הדף ונסה שוב.');
@@ -227,12 +232,8 @@ export default function CheckoutPage() {
             CompanyID: SUMIT_COMPANY_ID,
             APIPublicKey: SUMIT_PUBLIC_KEY,
             Callback: async (token: string | null) => {
-              try {
-                if (!token) return;
-                await processPaymentWithTokenRef.current(token);
-              } finally {
-                isDelegatingSubmitRef.current = false;
-              }
+              if (!token) return;
+              await processPaymentWithTokenRef.current(token);
             }
           });
           setIsSumitReady(true);
@@ -351,25 +352,8 @@ export default function CheckoutPage() {
     processPaymentWithTokenRef.current = processPaymentWithToken;
   }, [processPaymentWithToken]);
 
-  const handleFormSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const tokenInput = getSumitTokenInput(form);
-    const token = tokenInput?.value?.trim() || '';
-
-    if (token) {
-      await processPaymentWithToken(token);
-      isDelegatingSubmitRef.current = false;
-      return;
-    }
-
-    if (isDelegatingSubmitRef.current) {
-      return;
-    }
-
-    if (chargeInFlightRef.current) {
-      return;
-    }
+  const handlePayClick = useCallback(() => {
+    if (chargeInFlightRef.current) return;
 
     const validationError = validateCheckout();
     if (validationError) {
@@ -382,12 +366,16 @@ export default function CheckoutPage() {
       return;
     }
 
-    isDelegatingSubmitRef.current = true;
-    window.setTimeout(() => {
-      // Defer the synthetic submit so SUMIT handles the next submit cycle rather than this React submit handler.
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-    }, 0);
-  }, [getSumitTokenInput, isSumitReady, processPaymentWithToken, sumitError, toast, validateCheckout]);
+    (window as any).OfficeGuy.Payments.CreateToken({
+      CompanyID: SUMIT_COMPANY_ID,
+      APIPublicKey: SUMIT_PUBLIC_KEY,
+      FormSelector: 'form[data-og="form"]',
+      Callback: async (token: string | null) => {
+        if (!token) return;
+        await processPaymentWithTokenRef.current(token);
+      }
+    });
+  }, [isSumitReady, sumitError, toast, validateCheckout]);
 
   if (isUserLoading || isProductLoading) {
     return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>;
@@ -471,7 +459,7 @@ export default function CheckoutPage() {
                   <CreditCard className="w-6 h-6 text-accent" />
                 </div>
 
-                <form ref={sumitFormRef} data-og="form" className="space-y-4" onSubmit={handleFormSubmit}>
+                <form ref={sumitFormRef} data-og="form" className="space-y-4">
                   <div className="og-errors rounded-2xl bg-destructive/10 text-destructive text-sm font-bold empty:hidden px-4 py-3" />
                   <input type="hidden" name="og-token" />
 
@@ -519,7 +507,8 @@ export default function CheckoutPage() {
                     </div>
                   )}
                   <Button
-                    type="submit"
+                    type="button"
+                    onClick={handlePayClick}
                     disabled={!isSumitReady || isProcessing}
                     className="w-full bg-primary text-white hover:bg-primary/90 h-16 rounded-2xl shadow-xl font-black text-xl uppercase tracking-widest gap-3"
                   >

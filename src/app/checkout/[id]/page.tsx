@@ -141,7 +141,7 @@ export default function CheckoutPage() {
   const isDelegatingSubmitRef = useRef(false);
   const sumitFormRef = useRef<HTMLFormElement | null>(null);
   const processPaymentWithTokenRef = useRef<(token: string) => Promise<void>>(async () => {
-    throw new Error('SUMIT token handler is not ready.');
+    throw new Error('Payment processing handler is not initialized. Please reload the page and try again.');
   });
 
   const getSumitTokenInput = useCallback((form?: HTMLFormElement | null) => {
@@ -380,6 +380,7 @@ export default function CheckoutPage() {
 
     isDelegatingSubmitRef.current = true;
     window.setTimeout(() => {
+      // Defer the synthetic submit so SUMIT handles the next submit cycle rather than this React submit handler.
       form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     }, 0);
   }, [getSumitTokenInput, isSumitReady, processPaymentWithToken, sumitError, toast, validateCheckout]);

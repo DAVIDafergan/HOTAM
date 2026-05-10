@@ -548,7 +548,7 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
                       onClick={() => setReviewSortOrder('oldest')}
                       className="rounded-full text-[10px] h-8 px-4 font-black"
                     >
-                      הוותיקות
+                      הוותיקות ביותר
                     </Button>
                   </div>
                   <h4 className="text-sm font-black text-primary/40 uppercase tracking-widest">ביקורות לקוחות</h4>

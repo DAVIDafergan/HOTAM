@@ -157,7 +157,7 @@ export default function CheckoutPage() {
     }
 
     const pollForOfficeGuy = async () => {
-      for (let attempt = 0; attempt < SUMIT_READY_POLL_ATTEMPTS; attempt++) {
+      for (let pollAttempt = 0; pollAttempt < SUMIT_READY_POLL_ATTEMPTS; pollAttempt++) {
         if (destroyed) return;
         if (window.OfficeGuy?.Payments?.TokenizeForm) {
           setIsSumitReady(true);

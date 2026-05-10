@@ -154,10 +154,10 @@ export default function SellerProfile() {
     return list;
   }, [reviews, reviewSortOrder]);
   const getSellerReviewSubmitLabel = () => {
-    if (!user) return 'התחבר כדי לפרסם דירוג';
+    if (!user) return 'התחבר כדי לפרסם ביקורת';
     if (isOwnSellerReviewBlocked) return 'לא ניתן לדרג את עצמך';
     if (hasUserReviewedSeller) return 'כבר פרסמת ביקורת';
-    return 'פרסם דירוג';
+    return 'פרסם ביקורת';
   };
 
   const showSelfReviewBlockedToast = () => {

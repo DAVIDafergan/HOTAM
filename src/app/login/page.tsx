@@ -266,7 +266,12 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div role="status" aria-live="polite">טוען...</div>}>
+    <Suspense fallback={
+      <div role="status" aria-live="polite" className="min-h-screen flex items-center justify-center gap-2 text-primary font-bold">
+        <Loader2 className="w-5 h-5 animate-spin" />
+        <span>טוען...</span>
+      </div>
+    }>
       <LoginContent />
     </Suspense>
   );

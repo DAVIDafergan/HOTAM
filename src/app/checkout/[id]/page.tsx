@@ -141,7 +141,7 @@ export default function CheckoutPage() {
   const isDelegatingSubmitRef = useRef(false);
   const sumitFormRef = useRef<HTMLFormElement | null>(null);
   const processPaymentWithTokenRef = useRef<(token: string) => Promise<void>>(async () => {
-    throw new Error('Payment processing handler is not initialized. Please reload the page and try again.');
+    throw new Error('מעבד התשלום לא אותחל. אנא רענן את הדף ונסה שוב.');
   });
 
   const getSumitTokenInput = useCallback((form?: HTMLFormElement | null) => {
@@ -364,6 +364,10 @@ export default function CheckoutPage() {
     }
 
     if (isDelegatingSubmitRef.current) {
+      return;
+    }
+
+    if (chargeInFlightRef.current) {
       return;
     }
 

@@ -54,7 +54,7 @@ const MIN_IMAGE_ZOOM_LEVEL = 1;
 const MAX_IMAGE_ZOOM_LEVEL = 4;
 const IMAGE_ZOOM_STEP = 0.25;
 const IMAGE_WHEEL_ZOOM_DELTA = 0.2;
-// Base horizontal/vertical pan allowance in pixels before zoom multiplier is applied.
+// Base horizontal/vertical pan allowance in pixels (multiplied by zoom level).
 const BASE_IMAGE_PAN_LIMIT_PX = 220;
 
 export function ProductDetailsClient({ productId, initialProduct = null }: { productId: string; initialProduct?: any | null }) {

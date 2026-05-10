@@ -28,6 +28,10 @@ const ACCESSIBILITY_DEFAULT_BOTTOM_OFFSET_PX = 88;
 const ACCESSIBILITY_DRAG_THRESHOLD_PX = 4;
 const ACCESSIBILITY_KEYBOARD_NUDGE_PX = 24;
 
+function exceedsDragThreshold(deltaX: number, deltaY: number) {
+  return (deltaX * deltaX) + (deltaY * deltaY) > ACCESSIBILITY_DRAG_THRESHOLD_PX * ACCESSIBILITY_DRAG_THRESHOLD_PX;
+}
+
 export function AccessibilityButton() {
   const [fontSize, setFontSize] = useState(100);
   const [highContrast, setHighContrast] = useState(false);
@@ -115,7 +119,7 @@ export function AccessibilityButton() {
     const deltaX = event.clientX - dragState.startX;
     const deltaY = event.clientY - dragState.startY;
 
-    if (!dragState.moved && (deltaX * deltaX) + (deltaY * deltaY) > ACCESSIBILITY_DRAG_THRESHOLD_PX * ACCESSIBILITY_DRAG_THRESHOLD_PX) {
+    if (!dragState.moved && exceedsDragThreshold(deltaX, deltaY)) {
       dragState.moved = true;
       suppressClickRef.current = true;
     }

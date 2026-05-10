@@ -3,6 +3,7 @@ import { sendEmail } from '@/lib/send-email';
 
 const EMAIL_PRIMARY = '#1a1a2e';
 const EMAIL_BACKGROUND = '#ffffff';
+const EMAIL_TEXT_COLOR = '#111827';
 const EMAIL_SECTION_PADDING = '30px';
 const EMAIL_PANEL_RADIUS = '16px';
 const EMAIL_CODE_RADIUS = '12px';
@@ -82,7 +83,7 @@ export async function markOrderAsPaidAndNotify(orderId: string, paymentProvider:
       subject: '✅ אישור הזמנה - הקוד הסודי שלך | Hotam Shop',
       text: `תודה על הרכישה שלך ב-Hotam Shop. המוכר יצור איתך קשר בהקדם לתיאום המסירה. הקוד הסודי שלך הוא ${verificationCode}. קבל את המוצר מהמוכר, בדוק שהוא תקין ומתאים למה שהזמנת, ורק לאחר מכן מסור למוכר את הקוד. אל תמסור את הקוד לפני שבדקת את המוצר.`,
       html: `
-        <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: ${EMAIL_BACKGROUND}; color: #111827;">
+        <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: ${EMAIL_BACKGROUND}; color: ${EMAIL_TEXT_COLOR};">
           
           <div style="background: ${EMAIL_PRIMARY}; padding: ${EMAIL_SECTION_PADDING}; text-align: center;">
             <h1 style="color: ${EMAIL_BACKGROUND}; margin: 0; font-size: 28px; letter-spacing: 2px;">HOTAM</h1>

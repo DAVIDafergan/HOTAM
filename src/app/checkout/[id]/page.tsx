@@ -57,6 +57,66 @@ const JQUERY_SCRIPT_SELECTOR = 'script[data-hotam="jquery"]';
 const SUMIT_SCRIPT_SELECTOR = 'script[data-hotam="sumit"]';
 const SUMIT_READY_POLL_INTERVAL_MS = 250;
 const SUMIT_READY_POLL_ATTEMPTS = 20;
+// Keep supporting legacy SUMMIT_* client env names until deployment config is normalized.
+const SUMIT_COMPANY_ID = process.env.NEXT_PUBLIC_SUMIT_BUSINESS_ID || process.env.NEXT_PUBLIC_SUMMIT_BUSINESS_ID || '';
+const SUMIT_PUBLIC_KEY = process.env.NEXT_PUBLIC_SUMIT_PUBLIC_KEY || process.env.NEXT_PUBLIC_SUMMIT_PUBLIC_KEY || '';
+let sumitLoadPromise: Promise<void> | null = null;
+
+function pollReady(resolve: () => void, reject: (e: Error) => void) {
+  let attempts = 0;
+  const poll = () => {
+    if ((window as any).OfficeGuy?.Payments?.TokenizeForm) {
+      resolve();
+      return;
+    }
+
+    if (++attempts < SUMIT_READY_POLL_ATTEMPTS) {
+      setTimeout(poll, SUMIT_READY_POLL_INTERVAL_MS);
+    } else {
+      reject(new Error('OfficeGuy לא נטען'));
+    }
+  };
+
+  poll();
+}
+
+function loadSumitScripts(): Promise<void> {
+  if (sumitLoadPromise) return sumitLoadPromise;
+
+  sumitLoadPromise = new Promise<void>((resolve, reject) => {
+    const injectSumit = () => {
+      if (document.querySelector(SUMIT_SCRIPT_SELECTOR)) {
+        pollReady(resolve, reject);
+        return;
+      }
+
+      const s = document.createElement('script');
+      s.src = 'https://app.sumit.co.il/scripts/payments.js';
+      s.async = true;
+      s.dataset.hotam = 'sumit';
+      s.onload = () => pollReady(resolve, reject);
+      s.onerror = () => reject(new Error('טעינת מערכת הסליקה נכשלה'));
+      document.body.appendChild(s);
+    };
+
+    if (document.querySelector(JQUERY_SCRIPT_SELECTOR)) {
+      injectSumit();
+      return;
+    }
+
+    const jq = document.createElement('script');
+    jq.src = 'https://code.jquery.com/jquery-3.7.1.min.js';
+    jq.integrity = 'sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=';
+    jq.crossOrigin = 'anonymous';
+    jq.async = true;
+    jq.dataset.hotam = 'jquery';
+    jq.onload = injectSumit;
+    jq.onerror = () => reject(new Error('טעינת jQuery נכשלה'));
+    document.body.appendChild(jq);
+  });
+
+  return sumitLoadPromise;
+}
 
 export default function CheckoutPage() {
   const params = useParams();
@@ -79,11 +139,6 @@ export default function CheckoutPage() {
   const [recipientCity, setRecipientCity] = useState('');
   const pendingOrderRef = useRef<{ orderId: string; verificationCode: string } | null>(null);
   const chargeInFlightRef = useRef(false);
-
-  // Keep supporting the legacy SUMMIT_* client env names until deployment config is normalized.
-  const sumitCompanyId = process.env.NEXT_PUBLIC_SUMIT_BUSINESS_ID || process.env.NEXT_PUBLIC_SUMMIT_BUSINESS_ID;
-  const sumitPublicKey = process.env.NEXT_PUBLIC_SUMIT_PUBLIC_KEY || process.env.NEXT_PUBLIC_SUMMIT_PUBLIC_KEY;
-  console.log("DEBUG KEYS:", process.env.NEXT_PUBLIC_SUMMIT_BUSINESS_ID, process.env.NEXT_PUBLIC_SUMMIT_PUBLIC_KEY);
 
   const productRef = useMemoStable(() => productId ? doc(db, 'products', productId) : null, [db, productId]);
   const { data: product, isLoading: isProductLoading } = useDoc<any>(productRef);
@@ -138,91 +193,26 @@ export default function CheckoutPage() {
   }, [deliveryChoice, recipientName, recipientPhone, recipientAddress, recipientCity, totalPrice, productId, user?.uid]);
 
   useEffect(() => {
-    let destroyed = false;
-    const cleanup = () => {
-      destroyed = true;
-    };
-
     if (typeof window === 'undefined') return;
-    if (!sumitCompanyId || !sumitPublicKey) {
-      if (destroyed) return;
-      setIsSumitReady(false);
+    if (!SUMIT_COMPANY_ID || !SUMIT_PUBLIC_KEY) {
       setSumitError('חסרים פרטי הזדהות של מערכת הסליקה.');
-      return cleanup;
+      return;
     }
-
-    if (!destroyed) {
-      setIsSumitReady(false);
-      setSumitError(null);
-    }
-
-    const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-    const pollForOfficeGuy = async () => {
-      for (let attempt = 0; attempt < SUMIT_READY_POLL_ATTEMPTS; attempt++) {
-        if (destroyed) return;
-        if (window.OfficeGuy?.Payments?.TokenizeForm) {
+    let cancelled = false;
+    loadSumitScripts()
+      .then(() => {
+        if (!cancelled) {
           setIsSumitReady(true);
           setSumitError(null);
-          return;
         }
-
-        await wait(SUMIT_READY_POLL_INTERVAL_MS);
-      }
-
-      if (destroyed) return;
-      setIsSumitReady(false);
-      setSumitError('מערכת הסליקה לא נטענה. נסו לרענן את העמוד.');
+      })
+      .catch((err) => {
+        if (!cancelled) setSumitError(err.message || 'מערכת הסליקה לא נטענה.');
+      });
+    return () => {
+      cancelled = true;
     };
-
-    const ensureSumitScript = () => {
-      const existingSumitScript = document.querySelector<HTMLScriptElement>(SUMIT_SCRIPT_SELECTOR);
-      if (existingSumitScript) {
-        void pollForOfficeGuy();
-        return;
-      }
-
-      const sumitScript = document.createElement('script');
-      sumitScript.src = 'https://app.sumit.co.il/scripts/payments.js';
-      sumitScript.async = false;
-      sumitScript.dataset.hotam = 'sumit';
-      sumitScript.onload = () => {
-        if (destroyed) return;
-        void pollForOfficeGuy();
-      };
-      sumitScript.onerror = () => {
-        if (destroyed) return;
-        setIsSumitReady(false);
-        setSumitError('טעינת מערכת הסליקה נכשלה. נסו לרענן את העמוד.');
-      };
-      document.body.appendChild(sumitScript);
-    };
-
-    const existingJQueryScript = document.querySelector<HTMLScriptElement>(JQUERY_SCRIPT_SELECTOR);
-    if (existingJQueryScript) {
-      ensureSumitScript();
-      return cleanup;
-    }
-
-    const jqScript = document.createElement('script');
-    jqScript.src = 'https://code.jquery.com/jquery-3.7.1.min.js';
-    jqScript.integrity = 'sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=';
-    jqScript.crossOrigin = 'anonymous';
-    jqScript.async = false;
-    jqScript.dataset.hotam = 'jquery';
-    jqScript.onload = () => {
-      if (destroyed) return;
-      ensureSumitScript();
-    };
-    jqScript.onerror = () => {
-      if (destroyed) return;
-      setIsSumitReady(false);
-      setSumitError('טעינת jQuery נכשלה. נסו לרענן את העמוד.');
-    };
-    document.body.appendChild(jqScript);
-
-    return cleanup;
-  }, [sumitCompanyId, sumitPublicKey]);
+  }, []);
 
   const generateVerificationCode = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
@@ -285,7 +275,7 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (!isSumitReady || !sumitCompanyId || !sumitPublicKey) {
+    if (!isSumitReady || !SUMIT_COMPANY_ID || !SUMIT_PUBLIC_KEY) {
       toast({ variant: "destructive", title: "מערכת הסליקה לא מוכנה", description: sumitError || 'נסו שוב בעוד רגע.' });
       return;
     }
@@ -315,8 +305,8 @@ export default function CheckoutPage() {
       };
 
       window.OfficeGuy.Payments.TokenizeForm({
-        CompanyID: sumitCompanyId,
-        APIPublicKey: sumitPublicKey,
+        CompanyID: SUMIT_COMPANY_ID,
+        APIPublicKey: SUMIT_PUBLIC_KEY,
         OnSuccess: async (tokenPayload: any) => {
           try {
             const token = typeof tokenPayload === 'string'

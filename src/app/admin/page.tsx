@@ -227,11 +227,12 @@ export default function AdminDashboard() {
       .eq('id', id);
 
     if (error || count === 0) {
-      console.error('approve failed:', error?.message, 'count:', count);
+      const failureMessage = error?.message ?? 'המוכר לא נמצא במערכת';
+      console.error('approve failed:', failureMessage, 'count:', count);
       toast({
         variant: "destructive",
         title: "שגיאה באישור המוכר",
-        description: error?.message,
+        description: failureMessage,
       });
       return;
     }

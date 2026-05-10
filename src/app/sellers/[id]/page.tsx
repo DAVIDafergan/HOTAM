@@ -274,11 +274,12 @@ export default function SellerProfile() {
       .eq('buyer_id', user.uid);
     setDeletingReviewId(null);
     if (error) {
-      console.error('[supermarket_reviews] delete error:', error.message);
+      console.log('[supermarket_reviews] delete returned error:', error.message);
       toast({ variant: 'destructive', title: 'שגיאה במחיקת הביקורת', description: 'אנא נסה שוב.' });
       return;
     }
     setReviews(prev => prev.filter((rev: any) => rev.id !== reviewId));
+    router.refresh();
     toast({ title: 'הביקורת נמחקה בהצלחה' });
   };
 

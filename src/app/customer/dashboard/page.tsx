@@ -225,28 +225,33 @@ export default function CustomerDashboard() {
     }
   };
 
-  const handleManualRating = () => {
+  const handleManualRating = async () => {
     if (!ratingOrderId || !user) return;
     setIsRatingSubmitting(true);
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', user.uid)
+      .single();
 
     const reviewData = {
       order_id: ratingOrderId.id,
       seller_id: ratingOrderId.seller_id,
       product_id: ratingOrderId.product_id,
       buyer_id: user.uid,
-      buyer_name: `${customer?.first_name || 'לקוח'} ${customer?.last_name || 'חותם'}`,
+      buyer_name: profile?.full_name || user.displayName || 'משתמש',
       is_anonymous: false,
       rating: scribeRatingVal,
       product_rating: productRatingVal,
       comment: ratingComment,
     };
 
-    supabase.from('reviews').insert(reviewData).then(({ error }) => {
-      if (error) {
-        console.error('[reviews] insert error:', error.message);
-        toast({ variant: 'destructive', title: 'שגיאה בשמירת הדירוג', description: 'אנא נסה שנית.' });
-      }
-    });
+    const { error } = await supabase.from('reviews').insert(reviewData);
+    if (error) {
+      console.error('[reviews] insert error:', error.message);
+      toast({ variant: 'destructive', title: 'שגיאה בשמירת הדירוג', description: 'אנא נסה שנית.' });
+    }
     updateDocumentNonBlocking(doc(db, 'orders', ratingOrderId.id), { is_rated: true });
 
     setTimeout(() => {

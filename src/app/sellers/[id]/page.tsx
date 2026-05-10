@@ -214,23 +214,15 @@ export default function SellerProfile() {
       return;
     }
     setIsReviewSubmitting(true);
-    const { data: authData, error: authError } = await supabase.auth.getUser();
-    if (authError || !authData?.user) {
-      setIsReviewSubmitting(false);
-      router.push('/login');
-      return;
-    }
-    const fullName = authData.user.user_metadata?.full_name;
-    const fallbackName = user.displayName || user.email || 'משתמש';
-    const realName = fullName || fallbackName;
     const { data: profileRow, error: profileError } = await supabase
       .from('profiles')
-      .select('avatar_url')
+      .select('avatar_url, full_name')
       .eq('id', user.uid)
-      .maybeSingle();
+      .single();
     if (profileError) {
-      console.error('[profiles] avatar fetch error:', profileError.message);
+      console.error('[profiles] fetch error:', profileError.message);
     }
+    const realName = profileRow?.full_name || user.displayName || 'משתמש';
     const reviewData = {
       supermarket_id: id,
       buyer_id: user.uid,

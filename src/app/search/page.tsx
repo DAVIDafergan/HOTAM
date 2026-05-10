@@ -69,6 +69,14 @@ const CITY_ALIAS_PAIRS = [
   ['jerusalem', 'ירושלים'],
   ['haifa', 'חיפה'],
 ] as const;
+const normalizeCity = (value: string) =>
+  value
+    .normalize('NFKD')
+    .replace(/[\u0591-\u05C7]/g, '')
+    .replace(/[^\p{L}\p{N}\s-]/gu, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
 const REGION_CITY_MAP: Record<string, string[]> = {
   'השרון': ['נתניה', 'הרצליה', 'רעננה', 'כפר סבא', 'הוד השרון', 'רמת השרון', 'פרדסיה', 'קדימה', 'אבן יהודה'],
   'תל אביב וגוש דן': ['תל אביב', 'תל אביב-יפו', 'רמת גן', 'גבעתיים', 'חולון', 'בת ים', 'בני ברק', 'פתח תקווה'],
@@ -81,14 +89,6 @@ const REGION_CITY_MAP: Record<string, string[]> = {
 const NORMALIZED_REGION_CITY_MAP: Record<string, string[]> = Object.fromEntries(
   Object.entries(REGION_CITY_MAP).map(([region, cities]) => [region, cities.map(normalizeCity)]),
 );
-const normalizeCity = (value: string) =>
-  value
-    .normalize('NFKD')
-    .replace(/[\u0591-\u05C7]/g, '')
-    .replace(/[^\p{L}\p{N}\s-]/gu, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase();
 const CITY_ALIASES: Record<string, string[]> = CITY_ALIAS_PAIRS.reduce((acc, [a, b]) => {
   const left = normalizeCity(a);
   const right = normalizeCity(b);

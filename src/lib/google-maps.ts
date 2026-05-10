@@ -1,5 +1,3 @@
-'use client';
-
 declare global {
   interface Window {
     google?: any;
@@ -14,7 +12,7 @@ export type GoogleAddressSelection = {
   lng: number | null;
 };
 
-const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+const getGoogleMapsApiKey = () => process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 const CITY_KEYS = ['locality', 'administrative_area_level_2', 'administrative_area_level_1'];
 
@@ -37,7 +35,8 @@ export function getCityFromAddressComponents(components?: any[]): string | null 
 
 export async function loadGoogleMapsPlacesScript(): Promise<void> {
   if (typeof window === 'undefined') return;
-  if (!GOOGLE_MAPS_API_KEY) throw new Error('חסר NEXT_PUBLIC_GOOGLE_MAPS_API_KEY');
+  const googleMapsApiKey = getGoogleMapsApiKey();
+  if (!googleMapsApiKey) throw new Error('חסר NEXT_PUBLIC_GOOGLE_MAPS_API_KEY');
   if (window.google?.maps?.places) return;
 
   if (!window.__googleMapsPlacesPromise) {
@@ -50,7 +49,7 @@ export async function loadGoogleMapsPlacesScript(): Promise<void> {
       }
 
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places&language=he&region=IL`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&language=he&region=IL`;
       script.async = true;
       script.defer = true;
       script.dataset.googleMapsPlaces = 'true';
@@ -64,10 +63,11 @@ export async function loadGoogleMapsPlacesScript(): Promise<void> {
 }
 
 export async function reverseGeocodeWithGoogle(lat: number, lng: number): Promise<{ city: string | null }> {
-  if (!GOOGLE_MAPS_API_KEY) throw new Error('חסר NEXT_PUBLIC_GOOGLE_MAPS_API_KEY');
+  const googleMapsApiKey = getGoogleMapsApiKey();
+  if (!googleMapsApiKey) throw new Error('חסר NEXT_PUBLIC_GOOGLE_MAPS_API_KEY');
 
   const response = await fetch(
-    `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&language=he&region=IL&key=${GOOGLE_MAPS_API_KEY}`,
+    `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&language=he&region=IL&key=${googleMapsApiKey}`,
   );
 
   if (!response.ok) {

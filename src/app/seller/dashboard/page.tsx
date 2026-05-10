@@ -351,17 +351,64 @@ function SellerDashboardContent() {
     setTimeout(() => { setIsVerifying(null); toast({ title: "העסקה הושלמה!" }); }, 1000);
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, target: 'product' | 'profile') => {
+  const uploadProductImage = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const res = await fetch('/api/upload-image', {
+      method: 'POST',
+      body: formData,
+    });
+
+    const payload = await res.json();
+
+    if (!res.ok || !payload?.url) {
+      throw new Error(payload?.error || 'Upload failed');
+    }
+
+    return payload.url as string;
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: 'product' | 'profile') => {
     const files = e.target.files;
     if (!files) return;
-    Array.from(files).forEach(file => {
+    const allFiles = Array.from(files);
+
+    if (target === 'product') {
+      const remainingSlots = Math.max(0, 6 - formImages.length);
+      const filesToUpload = allFiles.slice(0, remainingSlots);
+
+      if (filesToUpload.length === 0) {
+        toast({ variant: 'destructive', title: 'מקסימום תמונות', description: 'ניתן להעלות עד 6 תמונות.' });
+        e.target.value = '';
+        return;
+      }
+
+      try {
+        const uploadedUrls = await Promise.all(filesToUpload.map(uploadProductImage));
+        setFormImages(prev => [...prev, ...uploadedUrls]);
+
+        if (allFiles.length > remainingSlots) {
+          toast({ title: 'חלק מהקבצים לא הועלו', description: 'ניתן להעלות עד 6 תמונות לכל מוצר.' });
+        }
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'העלאת התמונה נכשלה.';
+        console.error('Product image upload error:', error);
+        toast({ variant: 'destructive', title: 'שגיאת העלאה', description: message });
+      } finally {
+        e.target.value = '';
+      }
+      return;
+    }
+
+    allFiles.forEach(file => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        if (target === 'product') setFormImages(prev => [...prev, reader.result as string]);
-        else setProfileData(prev => ({ ...prev, profile_image: reader.result as string }));
+        setProfileData(prev => ({ ...prev, profile_image: reader.result as string }));
       };
       reader.readAsDataURL(file);
     });
+    e.target.value = '';
   };
 
   const openEditDialog = (p: any) => {

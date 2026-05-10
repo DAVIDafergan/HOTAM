@@ -226,8 +226,8 @@ export default function AdminDashboard() {
       .update({ is_approved: true }, { count: 'exact' })
       .eq('id', id);
 
-    if (error || count === 0) {
-      const failureMessage = error?.message ?? 'המוכר לא נמצא במערכת';
+    if (error || count === null || count === 0) {
+      const failureMessage = error?.message ?? 'המוכר כבר מאושר או לא קיים במערכת';
       console.error('approve failed:', failureMessage, 'count:', count);
       toast({
         variant: "destructive",

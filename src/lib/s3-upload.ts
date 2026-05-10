@@ -1,10 +1,19 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
+const AWS_REGION = process.env.AWS_REGION;
+const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
+const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
+const AWS_S3_BUCKET = process.env.AWS_S3_BUCKET;
+
+if (!AWS_REGION || !AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY || !AWS_S3_BUCKET) {
+  throw new Error('Missing required AWS S3 environment variables');
+}
+
 const s3 = new S3Client({
-  region: process.env.AWS_REGION!,
+  region: AWS_REGION,
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    accessKeyId: AWS_ACCESS_KEY_ID,
+    secretAccessKey: AWS_SECRET_ACCESS_KEY,
   },
 });
 
@@ -17,12 +26,12 @@ export async function uploadImageToS3(
 
   await s3.send(
     new PutObjectCommand({
-      Bucket: process.env.AWS_S3_BUCKET!,
+      Bucket: AWS_S3_BUCKET,
       Key: key,
       Body: fileBuffer,
       ContentType: contentType,
     })
   );
 
-  return `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+  return `https://${AWS_S3_BUCKET}.s3.${AWS_REGION}.amazonaws.com/${key}`;
 }

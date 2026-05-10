@@ -33,6 +33,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url });
   } catch (error: any) {
     console.error('S3 upload error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
   }
 }

@@ -5,8 +5,15 @@ const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
 const AWS_S3_BUCKET = process.env.AWS_S3_BUCKET;
 
-if (!AWS_REGION || !AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY || !AWS_S3_BUCKET) {
-  throw new Error('Missing required AWS S3 environment variables');
+const missingEnvVars = [
+  ['AWS_REGION', AWS_REGION],
+  ['AWS_ACCESS_KEY_ID', AWS_ACCESS_KEY_ID],
+  ['AWS_SECRET_ACCESS_KEY', AWS_SECRET_ACCESS_KEY],
+  ['AWS_S3_BUCKET', AWS_S3_BUCKET],
+].filter(([, value]) => !value).map(([name]) => name);
+
+if (missingEnvVars.length > 0) {
+  throw new Error(`Missing required AWS S3 environment variables: ${missingEnvVars.join(', ')}`);
 }
 
 const s3 = new S3Client({

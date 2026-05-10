@@ -70,11 +70,11 @@ function getSumitCredentials() {
     process.env.SUMIT_BUSINESS_ID ||
     process.env.SUMMIT_BUSINESS_ID;
   const apiKey =
-      process.env.SUMIT_API_KEY ||
-      process.env.SUMIT_PRIVATE_API_KEY ||
-      process.env.SUMMIT_PRIVATE_API_KEY ||
-      process.env.SUMIT_PRIVATE_KEY ||
-      process.env.SUMMIT_PRIVATE_KEY;
+    process.env.SUMIT_API_KEY ||
+    process.env.SUMIT_PRIVATE_API_KEY ||
+    process.env.SUMMIT_PRIVATE_API_KEY ||
+    process.env.SUMIT_PRIVATE_KEY ||
+    process.env.SUMMIT_PRIVATE_KEY;
 
   if (!companyId || !apiKey) {
     throw new Error('Missing SUMIT credentials for charge request');

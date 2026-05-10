@@ -79,7 +79,7 @@ export async function markOrderAsPaidAndNotify(orderId: string, paymentProvider:
       subject: '✅ אישור הזמנה - הקוד הסודי שלך | Hotam Shop',
       text: `תודה על הרכישה שלך ב-Hotam Shop. המוכר יצור איתך קשר בהקדם לתיאום המסירה. הקוד הסודי שלך הוא ${verificationCode}. קבל את המוצר מהמוכר, בדוק שהוא תקין ומתאים למה שהזמנת, ורק לאחר מכן מסור למוכר את הקוד. אל תמסור את הקוד לפני שבדקת את המוצר.`,
       html: `
-        <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: ${EMAIL_BACKGROUND};">
+        <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: ${EMAIL_BACKGROUND}; color: #111827;">
           
           <div style="background: ${EMAIL_PRIMARY}; padding: 30px; text-align: center;">
             <h1 style="color: ${EMAIL_BACKGROUND}; margin: 0; font-size: 28px; letter-spacing: 2px;">HOTAM</h1>

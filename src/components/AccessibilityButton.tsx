@@ -22,10 +22,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from '@/lib/utils';
 
-const ACCESSIBILITY_DRAG_BOUNDARY_SIZE = 48;
-const ACCESSIBILITY_BUTTON_PADDING = 16;
-const ACCESSIBILITY_DEFAULT_BOTTOM_OFFSET = 88;
-const ACCESSIBILITY_DRAG_THRESHOLD = 4;
+const ACCESSIBILITY_DRAG_BOUNDARY_SIZE_PX = 48;
+const ACCESSIBILITY_BUTTON_PADDING_PX = 16;
+const ACCESSIBILITY_DEFAULT_BOTTOM_OFFSET_PX = 88;
+const ACCESSIBILITY_DRAG_THRESHOLD_PX = 4;
 
 export function AccessibilityButton() {
   const [fontSize, setFontSize] = useState(100);
@@ -47,8 +47,8 @@ export function AccessibilityButton() {
   const clampPosition = (x: number, y: number) => {
     if (typeof window === 'undefined') return { x, y };
     return {
-      x: Math.min(Math.max(0, x), window.innerWidth - ACCESSIBILITY_DRAG_BOUNDARY_SIZE),
-      y: Math.min(Math.max(ACCESSIBILITY_BUTTON_PADDING, y), window.innerHeight - ACCESSIBILITY_DRAG_BOUNDARY_SIZE),
+      x: Math.min(Math.max(0, x), window.innerWidth - ACCESSIBILITY_DRAG_BOUNDARY_SIZE_PX),
+      y: Math.min(Math.max(ACCESSIBILITY_BUTTON_PADDING_PX, y), window.innerHeight - ACCESSIBILITY_DRAG_BOUNDARY_SIZE_PX),
     };
   };
 
@@ -76,7 +76,7 @@ export function AccessibilityButton() {
     const syncToViewport = () => {
       setPosition(prev => {
         if (prev.y === 0) {
-          return clampPosition(prev.x, window.innerHeight - ACCESSIBILITY_DEFAULT_BOTTOM_OFFSET);
+          return clampPosition(prev.x, window.innerHeight - ACCESSIBILITY_DEFAULT_BOTTOM_OFFSET_PX);
         }
         return clampPosition(prev.x, prev.y);
       });
@@ -114,7 +114,7 @@ export function AccessibilityButton() {
     const deltaX = event.clientX - dragState.startX;
     const deltaY = event.clientY - dragState.startY;
 
-    if (!dragState.moved && Math.hypot(deltaX, deltaY) > ACCESSIBILITY_DRAG_THRESHOLD) {
+    if (!dragState.moved && Math.hypot(deltaX, deltaY) > ACCESSIBILITY_DRAG_THRESHOLD_PX) {
       dragState.moved = true;
       suppressClickRef.current = true;
     }

@@ -31,11 +31,10 @@ declare global {
     jQuery?: (callback: () => void) => void;
     OfficeGuy?: {
       Payments?: {
-        TokenizeForm: (config: {
+        BindFormSubmit: (config: {
           CompanyID?: string;
           APIPublicKey?: string;
-          OnSuccess?: (token: any) => void | Promise<void>;
-          OnError?: (error: any) => void;
+          Callback?: (token: string | null) => void | Promise<void>;
         }) => void;
       };
     };
@@ -65,7 +64,7 @@ let sumitLoadPromise: Promise<void> | null = null;
 function pollReady(resolve: () => void, reject: (e: Error) => void) {
   let attempts = 0;
   const poll = () => {
-    if ((window as any).OfficeGuy?.Payments?.TokenizeForm) {
+    if ((window as any).OfficeGuy?.Payments?.BindFormSubmit) {
       resolve();
       return;
     }
@@ -139,6 +138,20 @@ export default function CheckoutPage() {
   const [recipientCity, setRecipientCity] = useState('');
   const pendingOrderRef = useRef<{ orderId: string; verificationCode: string } | null>(null);
   const chargeInFlightRef = useRef(false);
+  const isDelegatingSubmitRef = useRef(false);
+  const sumitFormRef = useRef<HTMLFormElement | null>(null);
+  const processPaymentWithTokenRef = useRef<(token: string) => Promise<void>>(async () => {
+    throw new Error('מעבד התשלום לא אותחל. אנא רענן את הדף ונסה שוב.');
+  });
+
+  const getSumitTokenInput = useCallback((form?: HTMLFormElement | null) => {
+    return (form || sumitFormRef.current)?.elements.namedItem('og-token') as HTMLInputElement | null;
+  }, []);
+
+  const resetSumitToken = useCallback(() => {
+    const tokenInput = getSumitTokenInput();
+    if (tokenInput) tokenInput.value = '';
+  }, [getSumitTokenInput]);
 
   const productRef = useMemoStable(() => productId ? doc(db, 'products', productId) : null, [db, productId]);
   const { data: product, isLoading: isProductLoading } = useDoc<any>(productRef);
@@ -201,10 +214,30 @@ export default function CheckoutPage() {
     let cancelled = false;
     loadSumitScripts()
       .then(() => {
-        if (!cancelled) {
+        if (cancelled) return;
+        (window as any).jQuery?.(() => {
+          if (cancelled) return;
+          const payments = (window as any).OfficeGuy?.Payments;
+          if (!payments?.BindFormSubmit) {
+            setIsSumitReady(false);
+            setSumitError('מערכת הסליקה לא נטענה.');
+            return;
+          }
+          payments.BindFormSubmit({
+            CompanyID: SUMIT_COMPANY_ID,
+            APIPublicKey: SUMIT_PUBLIC_KEY,
+            Callback: async (token: string | null) => {
+              try {
+                if (!token) return;
+                await processPaymentWithTokenRef.current(token);
+              } finally {
+                isDelegatingSubmitRef.current = false;
+              }
+            }
+          });
           setIsSumitReady(true);
           setSumitError(null);
-        }
+        });
       })
       .catch((err) => {
         if (!cancelled) setSumitError(err.message || 'מערכת הסליקה לא נטענה.');
@@ -219,6 +252,10 @@ export default function CheckoutPage() {
   };
 
   const validateCheckout = useCallback(() => {
+    if (!deliveryChoice) {
+      return 'אנא בחר אופן קבלת המוצר.';
+    }
+
     if (!recipientName || !recipientPhone || (deliveryChoice === 'shipping' && (!recipientAddress || !recipientCity))) {
       return 'אנא מלא את כל פרטי החובה למשלוח.';
     }
@@ -265,26 +302,7 @@ export default function CheckoutPage() {
     return shortId;
   }, [db, deliveryChoice, product, productId, recipientAddress, recipientCity, recipientName, recipientPhone, totalPrice, user?.email, user?.uid]);
 
-  const handlePayment = async (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-
-    const validationError = validateCheckout();
-    if (validationError) {
-      toast({ variant: "destructive", title: "פרטים חסרים", description: validationError });
-      return;
-    }
-
-    if (!isSumitReady || !SUMIT_COMPANY_ID || !SUMIT_PUBLIC_KEY) {
-      toast({ variant: "destructive", title: "מערכת הסליקה לא מוכנה", description: sumitError || 'נסו שוב בעוד רגע.' });
-      return;
-    }
-
-    if (!window.OfficeGuy?.Payments?.TokenizeForm) {
-      alert("מערכת הסליקה לא נטענה, נא לרענן");
-      return;
-    }
-
+  const processPaymentWithToken = useCallback(async (token: string) => {
     if (chargeInFlightRef.current) {
       return;
     }
@@ -304,60 +322,72 @@ export default function CheckoutPage() {
         customerPhone: recipientPhone,
       };
 
-      window.OfficeGuy.Payments.TokenizeForm({
-        CompanyID: SUMIT_COMPANY_ID,
-        APIPublicKey: SUMIT_PUBLIC_KEY,
-        OnSuccess: async (tokenPayload: any) => {
-          try {
-            const token = typeof tokenPayload === 'string'
-              ? tokenPayload
-              : tokenPayload?.Token || tokenPayload?.SingleUseToken || tokenPayload?.token || '';
-
-            if (!token) {
-              throw new Error('לא התקבל טוקן סליקה תקין.');
-            }
-
-            const response = await fetch('/api/payments/charge', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                token,
-                cartData,
-              }),
-            });
-
-            const data = await response.json();
-            if (!response.ok || !data?.success) {
-              throw new Error(data.error || 'לא ניתן היה להשלים את החיוב.');
-            }
-
-            setIsSuccess(true);
-            router.push('/checkout/success');
-          } catch (err: any) {
-            console.error('Payment Charge Error:', err);
-            setChargeError(err.message || 'חלה שגיאה בחיבור למערכת הסליקה.');
-            setIsProcessing(false);
-            chargeInFlightRef.current = false;
-          }
-        },
-        OnError: (error: any) => {
-          alert("שגיאת סליקה: " + (error?.Message || 'אירעה שגיאה לא ידועה.'));
-          setIsProcessing(false);
-          chargeInFlightRef.current = false;
-        },
+      const response = await fetch('/api/payments/charge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token,
+          cartData,
+        }),
       });
+
+      const data = await response.json();
+      if (!response.ok || !data?.success) {
+        throw new Error(data.error || 'לא ניתן היה להשלים את החיוב.');
+      }
+
+      setIsSuccess(true);
+      router.push('/checkout/success');
     } catch (err: any) {
-      console.error('Payment Preparation Error:', err);
-      toast({ variant: "destructive", title: "שגיאת תשלום", description: err.message || "חלה שגיאה בחיבור למערכת הסליקה." });
+      console.error('Payment Charge Error:', err);
+      setChargeError(err.message || 'חלה שגיאה בחיבור למערכת הסליקה.');
       setIsProcessing(false);
       chargeInFlightRef.current = false;
+      resetSumitToken();
     }
-  };
+  }, [product?.product_name, product?.product_type, recipientPhone, resetSumitToken, router, totalPrice, upsertPendingOrder, user?.email]);
 
-  const preventNativeFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  useEffect(() => {
+    processPaymentWithTokenRef.current = processPaymentWithToken;
+  }, [processPaymentWithToken]);
+
+  const handleFormSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    event.stopPropagation();
-  };
+    const form = event.currentTarget;
+    const tokenInput = getSumitTokenInput(form);
+    const token = tokenInput?.value?.trim() || '';
+
+    if (token) {
+      await processPaymentWithToken(token);
+      isDelegatingSubmitRef.current = false;
+      return;
+    }
+
+    if (isDelegatingSubmitRef.current) {
+      return;
+    }
+
+    if (chargeInFlightRef.current) {
+      return;
+    }
+
+    const validationError = validateCheckout();
+    if (validationError) {
+      toast({ variant: "destructive", title: "פרטים חסרים", description: validationError });
+      return;
+    }
+
+    if (!isSumitReady || !SUMIT_COMPANY_ID || !SUMIT_PUBLIC_KEY) {
+      toast({ variant: "destructive", title: "מערכת הסליקה לא מוכנה", description: sumitError || 'נסו שוב בעוד רגע.' });
+      return;
+    }
+
+    isDelegatingSubmitRef.current = true;
+    window.setTimeout(() => {
+      // Defer the synthetic submit so SUMIT handles the next submit cycle rather than this React submit handler.
+      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    }, 0);
+  }, [getSumitTokenInput, isSumitReady, processPaymentWithToken, sumitError, toast, validateCheckout]);
 
   if (isUserLoading || isProductLoading) {
     return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>;
@@ -441,8 +471,9 @@ export default function CheckoutPage() {
                   <CreditCard className="w-6 h-6 text-accent" />
                 </div>
 
-                <form data-og="form" className="space-y-4" onSubmit={preventNativeFormSubmit}>
+                <form ref={sumitFormRef} data-og="form" className="space-y-4" onSubmit={handleFormSubmit}>
                   <div className="og-errors rounded-2xl bg-destructive/10 text-destructive text-sm font-bold empty:hidden px-4 py-3" />
+                  <input type="hidden" name="og-token" />
 
                   <div className="space-y-2">
                     <Label htmlFor="sumit-card-number">מספר כרטיס</Label>
@@ -481,9 +512,6 @@ export default function CheckoutPage() {
                       {!isSumitReady ? 'מערכת הסליקה נטענת...' : 'פרטי האשראי נשארים בטופס המאובטח של SUMIT.'}
                     </div>
                   )}
-                </form>
-
-                <div className="pt-2">
                   {chargeError && (
                     <div className="flex items-start gap-2 rounded-2xl bg-red-50 text-red-600 px-4 py-3 text-sm font-bold mb-4">
                       <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
@@ -491,9 +519,8 @@ export default function CheckoutPage() {
                     </div>
                   )}
                   <Button
-                    type="button"
-                    onClick={handlePayment}
-                    disabled={isProcessing || !deliveryChoice || !isSumitReady}
+                    type="submit"
+                    disabled={!isSumitReady || isProcessing}
                     className="w-full bg-primary text-white hover:bg-primary/90 h-16 rounded-2xl shadow-xl font-black text-xl uppercase tracking-widest gap-3"
                   >
                     {isProcessing ? (
@@ -508,7 +535,7 @@ export default function CheckoutPage() {
                       </>
                     )}
                   </Button>
-                </div>
+                </form>
               </Card>
             </div>
             

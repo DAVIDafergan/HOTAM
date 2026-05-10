@@ -4,9 +4,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Accessibility, 
-  Type, 
-  Sun, 
-  Moon, 
   RotateCcw,
   Minus,
   Plus,

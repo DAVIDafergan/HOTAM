@@ -159,7 +159,7 @@ export default function CheckoutPage() {
     const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
     const pollForOfficeGuy = async () => {
-      for (let attemptCount = 0; attemptCount < SUMIT_READY_POLL_ATTEMPTS; attemptCount++) {
+      for (let attempt = 0; attempt < SUMIT_READY_POLL_ATTEMPTS; attempt++) {
         if (destroyed) return;
         if (window.OfficeGuy?.Payments?.TokenizeForm) {
           setIsSumitReady(true);
@@ -184,7 +184,7 @@ export default function CheckoutPage() {
 
       const sumitScript = document.createElement('script');
       sumitScript.src = 'https://app.sumit.co.il/scripts/payments.js';
-      sumitScript.async = true;
+      sumitScript.async = false;
       sumitScript.dataset.hotam = 'sumit';
       sumitScript.onload = () => {
         if (destroyed) return;
@@ -208,7 +208,7 @@ export default function CheckoutPage() {
     jqScript.src = 'https://code.jquery.com/jquery-3.7.1.min.js';
     jqScript.integrity = 'sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=';
     jqScript.crossOrigin = 'anonymous';
-    jqScript.async = true;
+    jqScript.async = false;
     jqScript.dataset.hotam = 'jquery';
     jqScript.onload = () => {
       if (destroyed) return;

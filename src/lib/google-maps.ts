@@ -36,7 +36,7 @@ export function getCityFromAddressComponents(components?: any[]): string | null 
 export async function loadGoogleMapsPlacesScript(): Promise<void> {
   if (typeof window === 'undefined') return;
   const googleMapsApiKey = getGoogleMapsApiKey();
-  if (!googleMapsApiKey) throw new Error('חסר NEXT_PUBLIC_GOOGLE_MAPS_API_KEY');
+  if (!googleMapsApiKey) throw new Error('Missing NEXT_PUBLIC_GOOGLE_MAPS_API_KEY / חסר NEXT_PUBLIC_GOOGLE_MAPS_API_KEY');
   if (window.google?.maps?.places) return;
 
   if (!window.__googleMapsPlacesPromise) {
@@ -44,7 +44,7 @@ export async function loadGoogleMapsPlacesScript(): Promise<void> {
       const existing = document.querySelector<HTMLScriptElement>('script[data-google-maps-places="true"]');
       if (existing) {
         existing.addEventListener('load', () => resolve());
-        existing.addEventListener('error', () => reject(new Error('טעינת Google Maps נכשלה.')));
+        existing.addEventListener('error', () => reject(new Error('Google Maps script loading failed / טעינת Google Maps נכשלה.')));
         return;
       }
 
@@ -54,7 +54,7 @@ export async function loadGoogleMapsPlacesScript(): Promise<void> {
       script.defer = true;
       script.dataset.googleMapsPlaces = 'true';
       script.onload = () => resolve();
-      script.onerror = () => reject(new Error('טעינת Google Maps נכשלה.'));
+      script.onerror = () => reject(new Error('Google Maps script loading failed / טעינת Google Maps נכשלה.'));
       document.head.appendChild(script);
     });
   }
@@ -64,7 +64,7 @@ export async function loadGoogleMapsPlacesScript(): Promise<void> {
 
 export async function reverseGeocodeWithGoogle(lat: number, lng: number): Promise<{ city: string | null }> {
   const googleMapsApiKey = getGoogleMapsApiKey();
-  if (!googleMapsApiKey) throw new Error('חסר NEXT_PUBLIC_GOOGLE_MAPS_API_KEY');
+  if (!googleMapsApiKey) throw new Error('Missing NEXT_PUBLIC_GOOGLE_MAPS_API_KEY / חסר NEXT_PUBLIC_GOOGLE_MAPS_API_KEY');
 
   const response = await fetch(
     `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&language=he&region=IL&key=${googleMapsApiKey}`,

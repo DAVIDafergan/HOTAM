@@ -335,6 +335,7 @@ export default function AdminDashboard() {
       )
       .join('\n');
 
+    // Prefix UTF-8 BOM so Excel opens Hebrew content correctly.
     const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

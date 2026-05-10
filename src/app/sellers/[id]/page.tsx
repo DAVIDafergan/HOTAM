@@ -153,6 +153,12 @@ export default function SellerProfile() {
     });
     return list;
   }, [reviews, reviewSortOrder]);
+  const getSellerReviewSubmitLabel = () => {
+    if (!user) return 'התחבר כדי לפרסם דירוג';
+    if (isOwnSellerReviewBlocked) return 'לא ניתן לדרג את עצמך';
+    if (hasUserReviewedSeller) return 'כבר פרסמת ביקורת';
+    return 'פרסם דירוג';
+  };
 
   const showSelfReviewBlockedToast = () => {
     toast({
@@ -599,7 +605,7 @@ export default function SellerProfile() {
                       disabled={!user || isReviewSubmitting || isOwnSellerReviewBlocked || hasUserReviewedSeller}
                       className="w-full bg-primary text-white h-11 font-black"
                     >
-                      {isReviewSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : (!user ? 'התחבר כדי לפרסם דירוג' : isOwnSellerReviewBlocked ? 'לא ניתן לדרג את עצמך' : hasUserReviewedSeller ? 'כבר פרסמת ביקורת' : 'פרסם דירוג')}
+                      {isReviewSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : getSellerReviewSubmitLabel()}
                     </Button>
                   </div>
 

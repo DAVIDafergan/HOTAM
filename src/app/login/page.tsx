@@ -266,7 +266,7 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div>טוען...</div>}>
+    <Suspense fallback={<div role="status" aria-live="polite">טוען...</div>}>
       <LoginContent />
     </Suspense>
   );

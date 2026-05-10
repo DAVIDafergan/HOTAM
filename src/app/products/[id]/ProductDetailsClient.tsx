@@ -116,6 +116,12 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
     });
     return list;
   }, [reviews, reviewSortOrder]);
+  const getProductReviewSubmitLabel = () => {
+    if (!user) return 'התחבר כדי לפרסם ביקורת';
+    if (isOwnProductReviewBlocked) return 'לא ניתן לדרג מוצר שלך';
+    if (hasUserReviewedProduct) return 'כבר פרסמת ביקורת';
+    return 'פרסם ביקורת';
+  };
 
   const showOwnProductReviewBlockedToast = () => {
     toast({
@@ -589,7 +595,7 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
                     disabled={!user || isReviewSubmitting || isOwnProductReviewBlocked || hasUserReviewedProduct}
                     className="w-full bg-primary text-white h-11 font-black"
                   >
-                    {isReviewSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : (!user ? 'התחבר כדי לפרסם ביקורת' : isOwnProductReviewBlocked ? 'לא ניתן לדרג מוצר שלך' : hasUserReviewedProduct ? 'כבר פרסמת ביקורת' : 'פרסם ביקורת')}
+                    {isReviewSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : getProductReviewSubmitLabel()}
                   </Button>
                 </div>
 

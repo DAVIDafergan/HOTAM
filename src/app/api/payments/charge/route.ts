@@ -65,7 +65,7 @@ function buildItemsFromCartData(cartData: ChargeCartData, price: number): SumitC
 }
 
 function getSumitCredentials() {
-  const companyId =
+  const rawCompanyId =
     process.env.SUMIT_COMPANY_ID ||
     process.env.SUMIT_BUSINESS_ID ||
     process.env.SUMMIT_BUSINESS_ID;
@@ -76,8 +76,14 @@ function getSumitCredentials() {
     process.env.SUMIT_PRIVATE_KEY ||
     process.env.SUMMIT_PRIVATE_KEY;
 
-  if (!companyId || !apiKey) {
+  const companyId = Number(rawCompanyId);
+
+  if (!rawCompanyId || !apiKey) {
     throw new Error('Missing SUMIT credentials for charge request');
+  }
+
+  if (!Number.isFinite(companyId) || companyId <= 0) {
+    throw new Error('Invalid SUMIT CompanyID configuration');
   }
 
   return { companyId, apiKey };
@@ -168,7 +174,7 @@ export async function POST(req: Request) {
 
     const sumitPayload = {
       Credentials: {
-        CompanyID: Number(companyId),
+        CompanyID: companyId,
         APIKey: apiKey,
       },
       SingleUseToken: token,

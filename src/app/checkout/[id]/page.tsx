@@ -142,6 +142,15 @@ export default function CheckoutPage() {
   const sumitFormRef = useRef<HTMLFormElement | null>(null);
   const processPaymentWithTokenRef = useRef<(token: string) => Promise<void>>(async () => {});
 
+  const getSumitTokenInput = useCallback((form?: HTMLFormElement | null) => {
+    return (form || sumitFormRef.current)?.elements.namedItem('og-token') as HTMLInputElement | null;
+  }, []);
+
+  const resetSumitToken = useCallback(() => {
+    const tokenInput = getSumitTokenInput();
+    if (tokenInput) tokenInput.value = '';
+  }, [getSumitTokenInput]);
+
   const productRef = useMemoStable(() => productId ? doc(db, 'products', productId) : null, [db, productId]);
   const { data: product, isLoading: isProductLoading } = useDoc<any>(productRef);
 
@@ -206,7 +215,12 @@ export default function CheckoutPage() {
         if (cancelled) return;
         (window as any).jQuery?.(() => {
           if (cancelled) return;
-          (window as any).OfficeGuy.Payments.BindFormSubmit({
+          const payments = (window as any).OfficeGuy?.Payments;
+          if (!payments?.BindFormSubmit) {
+            setSumitError('מערכת הסליקה לא נטענה.');
+            return;
+          }
+          payments.BindFormSubmit({
             CompanyID: SUMIT_COMPANY_ID,
             APIPublicKey: SUMIT_PUBLIC_KEY,
             Callback: async (token: string | null) => {
@@ -318,19 +332,18 @@ export default function CheckoutPage() {
       setChargeError(err.message || 'חלה שגיאה בחיבור למערכת הסליקה.');
       setIsProcessing(false);
       chargeInFlightRef.current = false;
-      const tokenInput = sumitFormRef.current?.elements.namedItem('og-token') as HTMLInputElement | null;
-      if (tokenInput) tokenInput.value = '';
+      resetSumitToken();
     }
-  }, [product?.product_name, product?.product_type, recipientPhone, router, totalPrice, upsertPendingOrder, user?.email]);
+  }, [product?.product_name, product?.product_type, recipientPhone, resetSumitToken, router, totalPrice, upsertPendingOrder, user?.email]);
 
   useEffect(() => {
     processPaymentWithTokenRef.current = processPaymentWithToken;
   }, [processPaymentWithToken]);
 
-  const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleFormSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
-    const tokenInput = form.elements.namedItem('og-token') as HTMLInputElement | null;
+    const tokenInput = getSumitTokenInput(form);
     const token = tokenInput?.value?.trim() || '';
 
     if (token) {
@@ -354,11 +367,13 @@ export default function CheckoutPage() {
     }
 
     isDelegatingSubmitRef.current = true;
-    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     window.setTimeout(() => {
-      isDelegatingSubmitRef.current = false;
+      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      window.setTimeout(() => {
+        isDelegatingSubmitRef.current = false;
+      }, 0);
     }, 0);
-  };
+  }, [getSumitTokenInput, isSumitReady, processPaymentWithToken, sumitError, toast, validateCheckout]);
 
   if (isUserLoading || isProductLoading) {
     return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>;

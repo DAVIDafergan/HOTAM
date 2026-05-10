@@ -37,6 +37,8 @@ const HeroAnimation = dynamic(() => import('@/components/HeroAnimation').then(mo
 const WorkFlow = dynamic(() => import('@/components/WorkFlow').then(mod => mod.WorkFlow), {
   ssr: false
 });
+const TOP_SCRIBES_LIMIT = 5;
+const TOP_SCRIBES_SECTION_TITLE = `${TOP_SCRIBES_LIMIT} סופרים מובילים`;
 
 export default function Home() {
   const { user } = useUser();
@@ -58,38 +60,49 @@ export default function Home() {
     return new Date(ts).getTime();
   };
 
+  const sellerReviewStats = useMemo(() => {
+    const stats = new Map<string, { total: number; sum: number; high: number }>();
+    (allReviews || []).forEach((review: any) => {
+      const sellerId = review?.seller_id;
+      if (!sellerId) return;
+      const rating = Number(review?.rating ?? 5);
+      const current = stats.get(sellerId) || { total: 0, sum: 0, high: 0 };
+      current.total += 1;
+      current.sum += rating;
+      if (rating >= 4) current.high += 1;
+      stats.set(sellerId, current);
+    });
+    return stats;
+  }, [allReviews]);
+
   const topScribes = useMemo(() => {
     if (!allSellers) return [];
-    
-    const anyHasReviews = (allReviews || []).some((r: any) =>
-      allSellers.some((s: any) => s.id === r.seller_id)
-    );
+    const anyHasReviews = sellerReviewStats.size > 0;
 
     if (!anyHasReviews) {
       // Fall back to most recently joined sellers
       return [...allSellers]
         .sort((a, b) => getTimestampMillis(b.created_at) - getTimestampMillis(a.created_at))
-        .slice(0, 8);
+        .slice(0, TOP_SCRIBES_LIMIT);
     }
 
-    // Sort by review count + avg rating first, then fall back to sales_count
+    // Sort by high ratings first, then average rating and total review count
     return [...allSellers]
       .sort((a, b) => {
-        const reviewsA = (allReviews || []).filter((r: any) => r.seller_id === a.id);
-        const reviewsB = (allReviews || []).filter((r: any) => r.seller_id === b.id);
-        const countA = reviewsA.length;
-        const countB = reviewsB.length;
-        if (countB !== countA) return countB - countA;
-        const avgA = countA > 0 ? reviewsA.reduce((s: number, r: any) => s + (r.rating ?? 5), 0) / countA : 0;
-        const avgB = countB > 0 ? reviewsB.reduce((s: number, r: any) => s + (r.rating ?? 5), 0) / countB : 0;
+        const statsA = sellerReviewStats.get(a.id) || { total: 0, sum: 0, high: 0 };
+        const statsB = sellerReviewStats.get(b.id) || { total: 0, sum: 0, high: 0 };
+        if (statsB.high !== statsA.high) return statsB.high - statsA.high;
+        const avgA = statsA.total > 0 ? statsA.sum / statsA.total : 0;
+        const avgB = statsB.total > 0 ? statsB.sum / statsB.total : 0;
         if (avgB !== avgA) return avgB - avgA;
+        if (statsB.total !== statsA.total) return statsB.total - statsA.total;
         const salesA = a.sales_count || 0;
         const salesB = b.sales_count || 0;
         if (salesB !== salesA) return salesB - salesA;
         return (a.first_name || '').localeCompare(b.first_name || '');
       })
-      .slice(0, 8);
-  }, [allSellers, allReviews]);
+      .slice(0, TOP_SCRIBES_LIMIT);
+  }, [allSellers, sellerReviewStats]);
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -112,13 +125,13 @@ export default function Home() {
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-accent/10 rounded-full text-accent font-black text-[10px] uppercase tracking-widest">
                   <Trophy className="w-3.5 h-3.5" /> נבחרת הסופרים
                 </div>
-                <h2 id="top-scribes-heading" className="text-4xl md:text-5xl font-headline font-black text-primary tracking-tight">
-                   סופרים מובילים במערכת
+                <h2 id="top-scribes-heading" className="text-3xl md:text-4xl font-headline font-black text-primary tracking-tight">
+                   {TOP_SCRIBES_SECTION_TITLE}
                 </h2>
                 <div className="w-16 h-1 rounded-full bg-accent mx-auto" />
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 md:gap-5">
                 {topScribes.map((scribe, i) => (
                   <motion.div
                     key={scribe.id}
@@ -127,49 +140,49 @@ export default function Home() {
                     transition={{ delay: i * 0.1 }}
                   >
                     <Link href={`/sellers/${scribe.id}`}>
-                      <Card className="group overflow-hidden border-none shadow-premium rounded-[2.5rem] bg-white hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 text-center p-5 sm:p-8">
-                        <div className="relative w-24 h-24 mx-auto mb-6">
+                      <Card className="group overflow-hidden border border-primary/5 shadow-premium rounded-[2rem] bg-white hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 text-center p-4">
+                        <div className="relative w-16 h-16 mx-auto mb-3">
                            <div className="absolute inset-0 rounded-full border-4 border-accent/10 group-hover:scale-110 transition-transform duration-500" />
                            <div className="w-full h-full rounded-full border-4 border-white shadow-lg overflow-hidden relative bg-muted flex items-center justify-center">
                              {scribe.profile_image ? (
-                               <Image src={scribe.profile_image} alt={scribe.first_name} fill className="object-cover" />
-                             ) : (
-                               <UserRound className="w-10 h-10 text-primary/10" />
-                             )}
-                           </div>
-                           <div className="absolute -bottom-1 -right-1 bg-accent text-primary p-1.5 rounded-full shadow-lg border-2 border-white">
-                             <ShieldCheck className="w-3.5 h-3.5" />
-                           </div>
-                        </div>
-                        <h3 className="text-xl font-headline font-black text-primary mb-1 group-hover:text-accent transition-colors">{scribe.first_name} {scribe.last_name}</h3>
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-4 flex items-center justify-center gap-1.5">
-                          <MapPin size={12} className="text-accent" /> {scribe.address?.split(' ')[0]}
+                                <Image src={scribe.profile_image} alt={scribe.first_name} fill className="object-cover" />
+                              ) : (
+                                <UserRound className="w-7 h-7 text-primary/10" />
+                              )}
+                            </div>
+                            <div className="absolute -bottom-1 -right-1 bg-accent text-primary p-1 rounded-full shadow-lg border-2 border-white">
+                              <ShieldCheck className="w-3 h-3" />
+                            </div>
+                         </div>
+                        <h3 className="text-sm font-headline font-black text-primary mb-1 group-hover:text-accent transition-colors">{scribe.first_name} {scribe.last_name}</h3>
+                        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wide mb-3 flex items-center justify-center gap-1.5">
+                          <MapPin size={10} className="text-accent" /> {scribe.address?.split(' ')[0]}
                         </p>
-                        <div className="flex items-center justify-center gap-4 border-t pt-4">
+                        <div className="flex items-center justify-center gap-3 border-t pt-3">
                            <div className="text-right">
                               <p className="text-[8px] font-black text-muted-foreground uppercase tracking-tighter">ניסיון</p>
-                              <p className="text-sm font-black text-primary tabular-nums">{scribe.experience_years}ש'</p>
+                              <p className="text-xs font-black text-primary tabular-nums">{scribe.experience_years}ש'</p>
                            </div>
-                           <div className="w-px h-6 bg-muted" />
+                           <div className="w-px h-5 bg-muted" />
                            <div className="text-right">
                               <p className="text-[8px] font-black text-muted-foreground uppercase tracking-tighter">דירוג</p>
                               <div className="flex items-center gap-0.5 mt-0.5">
-                                 <Star className="w-3 h-3 fill-accent text-accent" />
-                                 {(() => {
-                                    const scribesReviews = (allReviews || []).filter((r: any) => r.seller_id === scribe.id);
-                                    const avg = scribesReviews.length > 0
-                                      ? (scribesReviews.reduce((s: number, r: any) => s + (r.rating ?? 5), 0) / scribesReviews.length).toFixed(1)
-                                      : '—';
-                                    return <span className="text-sm font-black text-primary">{avg}</span>;
-                                  })()}
-                              </div>
-                           </div>
-                        </div>
-                        <div className="mt-6">
-                           <Button variant="outline" className="rounded-full w-full h-10 border-primary/5 text-[10px] font-black uppercase tracking-widest group-hover:bg-primary group-hover:text-white transition-all">
-                             צפה בפרופיל <ArrowLeft className="w-3 h-3 mr-2" />
-                           </Button>
-                        </div>
+                                 <Star className="w-2.5 h-2.5 fill-accent text-accent" />
+                                  {(() => {
+                                     const stats = sellerReviewStats.get(scribe.id);
+                                     const avg = stats && stats.total > 0
+                                       ? (stats.sum / stats.total).toFixed(1)
+                                       : '—';
+                                     return <span className="text-xs font-black text-primary">{avg}</span>;
+                                   })()}
+                               </div>
+                            </div>
+                         </div>
+                        <div className="mt-3">
+                           <Button variant="outline" className="rounded-full w-full h-9 border-primary/10 text-[9px] font-black uppercase tracking-wide group-hover:bg-primary group-hover:text-white transition-all">
+                              צפה בפרופיל <ArrowLeft className="w-3 h-3 mr-2" />
+                            </Button>
+                         </div>
                       </Card>
                     </Link>
                   </motion.div>

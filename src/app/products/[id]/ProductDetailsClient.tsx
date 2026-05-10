@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -50,6 +50,13 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
+const MIN_IMAGE_ZOOM_LEVEL = 1;
+const MAX_IMAGE_ZOOM_LEVEL = 4;
+const IMAGE_ZOOM_STEP = 0.25;
+const IMAGE_WHEEL_ZOOM_DELTA = 0.2;
+// Base horizontal/vertical pan allowance in pixels (multiplied by zoom level).
+const BASE_IMAGE_PAN_LIMIT_PX = 220;
+
 export function ProductDetailsClient({ productId, initialProduct = null }: { productId: string; initialProduct?: any | null }) {
   const { user } = useUser();
   const db = useSupabaseClient();
@@ -95,7 +102,9 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
   const [isReviewSubmitting, setIsReviewSubmitting] = useState(false);
   const [deletingReviewId, setDeletingReviewId] = useState<string | null>(null);
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
-  const [isImageZoomed, setIsImageZoomed] = useState(false);
+  const [imageZoomLevel, setImageZoomLevel] = useState(1);
+  const [imagePan, setImagePan] = useState({ x: 0, y: 0 });
+  const dragOriginRef = useRef<{ x: number; y: number } | null>(null);
 
   const isOwnProductReviewBlocked = Boolean(
     user && user.role === 'seller' && user.uid === product?.seller_id
@@ -140,7 +149,9 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
   useEffect(() => {
     setSelectedImageIdx(0);
     setIsImageDialogOpen(false);
-    setIsImageZoomed(false);
+    setImageZoomLevel(MIN_IMAGE_ZOOM_LEVEL);
+    setImagePan({ x: 0, y: 0 });
+    dragOriginRef.current = null;
     if (!productId) return;
     supabase
       .from('reviews')
@@ -342,6 +353,28 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
   const images = rawImages.length > 0 ? rawImages : [logoImg];
   const currentImage = images[selectedImageIdx] || logoImg;
   const displayPrice = (Number(product.price) * 1.18).toFixed(0);
+  const clampZoomLevel = (zoom: number) => Math.min(MAX_IMAGE_ZOOM_LEVEL, Math.max(MIN_IMAGE_ZOOM_LEVEL, Number(zoom.toFixed(2))));
+  const updateImageZoom = (zoom: number) => {
+    const nextZoom = clampZoomLevel(zoom);
+    setImageZoomLevel(nextZoom);
+    if (nextZoom <= MIN_IMAGE_ZOOM_LEVEL) setImagePan({ x: 0, y: 0 });
+  };
+  const updateImagePan = (x: number, y: number) => {
+    if (imageZoomLevel <= MIN_IMAGE_ZOOM_LEVEL) {
+      setImagePan({ x: 0, y: 0 });
+      return;
+    }
+    const limit = BASE_IMAGE_PAN_LIMIT_PX * imageZoomLevel;
+    setImagePan({
+      x: Math.max(-limit, Math.min(limit, x)),
+      y: Math.max(-limit, Math.min(limit, y)),
+    });
+  };
+  const imageCursor = imageZoomLevel <= MIN_IMAGE_ZOOM_LEVEL
+    ? 'zoom-in'
+    : dragOriginRef.current
+      ? 'grabbing'
+      : 'grab';
 
   return (
     <div className="min-h-screen bg-[#FDFCF0] pb-24 sm:pb-28 md:pb-32" dir="rtl">
@@ -363,7 +396,9 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
               type="button"
               aria-label={`פתח תצוגת זום לתמונה ${selectedImageIdx + 1} מתוך ${images.length}`}
               onClick={() => {
-                setIsImageZoomed(false);
+                setImageZoomLevel(MIN_IMAGE_ZOOM_LEVEL);
+                setImagePan({ x: 0, y: 0 });
+                dragOriginRef.current = null;
                 setIsImageDialogOpen(true);
               }}
               className="relative block aspect-square w-full rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-premium bg-white border-4 border-white text-right"
@@ -377,7 +412,7 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
               <div className="absolute bottom-4 left-4">
                 <div className="inline-flex items-center gap-1 rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-black text-primary shadow-md backdrop-blur-sm">
                   <ZoomIn className="w-3.5 h-3.5" />
-                  <span>לחץ לזום</span>
+                  <span>תצוגת זום</span>
                 </div>
               </div>
               <div className="absolute top-4 right-4 hidden md:block">
@@ -575,7 +610,7 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
                         <div className="flex justify-center gap-3">
                           {[1, 2, 3, 4, 5].map(s => (
                             <button key={s} type="button" onClick={() => setReviewRating(s)} disabled={!user || isOwnProductReviewBlocked || isReviewSubmitting}>
-                              <Star className={`w-8 h-8 transition-colors ${s <= reviewRating ? 'fill-accent text-accent' : 'text-muted-foreground/30'}`} />
+                              <Star className={`w-5 h-5 transition-colors ${s <= reviewRating ? 'fill-accent text-accent' : 'text-muted-foreground/30'}`} />
                             </button>
                           ))}
                         </div>
@@ -604,7 +639,7 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
                   <div className="grid gap-6">
                     {sortedProductReviews.map((rev: any) => (
                       <div key={rev.id} className="flex flex-row-reverse items-start gap-3">
-                        <Avatar className="h-9 w-9 border border-primary/10 flex-shrink-0">
+                        <Avatar className="h-8 w-8 border border-primary/10 flex-shrink-0">
                           {!rev.is_anonymous && <AvatarImage src={rev.reviewer_image || undefined} />}
                           <AvatarFallback className="bg-primary/5 text-primary font-black text-xs">
                             {rev.is_anonymous ? 'א' : (rev.buyer_name || 'מ').charAt(0)}
@@ -612,16 +647,16 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-baseline justify-between mb-1">
-                            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{rev.created_at ? new Date(rev.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
-                            <h5 className="font-black text-primary text-sm">{rev.is_anonymous ? 'אנונימי' : (rev.buyer_name || 'משתמש')}</h5>
+                            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">{rev.created_at ? new Date(rev.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
+                            <h5 className="font-semibold text-primary text-xs">{rev.is_anonymous ? 'אנונימי' : (rev.buyer_name || 'משתמש')}</h5>
                           </div>
-                          <div className="bg-muted/15 rounded-2xl rounded-tr-none px-4 py-3 text-right">
+                          <div className="bg-muted/15 rounded-2xl px-4 py-3 text-right">
                             <div className="flex justify-end gap-0.5 mb-2">
                               {[1, 2, 3, 4, 5].map(s => (
-                                <Star key={s} className={cn("w-4 h-4", s <= (rev.rating || 5) ? 'fill-accent text-accent' : 'text-muted-foreground/20')} />
+                                <Star key={s} className={cn("w-3 h-3", s <= (rev.rating || 5) ? 'fill-accent text-accent' : 'text-muted-foreground/20')} />
                               ))}
                             </div>
-                            <p className="text-sm text-primary/70 leading-relaxed italic font-medium">"{rev.comment}"</p>
+                            <p className="text-xs text-primary/70 leading-relaxed font-medium">{rev.comment}</p>
                           </div>
                           {user?.uid === rev.buyer_id && (
                             <div className="flex justify-end mt-1">
@@ -705,26 +740,68 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
         onOpenChange={(open) => {
           setIsImageDialogOpen(open);
           if (!open) {
-            setIsImageZoomed(false);
+            setImageZoomLevel(MIN_IMAGE_ZOOM_LEVEL);
+            setImagePan({ x: 0, y: 0 });
+            dragOriginRef.current = null;
           }
         }}
       >
         <DialogContent className="max-w-5xl rounded-[2rem] border-none bg-black/95 p-3 sm:p-6 shadow-2xl" dir="rtl">
           <DialogHeader className="space-y-2 pr-12 text-right">
             <DialogTitle className="text-white">{product.product_type}</DialogTitle>
-            <p className="text-xs font-bold text-white/70">לחץ על התמונה כדי להגדיל ולהקטין</p>
+            <p className="text-xs font-bold text-white/70">בחר רמת זום וגרור לצדדים לעיון נוח בתמונה</p>
           </DialogHeader>
-          <button
-            type="button"
-            aria-label={isImageZoomed ? 'הקטן את תמונת המוצר' : 'הגדל את תמונת המוצר'}
-            onClick={() => setIsImageZoomed(prev => !prev)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                setIsImageZoomed(prev => !prev);
-              }
+          <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
+            <Label className="text-[10px] font-black text-white/70">רמת זום</Label>
+            <Button type="button" size="sm" variant="outline" className="h-8 px-3 text-xs" onClick={() => updateImageZoom(imageZoomLevel - IMAGE_ZOOM_STEP)}>−</Button>
+            <input
+              type="range"
+              min={MIN_IMAGE_ZOOM_LEVEL}
+              max={MAX_IMAGE_ZOOM_LEVEL}
+              step={IMAGE_ZOOM_STEP}
+              value={imageZoomLevel}
+              onChange={e => updateImageZoom(Number(e.target.value))}
+              className="w-36 accent-accent"
+              aria-label="רמת זום"
+            />
+            <Button type="button" size="sm" variant="outline" className="h-8 px-3 text-xs" onClick={() => updateImageZoom(imageZoomLevel + IMAGE_ZOOM_STEP)}>+</Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="h-8 px-3 text-xs text-white hover:text-white hover:bg-white/10"
+              onClick={() => {
+                setImageZoomLevel(MIN_IMAGE_ZOOM_LEVEL);
+                setImagePan({ x: 0, y: 0 });
+                dragOriginRef.current = null;
+              }}
+            >
+              איפוס
+            </Button>
+          </div>
+          <div
+            role="img"
+            aria-label="תמונת מוצר מוגדלת"
+            onWheel={(event) => {
+              event.preventDefault();
+              const delta = event.deltaY > 0 ? -IMAGE_WHEEL_ZOOM_DELTA : IMAGE_WHEEL_ZOOM_DELTA;
+              updateImageZoom(imageZoomLevel + delta);
             }}
-            className="relative block h-[60vh] w-full overflow-auto rounded-[1.5rem] bg-black text-center"
+            onMouseDown={(event) => {
+              if (imageZoomLevel <= MIN_IMAGE_ZOOM_LEVEL) return;
+              dragOriginRef.current = { x: event.clientX - imagePan.x, y: event.clientY - imagePan.y };
+            }}
+            onMouseMove={(event) => {
+              if (!dragOriginRef.current || imageZoomLevel <= MIN_IMAGE_ZOOM_LEVEL) return;
+              updateImagePan(event.clientX - dragOriginRef.current.x, event.clientY - dragOriginRef.current.y);
+            }}
+            onMouseUp={() => {
+              dragOriginRef.current = null;
+            }}
+            onMouseLeave={() => {
+              dragOriginRef.current = null;
+            }}
+            className="relative block h-[60vh] w-full overflow-hidden rounded-[1.5rem] bg-black text-center"
           >
             <div className="relative h-full min-h-[24rem] w-full">
               <Image
@@ -732,13 +809,15 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
                 src={currentImage}
                 alt={product.product_type}
                 fill
-                className={cn(
-                  'object-contain transition-transform duration-300',
-                  isImageZoomed ? 'scale-150 cursor-zoom-out' : 'scale-100 cursor-zoom-in'
-                )}
+                className="object-contain transition-transform duration-150"
+                style={{
+                  transform: `translate(${imagePan.x}px, ${imagePan.y}px) scale(${imageZoomLevel})`,
+                  cursor: imageCursor,
+                  transformOrigin: 'center center',
+                }}
               />
             </div>
-          </button>
+          </div>
         </DialogContent>
       </Dialog>
 

@@ -213,11 +213,16 @@ export default function SellerProfile() {
       showAlreadyReviewedSellerToast();
       return;
     }
+    const userId = user?.uid;
+    if (!userId) {
+      router.push('/login');
+      return;
+    }
     setIsReviewSubmitting(true);
     const { data: profileRow, error: profileError } = await supabase
       .from('profiles')
       .select('avatar_url, full_name')
-      .eq('id', user.uid)
+      .eq('id', userId)
       .maybeSingle();
     if (profileError) {
       console.error('[profiles] fetch error:', profileError.message);
@@ -225,7 +230,7 @@ export default function SellerProfile() {
     const realName = profileRow?.full_name || user.displayName || 'משתמש';
     const reviewData = {
       supermarket_id: id,
-      buyer_id: user.uid,
+      buyer_id: userId,
       user_name: realName,
       buyer_name: realName,
       is_anonymous: reviewIsAnonymous,

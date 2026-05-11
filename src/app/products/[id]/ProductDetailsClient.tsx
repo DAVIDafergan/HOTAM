@@ -54,6 +54,7 @@ const MIN_IMAGE_ZOOM_LEVEL = 1;
 const MAX_IMAGE_ZOOM_LEVEL = 4;
 const IMAGE_ZOOM_STEP = 0.25;
 const IMAGE_WHEEL_ZOOM_DELTA = 0.2;
+const VAT_MULTIPLIER = 1.18;
 // Base horizontal/vertical pan allowance in pixels (multiplied by zoom level).
 const BASE_IMAGE_PAN_LIMIT_PX = 220;
 
@@ -253,9 +254,11 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
 
   const handleShare = async () => {
     const url = typeof window !== 'undefined' ? window.location.href : '';
+    const shareBaseTitle = `${product?.product_type}${product?.sub_type && product?.sub_type !== 'all' ? ` ${product.sub_type}` : ''}`;
+    const shareTitle = Number(product?.price) > 0 ? `${shareBaseTitle} | ₪${displayPrice}` : shareBaseTitle;
     const shareData = {
-      title: `חותם | ${product?.product_type}`,
-      text: product?.description || `רכישת ${product?.product_type} מהודרת, נכתב על ידי סופר סת"ם ירא שמיים`,
+      title: shareTitle,
+      text: product?.description || `רכישת ${shareBaseTitle} מהודרת במחיר ₪${displayPrice}`,
       url,
     };
     try {
@@ -352,7 +355,8 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
   const rawImages = Array.isArray(product.images) ? product.images : [];
   const images = rawImages.length > 0 ? rawImages : [logoImg];
   const currentImage = images[selectedImageIdx] || logoImg;
-  const displayPrice = (Number(product.price) * 1.18).toFixed(0);
+  const displayPrice = (Number(product.price) * VAT_MULTIPLIER).toFixed(0);
+  const productDisplayTitle = `${product.product_type}${product.sub_type && product.sub_type !== 'all' ? ` ${product.sub_type}` : ''}`;
   const normalizedDeliveryType = (() => {
     const raw = String(product.delivery_type || '').toLowerCase();
     if (raw === 'delivery' || raw === 'shipping' || raw === 'shipping_only') return 'delivery';
@@ -487,22 +491,22 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
 
                   <div className="h-px bg-primary/5 w-full" />
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex flex-col items-center md:items-end gap-1.5 p-3 rounded-2xl bg-slate-50/50">
-                      <Clock className="w-5 h-5 text-accent" />
-                      <span className="text-[9px] font-black text-primary/40 uppercase tracking-widest">זמן אספקה</span>
-                      <span className="text-xs font-black text-primary leading-none">
-                        {product.product_type === 'ספר תורה' ? 'בתיאום אישי' : `${product.delivery_time || '3'} ימים`}
-                      </span>
-                    </div>
-                    <div className="flex flex-col items-center md:items-end gap-1.5 p-3 rounded-2xl bg-slate-50/50">
-                      <Truck className="w-5 h-5 text-accent" />
-                      <span className="text-[9px] font-black text-primary/40 uppercase tracking-widest">עלות משלוח</span>
-                      <span className="text-xs font-black text-emerald-600 leading-none">
-                        {Number(product.delivery_fee) > 0 ? `₪${product.delivery_fee}` : 'משלוח חינם'}
-                      </span>
-                    </div>
-                  </div>
+                   <div className="grid grid-cols-2 gap-4">
+                     <section aria-labelledby="delivery-time-label" className="flex flex-col items-end gap-1.5 rounded-2xl bg-slate-50/50 p-3 text-right">
+                       <Clock className="w-5 h-5 text-accent" />
+                       <span id="delivery-time-label" className="text-[9px] font-black text-primary/40 uppercase tracking-widest">זמן אספקה</span>
+                       <span className="text-xs font-black text-primary leading-none">
+                         {product.product_type === 'ספר תורה' ? 'בתיאום אישי' : `${product.delivery_time || '3'} ימים`}
+                       </span>
+                     </section>
+                     <section aria-labelledby="delivery-fee-label" className="flex flex-col items-end gap-1.5 rounded-2xl bg-slate-50/50 p-3 text-right">
+                       <Truck className="w-5 h-5 text-accent" />
+                       <span id="delivery-fee-label" className="text-[9px] font-black text-primary/40 uppercase tracking-widest">עלות משלוח</span>
+                       <span className="text-xs font-black text-emerald-600 leading-none">
+                         {Number(product.delivery_fee) > 0 ? `₪${product.delivery_fee}` : 'משלוח חינם'}
+                       </span>
+                     </section>
+                   </div>
                </div>
             </Card>
 
@@ -525,7 +529,7 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
                     </div>
                     <div className="flex flex-wrap gap-1.5 justify-end">
                       {deliveryAreaText ? (
-                        deliveryAreaText.split(', ').filter(Boolean).map(city => (
+                        deliveryAreaText.split(', ').filter(Boolean).map((city) => (
                           <Badge key={city} variant="outline" className="bg-primary/5 text-primary border-primary/15 font-bold text-[11px] px-3 py-1.5 rounded-full">
                             <MapPin className="w-3 h-3 ml-1 text-accent" />{city}
                           </Badge>
@@ -795,7 +799,7 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
       >
         <DialogContent className="max-w-5xl w-[95vw] rounded-[1.5rem] sm:rounded-[2rem] border-none bg-black/95 p-3 sm:p-6 shadow-2xl max-h-[95vh] overflow-y-auto" dir="rtl">
           <DialogHeader className="space-y-2 pr-12 text-right">
-            <DialogTitle className="text-white">{product.product_type}</DialogTitle>
+            <DialogTitle className="text-white">{productDisplayTitle}</DialogTitle>
             <p className="text-xs font-bold text-white/70">הגדל/הקטן עם הכפתורים וגרור לצדדים לעיון נוח — בנייד גרור לאחר הגדלה</p>
           </DialogHeader>
           <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
@@ -868,7 +872,7 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
               <Image
                 loader={unsplashLoader}
                 src={currentImage}
-                alt={product.product_type}
+                  alt={productDisplayTitle}
                 fill
                 className="object-contain transition-transform duration-150"
                 style={{

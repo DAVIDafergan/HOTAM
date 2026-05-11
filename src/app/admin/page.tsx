@@ -221,11 +221,25 @@ export default function AdminDashboard() {
   };
 
   const approveScribe = async (id: string) => {
-    const { error } = await db.from('sellers').update({ is_approved: true }).eq('id', id);
-    if (error) {
-      toast({ variant: "destructive", title: "האישור נכשל", description: error.message });
+    const { error, count } = await db
+      .from('sellers')
+      .update({ is_approved: true }, { count: 'exact' })
+      .eq('id', id);
+
+    if (error || count === null || count === 0) {
+      const failureMessage = error?.message
+        ?? (count === null
+          ? 'אישור המוכר נכשל: לא התקבל מידע על מספר השורות שעודכנו'
+          : 'אישור המוכר נכשל: לא נמצאו שורות לעדכון');
+      console.error('approve failed:', failureMessage, 'count:', count);
+      toast({
+        variant: "destructive",
+        title: "שגיאה באישור המוכר",
+        description: failureMessage,
+      });
       return;
     }
+
     setActiveTab('active');
     setSearchTerm('');
     setActivePage(1);

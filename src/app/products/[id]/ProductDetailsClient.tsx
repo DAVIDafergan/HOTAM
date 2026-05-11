@@ -515,19 +515,34 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
               </div>
             </div>
 
-            <Card className="border-none shadow-sm rounded-[2rem] bg-white/70 p-5">
-              <div className="space-y-2 text-right">
-                {normalizedDeliveryType === 'delivery' && (
-                  <p className="font-bold text-primary">🚚 משלוח זמין לערים: {deliveryAreaText || 'כל הארץ'}</p>
+            <Card className="border-none shadow-premium rounded-[2rem] bg-gradient-to-br from-white to-primary/5 overflow-hidden">
+              <div className="p-5 space-y-4 text-right">
+                {(normalizedDeliveryType === 'delivery' || normalizedDeliveryType === 'both') && (
+                  <div className="space-y-2.5">
+                    <div className="flex items-center justify-end gap-2">
+                      <span className="text-[10px] font-black text-primary/50 uppercase tracking-widest">ערים זמינות למשלוח</span>
+                      <Truck className="w-4 h-4 text-accent" />
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 justify-end">
+                      {deliveryAreaText ? (
+                        deliveryAreaText.split(', ').filter(Boolean).map(city => (
+                          <Badge key={city} variant="outline" className="bg-primary/5 text-primary border-primary/15 font-bold text-[11px] px-3 py-1.5 rounded-full">
+                            <MapPin className="w-3 h-3 ml-1 text-accent" />{city}
+                          </Badge>
+                        ))
+                      ) : (
+                        <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-100 font-bold text-[11px] px-4 py-1.5 rounded-full">
+                          <CheckCircle2 className="w-3 h-3 ml-1" />כל הארץ
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
                 )}
-                {normalizedDeliveryType === 'pickup' && (
-                  <p className="font-bold text-primary">📦 איסוף עצמי בלבד מ{sellerCity || 'עיר הסופר'}</p>
-                )}
-                {normalizedDeliveryType === 'both' && (
-                  <>
-                    <p className="font-bold text-primary">🚚 משלוח לערים: {deliveryAreaText || 'כל הארץ'}</p>
-                    <p className="font-bold text-primary">📦 או איסוף עצמי מ{sellerCity || 'עיר הסופר'}</p>
-                  </>
+                {(normalizedDeliveryType === 'pickup' || normalizedDeliveryType === 'both') && (
+                  <div className="flex items-center justify-end gap-2.5 bg-amber-50/80 rounded-2xl px-4 py-3 border border-amber-100">
+                    <span className="text-sm font-bold text-amber-800">איסוף עצמי מ{sellerCity || 'עיר הסופר'}</span>
+                    <MapPin className="w-4 h-4 text-amber-600 shrink-0" />
+                  </div>
                 )}
               </div>
             </Card>
@@ -778,10 +793,10 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
           }
         }}
       >
-        <DialogContent className="max-w-5xl rounded-[2rem] border-none bg-black/95 p-3 sm:p-6 shadow-2xl" dir="rtl">
+        <DialogContent className="max-w-5xl w-[95vw] rounded-[1.5rem] sm:rounded-[2rem] border-none bg-black/95 p-3 sm:p-6 shadow-2xl max-h-[95vh] overflow-y-auto" dir="rtl">
           <DialogHeader className="space-y-2 pr-12 text-right">
             <DialogTitle className="text-white">{product.product_type}</DialogTitle>
-            <p className="text-xs font-bold text-white/70">בחר רמת זום וגרור לצדדים לעיון נוח בתמונה</p>
+            <p className="text-xs font-bold text-white/70">הגדל/הקטן עם הכפתורים וגרור לצדדים לעיון נוח — בנייד גרור לאחר הגדלה</p>
           </DialogHeader>
           <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
             <Label className="text-[10px] font-black text-white/70">רמת זום</Label>
@@ -833,7 +848,21 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
             onMouseLeave={() => {
               dragOriginRef.current = null;
             }}
-            className="relative block h-[60vh] w-full overflow-hidden rounded-[1.5rem] bg-black text-center"
+            onTouchStart={(event) => {
+              if (imageZoomLevel <= MIN_IMAGE_ZOOM_LEVEL) return;
+              const touch = event.touches[0];
+              dragOriginRef.current = { x: touch.clientX - imagePan.x, y: touch.clientY - imagePan.y };
+            }}
+            onTouchMove={(event) => {
+              if (!dragOriginRef.current || imageZoomLevel <= MIN_IMAGE_ZOOM_LEVEL) return;
+              event.preventDefault();
+              const touch = event.touches[0];
+              updateImagePan(touch.clientX - dragOriginRef.current.x, touch.clientY - dragOriginRef.current.y);
+            }}
+            onTouchEnd={() => {
+              dragOriginRef.current = null;
+            }}
+            className="relative block h-[60vh] w-full overflow-hidden rounded-[1.5rem] bg-black text-center touch-none"
           >
             <div className="relative h-full min-h-[24rem] w-full">
               <Image

@@ -429,7 +429,7 @@ export default function SellerProfile() {
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="max-w-lg rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white text-right" dir="rtl">
-                    <div className="bg-gradient-to-l from-red-700 to-destructive p-6 text-white text-right">
+                    <div className="bg-gradient-to-br from-red-700 to-red-500 p-6 pr-16 text-white text-right">
                        <DialogHeader>
                           <DialogTitle className="text-xl font-headline font-black flex items-center gap-3 text-white">
                             <Flag className="w-6 h-6 text-white" /> דיווח למנהל המערכת
@@ -449,7 +449,7 @@ export default function SellerProfile() {
                               value={reportReason} 
                               onChange={e => setReportReason(e.target.value)} 
                               placeholder="כתוב כאן מה קרה, מתי, ומה נדרש לבדיקה..." 
-                              className="min-h-[120px] rounded-2xl text-slate-900 bg-slate-50 border-slate-300 placeholder:text-slate-500 focus-visible:ring-destructive/40" 
+                              className="min-h-[120px] rounded-2xl text-slate-900 bg-slate-50 border-slate-300 placeholder:text-slate-500 focus-visible:ring-red-400/40" 
                             />
                         </div>
                         <p className="text-[11px] font-medium text-slate-500 leading-relaxed">
@@ -457,7 +457,7 @@ export default function SellerProfile() {
                         </p>
                     </div>
                       <DialogFooter className="p-6 bg-slate-50 border-t border-slate-100 flex gap-3">
-                        <Button onClick={handleSendReport} disabled={isReporting || !reportReason.trim()} className="flex-1 bg-destructive text-white h-12 rounded-xl font-black uppercase shadow-md hover:bg-red-700 transition-colors disabled:opacity-50">
+                        <Button variant="destructive" onClick={handleSendReport} disabled={isReporting || !reportReason.trim()} className="flex-1 h-12 rounded-xl font-black uppercase shadow-md transition-colors">
                           {isReporting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'שלח דיווח'}
                         </Button>
                         <Button variant="outline" onClick={() => setIsReportDialogOpen(false)} className="h-12 rounded-xl font-bold text-slate-800 border-slate-300 hover:bg-slate-100">ביטול</Button>

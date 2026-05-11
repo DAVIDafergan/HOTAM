@@ -640,7 +640,7 @@ function SearchContent() {
                   </div>
                 </div>
                 <div className="text-right shrink-0 w-full md:w-auto px-1">
-                  <h2 className="text-2xl md:text-4xl font-headline font-black text-primary tracking-tighter">כלי קודש שנמצאו ({filteredProducts.length})</h2>
+                  <h2 className="text-2xl md:text-4xl font-headline font-black text-primary tracking-tighter">מוצרים שנמצאו ({filteredProducts.length})</h2>
                 </div>
               </div>
 

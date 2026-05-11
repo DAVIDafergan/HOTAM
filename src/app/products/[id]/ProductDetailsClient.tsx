@@ -492,21 +492,21 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
                   <div className="h-px bg-primary/5 w-full" />
 
                    <div className="grid grid-cols-2 gap-4">
-                     <div aria-label={`זמן אספקה: ${product.product_type === 'ספר תורה' ? 'בתיאום אישי' : `${product.delivery_time || '3'} ימים`}`} className="flex flex-col items-end gap-1.5 rounded-2xl bg-slate-50/50 p-3 text-right">
+                     <section aria-labelledby="delivery-time-label" className="flex flex-col items-end gap-1.5 rounded-2xl bg-slate-50/50 p-3 text-right">
                        <Clock className="w-5 h-5 text-accent" />
-                       <span className="text-[9px] font-black text-primary/40 uppercase tracking-widest">זמן אספקה</span>
+                       <span id="delivery-time-label" className="text-[9px] font-black text-primary/40 uppercase tracking-widest">זמן אספקה</span>
                        <span className="text-xs font-black text-primary leading-none">
                          {product.product_type === 'ספר תורה' ? 'בתיאום אישי' : `${product.delivery_time || '3'} ימים`}
                        </span>
-                     </div>
-                     <div aria-label={`עלות משלוח: ${Number(product.delivery_fee) > 0 ? `₪${product.delivery_fee}` : 'משלוח חינם'}`} className="flex flex-col items-end gap-1.5 rounded-2xl bg-slate-50/50 p-3 text-right">
+                     </section>
+                     <section aria-labelledby="delivery-fee-label" className="flex flex-col items-end gap-1.5 rounded-2xl bg-slate-50/50 p-3 text-right">
                        <Truck className="w-5 h-5 text-accent" />
-                       <span className="text-[9px] font-black text-primary/40 uppercase tracking-widest">עלות משלוח</span>
+                       <span id="delivery-fee-label" className="text-[9px] font-black text-primary/40 uppercase tracking-widest">עלות משלוח</span>
                        <span className="text-xs font-black text-emerald-600 leading-none">
                          {Number(product.delivery_fee) > 0 ? `₪${product.delivery_fee}` : 'משלוח חינם'}
-                      </span>
-                    </div>
-                  </div>
+                       </span>
+                     </section>
+                   </div>
                </div>
             </Card>
 

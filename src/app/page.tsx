@@ -197,7 +197,7 @@ export default function Home() {
           <div className="container mx-auto px-4 relative z-10">
             <div className="max-w-4xl mx-auto text-center space-y-8 mb-12 md:mb-20">
               <h2 id="about-heading" className="text-4xl md:text-5xl font-headline font-black text-primary tracking-tight">
-                 חותם – מלאכת שמיים ושקיפות מלאה
+                חותם – מלאכת שמיים ושקיפות מלאה
               </h2>
               <div className="w-16 h-1 rounded-full bg-accent mx-auto" />
               <p className="text-lg md:text-xl text-primary/70 leading-relaxed font-medium">

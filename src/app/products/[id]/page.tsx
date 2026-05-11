@@ -48,9 +48,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const title = fields.product_type || 'מוצר קודש';
     const subType = fields.sub_type && fields.sub_type !== 'all' ? ` ${fields.sub_type}` : '';
     const scriptType = fields.script_type || '';
+    const displayPrice = Number(fields.price ?? 0) > 0 ? Math.round(Number(fields.price) * 1.18) : 0;
 
-    const pageTitle = `${title}${subType} - כתב ${scriptType} מהודר | חותם`;
-    const description = fields.description || `רכישת ${title} מהודרת בכתב ${scriptType}, נכתב על ידי סופר סת"ם ירא שמיים בפיקוח הלכתי.`;
+    const pageTitle = `${title}${subType} • ₪${displayPrice.toLocaleString('he-IL')} | חותם`;
+    const description = fields.description || `רכישת ${title}${subType} מהודר בכתב ${scriptType}, במחיר ₪${displayPrice.toLocaleString('he-IL')} כולל מע"מ, ישירות מסופר סת"ם ירא שמיים.`;
 
     let imageUrl = 'https://hotam.shop/opengraph-image.png';
     if (Array.isArray(fields.images) && fields.images.length > 0) {

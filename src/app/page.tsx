@@ -14,13 +14,12 @@ import {
   ShieldCheck, 
   Users, 
   HandHeart, 
-  Sparkles,
   Search,
   Star,
   Trophy,
   ArrowRight,
   UserRound,
-  MapPin
+  MapPin,
 } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import dynamic from 'next/dynamic';
@@ -28,10 +27,8 @@ import { useUser, useSupabaseClient, useDoc, useMemoStable, useCollection } from
 import { collection, query, where, orderBy, doc } from '@/lib/supabase-compat';
 import unsplashLoader from '@/lib/unsplashLoader';
 import { motion } from 'framer-motion';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { TorahExpertBanner } from '@/components/TorahExpertBanner';
-import { reverseGeocodeWithGoogle } from '@/lib/google-maps';
-import { useRouter } from 'next/navigation';
 
 const HeroAnimation = dynamic(() => import('@/components/HeroAnimation').then(mod => mod.HeroAnimation), {
   ssr: false
@@ -45,9 +42,6 @@ const TOP_SCRIBES_SECTION_TITLE = `${TOP_SCRIBES_LIMIT} סופרים מוביל�
 export default function Home() {
   const { user } = useUser();
   const db = useSupabaseClient();
-  const router = useRouter();
-  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
-  const [detectedCity, setDetectedCity] = useState<string | null>(null);
   
   const sellerRef = useMemoStable(() => (user?.uid ? doc(db, 'sellers', user.uid) : null), [db, user?.uid]);
   const { data: sellerData } = useDoc<any>(sellerRef);
@@ -108,36 +102,6 @@ export default function Home() {
       })
       .slice(0, TOP_SCRIBES_LIMIT);
   }, [allSellers, sellerReviewStats]);
-
-  const handleNearMeClick = () => {
-    if (!navigator.geolocation) return;
-    setIsDetectingLocation(true);
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const { latitude, longitude } = pos.coords;
-        try {
-          const { city } = await reverseGeocodeWithGoogle(latitude, longitude);
-          if (!city) {
-            setIsDetectingLocation(false);
-            return;
-          }
-
-          setDetectedCity(city);
-          const params = new URLSearchParams({
-            view: 'all',
-            nearMe: 'true',
-            city,
-            lat: String(latitude),
-            lng: String(longitude),
-          });
-          router.push(`/search?${params.toString()}`);
-        } finally {
-          setIsDetectingLocation(false);
-        }
-      },
-      () => setIsDetectingLocation(false),
-    );
-  };
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -232,11 +196,8 @@ export default function Home() {
           <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none" />
           <div className="container mx-auto px-4 relative z-10">
             <div className="max-w-4xl mx-auto text-center space-y-8 mb-12 md:mb-20">
-              <div className="inline-block p-3 bg-accent/10 rounded-2xl text-accent mb-2">
-                <Sparkles className="w-6 h-6" />
-              </div>
               <h2 id="about-heading" className="text-4xl md:text-5xl font-headline font-black text-primary tracking-tight">
-                חותם – מלאכת שמיים ושקיפות מלאה
+                 חותם – מלאכת שמיים ושקיפות מלאה
               </h2>
               <div className="w-16 h-1 rounded-full bg-accent mx-auto" />
               <p className="text-lg md:text-xl text-primary/70 leading-relaxed font-medium">
@@ -271,20 +232,6 @@ export default function Home() {
                     <ArrowLeft className="w-4 h-4 mr-2" />
                   </Link>
                 </Button>
-                <div className="flex flex-col items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleNearMeClick}
-                    disabled={isDetectingLocation}
-                    className="rounded-full h-12 px-8 font-black"
-                  >
-                    {isDetectingLocation ? 'מזהה מיקום...' : '📍 קרוב אליי'}
-                  </Button>
-                  {detectedCity && (
-                    <p className="text-sm font-bold text-emerald-600">זיהינו: {detectedCity}</p>
-                  )}
-                </div>
               </div>
             </div>
           </div>

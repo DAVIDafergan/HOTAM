@@ -28,7 +28,8 @@ import {
   FileText,
   Flag,
   ArrowLeft,
-  Trash2
+  Trash2,
+  ZoomIn
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -36,7 +37,7 @@ import { useParams, usePathname } from 'next/navigation';
 import { useSupabaseClient, useUser } from '@/lib/supabase-hooks';
 import { supabase } from '@/lib/supabase';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -44,6 +45,12 @@ import { Switch } from '@/components/ui/switch';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PROFILE_NOT_FOUND_CODE } from '@/lib/supabase-errors';
+
+const MIN_SAMPLE_ZOOM_LEVEL = 1;
+const MAX_SAMPLE_ZOOM_LEVEL = 4;
+const SAMPLE_ZOOM_STEP = 0.25;
+const SAMPLE_WHEEL_ZOOM_DELTA = 0.2;
+const BASE_SAMPLE_PAN_LIMIT_PX = 220;
 
 export default function SellerProfile() {
   const params = useParams();
@@ -66,6 +73,11 @@ export default function SellerProfile() {
   const [isReviewSubmitting, setIsReviewSubmitting] = useState(false);
   const [deletingReviewId, setDeletingReviewId] = useState<string | null>(null);
   const [reviewSortOrder, setReviewSortOrder] = useState<'newest' | 'oldest'>('newest');
+  const [selectedWritingSample, setSelectedWritingSample] = useState<string | null>(null);
+  const [isSampleDialogOpen, setIsSampleDialogOpen] = useState(false);
+  const [sampleZoomLevel, setSampleZoomLevel] = useState(1);
+  const [samplePan, setSamplePan] = useState({ x: 0, y: 0 });
+  const sampleDragOriginRef = useRef<{ x: number; y: number } | null>(null);
 
   // Fetch Seller Info
   const [seller, setSeller] = useState<any>(null);
@@ -333,6 +345,34 @@ export default function SellerProfile() {
     },
   ];
 
+  const clampSampleZoomLevel = (zoom: number) =>
+    Math.min(MAX_SAMPLE_ZOOM_LEVEL, Math.max(MIN_SAMPLE_ZOOM_LEVEL, Number(zoom.toFixed(2))));
+
+  const updateSampleZoom = (zoom: number) => {
+    const nextZoom = clampSampleZoomLevel(zoom);
+    setSampleZoomLevel(nextZoom);
+    if (nextZoom <= MIN_SAMPLE_ZOOM_LEVEL) setSamplePan({ x: 0, y: 0 });
+  };
+
+  const updateSamplePan = (x: number, y: number) => {
+    if (sampleZoomLevel <= MIN_SAMPLE_ZOOM_LEVEL) {
+      setSamplePan({ x: 0, y: 0 });
+      return;
+    }
+
+    const limit = BASE_SAMPLE_PAN_LIMIT_PX * sampleZoomLevel;
+    setSamplePan({
+      x: Math.max(-limit, Math.min(limit, x)),
+      y: Math.max(-limit, Math.min(limit, y)),
+    });
+  };
+
+  const sampleCursor = sampleZoomLevel <= MIN_SAMPLE_ZOOM_LEVEL
+    ? 'zoom-in'
+    : sampleDragOriginRef.current
+      ? 'grabbing'
+      : 'grab';
+
   return (
     <div className="min-h-screen bg-background" dir="rtl">
       <Navbar />
@@ -530,12 +570,26 @@ export default function SellerProfile() {
                 <TabsContent value="samples" className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
                   <div className="grid grid-cols-2 gap-4">
                     {(seller.writing_samples || []).map((sample: string, i: number) => (
-                      <div key={i} className="group relative aspect-square rounded-2xl overflow-hidden shadow-premium border border-muted/50">
-                        <Image src={sample} alt={`Sample ${i}`} fill className="object-cover group-hover:scale-110 transition-transform duration-1000" />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <FileText className="text-white w-8 h-8" />
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => {
+                          setSelectedWritingSample(sample);
+                          setSampleZoomLevel(MIN_SAMPLE_ZOOM_LEVEL);
+                          setSamplePan({ x: 0, y: 0 });
+                          sampleDragOriginRef.current = null;
+                          setIsSampleDialogOpen(true);
+                        }}
+                        className="group relative aspect-square overflow-hidden rounded-2xl border border-muted/50 shadow-premium"
+                      >
+                        <Image src={sample} alt={`Sample ${i + 1}`} fill className="object-cover transition-transform duration-1000 group-hover:scale-110" />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                          <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-xs font-black text-primary shadow-lg">
+                            <ZoomIn className="h-4 w-4 text-accent" />
+                            הגדל דוגמה
+                          </div>
                         </div>
-                      </div>
+                      </button>
                     ))}
                     {(!seller.writing_samples || seller.writing_samples.length === 0) && (
                       <div className="col-span-full py-16 text-center bg-muted/10 rounded-3xl border-2 border-dashed border-muted">
@@ -664,6 +718,107 @@ export default function SellerProfile() {
 
         </div>
       </main>
+
+      <Dialog
+        open={isSampleDialogOpen}
+        onOpenChange={(open) => {
+          setIsSampleDialogOpen(open);
+          if (!open) {
+            setSampleZoomLevel(MIN_SAMPLE_ZOOM_LEVEL);
+            setSamplePan({ x: 0, y: 0 });
+            sampleDragOriginRef.current = null;
+          }
+        }}
+      >
+        <DialogContent className="max-h-[95vh] w-[95vw] max-w-5xl overflow-y-auto rounded-[2rem] border-none bg-black/95 p-3 sm:p-6 shadow-2xl" dir="rtl">
+          <DialogHeader className="space-y-2 pr-12 text-right">
+            <DialogTitle className="text-white">דוגמת כתיבה מוגדלת</DialogTitle>
+            <p className="text-xs font-bold text-white/70">ניתן לבצע זום ולגרור את הדוגמה לעיון מדויק בפרטי הכתיבה.</p>
+          </DialogHeader>
+          <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
+            <Label className="text-[10px] font-black text-white/70">רמת זום</Label>
+            <Button type="button" size="sm" variant="outline" className="h-8 px-3 text-xs" onClick={() => updateSampleZoom(sampleZoomLevel - SAMPLE_ZOOM_STEP)}>−</Button>
+            <input
+              type="range"
+              min={MIN_SAMPLE_ZOOM_LEVEL}
+              max={MAX_SAMPLE_ZOOM_LEVEL}
+              step={SAMPLE_ZOOM_STEP}
+              value={sampleZoomLevel}
+              onChange={(event) => updateSampleZoom(Number(event.target.value))}
+              className="w-36 accent-accent"
+              aria-label="רמת זום דוגמת כתיבה"
+            />
+            <Button type="button" size="sm" variant="outline" className="h-8 px-3 text-xs" onClick={() => updateSampleZoom(sampleZoomLevel + SAMPLE_ZOOM_STEP)}>+</Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="h-8 px-3 text-xs text-white hover:bg-white/10 hover:text-white"
+              onClick={() => {
+                setSampleZoomLevel(MIN_SAMPLE_ZOOM_LEVEL);
+                setSamplePan({ x: 0, y: 0 });
+                sampleDragOriginRef.current = null;
+              }}
+            >
+              איפוס
+            </Button>
+          </div>
+          <div
+            role="img"
+            aria-label="דוגמת כתיבה מוגדלת"
+            onWheel={(event) => {
+              event.preventDefault();
+              const delta = event.deltaY > 0 ? -SAMPLE_WHEEL_ZOOM_DELTA : SAMPLE_WHEEL_ZOOM_DELTA;
+              updateSampleZoom(sampleZoomLevel + delta);
+            }}
+            onMouseDown={(event) => {
+              if (sampleZoomLevel <= MIN_SAMPLE_ZOOM_LEVEL) return;
+              sampleDragOriginRef.current = { x: event.clientX - samplePan.x, y: event.clientY - samplePan.y };
+            }}
+            onMouseMove={(event) => {
+              if (!sampleDragOriginRef.current || sampleZoomLevel <= MIN_SAMPLE_ZOOM_LEVEL) return;
+              updateSamplePan(event.clientX - sampleDragOriginRef.current.x, event.clientY - sampleDragOriginRef.current.y);
+            }}
+            onMouseUp={() => {
+              sampleDragOriginRef.current = null;
+            }}
+            onMouseLeave={() => {
+              sampleDragOriginRef.current = null;
+            }}
+            onTouchStart={(event) => {
+              if (sampleZoomLevel <= MIN_SAMPLE_ZOOM_LEVEL) return;
+              const touch = event.touches[0];
+              sampleDragOriginRef.current = { x: touch.clientX - samplePan.x, y: touch.clientY - samplePan.y };
+            }}
+            onTouchMove={(event) => {
+              if (!sampleDragOriginRef.current || sampleZoomLevel <= MIN_SAMPLE_ZOOM_LEVEL) return;
+              event.preventDefault();
+              const touch = event.touches[0];
+              updateSamplePan(touch.clientX - sampleDragOriginRef.current.x, touch.clientY - sampleDragOriginRef.current.y);
+            }}
+            onTouchEnd={() => {
+              sampleDragOriginRef.current = null;
+            }}
+            className="relative block h-[60vh] w-full touch-none overflow-hidden rounded-[1.5rem] bg-black text-center"
+          >
+            <div className="relative h-full min-h-[24rem] w-full">
+              {selectedWritingSample && (
+                <Image
+                  src={selectedWritingSample}
+                  alt="דוגמת כתיבה"
+                  fill
+                  className="object-contain transition-transform duration-150"
+                  style={{
+                    transform: `translate(${samplePan.x}px, ${samplePan.y}px) scale(${sampleZoomLevel})`,
+                    cursor: sampleCursor,
+                    transformOrigin: 'center center',
+                  }}
+                />
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );

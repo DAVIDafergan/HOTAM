@@ -83,6 +83,7 @@ const normalizeCity = (value: string) =>
     .replace(/\s+/g, ' ')
     .trim()
     .toLowerCase();
+const sanitizePriceInput = (value: string) => value.replace(/[^\d]/g, '');
 const REGION_CITY_MAP: Record<string, string[]> = {
   'השרון': ['נתניה', 'הרצליה', 'רעננה', 'כפר סבא', 'הוד השרון', 'רמת השרון', 'פרדסיה', 'קדימה', 'אבן יהודה'],
   'תל אביב וגוש דן': ['תל אביב', 'תל אביב-יפו', 'רמת גן', 'גבעתיים', 'חולון', 'בת ים', 'בני ברק', 'פתח תקווה'],
@@ -540,7 +541,7 @@ function SearchContent() {
                 inputMode="numeric"
                 value={String(activePriceRange[0])}
                 onChange={(event) => {
-                  const nextMin = Number(event.target.value.replace(/[^\d.]/g, '')) || priceBounds.min;
+                  const nextMin = Number(sanitizePriceInput(event.target.value)) || priceBounds.min;
                   setPriceRange([Math.min(nextMin, activePriceRange[1]), activePriceRange[1]]);
                 }}
                 className="h-11 rounded-2xl border-primary/10 bg-white text-right font-bold"
@@ -552,7 +553,7 @@ function SearchContent() {
                 inputMode="numeric"
                 value={String(activePriceRange[1])}
                 onChange={(event) => {
-                  const nextMax = Number(event.target.value.replace(/[^\d.]/g, '')) || priceBounds.max;
+                  const nextMax = Number(sanitizePriceInput(event.target.value)) || priceBounds.max;
                   setPriceRange([activePriceRange[0], Math.max(nextMax, activePriceRange[0])]);
                 }}
                 className="h-11 rounded-2xl border-primary/10 bg-white text-right font-bold"
@@ -566,7 +567,10 @@ function SearchContent() {
               step={50}
               value={activePriceRange}
               onValueChange={(value) => {
-                if (!Array.isArray(value) || value.length < 2) return;
+                if (!Array.isArray(value) || value.length < 2) {
+                  console.warn('Unexpected price slider value:', value);
+                  return;
+                }
                 const [userSelectedMin = priceBounds.min, userSelectedMax = priceBounds.max] = value;
                 setPriceRange([Math.min(userSelectedMin, userSelectedMax), Math.max(userSelectedMin, userSelectedMax)]);
               }}

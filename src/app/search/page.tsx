@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useMemo, useEffect, Suspense } from 'react';
+import React, { useState, useMemo, useEffect, Suspense, useCallback } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -195,18 +195,19 @@ function SearchContent() {
   }, [allProducts]);
 
   const activePriceRange = priceRange ?? [priceBounds.min, priceBounds.max];
+  const resetPriceRange = useCallback(() => setPriceRange([priceBounds.min, priceBounds.max]), [priceBounds.max, priceBounds.min]);
 
   useEffect(() => {
     if (!priceRange) {
-      setPriceRange([priceBounds.min, priceBounds.max]);
+      resetPriceRange();
       return;
     }
 
     const [currentMin, currentMax] = priceRange;
     if (currentMin < priceBounds.min || currentMax > priceBounds.max) {
-      setPriceRange([priceBounds.min, priceBounds.max]);
+      resetPriceRange();
     }
-  }, [priceBounds.max, priceBounds.min, priceRange]);
+  }, [priceBounds.max, priceBounds.min, priceRange, resetPriceRange]);
 
   useEffect(() => {
     const type = searchParams.get('product') as ProductType;
@@ -462,7 +463,7 @@ function SearchContent() {
     setQuantity(1); setScrollSize('all'); setSelectedRegion('all'); setUserCoords(null); setDetectedCity(null);
     setMarriedOnly(false); setMikvehFreq('all'); setCertStatus('all'); setStudyFreq('all');
     setShippingPreference('all'); setSortOrder('newest');
-    setPriceRange([priceBounds.min, priceBounds.max]);
+    resetPriceRange();
     setNearbyDistanceMap({}); setNearbySortedProducts([]);
     setPreferNearMe(false);
     setShowResults(isViewingAll);

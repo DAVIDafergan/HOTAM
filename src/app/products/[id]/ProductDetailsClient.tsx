@@ -254,11 +254,11 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
 
   const handleShare = async () => {
     const url = typeof window !== 'undefined' ? window.location.href : '';
-    const shareTitle = `${product?.product_type}${product?.sub_type && product?.sub_type !== 'all' ? ` ${product.sub_type}` : ''}`;
-    const sharePrice = Number(product?.price) > 0 ? ` | ₪${displayPrice}` : '';
+    const shareBaseTitle = `${product?.product_type}${product?.sub_type && product?.sub_type !== 'all' ? ` ${product.sub_type}` : ''}`;
+    const shareTitle = Number(product?.price) > 0 ? `${shareBaseTitle} | ₪${displayPrice}` : shareBaseTitle;
     const shareData = {
-      title: `${shareTitle}${sharePrice}`,
-      text: product?.description || `רכישת ${shareTitle} מהודרת במחיר ₪${displayPrice}`,
+      title: shareTitle,
+      text: product?.description || `רכישת ${shareBaseTitle} מהודרת במחיר ₪${displayPrice}`,
       url,
     };
     try {

@@ -442,6 +442,10 @@ function SellerDashboardContent() {
     try {
       const uploadedUrl = await uploadImage(firstFile);
       setProfileData(prev => ({ ...prev, profile_image: uploadedUrl }));
+      if (sellerRef) {
+        updateDocumentNonBlocking(sellerRef, { profile_image: uploadedUrl });
+        toast({ title: 'תמונת הפרופיל עודכנה', description: 'התמונה נשמרה בהצלחה.' });
+      }
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'העלאת תמונת הפרופיל נכשלה.';
       console.error('Profile image upload error:', error);

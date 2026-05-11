@@ -204,7 +204,7 @@ function ChatContent() {
   useEffect(() => {
     if (!otherUserId) return;
     const fetchOtherUser = async () => {
-      let { data: seller } = await supabase.from('sellers').select('*').eq('id', otherUserId).single();
+      let { data: seller } = await supabase.from('sellers').select('*').eq('id', otherUserId).maybeSingle();
       if (seller) {
         setOtherSellerData(seller);
         setOtherUserData(seller);

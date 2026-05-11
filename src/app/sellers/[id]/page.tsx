@@ -431,7 +431,7 @@ export default function SellerProfile() {
                   <DialogContent className="max-w-lg rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white text-right" dir="rtl">
                     <div className="bg-gradient-to-br from-red-700 to-red-500 p-6 pr-16 text-white text-right">
                        <DialogHeader>
-                          <DialogTitle className="text-xl font-headline font-black flex items-center gap-3" style={{ color: 'white' }}>
+                          <DialogTitle className="text-xl font-headline font-black flex items-center gap-3 text-white">
                             <Flag className="w-6 h-6 text-white" /> דיווח למנהל המערכת
                           </DialogTitle>
                        </DialogHeader>

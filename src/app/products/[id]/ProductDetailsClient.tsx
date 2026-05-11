@@ -796,7 +796,7 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
         <DialogContent className="max-w-5xl w-[95vw] rounded-[1.5rem] sm:rounded-[2rem] border-none bg-black/95 p-3 sm:p-6 shadow-2xl max-h-[95vh] overflow-y-auto" dir="rtl">
           <DialogHeader className="space-y-2 pr-12 text-right">
             <DialogTitle className="text-white">{product.product_type}</DialogTitle>
-            <p className="text-xs font-bold text-white/70">הגדל/הקטן עם הכפתורים וגרור לצדדים לעיון נוח — במובייל גרור לאחר הגדלה</p>
+            <p className="text-xs font-bold text-white/70">הגדל/הקטן עם הכפתורים וגרור לצדדים לעיון נוח — בנייד גרור לאחר הגדלה</p>
           </DialogHeader>
           <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
             <Label className="text-[10px] font-black text-white/70">רמת זום</Label>

@@ -190,7 +190,11 @@ export default function CustomerDashboard() {
 
     return () => {
       cancelled = true;
-      if (listener && window.google?.maps?.event?.removeListener) {
+      // clearInstanceListeners removes all listeners (including our place_changed one),
+      // so it is preferred; fall back to removeListener if the API is not yet loaded.
+      if (autocomplete && window.google?.maps?.event?.clearInstanceListeners) {
+        window.google.maps.event.clearInstanceListeners(autocomplete);
+      } else if (listener && window.google?.maps?.event?.removeListener) {
         window.google.maps.event.removeListener(listener);
       }
     };

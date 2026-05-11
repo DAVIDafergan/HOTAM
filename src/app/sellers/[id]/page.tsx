@@ -78,7 +78,7 @@ export default function SellerProfile() {
       .from('sellers')
       .select('*')
       .eq('id', id)
-      .single()
+      .maybeSingle()
       .then(({ data, error }) => {
         if (error) console.error('[seller] fetch error:', error.message);
         else setSeller(data || null);

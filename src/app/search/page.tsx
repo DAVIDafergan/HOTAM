@@ -65,6 +65,9 @@ const HEBREW_ARTICLE_PREFIX = /^ה/;
 const HEBREW_CITY_PREFIX = /^עיר\s+/;
 const CITY_MATCH_SEPARATORS = [' ', '-'];
 const UNKNOWN_CITY_LABEL = 'עיר לא ידועה';
+const PRICE_THRESHOLD_FOR_ROUNDING = 1000;
+const SMALL_PRICE_ROUND_FACTOR = 100;
+const LARGE_PRICE_ROUND_FACTOR = 500;
 const CITY_ALIAS_PAIRS = [
   ['raanana', 'רעננה'],
   ['tel aviv', 'תל אביב'],
@@ -181,7 +184,9 @@ function SearchContent() {
 
     const min = Math.floor(Math.min(...prices));
     const rawMax = Math.ceil(Math.max(...prices));
-    const roundedMax = rawMax <= 1000 ? Math.ceil(rawMax / 100) * 100 : Math.ceil(rawMax / 500) * 500;
+    const roundedMax = rawMax <= PRICE_THRESHOLD_FOR_ROUNDING
+      ? Math.ceil(rawMax / SMALL_PRICE_ROUND_FACTOR) * SMALL_PRICE_ROUND_FACTOR
+      : Math.ceil(rawMax / LARGE_PRICE_ROUND_FACTOR) * LARGE_PRICE_ROUND_FACTOR;
 
     return {
       min,
@@ -560,8 +565,8 @@ function SearchContent() {
               step={50}
               value={activePriceRange}
               onValueChange={(value) => {
-                const [minValue = priceBounds.min, maxValue = priceBounds.max] = value;
-                setPriceRange([Math.min(minValue, maxValue), Math.max(minValue, maxValue)]);
+                const [userSelectedMin = priceBounds.min, userSelectedMax = priceBounds.max] = value;
+                setPriceRange([Math.min(userSelectedMin, userSelectedMax), Math.max(userSelectedMin, userSelectedMax)]);
               }}
               className="w-full"
             />

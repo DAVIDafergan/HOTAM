@@ -529,7 +529,7 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
                     </div>
                     <div className="flex flex-wrap gap-1.5 justify-end">
                       {deliveryAreaText ? (
-                        deliveryAreaText.split(', ').filter(Boolean).map((city: string) => (
+                        deliveryAreaText.split(', ').filter(Boolean).map((city) => (
                           <Badge key={city} variant="outline" className="bg-primary/5 text-primary border-primary/15 font-bold text-[11px] px-3 py-1.5 rounded-full">
                             <MapPin className="w-3 h-3 ml-1 text-accent" />{city}
                           </Badge>

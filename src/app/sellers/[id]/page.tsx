@@ -46,13 +46,12 @@ import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PROFILE_NOT_FOUND_CODE } from '@/lib/supabase-errors';
 
-const MIN_SAMPLE_ZOOM_LEVEL = 1;
-const MAX_SAMPLE_ZOOM_LEVEL = 4;
-const SAMPLE_ZOOM_STEP = 0.25;
-const SAMPLE_WHEEL_ZOOM_DELTA = 0.2;
-const BASE_SAMPLE_PAN_LIMIT_PX = 220;
-
 export default function SellerProfile() {
+  const MIN_SAMPLE_ZOOM_LEVEL = 1;
+  const MAX_SAMPLE_ZOOM_LEVEL = 4;
+  const SAMPLE_ZOOM_STEP = 0.25;
+  const SAMPLE_WHEEL_ZOOM_DELTA = 0.2;
+  const BASE_SAMPLE_PAN_LIMIT_PX = 220;
   const params = useParams();
   const idParam = params?.id;
   const id = typeof idParam === 'string' ? idParam : Array.isArray(idParam) ? idParam[0] : undefined;

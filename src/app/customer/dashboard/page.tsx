@@ -190,7 +190,9 @@ export default function CustomerDashboard() {
 
     return () => {
       cancelled = true;
-      if (listener && window.google?.maps?.event?.removeListener) {
+      if (autocomplete && window.google?.maps?.event?.clearInstanceListeners) {
+        window.google.maps.event.clearInstanceListeners(autocomplete);
+      } else if (listener && window.google?.maps?.event?.removeListener) {
         window.google.maps.event.removeListener(listener);
       }
     };

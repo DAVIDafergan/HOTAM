@@ -171,6 +171,7 @@ export default function SellerProfile() {
     });
     return list;
   }, [reviews, reviewSortOrder]);
+  const sellerFullName = [seller?.first_name, seller?.last_name].filter(Boolean).join(' ').trim() || 'הסופר';
   const getSellerReviewSubmitLabel = () => {
     if (!user) return 'התחבר כדי לפרסם ביקורת';
     if (isOwnSellerReviewBlocked) return 'לא ניתן לדרג את עצמך';
@@ -589,7 +590,7 @@ export default function SellerProfile() {
                         }}
                         className="group relative aspect-square overflow-hidden rounded-2xl border border-muted/50 shadow-premium"
                       >
-                        <Image src={sample} alt={`דוגמת כתיבה ${i + 1} של ${seller.first_name} ${seller.last_name}`} fill className="object-cover transition-transform duration-1000 group-hover:scale-110" />
+                        <Image src={sample} alt={`דוגמת כתיבה ${i + 1} של ${sellerFullName}`} fill className="object-cover transition-transform duration-1000 group-hover:scale-110" />
                         <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
                           <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-xs font-black text-primary shadow-lg">
                             <ZoomIn className="h-4 w-4 text-accent" />

@@ -86,16 +86,20 @@ export default function SellerProfile() {
   useEffect(() => {
     if (!id) return;
     setIsSellerLoading(true);
-    supabase
-      .from('sellers')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle()
-      .then(({ data, error }) => {
+    void (async () => {
+      try {
+        const { data, error } = await supabase
+          .from('sellers')
+          .select('*')
+          .eq('id', id)
+          .maybeSingle();
+
         if (error) console.error('[seller] fetch error:', error.message);
         else setSeller(data || null);
-      })
-      .finally(() => setIsSellerLoading(false));
+      } finally {
+        setIsSellerLoading(false);
+      }
+    })();
   }, [id]);
 
   // Fetch Seller's Products
@@ -105,15 +109,19 @@ export default function SellerProfile() {
   useEffect(() => {
     if (!id) return;
     setIsProductsLoading(true);
-    supabase
-      .from('products')
-      .select('*')
-      .eq('seller_id', id)
-      .then(({ data, error }) => {
+    void (async () => {
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .select('*')
+          .eq('seller_id', id);
+
         if (error) console.error('products fetch error:', error.message);
         else setProducts(data || []);
-      })
-      .finally(() => setIsProductsLoading(false));
+      } finally {
+        setIsProductsLoading(false);
+      }
+    })();
   }, [id]);
 
   // Fetch Reviews

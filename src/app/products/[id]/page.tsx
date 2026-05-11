@@ -2,6 +2,8 @@ import { Metadata } from 'next';
 import { ProductDetailsClient } from './ProductDetailsClient';
 import { createClient } from '@supabase/supabase-js';
 
+const VAT_MULTIPLIER = 1.18;
+
 type Props = {
   params: Promise<{ id: string }>;
 };
@@ -48,7 +50,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const title = fields.product_type || 'מוצר קודש';
     const subType = fields.sub_type && fields.sub_type !== 'all' ? ` ${fields.sub_type}` : '';
     const scriptType = fields.script_type || '';
-    const displayPrice = Number(fields.price ?? 0) > 0 ? Math.round(Number(fields.price) * 1.18) : 0;
+    const displayPrice = Number(fields.price ?? 0) > 0 ? Math.round(Number(fields.price) * VAT_MULTIPLIER) : 0;
 
     const pageTitle = `${title}${subType} • ₪${displayPrice.toLocaleString('he-IL')} | חותם`;
     const description = fields.description || `רכישת ${title}${subType} מהודר בכתב ${scriptType}, במחיר ₪${displayPrice.toLocaleString('he-IL')} כולל מע"מ, ישירות מסופר סת"ם ירא שמיים.`;

@@ -198,7 +198,7 @@ function SearchContent() {
     }
 
     const [currentMin, currentMax] = priceRange;
-    if (currentMin < priceBounds.min || currentMax > priceBounds.max || currentMin > currentMax) {
+    if (currentMin < priceBounds.min || currentMax > priceBounds.max) {
       setPriceRange([priceBounds.min, priceBounds.max]);
     }
   }, [priceBounds.max, priceBounds.min, priceRange]);

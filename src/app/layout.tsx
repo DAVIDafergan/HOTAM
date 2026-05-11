@@ -92,7 +92,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         {googleMapsApiKey ? (
           <script
-            src={`https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&language=he&region=IL`}
+            src={`https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&loading=async&libraries=places&language=he&region=IL`}
             async
             defer
             data-google-maps-places="true"

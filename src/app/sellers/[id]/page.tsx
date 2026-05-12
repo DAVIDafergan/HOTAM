@@ -162,6 +162,7 @@ export default function SellerProfile() {
     [reviews, user]
   );
   const hasUserReviewedSeller = Boolean(currentUserSellerReview);
+  const shouldHideSellerReviewComposer = isOwnSellerReviewBlocked || hasUserReviewedSeller;
   const sortedSellerReviews = useMemo(() => {
     const list = [...(reviews || [])];
     list.sort((a: any, b: any) => {
@@ -631,53 +632,59 @@ export default function SellerProfile() {
                     <h4 className="text-sm font-black text-primary/40 uppercase tracking-widest">ביקורות לקוחות</h4>
                   </div>
 
-                  <div className="mb-2 rounded-3xl border border-primary/10 bg-gradient-to-br from-white to-primary/[0.03] p-5 md:p-6 space-y-4 text-right shadow-sm">
-                    <div className="space-y-1">
-                      <h5 className="text-base font-black text-primary">פרסום ביקורת</h5>
-                      <p className="text-xs font-medium text-muted-foreground">כתיבה קצרה וברורה תעזור ללקוחות אחרים לבחור נכון.</p>
+                  {shouldHideSellerReviewComposer ? (
+                    <div className="mb-2 rounded-3xl border border-primary/10 bg-gradient-to-br from-white to-primary/[0.03] px-5 py-3 text-right shadow-sm">
+                      <p className="text-[11px] font-medium text-primary/55">ניתן לדרג פעם אחת בלבד</p>
                     </div>
-                    {!user && (
-                      <p className="text-xs font-bold text-muted-foreground">
-                        כדי לפרסם ביקורת צריך <Link href={`/login?redirect=${encodeURIComponent(pathname)}`} className="underline text-primary">להתחבר לחשבון</Link>.
-                      </p>
-                    )}
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase text-slate-500">ביקורת</Label>
-                      <Textarea
-                        placeholder="שתף את חווית השירות והכתיבה..."
-                        value={reviewComment}
-                        onChange={e => setReviewComment(e.target.value)}
-                        className="rounded-2xl min-h-[100px]"
-                        disabled={!user || isOwnSellerReviewBlocked || hasUserReviewedSeller || isReviewSubmitting}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs font-black uppercase tracking-widest text-primary">דירוג כוכבים</Label>
-                      <div className="flex justify-center gap-2.5 rounded-2xl border border-primary/10 bg-white p-3">
-                        {[1, 2, 3, 4, 5].map(s => (
-                          <button key={s} type="button" onClick={() => setReviewRating(s)} disabled={!user || isOwnSellerReviewBlocked || hasUserReviewedSeller || isReviewSubmitting} className="rounded-full p-1.5 transition-colors hover:bg-accent/10 disabled:cursor-not-allowed">
-                            <Star className={`w-5 h-5 transition-colors ${s <= reviewRating ? 'fill-accent text-accent' : 'text-muted-foreground/30'}`} />
-                          </button>
-                        ))}
+                  ) : (
+                    <div className="mb-2 rounded-3xl border border-primary/10 bg-gradient-to-br from-white to-primary/[0.03] p-5 md:p-6 space-y-4 text-right shadow-sm">
+                      <div className="space-y-1">
+                        <h5 className="text-base font-black text-primary">פרסום ביקורת</h5>
+                        <p className="text-xs font-medium text-muted-foreground">כתיבה קצרה וברורה תעזור ללקוחות אחרים לבחור נכון.</p>
                       </div>
+                      {!user && (
+                        <p className="text-xs font-bold text-muted-foreground">
+                          כדי לפרסם ביקורת צריך <Link href={`/login?redirect=${encodeURIComponent(pathname)}`} className="underline text-primary">להתחבר לחשבון</Link>.
+                        </p>
+                      )}
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase text-slate-500">ביקורת</Label>
+                        <Textarea
+                          placeholder="שתף את חווית השירות והכתיבה..."
+                          value={reviewComment}
+                          onChange={e => setReviewComment(e.target.value)}
+                          className="rounded-2xl min-h-[100px]"
+                          disabled={!user || isReviewSubmitting}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs font-black uppercase tracking-widest text-primary">דירוג כוכבים</Label>
+                        <div className="flex justify-center gap-2.5 rounded-2xl border border-primary/10 bg-white p-3">
+                          {[1, 2, 3, 4, 5].map(s => (
+                            <button key={s} type="button" onClick={() => setReviewRating(s)} disabled={!user || isReviewSubmitting} className="rounded-full p-1.5 transition-colors hover:bg-accent/10 disabled:cursor-not-allowed">
+                              <Star className={`w-5 h-5 transition-colors ${s <= reviewRating ? 'fill-accent text-accent' : 'text-muted-foreground/30'}`} />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between p-4 rounded-2xl bg-white border border-muted/40">
+                        <Switch
+                          id="seller-review-anon"
+                          checked={reviewIsAnonymous}
+                          onCheckedChange={setReviewIsAnonymous}
+                          disabled={!user || isReviewSubmitting}
+                        />
+                        <Label htmlFor="seller-review-anon" className="text-sm font-bold text-primary cursor-pointer">פרסם כאנונימי</Label>
+                      </div>
+                      <Button
+                        onClick={handleSubmitSellerReview}
+                        disabled={!user || isReviewSubmitting}
+                        className="w-full bg-primary text-white h-12 font-black rounded-2xl shadow-md"
+                      >
+                        {isReviewSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : getSellerReviewSubmitLabel()}
+                      </Button>
                     </div>
-                    <div className="flex items-center justify-between p-4 rounded-2xl bg-white border border-muted/40">
-                      <Switch
-                        id="seller-review-anon"
-                        checked={reviewIsAnonymous}
-                        onCheckedChange={setReviewIsAnonymous}
-                        disabled={!user || isOwnSellerReviewBlocked || hasUserReviewedSeller || isReviewSubmitting}
-                      />
-                      <Label htmlFor="seller-review-anon" className="text-sm font-bold text-primary cursor-pointer">פרסם כאנונימי</Label>
-                    </div>
-                    <Button
-                      onClick={handleSubmitSellerReview}
-                      disabled={!user || isReviewSubmitting || isOwnSellerReviewBlocked || hasUserReviewedSeller}
-                      className="w-full bg-primary text-white h-12 font-black rounded-2xl shadow-md"
-                    >
-                      {isReviewSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : getSellerReviewSubmitLabel()}
-                    </Button>
-                  </div>
+                  )}
 
                   {sortedSellerReviews.length > 0 ? (
                     sortedSellerReviews.map((rev: any) => (

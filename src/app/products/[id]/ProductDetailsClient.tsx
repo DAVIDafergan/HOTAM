@@ -498,7 +498,7 @@ export function ProductDetailsClient({
                       <span className="text-primary text-5xl md:text-6xl font-black tabular-nums tracking-tighter">{displayPrice}</span>
                       <span className="text-accent text-2xl md:text-3xl font-black">₪</span>
                     </div>
-                    <p className="text-[10px] font-black text-primary/30 uppercase tracking-[0.2em] mt-1">מחיר סופי כולל מע"מ ומשלוח</p>
+                    <p className="text-[10px] font-black text-primary/60 uppercase tracking-[0.2em] mt-1">מחיר סופי כולל מע"מ ומשלוח</p>
                   </div>
 
                   <div className="h-px bg-primary/5 w-full" />
@@ -506,14 +506,14 @@ export function ProductDetailsClient({
                    <div className="grid grid-cols-2 gap-4">
                      <section aria-labelledby="delivery-time-label" className="flex flex-col items-end gap-1.5 rounded-2xl bg-slate-50/50 p-3 text-right">
                        <Clock className="w-5 h-5 text-accent" />
-                       <span id="delivery-time-label" className="text-[9px] font-black text-primary/40 uppercase tracking-widest">זמן אספקה</span>
+                        <span id="delivery-time-label" className="text-[9px] font-black text-primary/60 uppercase tracking-widest">זמן אספקה</span>
                        <span className="text-xs font-black text-primary leading-none">
                          {product.product_type === 'ספר תורה' ? 'בתיאום אישי' : `${product.delivery_time || '3'} ימים`}
                        </span>
                      </section>
                      <section aria-labelledby="delivery-fee-label" className="flex flex-col items-end gap-1.5 rounded-2xl bg-slate-50/50 p-3 text-right">
                        <Truck className="w-5 h-5 text-accent" />
-                       <span id="delivery-fee-label" className="text-[9px] font-black text-primary/40 uppercase tracking-widest">עלות משלוח</span>
+                        <span id="delivery-fee-label" className="text-[9px] font-black text-primary/60 uppercase tracking-widest">עלות משלוח</span>
                        <span className="text-xs font-black text-emerald-600 leading-none">
                          {Number(product.delivery_fee) > 0 ? `₪${product.delivery_fee}` : 'משלוח חינם'}
                        </span>
@@ -523,9 +523,9 @@ export function ProductDetailsClient({
             </Card>
 
             <div className="space-y-4">
-              <h3 className="font-black text-sm text-primary/40 uppercase tracking-widest flex items-center justify-end gap-2">
+              <h2 className="font-black text-sm text-primary/60 uppercase tracking-widest flex items-center justify-end gap-2">
                 על כלי הקודש <ScrollText className="w-4 h-4" />
-              </h3>
+              </h2>
               <div className="bg-white/60 backdrop-blur-sm p-6 rounded-[2.5rem] border-r-[6px] border-accent shadow-sm italic text-primary/80 font-medium text-lg leading-relaxed">
                 "{product.description}"
               </div>
@@ -536,7 +536,7 @@ export function ProductDetailsClient({
                 {(normalizedDeliveryType === 'delivery' || normalizedDeliveryType === 'both') && (
                   <div className="space-y-2.5">
                     <div className="flex items-center justify-end gap-2">
-                      <span className="text-[10px] font-black text-primary/50 uppercase tracking-widest">ערים זמינות למשלוח</span>
+                       <span className="text-[10px] font-black text-primary/70 uppercase tracking-widest">ערים זמינות למשלוח</span>
                       <Truck className="w-4 h-4 text-accent" />
                     </div>
                     <div className="flex flex-wrap gap-1.5 justify-end">
@@ -602,7 +602,7 @@ export function ProductDetailsClient({
                     <div className="flex-1 space-y-5 text-center md:text-right">
                       <div className="space-y-1">
                         <div className="flex items-center justify-center md:justify-end gap-3">
-                          <h3 className="text-2xl md:text-3xl font-headline font-black text-primary tracking-tight">{seller.first_name} {seller.last_name}</h3>
+                          <h2 className="text-2xl md:text-3xl font-headline font-black text-primary tracking-tight">{seller.first_name} {seller.last_name}</h2>
                           <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[9px] uppercase px-3 py-1">סופר מאומת</Badge>
                         </div>
                         <p className="text-muted-foreground text-sm font-bold flex items-center justify-center md:justify-end gap-2">
@@ -644,12 +644,12 @@ export function ProductDetailsClient({
                       הוותיקות ביותר
                     </Button>
                   </div>
-                  <h4 className="text-sm font-black text-primary/40 uppercase tracking-widest">ביקורות לקוחות</h4>
+                  <h3 className="text-sm font-black text-primary/60 uppercase tracking-widest">ביקורות לקוחות</h3>
                 </div>
 
                 <div className="mb-8 rounded-3xl border border-primary/10 bg-gradient-to-br from-white to-primary/[0.03] p-5 md:p-6 space-y-4 text-right shadow-sm">
                   <div className="space-y-1">
-                    <h5 className="text-base font-black text-primary">פרסום ביקורת</h5>
+                    <h4 className="text-base font-black text-primary">פרסום ביקורת</h4>
                     <p className="text-xs font-medium text-muted-foreground">שתפו בקצרה על המוצר כדי לעזור לקונים הבאים.</p>
                   </div>
                   {!user && (
@@ -714,7 +714,7 @@ export function ProductDetailsClient({
                         <div className="flex-1 min-w-0">
                           <div className="flex items-baseline justify-between mb-1">
                             <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">{rev.created_at ? new Date(rev.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
-                            <h5 className="font-semibold text-primary text-xs">{rev.is_anonymous ? 'אנונימי' : (rev.buyer_name || 'משתמש')}</h5>
+                            <p className="font-semibold text-primary text-xs">{rev.is_anonymous ? 'אנונימי' : (rev.buyer_name || 'משתמש')}</p>
                           </div>
                           <div className="bg-muted/15 rounded-2xl px-4 py-3 text-right">
                             <div className="flex justify-end gap-0.5 mb-2">

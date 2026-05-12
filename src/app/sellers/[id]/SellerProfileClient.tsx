@@ -327,7 +327,7 @@ export default function SellerProfile({
   if (!seller) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center text-center p-4">
-        <h2 className="text-2xl font-bold mb-4">הסופר לא נמצא</h2>
+        <h1 className="text-2xl font-bold mb-4">הסופר לא נמצא</h1>
         <Button asChild><Link href="/">חזרה לדף הבית</Link></Button>
       </div>
     );
@@ -430,9 +430,9 @@ export default function SellerProfile({
                     <span className="text-[10px] font-black text-primary mr-2">({reviews.length} ביקורות)</span>
                   </div>
                 ) : (
-                  <span className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-widest italic">אין דירוגים עדיין</span>
+                  <span className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest italic">אין דירוגים עדיין</span>
                 )}
-                {seller.is_approved && <span className="text-[9px] font-black text-primary/40 uppercase tracking-widest">(פרופיל מאומת)</span>}
+                {seller.is_approved && <span className="text-[9px] font-black text-primary/60 uppercase tracking-widest">(פרופיל מאומת)</span>}
               </div>
 
               <div className="grid grid-cols-1 gap-2 text-right">
@@ -563,9 +563,9 @@ export default function SellerProfile({
                               </Badge>
                             </div>
                             <div className="p-5 text-right space-y-2">
-                              <h4 className="font-black text-primary text-sm md:text-base tracking-tight group-hover:text-accent transition-colors leading-tight">
+                              <p className="font-black text-primary text-sm md:text-base tracking-tight group-hover:text-accent transition-colors leading-tight">
                                 {p.product_type} {p.sub_type && `(${p.sub_type})`}
-                              </h4>
+                              </p>
                               <p className="text-lg font-black text-accent">₪{p.price}</p>
                                <Button variant="link" size="sm" asChild className="p-0 h-auto mt-1 text-[9px] font-black uppercase tracking-widest">
                                  <Link href={`/products/${p.id}`} prefetch={true}>לפרטים מלאים ←</Link>
@@ -635,7 +635,7 @@ export default function SellerProfile({
                         הוותיקות ביותר
                       </Button>
                     </div>
-                    <h4 className="text-sm font-black text-primary/40 uppercase tracking-widest">ביקורות לקוחות</h4>
+                    <h3 className="text-sm font-black text-primary/60 uppercase tracking-widest">ביקורות לקוחות</h3>
                   </div>
 
                   {shouldHideSellerReviewComposer ? (
@@ -645,7 +645,7 @@ export default function SellerProfile({
                   ) : (
                     <div className="mb-2 rounded-3xl border border-primary/10 bg-gradient-to-br from-white to-primary/[0.03] p-5 md:p-6 space-y-4 text-right shadow-sm">
                       <div className="space-y-1">
-                        <h5 className="text-base font-black text-primary">פרסום ביקורת</h5>
+                        <h4 className="text-base font-black text-primary">פרסום ביקורת</h4>
                         <p className="text-xs font-medium text-muted-foreground">כתיבה קצרה וברורה תעזור ללקוחות אחרים לבחור נכון.</p>
                       </div>
                       {!user && (

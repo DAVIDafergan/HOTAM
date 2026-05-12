@@ -343,7 +343,7 @@ export default function CustomerDashboard() {
               <h1 className="text-3xl md:text-4xl font-headline font-black text-white tracking-tight leading-tight">
                 שלום, {customer?.first_name || 'לקוח'} {customer?.last_name || ''}
               </h1>
-              <p className="text-white/50 text-sm font-medium mt-1">{user?.email}</p>
+                  <p className="text-white/80 text-sm font-medium mt-1">{user?.email}</p>
               <div className="flex items-center gap-4 mt-4">
                 <div className="flex items-center gap-2 bg-white/10 rounded-full px-4 py-1.5">
                   <ShoppingBag className="w-3.5 h-3.5 text-accent" />
@@ -403,7 +403,7 @@ export default function CustomerDashboard() {
                           </div>
                           <span className="text-[10px] text-muted-foreground font-bold flex items-center gap-1"><Clock className="w-3 h-3" /> {order.created_at ? new Date(order.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
                         </div>
-                        <h4 className="font-black text-primary text-base leading-tight mb-1 truncate">{order.product_name}</h4>
+                         <p className="font-black text-primary text-base leading-tight mb-1 truncate">{order.product_name}</p>
                         <p className="text-sm font-black text-accent">₪{order.amount}</p>
 
                         {order.status === 'paid' && (
@@ -487,7 +487,7 @@ export default function CustomerDashboard() {
             <Card className="border-none shadow-sm rounded-2xl bg-white p-6 sm:p-8">
               <div className="flex items-center justify-end gap-3 border-b pb-5 mb-8">
                 <div className="text-right">
-                  <h3 className="text-xl font-headline font-black text-primary">הגדרות חשבון</h3>
+                  <h2 className="text-xl font-headline font-black text-primary">הגדרות חשבון</h2>
                   <p className="text-xs text-muted-foreground font-medium mt-0.5">עדכן את הפרטים האישיים שלך</p>
                 </div>
                 <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center">
@@ -498,29 +498,29 @@ export default function CustomerDashboard() {
                 <div className="space-y-5">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-primary/50">שם פרטי</Label>
+                       <Label className="text-[10px] font-black uppercase tracking-widest text-primary/70">שם פרטי</Label>
                       <Input value={formData.first_name} onChange={(e) => setFormData({...formData, first_name: e.target.value})} className="rounded-xl h-11 border-primary/10 focus:border-primary/30" />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-primary/50">שם משפחה</Label>
+                       <Label className="text-[10px] font-black uppercase tracking-widest text-primary/70">שם משפחה</Label>
                       <Input value={formData.last_name} onChange={(e) => setFormData({...formData, last_name: e.target.value})} className="rounded-xl h-11 border-primary/10 focus:border-primary/30" />
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-primary/50">דואר אלקטרוני</Label>
+                     <Label className="text-[10px] font-black uppercase tracking-widest text-primary/70">דואר אלקטרוני</Label>
                     <Input value={user?.email ?? ''} readOnly className="rounded-xl h-11 bg-muted/30 text-muted-foreground cursor-not-allowed border-primary/5" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-primary/50">מספר טלפון</Label>
+                     <Label className="text-[10px] font-black uppercase tracking-widest text-primary/70">מספר טלפון</Label>
                     <Input value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="rounded-xl h-11 border-primary/10 focus:border-primary/30" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-primary/50">כתובת למשלוח</Label>
+                     <Label className="text-[10px] font-black uppercase tracking-widest text-primary/70">כתובת למשלוח</Label>
                     <Input ref={customerAddressInputRef} value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} className="rounded-xl h-11 border-primary/10 focus:border-primary/30" />
                   </div>
                 </div>
                 <div className="space-y-4">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-primary/50">התראות במייל</p>
+                   <p className="text-[10px] font-black uppercase tracking-widest text-primary/70">התראות במייל</p>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-4 bg-muted/20 rounded-xl border border-primary/5">
                       <span className="text-sm font-bold">הודעות צ'אט חדשות</span>
@@ -533,7 +533,7 @@ export default function CustomerDashboard() {
                   </div>
                   <div className="p-4 bg-accent/5 rounded-xl border border-accent/10 flex items-start gap-3">
                     <Info className="w-4 h-4 text-accent shrink-0 mt-0.5" />
-                    <p className="text-[10px] font-bold text-primary/60 leading-relaxed">כתובת המייל נקבעת בעת ההרשמה ואינה ניתנת לשינוי.</p>
+                     <p className="text-[10px] font-bold text-primary/70 leading-relaxed">כתובת המייל נקבעת בעת ההרשמה ואינה ניתנת לשינוי.</p>
                   </div>
                 </div>
               </div>
@@ -644,7 +644,7 @@ function CustomerChatListItem({ chat, otherUserId, currentUserId }: any) {
               <span className="text-[10px] text-muted-foreground font-bold whitespace-nowrap bg-muted/30 px-2 py-0.5 rounded-full">
                 {chat.last_message_at ? new Date(chat.last_message_at).toLocaleDateString('he-IL') : ''}
               </span>
-              <h4 className="font-black text-primary text-sm truncate">{otherUser ? `${otherUser.first_name} ${otherUser.last_name}` : 'טוען...'}</h4>
+              <p className="font-black text-primary text-sm truncate">{otherUser ? `${otherUser.first_name} ${otherUser.last_name}` : 'טוען...'}</p>
             </div>
             <p className={`text-xs truncate mt-1 ${isUnread ? 'font-black text-primary' : 'text-muted-foreground font-medium'}`}>{chat.last_message_text || 'אין הודעות עדיין'}</p>
           </div>

@@ -1,33 +1,12 @@
 import { Metadata } from 'next';
 import { ProductDetailsClient } from './ProductDetailsClient';
-import { createClient } from '@supabase/supabase-js';
+import { getPublicProductById, getPublicProductReviews, getPublicSellerById } from '@/lib/storefront-data';
 
 const VAT_MULTIPLIER = 1.18;
 
 type Props = {
   params: Promise<{ id: string }>;
 };
-
-async function getProductData(id: string) {
-  try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!supabaseUrl || !supabaseAnonKey) return null;
-
-    const client = createClient(supabaseUrl, supabaseAnonKey);
-    const { data, error } = await client
-      .from('products')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle();
-
-    if (error || !data) return null;
-    return data;
-  } catch (error) {
-    console.error("Error fetching product data:", error);
-    return null;
-  }
-}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
@@ -38,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       return { title: 'מוצר קודש מהודר' };
     }
 
-    const fields = await getProductData(id);
+    const fields = await getPublicProductById(id);
     
     if (!fields) {
       return {
@@ -88,7 +67,11 @@ export default async function ProductPage({ params }: Props) {
   const id = resolvedParams?.id;
   if (!id || id === 'favicon.ico') return null;
 
-  const fields = await getProductData(id);
+  const fieldsPromise = getPublicProductById(id);
+  const reviewsPromise = getPublicProductReviews(id);
+  const fields = await fieldsPromise;
+  const sellerPromise = fields?.seller_id ? getPublicSellerById(fields.seller_id) : Promise.resolve(null);
+  const [seller, reviews] = await Promise.all([sellerPromise, reviewsPromise]);
   
   // Dynamic JSON-LD for Search Engine Rich Results
   const jsonLd = fields ? {
@@ -114,7 +97,12 @@ export default async function ProductPage({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
-      <ProductDetailsClient productId={id} initialProduct={fields} />
+      <ProductDetailsClient
+        productId={id}
+        initialProduct={fields}
+        initialSeller={seller}
+        initialReviews={reviews}
+      />
     </>
   );
 }

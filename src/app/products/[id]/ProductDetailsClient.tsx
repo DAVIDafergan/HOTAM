@@ -58,7 +58,17 @@ const VAT_MULTIPLIER = 1.18;
 // Base horizontal/vertical pan allowance in pixels (multiplied by zoom level).
 const BASE_IMAGE_PAN_LIMIT_PX = 220;
 
-export function ProductDetailsClient({ productId, initialProduct = null }: { productId: string; initialProduct?: any | null }) {
+export function ProductDetailsClient({
+  productId,
+  initialProduct = null,
+  initialSeller = null,
+  initialReviews = [],
+}: {
+  productId: string;
+  initialProduct?: any | null;
+  initialSeller?: any | null;
+  initialReviews?: any[];
+}) {
   const { user } = useUser();
   const db = useSupabaseClient();
   const router = useRouter();
@@ -93,9 +103,10 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
     return doc(db, 'sellers', product.seller_id);
   }, [db, product?.seller_id]);
 
-  const { data: seller, isLoading: isSellerLoading } = useDoc<any>(sellerRef);
+  const { data: liveSeller, isLoading: isSellerLoading } = useDoc<any>(sellerRef);
+  const seller = liveSeller ?? initialSeller;
 
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<any[]>(initialReviews);
 
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
@@ -153,6 +164,7 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
     setImageZoomLevel(MIN_IMAGE_ZOOM_LEVEL);
     setImagePan({ x: 0, y: 0 });
     dragOriginRef.current = null;
+    setReviews(initialReviews);
     if (!productId) return;
     supabase
       .from('reviews')
@@ -173,7 +185,7 @@ export function ProductDetailsClient({ productId, initialProduct = null }: { pro
           setReviews(normalized);
         }
       });
-  }, [productId]);
+  }, [initialReviews, productId]);
 
   const handleToggleFavorite = async () => {
     if (!user || !profileRef || isProcessingFavorite) {

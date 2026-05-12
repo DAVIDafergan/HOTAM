@@ -321,7 +321,7 @@ function ChatContent() {
     if (insertError || !inserted) {
       setMessages((prev) => prev.filter((message) => message.id !== optimisticMsg.id));
       setNewMessage(textCopy);
-      if (insertError?.message?.includes(CHAT_BLOCK_ERROR_MESSAGE)) {
+      if (insertError?.message === CHAT_BLOCK_ERROR_MESSAGE) {
         setSecurityViolation(true);
         toast({ variant: "destructive", title: "ההודעה נחסמה", description: "ניסיון לשתף פרטי קשר או מזהה חיצוני נחסם." });
       } else {

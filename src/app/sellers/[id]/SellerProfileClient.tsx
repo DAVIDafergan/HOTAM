@@ -82,6 +82,7 @@ export default function SellerProfile({
   const router = useRouter();
   const pathname = usePathname();
   const logoImg = PlaceHolderImages.find(img => img.id === 'site-logo')?.imageUrl || 'https://picsum.photos/seed/hotam-logo/400/400';
+  const hasInitialSnapshot = Boolean(initialSeller) || initialProducts.length > 0 || initialReviews.length > 0;
 
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [reportReason, setReportReason] = useState('');
@@ -101,11 +102,11 @@ export default function SellerProfile({
 
   // Fetch Seller Info
   const [seller, setSeller] = useState<any>(initialSeller);
-  const [isSellerLoading, setIsSellerLoading] = useState(false);
+  const [isSellerLoading, setIsSellerLoading] = useState(!hasInitialSnapshot);
 
   // Fetch Seller's Products
   const [products, setProducts] = useState<any[]>(initialProducts);
-  const [isProductsLoading, setIsProductsLoading] = useState(false);
+  const [isProductsLoading, setIsProductsLoading] = useState(!hasInitialSnapshot);
 
   // Fetch Reviews
   const [reviews, setReviews] = useState<any[]>(initialReviews);
@@ -114,15 +115,20 @@ export default function SellerProfile({
     setSeller(initialSeller);
     setProducts(initialProducts);
     setReviews(initialReviews);
-    setIsSellerLoading(false);
-    setIsProductsLoading(false);
-  }, [initialProducts, initialReviews, initialSeller]);
+    setIsSellerLoading(!hasInitialSnapshot);
+    setIsProductsLoading(!hasInitialSnapshot);
+  }, [hasInitialSnapshot, initialProducts, initialReviews, initialSeller]);
 
   useEffect(() => {
     if (!id) return;
     let isCancelled = false;
 
     void (async () => {
+      if (!hasInitialSnapshot) {
+        setIsSellerLoading(true);
+        setIsProductsLoading(true);
+      }
+
       const [sellerResult, productsResult, reviewsResult] = await Promise.all([
         supabase.from('sellers').select('*').eq('id', id).maybeSingle(),
         supabase.from('products').select('*').eq('seller_id', id),
@@ -147,7 +153,7 @@ export default function SellerProfile({
     return () => {
       isCancelled = true;
     };
-  }, [id]);
+  }, [hasInitialSnapshot, id]);
 
   const averageRating = useMemo(() => {
     const revs = reviews || [];

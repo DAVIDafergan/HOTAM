@@ -3,19 +3,18 @@ import 'server-only';
 import { cache } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-const getPublicSupabaseClient = cache(() => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!supabaseUrl || !supabaseAnonKey) return null;
-
-  return createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-    },
-  });
-});
+const publicSupabaseClient =
+  supabaseUrl && supabaseAnonKey
+    ? createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+        },
+      })
+    : null;
 
 const normalizeReviewWithProfile = (review: any) => {
   const profile = Array.isArray(review?.profiles) ? review.profiles[0] : review?.profiles;
@@ -126,4 +125,8 @@ export async function getPublicSellerPageData(id: string) {
   ]);
 
   return { seller, products, reviews };
+}
+
+function getPublicSupabaseClient() {
+  return publicSupabaseClient;
 }

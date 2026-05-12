@@ -504,6 +504,7 @@ DECLARE
   compact_text    TEXT;
   digits_text     TEXT;
 BEGIN
+  -- Strip common separators/punctuation used to obfuscate contact details.
   normalized_text := regexp_replace(normalized_text, '[_~`''"|,:;\(\)\[\]\{\}<>]+', ' ', 'g');
   normalized_text := regexp_replace(normalized_text, '[[:space:]]+', ' ', 'g');
 
@@ -579,6 +580,7 @@ BEGIN
         updated_at = NOW()
     WHERE id = NEW.chat_id;
 
+    -- Keep this message aligned with src/lib/chat-guard.ts.
     RAISE EXCEPTION USING MESSAGE = 'Contact details are not allowed in chat';
   END IF;
 

@@ -101,11 +101,11 @@ export default function SellerProfile({
 
   // Fetch Seller Info
   const [seller, setSeller] = useState<any>(initialSeller);
-  const [isSellerLoading, setIsSellerLoading] = useState(!initialSeller);
+  const [isSellerLoading, setIsSellerLoading] = useState(false);
 
   // Fetch Seller's Products
   const [products, setProducts] = useState<any[]>(initialProducts);
-  const [isProductsLoading, setIsProductsLoading] = useState(!initialSeller && initialProducts.length === 0);
+  const [isProductsLoading, setIsProductsLoading] = useState(false);
 
   // Fetch Reviews
   const [reviews, setReviews] = useState<any[]>(initialReviews);
@@ -114,8 +114,8 @@ export default function SellerProfile({
     setSeller(initialSeller);
     setProducts(initialProducts);
     setReviews(initialReviews);
-    setIsSellerLoading(!initialSeller);
-    setIsProductsLoading(!initialSeller && initialProducts.length === 0);
+    setIsSellerLoading(false);
+    setIsProductsLoading(false);
   }, [initialProducts, initialReviews, initialSeller]);
 
   useEffect(() => {
@@ -123,9 +123,6 @@ export default function SellerProfile({
     let isCancelled = false;
 
     void (async () => {
-      if (!initialSeller) setIsSellerLoading(true);
-      if (!initialSeller && initialProducts.length === 0) setIsProductsLoading(true);
-
       const [sellerResult, productsResult, reviewsResult] = await Promise.all([
         supabase.from('sellers').select('*').eq('id', id).maybeSingle(),
         supabase.from('products').select('*').eq('seller_id', id),
@@ -150,7 +147,7 @@ export default function SellerProfile({
     return () => {
       isCancelled = true;
     };
-  }, [id, initialProducts.length, initialSeller]);
+  }, [id]);
 
   const averageRating = useMemo(() => {
     const revs = reviews || [];

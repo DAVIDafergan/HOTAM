@@ -631,8 +631,11 @@ export default function SellerProfile() {
                     <h4 className="text-sm font-black text-primary/40 uppercase tracking-widest">ביקורות לקוחות</h4>
                   </div>
 
-                  <div className="mb-2 bg-muted/10 rounded-3xl border border-muted/40 p-5 space-y-4 text-right">
-                    <h5 className="text-sm font-black text-primary">הוסף ביקורות שלך או דרג</h5>
+                  <div className="mb-2 rounded-3xl border border-primary/10 bg-gradient-to-br from-white to-primary/[0.03] p-5 md:p-6 space-y-4 text-right shadow-sm">
+                    <div className="space-y-1">
+                      <h5 className="text-base font-black text-primary">פרסום ביקורת</h5>
+                      <p className="text-xs font-medium text-muted-foreground">כתיבה קצרה וברורה תעזור ללקוחות אחרים לבחור נכון.</p>
+                    </div>
                     {!user && (
                       <p className="text-xs font-bold text-muted-foreground">
                         כדי לפרסם ביקורת צריך <Link href={`/login?redirect=${encodeURIComponent(pathname)}`} className="underline text-primary">להתחבר לחשבון</Link>.
@@ -650,9 +653,9 @@ export default function SellerProfile() {
                     </div>
                     <div className="space-y-2">
                       <Label className="text-xs font-black uppercase tracking-widest text-primary">דירוג כוכבים</Label>
-                      <div className="flex justify-center gap-3">
+                      <div className="flex justify-center gap-2.5 rounded-2xl border border-primary/10 bg-white p-3">
                         {[1, 2, 3, 4, 5].map(s => (
-                          <button key={s} type="button" onClick={() => setReviewRating(s)} disabled={!user || isOwnSellerReviewBlocked || hasUserReviewedSeller || isReviewSubmitting}>
+                          <button key={s} type="button" onClick={() => setReviewRating(s)} disabled={!user || isOwnSellerReviewBlocked || hasUserReviewedSeller || isReviewSubmitting} className="rounded-full p-1.5 transition-colors hover:bg-accent/10 disabled:cursor-not-allowed">
                             <Star className={`w-5 h-5 transition-colors ${s <= reviewRating ? 'fill-accent text-accent' : 'text-muted-foreground/30'}`} />
                           </button>
                         ))}
@@ -670,7 +673,7 @@ export default function SellerProfile() {
                     <Button
                       onClick={handleSubmitSellerReview}
                       disabled={!user || isReviewSubmitting || isOwnSellerReviewBlocked || hasUserReviewedSeller}
-                      className="w-full bg-primary text-white h-11 font-black"
+                      className="w-full bg-primary text-white h-12 font-black rounded-2xl shadow-md"
                     >
                       {isReviewSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : getSellerReviewSubmitLabel()}
                     </Button>

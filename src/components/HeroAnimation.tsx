@@ -367,43 +367,22 @@ export function HeroAnimation() {
                           {getQualityLevels(selectedProduct).map(q => <CustomTile key={q.v} value={q.v} label={q.l} active={qualityLevel === q.v} compact />)}
                         </RadioGroup>
                       </div>
-                      
-                      <div className="space-y-4">
-                        <Label className="font-black text-[10px] uppercase text-primary/40 mr-1 tracking-widest">מיקום וקרבה (אופציונלי)</Label>
-                        <div className="flex flex-col gap-3">
-                          <Button variant="outline" onClick={detectLocation} disabled={isDetectingLocation} className={cn("h-14 rounded-2xl gap-3 font-black text-xs uppercase border-2 transition-all", userCoords ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'hover:border-primary/20')}>
-                            {isDetectingLocation ? <Loader2 className="w-5 h-5 animate-spin" /> : <LocateFixed className="w-5 h-5" />}
-                            {userCoords ? (detectedCity ? `המיקום שלך: ${detectedCity}` : 'המיקום שלך זוהה בהצלחה') : 'זהה את המיקום הנוכחי שלי'}
-                          </Button>
-                          <div className="relative">
-                            <Select value={selectedLocation} onValueChange={setSelectedRegion}>
-                              <SelectTrigger className="h-14 rounded-2xl text-right font-bold text-sm bg-white/50 border-2 border-transparent focus:border-primary/20"><SelectValue placeholder="בחר אזור בארץ..." /></SelectTrigger>
-                              <SelectContent className="rounded-2xl border-none shadow-2xl p-1">
-                                <SelectItem value="all" className="font-bold py-3 rounded-xl">כל הארץ</SelectItem>
-                                {ISRAEL_REGIONS.map(r => <SelectItem key={r} value={r} className="font-bold py-3 rounded-xl">{r}</SelectItem>)}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
 
-                    <div className="space-y-6 rounded-3xl bg-white/60 border border-primary/5 p-5 shadow-sm">
                       {selectedProduct === 'מגילה' ? (
                         <div className="space-y-6">
                           <div className="space-y-4">
                             <Label className="text-[10px] font-black uppercase text-primary/40 tracking-widest">מספר שורות</Label>
                             <div className="grid grid-cols-4 gap-2">
                               {['all', '11', '21', '28', '42'].map(r => (
-                                <button 
+                                <button
                                   type="button"
-                                  key={r} 
+                                  key={r}
                                   onClick={() => {
                                     setMegillahRows(r);
                                     setMegillahHeight('all');
-                                  }} 
+                                  }}
                                   className={cn(
-                                    "h-14 rounded-2xl border-2 font-black text-xs transition-all", 
+                                    "h-14 rounded-2xl border-2 font-black text-xs transition-all",
                                     megillahRows === r ? "border-primary bg-primary text-white shadow-lg scale-105" : "bg-white/40 border-primary/5 text-primary hover:border-accent/40"
                                   )}
                                 >
@@ -444,9 +423,30 @@ export function HeroAnimation() {
                           </div>
                         </div>
                       )}
+                    </div>
+
+                    <div className="space-y-6 rounded-3xl bg-white/60 border border-primary/5 p-5 shadow-sm">
+                      <div className="space-y-4 pb-5 border-b border-primary/5">
+                        <Label className="font-black text-[10px] uppercase text-primary/40 mr-1 tracking-widest">מיקום וקרבה (אופציונלי)</Label>
+                        <div className="flex flex-col gap-3">
+                          <Button variant="outline" onClick={detectLocation} disabled={isDetectingLocation} className={cn("h-14 rounded-2xl gap-3 font-black text-xs uppercase border-2 transition-all", userCoords ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'hover:border-primary/20')}>
+                            {isDetectingLocation ? <Loader2 className="w-5 h-5 animate-spin" /> : <LocateFixed className="w-5 h-5" />}
+                            {userCoords ? (detectedCity ? `המיקום שלך: ${detectedCity}` : 'המיקום שלך זוהה בהצלחה') : 'זהה את המיקום הנוכחי שלי'}
+                          </Button>
+                          <div className="relative">
+                            <Select value={selectedLocation} onValueChange={setSelectedRegion}>
+                              <SelectTrigger className="h-14 rounded-2xl text-right font-bold text-sm bg-white/50 border-2 border-transparent focus:border-primary/20"><SelectValue placeholder="בחר אזור בארץ..." /></SelectTrigger>
+                              <SelectContent className="rounded-2xl border-none shadow-2xl p-1">
+                                <SelectItem value="all" className="font-bold py-3 rounded-xl">כל הארץ</SelectItem>
+                                {ISRAEL_REGIONS.map(r => <SelectItem key={r} value={r} className="font-bold py-3 rounded-xl">{r}</SelectItem>)}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </div>
 
                       <div className="pt-2">
-                        <div className="space-y-3 pb-5 border-b border-primary/5">
+                        <div className="space-y-3">
                           <Label className="font-black text-[10px] uppercase text-primary/40 mr-1 tracking-widest">אופן קבלת המוצר</Label>
                           <RadioGroup value={shippingPreference} onValueChange={(v) => setShippingPreference(v as ShippingPreference)} className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                             <CustomTile value="all" label="הכל" active={shippingPreference === 'all'} compact />

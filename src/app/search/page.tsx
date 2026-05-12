@@ -662,9 +662,6 @@ function SearchContent() {
               <div className="flex h-full flex-col">
                 <SheetHeader className="border-b border-primary/10 bg-white px-6 py-5 text-right">
                   <SheetTitle className="font-headline text-2xl font-black text-primary">סינון מותאם</SheetTitle>
-                  <SheetDescription className="text-sm font-medium text-primary/60">
-                    פתחו וסננו כמו באתרי מכירות גדולים — כל האפשרויות במקום אחד.
-                  </SheetDescription>
                 </SheetHeader>
                 <div className="flex-1 overflow-y-auto px-5 py-5">
                   {renderFilterContent()}

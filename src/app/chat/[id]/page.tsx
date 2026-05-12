@@ -21,6 +21,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { analyzeChatMessage, CHAT_BLOCK_ERROR_MESSAGE } from '@/lib/chat-guard';
 
 interface Message {
   id: string;
@@ -274,17 +275,8 @@ function ChatContent() {
   }, [messages]);
 
   const validateMessage = (text: string) => {
-    const cleanText = text.toLowerCase().trim();
-    const phoneRegex = /(?:(?:\+|00)972|0)\s*[234895](?:[\s\.\-]*\d){7,8}|(?:(?:\+|00)972|0)\s*5[0-9](?:[\s\.\-]*\d){7}/g;
-    const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-    const urlRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|([a-zA-Z0-9-]+\.[a-z]{2,})/g;
-    const forbiddenPhrases = [
-      'מספר', 'טלפון', 'נייד', 'פלאפון', 'סלולרי', 'וואטסאפ', 'ווצאפ', 'בווצאפ', 'בוואטסאפ', 
-      'מייל', 'אימייל', 'צור קשר', 'תתקשר', 'דבר איתי', 'בפרטי', 'באישי', 'מחוץ לאתר', 
-      'מספר שלי', 'הנייד שלי', 'פלא שלי', 'whatsapp', 'call me', 'phone', 'email', 'contact'
-    ];
-
-    const hasViolation = phoneRegex.test(text) || emailRegex.test(text) || urlRegex.test(text) || forbiddenPhrases.some(phrase => cleanText.includes(phrase));
+    const result = analyzeChatMessage(text);
+    const hasViolation = result.blocked;
 
     if (hasViolation) {
       setSecurityViolation(true);
@@ -295,7 +287,11 @@ function ChatContent() {
           last_violation_text: text
         }).eq('id', chatId).then();
       }
-      toast({ variant: "destructive", title: "פעולה אסורה זוהתה", description: "חל איסור מוחלט על העברת פרטי קשר. המקרה דווח למערכת." });
+      toast({
+        variant: "destructive",
+        title: "פעולה אסורה זוהתה",
+        description: result.reason || "חל איסור מוחלט על העברת פרטי קשר. המקרה דווח למערכת.",
+      });
       return false;
     }
     return true;
@@ -321,7 +317,19 @@ function ChatContent() {
     setMessages((prev) => [...prev, optimisticMsg]);
 
     // הוספת ההודעה ל-Supabase במקום Firebase!
-    const { data: inserted } = await supabase.from('messages').insert([msgData]).select().single();
+    const { data: inserted, error: insertError } = await supabase.from('messages').insert([msgData]).select().single();
+    if (insertError || !inserted) {
+      setMessages((prev) => prev.filter((message) => message.id !== optimisticMsg.id));
+      setNewMessage(textCopy);
+      if (insertError?.message === CHAT_BLOCK_ERROR_MESSAGE) {
+        setSecurityViolation(true);
+        toast({ variant: "destructive", title: "ההודעה נחסמה", description: "ניסיון לשתף פרטי קשר או מזהה חיצוני נחסם." });
+      } else {
+        toast({ variant: "destructive", title: "שליחת ההודעה נכשלה", description: "אנא נסה שוב." });
+      }
+      return;
+    }
+
     if (inserted) {
       // Replace optimistic entry with the real one (correct id from DB)
       setMessages((prev) => prev.map(m => m.id === optimisticMsg.id ? inserted as Message : m));

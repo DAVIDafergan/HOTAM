@@ -364,7 +364,15 @@ CREATE POLICY "chats_admin_all"          ON public.chats FOR ALL USING (public.i
 -- ── messages policies ─────────────────────────────────────────────────────────
 CREATE POLICY "Allow public read"           ON public.messages FOR SELECT USING (true);
 CREATE POLICY "messages_participant_insert" ON public.messages FOR INSERT
-  WITH CHECK (auth.uid()::TEXT = sender_id);
+  WITH CHECK (
+    auth.uid()::TEXT = sender_id
+    AND EXISTS (
+      SELECT 1
+      FROM public.chats
+      WHERE chats.id = messages.chat_id
+        AND auth.uid()::TEXT = ANY(chats.participants)
+    )
+  );
 -- Allow the recipient (a chat participant who is not the sender) to mark is_read = true
 CREATE POLICY "messages_recipient_update_read" ON public.messages FOR UPDATE
   USING (
@@ -487,12 +495,111 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.block_prohibited_chat_message()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  normalized_text TEXT := lower(coalesce(NEW.text, ''));
+  compact_text    TEXT;
+  digits_text     TEXT;
+BEGIN
+  -- Strip common separators/punctuation used to obfuscate contact details.
+  normalized_text := regexp_replace(normalized_text, '[_~`''"|,:;\(\)\[\]\{\}<>]+', ' ', 'g');
+  normalized_text := regexp_replace(normalized_text, '[[:space:]]+', ' ', 'g');
+
+  normalized_text := regexp_replace(normalized_text, '\mzero\M', ' 0 ', 'g');
+  normalized_text := regexp_replace(normalized_text, '\mone\M', ' 1 ', 'g');
+  normalized_text := regexp_replace(normalized_text, '\mtwo\M', ' 2 ', 'g');
+  normalized_text := regexp_replace(normalized_text, '\mthree\M', ' 3 ', 'g');
+  normalized_text := regexp_replace(normalized_text, '\mfour\M', ' 4 ', 'g');
+  normalized_text := regexp_replace(normalized_text, '\mfive\M', ' 5 ', 'g');
+  normalized_text := regexp_replace(normalized_text, '\msix\M', ' 6 ', 'g');
+  normalized_text := regexp_replace(normalized_text, '\mseven\M', ' 7 ', 'g');
+  normalized_text := regexp_replace(normalized_text, '\meight\M', ' 8 ', 'g');
+  normalized_text := regexp_replace(normalized_text, '\mnine\M', ' 9 ', 'g');
+  normalized_text := regexp_replace(normalized_text, '\mאפס\M', ' 0 ', 'g');
+  normalized_text := regexp_replace(normalized_text, '\m(אחת|אחד)\M', ' 1 ', 'g');
+  normalized_text := regexp_replace(normalized_text, '\m(שתיים|שניים|שתים)\M', ' 2 ', 'g');
+  normalized_text := regexp_replace(normalized_text, '\m(שלוש|שלושה)\M', ' 3 ', 'g');
+  normalized_text := regexp_replace(normalized_text, '\m(ארבע|ארבעה)\M', ' 4 ', 'g');
+  normalized_text := regexp_replace(normalized_text, '\m(חמש|חמישה)\M', ' 5 ', 'g');
+  normalized_text := regexp_replace(normalized_text, '\m(שש|שישה)\M', ' 6 ', 'g');
+  normalized_text := regexp_replace(normalized_text, '\m(שבע|שבעה)\M', ' 7 ', 'g');
+  normalized_text := regexp_replace(normalized_text, '\mשמונה\M', ' 8 ', 'g');
+  normalized_text := regexp_replace(normalized_text, '\m(תשע|תשעה)\M', ' 9 ', 'g');
+
+  compact_text := regexp_replace(normalized_text, '[^0-9a-zא-ת]+', '', 'g');
+  digits_text := regexp_replace(normalized_text, '[^0-9]+', '', 'g');
+
+  IF normalized_text ~ '[a-z0-9._%+\-]+([[:space:]]*(\@|\(at\)|\[at\]| at )[[:space:]]*)[a-z0-9.-]+([[:space:]]*(\.|\(dot\)|\[dot\]| dot )[[:space:]]*)[a-z]{2,}'
+    OR normalized_text ~ '(https?://|www\.|wa\.me/|t\.me/|discord(app)?\.com/|instagram\.com/|facebook\.com/|telegram\.me/|bit\.ly/|tinyurl\.com/)'
+    OR normalized_text ~ '((\+|00)[[:space:]]*972|0)([^0-9]*[23489]|[^0-9]*5[^0-9]*[0-9])([^0-9]*[0-9]){7,8}'
+    OR digits_text ~ '(972|0)([23489][0-9]{7,8}|5[0-9]{8})'
+    OR compact_text LIKE ANY (ARRAY[
+      '%מספר%',
+      '%טלפון%',
+      '%נייד%',
+      '%פלאפון%',
+      '%סלולרי%',
+      '%וואטסאפ%',
+      '%ווצאפ%',
+      '%צורקשר%',
+      '%תתקשר%',
+      '%מחוץלאתר%',
+      '%מחוץלמערכת%',
+      '%מחוץלצאט%',
+      '%בפרטי%',
+      '%באישי%',
+      '%instagram%',
+      '%facebook%',
+      '%telegram%',
+      '%טלגרם%',
+      '%אינסטגרם%',
+      '%פייסבוק%',
+      '%קוראיםלי%',
+      '%השםשלי%',
+      '%שמי%',
+      '%תחפשותי%',
+      '%חפשותי%',
+      '%nameis%',
+      '%mynameis%',
+      '%lookmeup%',
+      '%searchforme%',
+      '%username%',
+      '%contactme%',
+      '%callme%',
+      '%phone%',
+      '%email%'
+    ])
+  THEN
+    UPDATE public.chats
+    SET is_suspicious = TRUE,
+        last_violation_at = NOW(),
+        last_violation_text = left(coalesce(NEW.text, ''), 1000),
+        updated_at = NOW()
+    WHERE id = NEW.chat_id;
+
+    -- Keep this literal manually aligned with CHAT_BLOCK_ERROR_MESSAGE in src/lib/chat-guard.ts.
+    RAISE EXCEPTION USING MESSAGE = 'Contact details are not allowed in chat';
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
 -- Grant execute on RPC functions to authenticated users
 GRANT EXECUTE ON FUNCTION public.is_admin()            TO authenticated;
 GRANT EXECUTE ON FUNCTION public.safe_increment        TO authenticated;
 GRANT EXECUTE ON FUNCTION public.array_union_elem      TO authenticated;
 GRANT EXECUTE ON FUNCTION public.array_remove_elem     TO authenticated;
 GRANT EXECUTE ON FUNCTION public.update_unread_state   TO authenticated;
+
+DROP TRIGGER IF EXISTS trg_block_prohibited_chat_message ON public.messages;
+CREATE TRIGGER trg_block_prohibited_chat_message
+BEFORE INSERT OR UPDATE OF text ON public.messages
+FOR EACH ROW
+EXECUTE FUNCTION public.block_prohibited_chat_message();
 
 -- =============================================================================
 -- REALTIME

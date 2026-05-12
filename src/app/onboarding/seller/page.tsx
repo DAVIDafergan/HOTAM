@@ -642,7 +642,7 @@ function GuideStep({ number, title, desc, link }: { number: string, title: strin
     <div className="flex gap-4">
       <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-black shrink-0 text-sm">{number}</div>
       <div className="space-y-1 text-right">
-        <h4 className="font-black text-sm text-primary">{title}</h4>
+        <p className="font-black text-sm text-primary">{title}</p>
         <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
         <a href={link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-accent font-black text-[10px] uppercase tracking-tighter hover:underline mt-1">
           לכניסה לשירות הממשלתי <ExternalLink className="w-2.5 h-2.5" />

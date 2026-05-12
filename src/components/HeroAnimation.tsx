@@ -251,7 +251,7 @@ export function HeroAnimation() {
                       </div>
                       <span className={cn(
                         "text-[9px] font-black uppercase tracking-widest transition-colors hidden sm:block",
-                        step === n ? "text-primary" : "text-primary/25"
+                        step === n ? "text-primary" : "text-primary/60"
                       )}>{label}</span>
                     </div>
                     {i < 2 && (
@@ -269,13 +269,13 @@ export function HeroAnimation() {
               {step === 1 && (
                 <motion.div key="step1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-5 md:space-y-8">
                   <div className="flex flex-col items-center gap-4">
-                    <h3 className="text-xl md:text-2xl font-headline font-black text-primary">מה אתם מחפשים?</h3>
+                    <h2 className="text-xl md:text-2xl font-headline font-black text-primary">מה אתם מחפשים?</h2>
                     {/* Quantity selector */}
                     <div className="flex items-center gap-3 bg-primary/5 p-2 rounded-2xl border border-primary/10 shadow-sm">
                       <button type="button" onClick={() => setQuantity(Math.max(1, quantity - 1))} aria-label="הפחת כמות" className="w-10 h-10 rounded-xl border-2 border-primary/15 font-bold hover:bg-white active:scale-90 transition-all text-primary flex items-center justify-center text-lg bg-white shadow-sm">−</button>
                       <div className="flex items-center gap-2 px-4">
                         <span className="text-2xl font-black text-primary tabular-nums leading-none">{quantity}</span>
-                        <span className="text-[10px] font-black text-primary/40 uppercase tracking-tight">יח'</span>
+                        <span className="text-[10px] font-black text-primary/60 uppercase tracking-tight">יח'</span>
                       </div>
                       <button type="button" onClick={() => setQuantity(quantity + 1)} aria-label="הוסף כמות" className="w-10 h-10 rounded-xl border-2 border-primary/15 font-bold hover:bg-white active:scale-90 transition-all text-primary flex items-center justify-center text-lg bg-white shadow-sm">+</button>
                     </div>
@@ -294,7 +294,7 @@ export function HeroAnimation() {
                     <Button
                       variant="ghost"
                       onClick={() => router.push('/search?view=all')}
-                      className="h-10 px-6 rounded-full text-[11px] font-black uppercase tracking-widest text-primary/40 hover:text-primary hover:bg-primary/5 border border-primary/10 hover:border-primary/20 transition-all gap-2"
+                      className="h-10 px-6 rounded-full text-[11px] font-black uppercase tracking-widest text-primary/60 hover:text-primary hover:bg-primary/5 border border-primary/10 hover:border-primary/20 transition-all gap-2"
                     >
                       <Search className="w-3.5 h-3.5" />
                       צפה בכל המוצרים ללא פילטר
@@ -309,15 +309,15 @@ export function HeroAnimation() {
                   <div className="flex justify-between items-center border-b border-primary/5 pb-4">
                     <Button variant="ghost" onClick={() => setStep(1)} className="font-black text-[11px] uppercase tracking-widest h-10 px-4 rounded-xl hover:bg-primary/5 gap-1"><ChevronRight className="w-4 h-4" /> חזור</Button>
                     <div className="text-right">
-                      <h3 className="text-xl md:text-2xl font-headline font-black text-primary">מפרט {selectedProduct}</h3>
-                      <p className="text-[10px] text-primary/40 font-black uppercase tracking-widest mt-0.5">שלב 2 מתוך 3</p>
+                      <h2 className="text-xl md:text-2xl font-headline font-black text-primary">מפרט {selectedProduct}</h2>
+                      <p className="text-[10px] text-primary/60 font-black uppercase tracking-widest mt-0.5">שלב 2 מתוך 3</p>
                     </div>
                   </div>
 
                   <div className={cn("grid gap-6 pt-4", hasSubTypes ? "md:grid-cols-2" : "grid-cols-1 max-w-3xl mx-auto")}>
                     {hasSubTypes && (
                       <div className="space-y-4 rounded-3xl bg-white/60 border border-primary/5 p-5 shadow-sm">
-                        <Label className="font-black text-[10px] uppercase text-primary/40 mr-1 tracking-widest">תת-סוג המוצר</Label>
+                        <Label className="font-black text-[10px] uppercase text-primary/60 mr-1 tracking-widest">תת-סוג המוצר</Label>
                         <RadioGroup value={subType} onValueChange={setSubType} className="grid grid-cols-2 gap-3">
                           {selectedProduct !== 'מזוזה' && <CustomTile value="all" label="כל הסוגים" active={subType === 'all'} />}
                           {getSubTypesForProduct(selectedProduct).map(opt => <CustomTile key={opt} value={opt} label={opt} active={subType === opt} />)}
@@ -326,7 +326,7 @@ export function HeroAnimation() {
                     )}
 
                     <div className="space-y-4 rounded-3xl bg-white/60 border border-primary/5 p-5 shadow-sm">
-                      <Label className="font-black text-[10px] uppercase text-primary/40 mr-1 tracking-widest">סוג הכתב (מסורת)</Label>
+                      <Label className="font-black text-[10px] uppercase text-primary/60 mr-1 tracking-widest">סוג הכתב (מסורת)</Label>
                       <RadioGroup value={scriptType} onValueChange={setScriptType} className={cn("grid gap-2", hasSubTypes ? "grid-cols-1" : "sm:grid-cols-2")}>
                         {[
                           {v: 'all', l: 'כל המסורות'},
@@ -354,15 +354,15 @@ export function HeroAnimation() {
                   <div className="flex justify-between items-center border-b border-primary/5 pb-4">
                     <Button variant="ghost" onClick={() => setStep(2)} className="font-black text-[11px] uppercase tracking-widest h-10 px-4 rounded-xl hover:bg-primary/5 gap-1"><ChevronRight className="w-4 h-4" /> חזור</Button>
                     <div className="text-right">
-                      <h3 className="text-xl md:text-2xl font-headline font-black text-primary">דיוק והתאמה</h3>
-                      <p className="text-[10px] text-primary/40 font-black uppercase tracking-widest mt-0.5">שלב 3 מתוך 3</p>
+                      <h2 className="text-xl md:text-2xl font-headline font-black text-primary">דיוק והתאמה</h2>
+                      <p className="text-[10px] text-primary/60 font-black uppercase tracking-widest mt-0.5">שלב 3 מתוך 3</p>
                     </div>
                   </div>
 
                   <div className="grid lg:grid-cols-2 gap-6 pt-4">
                     <div className="space-y-6 rounded-3xl bg-white/60 border border-primary/5 p-5 shadow-sm">
                       <div className="space-y-4">
-                        <Label className="font-black text-[10px] uppercase text-primary/40 mr-1 tracking-widest">רמת הידור מבוקשת</Label>
+                        <Label className="font-black text-[10px] uppercase text-primary/60 mr-1 tracking-widest">רמת הידור מבוקשת</Label>
                         <RadioGroup value={qualityLevel} onValueChange={setQualityLevel} className="grid grid-cols-2 gap-3">
                           {getQualityLevels(selectedProduct).map(q => <CustomTile key={q.v} value={q.v} label={q.l} active={qualityLevel === q.v} compact />)}
                         </RadioGroup>

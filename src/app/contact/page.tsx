@@ -64,8 +64,8 @@ export default function ContactPage() {
                 <MessageCircle className="w-10 h-10 text-accent" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-2xl font-headline font-black">מענה מהיר בוואטסאפ</h3>
-                <p className="text-white/60 font-medium">לעזרה טכנית, שלחו לנו הודעה.</p>
+                <h2 className="text-2xl font-headline font-black">מענה מהיר בוואטסאפ</h2>
+                <p className="text-white/80 font-medium">לעזרה טכנית, שלחו לנו הודעה.</p>
               </div>
               <Button asChild className="bg-accent text-primary hover:bg-accent/90 rounded-full h-14 px-10 font-black uppercase tracking-widest shadow-xl transition-all hover:scale-105 active:scale-95">
                 <a href="https://wa.me/972500000000" target="_blank" rel="noopener noreferrer">
@@ -82,7 +82,7 @@ export default function ContactPage() {
                 <ShieldCheck className="w-6 h-6" />
               </div>
               <div>
-                 <h4 className="font-black text-primary">אבטחה ופרטיות</h4>
+                 <h3 className="font-black text-primary">אבטחה ופרטיות</h3>
                  <p className="text-xs text-muted-foreground font-medium">כל הפניות באתר מוצפנות ומטופלות בסטנדרט הגבוה ביותר.</p>
               </div>
            </div>

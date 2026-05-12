@@ -381,10 +381,11 @@ export default function AdminDashboard() {
                <div className="bg-primary/5 p-3 rounded-2xl">
                  <ShieldCheck className="w-8 h-8 text-primary" />
                </div>
-               <div>
-                 <h1 className="text-4xl font-headline font-black text-primary tracking-tight">ניהול מערכת HOTAM</h1>
-                 <p className="text-muted-foreground font-medium">פיקוח על כשרות, אימות סופרים וניטור פיננסי</p>
-               </div>
+                <div>
+                  <h1 className="text-4xl font-headline font-black text-primary tracking-tight">ניהול מערכת HOTAM</h1>
+                  <h2 className="sr-only">מרכז ניהול המערכת</h2>
+                  <p className="text-muted-foreground font-medium">פיקוח על כשרות, אימות סופרים וניטור פיננסי</p>
+                </div>
             </div>
           </div>
           <div className="relative w-full md:w-96">
@@ -690,7 +691,7 @@ function CustomerDetailsDialog({ customer, orders, onDelete, onClose }: any) {
         <div className="p-8 space-y-6 text-right">
           {/* Customer details */}
           <div className="space-y-4">
-            <h4 className="text-[10px] font-black text-accent uppercase tracking-widest flex items-center gap-2"><IdCard className="w-4 h-4" /> פרטי לקוח</h4>
+            <p className="text-[10px] font-black text-accent uppercase tracking-widest flex items-center gap-2"><IdCard className="w-4 h-4" /> פרטי לקוח</p>
             <div className="bg-muted/30 p-5 rounded-2xl space-y-3 text-[11px] font-bold">
               <div className="flex justify-between border-b border-white/50 pb-2"><span>{customer.first_name} {customer.last_name}</span><span className="text-muted-foreground">שם מלא:</span></div>
               <div className="flex justify-between border-b border-white/50 pb-2"><span>{customer.email}</span><span className="text-muted-foreground">אימייל:</span></div>
@@ -702,7 +703,7 @@ function CustomerDetailsDialog({ customer, orders, onDelete, onClose }: any) {
 
           {/* Orders */}
           <div className="space-y-4">
-            <h4 className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2"><ShoppingBag className="w-4 h-4" /> הזמנות ({orders.length})</h4>
+            <p className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2"><ShoppingBag className="w-4 h-4" /> הזמנות ({orders.length})</p>
             {orders.length === 0 ? (
               <p className="text-sm text-muted-foreground italic bg-muted/20 p-4 rounded-xl">אין הזמנות עבור לקוח זה.</p>
             ) : (
@@ -775,7 +776,7 @@ function SalesCards({ orders, sellers, onLinkToTab, page, setPage }: any) {
                       <Image src={o.product_image} alt="P" fill className="object-cover" />
                     </div>
                     <div className="text-right flex-1 min-w-0">
-                      <h4 className="font-black text-primary truncate text-sm">{o.product_name}</h4>
+                      <p className="font-black text-primary truncate text-sm">{o.product_name}</p>
                       <p className="text-base font-black text-emerald-600">₪{o.amount.toLocaleString()}</p>
                     </div>
                   </div>
@@ -953,7 +954,7 @@ function VerifyScribeDialog({ scribe, db }: any) {
             {/* Business & Bank Info */}
             <div className="space-y-6">
                <div className="space-y-4">
-                  <h4 className="text-[10px] font-black text-accent uppercase tracking-widest flex items-center gap-2"><Building2 className="w-4 h-4" /> פרטי עסק רשמיים</h4>
+                  <p className="text-[10px] font-black text-accent uppercase tracking-widest flex items-center gap-2"><Building2 className="w-4 h-4" /> פרטי עסק רשמיים</p>
                   <div className="bg-muted/30 p-5 rounded-2xl space-y-3 text-[11px] font-bold">
                     <div className="flex justify-between border-b border-white/50 pb-2"><span>{scribe.business_name}</span><span className="text-muted-foreground">שם עסק:</span></div>
                     <div className="flex justify-between border-b border-white/50 pb-2"><span>{scribe.business_id}</span><span className="text-muted-foreground">ח.פ / עוסק:</span></div>
@@ -962,7 +963,7 @@ function VerifyScribeDialog({ scribe, db }: any) {
                </div>
                
                <div className="space-y-4">
-                  <h4 className="text-[10px] font-black text-accent uppercase tracking-widest flex items-center gap-2"><Landmark className="w-4 h-4" /> פרטי חשבון בנק</h4>
+                  <p className="text-[10px] font-black text-accent uppercase tracking-widest flex items-center gap-2"><Landmark className="w-4 h-4" /> פרטי חשבון בנק</p>
                   <div className="bg-emerald-50/50 p-5 rounded-2xl space-y-3 text-[11px] font-bold border border-emerald-100/50">
                     <div className="flex justify-between border-b border-emerald-100/50 pb-2"><span>{scribe.bank_name}</span><span className="text-muted-foreground">בנק:</span></div>
                     <div className="flex justify-between border-b border-emerald-100/50 pb-2"><span>{scribe.bank_branch}</span><span className="text-muted-foreground">סניף:</span></div>
@@ -971,7 +972,7 @@ function VerifyScribeDialog({ scribe, db }: any) {
                </div>
 
                <div className="space-y-4">
-                  <h4 className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2"><Phone className="w-4 h-4" /> פרטי התקשרות</h4>
+                  <p className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2"><Phone className="w-4 h-4" /> פרטי התקשרות</p>
                   <div className="bg-blue-50/50 p-5 rounded-2xl space-y-3 text-[11px] font-bold border border-blue-100/50">
                     <div className="flex justify-between border-b border-blue-100/50 pb-2"><span>{scribe.phone}</span><span className="text-muted-foreground">טלפון:</span></div>
                     <div className="flex justify-between border-b border-blue-100/50 pb-2"><span>{scribe.email}</span><span className="text-muted-foreground">אימייל:</span></div>
@@ -983,7 +984,7 @@ function VerifyScribeDialog({ scribe, db }: any) {
             {/* Religious & Professional Info */}
             <div className="space-y-6">
                <div className="space-y-4">
-                  <h4 className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2"><UserCheck className="w-4 h-4" /> רקע מקצועי והנהגה</h4>
+                  <p className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2"><UserCheck className="w-4 h-4" /> רקע מקצועי והנהגה</p>
                   <div className="bg-primary/5 p-5 rounded-2xl space-y-3 text-[11px] font-bold border border-primary/10">
                     <div className="flex justify-between border-b border-primary/10 pb-2"><span>{scribe.experience_years} שנים</span><span className="text-muted-foreground">ניסיון:</span></div>
                     <div className="flex justify-between border-b border-primary/10 pb-2"><span>{scribe.script_level}</span><span className="text-muted-foreground">רמת הידור:</span></div>
@@ -993,7 +994,7 @@ function VerifyScribeDialog({ scribe, db }: any) {
                   </div>
                </div>
                <div className="space-y-2">
-                  <h4 className="text-[10px] font-black text-primary uppercase tracking-widest">סוגי כתב</h4>
+                  <p className="text-[10px] font-black text-primary uppercase tracking-widest">סוגי כתב</p>
                   <div className="flex flex-wrap gap-1.5">
                     {(scribe.script_types || []).map((t: string) => (
                       <Badge key={t} className="bg-white border-primary/10 text-primary text-[9px] font-black px-3 py-1 rounded-full shadow-sm">{t}</Badge>
@@ -1001,21 +1002,21 @@ function VerifyScribeDialog({ scribe, db }: any) {
                   </div>
                </div>
                <div className="space-y-4 pt-2">
-                  <h4 className="text-[10px] font-black text-primary uppercase tracking-widest">מזהה פנימי (UID)</h4>
+                  <p className="text-[10px] font-black text-primary uppercase tracking-widest">מזהה פנימי (UID)</p>
                   <p className="bg-muted p-2 rounded-lg text-[9px] font-mono break-all text-primary/60">{scribe.id}</p>
                </div>
             </div>
           </div>
 
           <div className="pt-6 border-t space-y-4">
-             <h4 className="font-black text-sm text-primary underline decoration-accent/30 underline-offset-4">אודות והסמכה אישית</h4>
+             <p className="font-black text-sm text-primary underline decoration-accent/30 underline-offset-4">אודות והסמכה אישית</p>
              <p className="text-xs text-primary/70 leading-relaxed italic bg-muted/20 p-4 rounded-xl">"{scribe.notes || '-'}"</p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-8">
             {scribe.certificate_url && (
               <div className="space-y-4">
-                 <h4 className="font-black text-[11px] uppercase text-primary/40 tracking-widest">תעודת סופר מועלה</h4>
+                 <p className="font-black text-[11px] uppercase text-primary/60 tracking-widest">תעודת סופר מועלה</p>
                  <div className="relative aspect-[1.4/1] w-full rounded-2xl overflow-hidden border shadow-inner bg-white">
                     <Image src={scribe.certificate_url} alt="Cert" fill className="object-contain" />
                  </div>
@@ -1024,7 +1025,7 @@ function VerifyScribeDialog({ scribe, db }: any) {
             
             {(scribe.writing_samples || []).length > 0 && (
               <div className="space-y-4">
-                 <h4 className="font-black text-[11px] uppercase text-primary/40 tracking-widest">דוגמאות כתיבה</h4>
+                 <p className="font-black text-[11px] uppercase text-primary/60 tracking-widest">דוגמאות כתיבה</p>
                  <div className="grid grid-cols-2 gap-2">
                     {scribe.writing_samples.slice(0, 4).map((sample: string, idx: number) => (
                       <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border shadow-sm">

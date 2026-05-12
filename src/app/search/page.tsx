@@ -809,7 +809,7 @@ function SearchContent() {
                     </div>
                     <div className="space-y-2 md:space-y-3 px-4">
                       <p className="text-2xl md:text-3xl font-headline font-black text-primary tracking-tight">לא נמצאה התאמה מדויקת</p>
-                      <p className="text-primary/40 max-w-sm mx-auto font-medium text-base md:text-lg leading-relaxed">נסו להסיר חלק מהמסננים או לאפס את החיפוש כדי לראות עוד אפשרויות קודש.</p>
+                       <p className="text-primary/60 max-w-sm mx-auto font-medium text-base md:text-lg leading-relaxed">נסו להסיר חלק מהמסננים או לאפס את החיפוש כדי לראות עוד אפשרויות קודש.</p>
                     </div>
                     <Button variant="outline" onClick={resetFilters} className="rounded-full px-8 md:px-12 h-14 md:h-16 border-2 border-primary/10 text-primary font-black uppercase tracking-widest text-xs md:text-sm hover:bg-primary hover:text-white transition-all shadow-lg">
                       הצג את כל כלי הקודש באתר
@@ -848,9 +848,9 @@ function WizardSmallCard({ value, selected, icon, label }: any) {
         {React.cloneElement(icon as React.ReactElement<{ className?: string }>, { className: "w-5 h-5" })}
       </div>
       <div className="text-center">
-        <h4 className={cn("font-black text-[10px] tracking-tight transition-colors", selected ? "text-primary" : "text-primary/60 group-hover:text-primary/80")}>
+        <p className={cn("font-black text-[10px] tracking-tight transition-colors", selected ? "text-primary" : "text-primary/60 group-hover:text-primary/80")}>
           {label}
-        </h4>
+        </p>
       </div>
       <RadioGroupItem value={value} className="hidden" />
     </Label>

@@ -718,7 +718,7 @@ function SellerDashboardContent() {
                <Card key={p.id} className="border-none shadow-premium rounded-[2rem] bg-white p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
                  <div className="w-20 h-20 bg-muted rounded-2xl shrink-0 overflow-hidden relative border"><Image src={p.images?.[0] || logoImg} alt="product" fill className="object-cover" /></div>
                  <div className="flex-1 text-right w-full">
-                    <h4 className="font-black text-lg text-primary">{p.product_type}</h4>
+                    <p className="font-black text-lg text-primary">{p.product_type}</p>
                     <p className="text-[10px] text-muted-foreground font-bold">{p.script_type} | {p.script_level}</p>
                     <div className="flex items-center justify-end gap-3 mt-2">
                        <Badge variant="secondary" className="font-black text-xs">₪{p.price}</Badge>
@@ -796,7 +796,7 @@ function SellerDashboardContent() {
                                     <MessageCircle className="w-10 h-10 text-accent" />
                                   </div>
                                   <div className="max-w-md mx-auto space-y-3">
-                                    <h4 className="text-2xl font-headline font-black text-primary">מתעניינים בספר תורה שלך!</h4>
+                                    <h3 className="text-2xl font-headline font-black text-primary">מתעניינים בספר תורה שלך!</h3>
                                     <p className="text-base text-primary/70 font-medium leading-relaxed">
                                       בשל אופי המוצר, הפרטים האישיים מנוהלים על ידי צוות 'חותם'. אנא צור איתנו קשר לתיאום פגישה אישית להתרשמות הלקוח מהספר.
                                     </p>
@@ -813,7 +813,7 @@ function SellerDashboardContent() {
                                <>
                                  <div className="p-6 md:p-8 grid md:grid-cols-2 gap-8">
                                     <div className="space-y-4">
-                                       <h5 className="font-black text-xs uppercase text-primary/40 flex items-center justify-end gap-2">פרטי לקוח למשלוח <Truck className="w-4 h-4" /></h5>
+                                       <h4 className="font-black text-xs uppercase text-primary/60 flex items-center justify-end gap-2">פרטי לקוח למשלוח <Truck className="w-4 h-4" /></h4>
                                        <div className="bg-white p-6 rounded-[2rem] border border-primary/5 space-y-3 shadow-sm">
                                           <div className="flex justify-between items-center"><span className="text-sm font-bold text-primary">{o.buyer_name}</span><span className="text-[10px] text-muted-foreground font-black">שם מלא</span></div>
                                           <div className="flex justify-between items-center"><span className="text-sm font-bold text-primary">{o.buyer_phone}</span><span className="text-[10px] text-muted-foreground font-black">טלפון</span></div>
@@ -821,7 +821,7 @@ function SellerDashboardContent() {
                                        </div>
                                     </div>
                                     <div className="space-y-4">
-                                       <h5 className="font-black text-xs uppercase text-primary/40 flex items-center justify-end gap-2">אישור מסירה <ShieldCheck className="w-4 h-4" /></h5>
+                                       <h4 className="font-black text-xs uppercase text-primary/60 flex items-center justify-end gap-2">אישור מסירה <ShieldCheck className="w-4 h-4" /></h4>
                                        <div className={cn("bg-white p-6 rounded-[2rem] border space-y-4 shadow-sm", o.status === 'completed' ? 'border-emerald-100' : 'border-blue-100')}>
                                           {o.status === 'completed' ? <div className="text-center py-4"><CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" /><p className="font-black text-emerald-600 text-sm mt-2">העסקה הושלמה והתשלום שוחרר</p></div> : (
                                             <>
@@ -876,7 +876,7 @@ function SellerDashboardContent() {
 
           <TabsContent value="settings">
              <Card className="p-5 sm:p-8 md:p-12 border-none shadow-premium rounded-[3rem] bg-white text-right">
-                <div className="flex items-center justify-between border-b pb-6 mb-10"><h3 className="text-2xl font-black text-primary">הגדרות ופרופיל אישי</h3><Settings className="w-6 h-6 text-accent" /></div>
+                <div className="flex items-center justify-between border-b pb-6 mb-10"><h2 className="text-2xl font-black text-primary">הגדרות ופרופיל אישי</h2><Settings className="w-6 h-6 text-accent" /></div>
                 
                 <div className="grid md:grid-cols-3 gap-8 md:gap-12">
                    <div className="space-y-8">
@@ -899,13 +899,13 @@ function SellerDashboardContent() {
                       </div>
 
                       <div className="space-y-4 p-6 bg-primary/5 rounded-[2rem] border border-primary/10">
-                        <h4 className="text-[11px] font-black text-primary uppercase tracking-widest flex items-center gap-2 mb-2">
+                        <h3 className="text-[11px] font-black text-primary uppercase tracking-widest flex items-center gap-2 mb-2">
                           <Settings className="w-4 h-4 text-accent" /> התראות על הזמנות
-                        </h4>
+                        </h3>
                         <div className="space-y-4">
                            <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <Mail className="w-3.5 h-3.5 text-primary/40" />
+                                 <Mail className="w-3.5 h-3.5 text-primary/60" />
                                 <span className="text-xs font-bold text-primary">התראות במייל</span>
                               </div>
                               <Switch 
@@ -915,7 +915,7 @@ function SellerDashboardContent() {
                            </div>
                            <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <Smartphone className="w-3.5 h-3.5 text-primary/40" />
+                                 <Smartphone className="w-3.5 h-3.5 text-primary/60" />
                                 <span className="text-xs font-bold text-primary">התראות ב-SMS</span>
                               </div>
                               <Switch 
@@ -925,7 +925,7 @@ function SellerDashboardContent() {
                            </div>
                            <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <Phone className="w-3.5 h-3.5 text-primary/40" />
+                                 <Phone className="w-3.5 h-3.5 text-primary/60" />
                                 <span className="text-xs font-bold text-primary">שיחה קולית אוטומטית</span>
                               </div>
                               <Switch 
@@ -940,17 +940,17 @@ function SellerDashboardContent() {
                    <div className="md:col-span-2 space-y-10">
                       <div className="space-y-6">
                         <div className="grid grid-cols-2 gap-4">
-                           <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/40">שם פרטי</Label><Input value={profileData.first_name} onChange={e => setProfileData({...profileData, first_name: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
-                           <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/40">שם משפחה</Label><Input value={profileData.last_name} onChange={e => setProfileData({...profileData, last_name: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
+                           <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/60">שם פרטי</Label><Input value={profileData.first_name} onChange={e => setProfileData({...profileData, first_name: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
+                           <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/60">שם משפחה</Label><Input value={profileData.last_name} onChange={e => setProfileData({...profileData, last_name: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
                         </div>
-                        <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/40">טלפון</Label><Input value={profileData.phone} onChange={e => setProfileData({...profileData, phone: e.target.value})} className="h-12 rounded-xl font-bold" dir="ltr" /></div>
-                         <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/40">כתובת</Label><Input ref={sellerAddressInputRef} value={profileData.address} onChange={e => setProfileData({...profileData, address: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
-                        <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/40">אודותיך (יוצג ללקוח)</Label><Textarea value={profileData.notes} onChange={e => setProfileData({...profileData, notes: e.target.value})} className="rounded-2xl min-h-[100px] font-medium" placeholder="ספר ללקוחות על ההנהגה שלך..." /></div>
+                        <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/60">טלפון</Label><Input value={profileData.phone} onChange={e => setProfileData({...profileData, phone: e.target.value})} className="h-12 rounded-xl font-bold" dir="ltr" /></div>
+                         <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/60">כתובת</Label><Input ref={sellerAddressInputRef} value={profileData.address} onChange={e => setProfileData({...profileData, address: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
+                        <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/60">אודותיך (יוצג ללקוח)</Label><Textarea value={profileData.notes} onChange={e => setProfileData({...profileData, notes: e.target.value})} className="rounded-2xl min-h-[100px] font-medium" placeholder="ספר ללקוחות על ההנהגה שלך..." /></div>
                       </div>
 
                       <div className="pt-8 border-t space-y-8">
                          <div className="flex items-center justify-between">
-                            <h4 className="text-lg font-black text-primary flex items-center gap-2"><Building2 className="w-5 h-5 text-accent" /> פרטי עסק וחשבון (ללא אפשרות שינוי)</h4>
+                            <h3 className="text-lg font-black text-primary flex items-center gap-2"><Building2 className="w-5 h-5 text-accent" /> פרטי עסק וחשבון (ללא אפשרות שינוי)</h3>
                             <Button asChild variant="link" className="text-accent font-black text-xs uppercase tracking-tighter gap-2">
                                <Link href="/contact">צור קשר לשינוי פרטים <ExternalLink className="w-3 h-3" /></Link>
                             </Button>
@@ -960,18 +960,18 @@ function SellerDashboardContent() {
                             <div className="space-y-4 p-6 bg-muted/30 rounded-2xl border">
                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">פרטי עסק רשמיים</p>
                                <div className="space-y-3">
-                                  <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.business_name}</span><span className="text-[10px] font-black uppercase text-primary/40">שם עסק</span></div>
-                                  <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.business_id}</span><span className="text-[10px] font-black uppercase text-primary/40">ח.פ / עוסק</span></div>
-                                  <div className="flex justify-between"><span className="text-sm font-bold opacity-60">{seller?.business_type === 'osek_patur' ? 'עוסק פטור' : 'עוסק מורשה/חברה'}</span><span className="text-[10px] font-black uppercase text-primary/40">סוג</span></div>
+                                   <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.business_name}</span><span className="text-[10px] font-black uppercase text-primary/60">שם עסק</span></div>
+                                   <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.business_id}</span><span className="text-[10px] font-black uppercase text-primary/60">ח.פ / עוסק</span></div>
+                                   <div className="flex justify-between"><span className="text-sm font-bold opacity-60">{seller?.business_type === 'osek_patur' ? 'עוסק פטור' : 'עוסק מורשה/חברה'}</span><span className="text-[10px] font-black uppercase text-primary/60">סוג</span></div>
                                </div>
                             </div>
 
                             <div className="space-y-4 p-6 bg-muted/30 rounded-2xl border">
                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">פרטי חשבון בנק</p>
                                <div className="space-y-3">
-                                  <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.bank_name}</span><span className="text-[10px] font-black uppercase text-primary/40">בנק</span></div>
-                                  <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.bank_branch}</span><span className="text-[10px] font-black uppercase text-primary/40">סניף</span></div>
-                                  <div className="flex justify-between"><span className="text-sm font-bold opacity-60">{seller?.bank_account_number}</span><span className="text-[10px] font-black uppercase text-primary/40">חשבון</span></div>
+                                   <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.bank_name}</span><span className="text-[10px] font-black uppercase text-primary/60">בנק</span></div>
+                                   <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.bank_branch}</span><span className="text-[10px] font-black uppercase text-primary/60">סניף</span></div>
+                                   <div className="flex justify-between"><span className="text-sm font-bold opacity-60">{seller?.bank_account_number}</span><span className="text-[10px] font-black uppercase text-primary/60">חשבון</span></div>
                                </div>
                             </div>
                          </div>
@@ -1478,7 +1478,7 @@ function SellerChatListItem({ chat, otherUserId, userId }: any) {
           </Avatar>
           <div className="flex-1 overflow-hidden">
             <div className="flex justify-between items-baseline">
-              <h4 className="font-black text-primary text-base truncate">{otherUser ? `${otherUser.first_name} ${otherUser.last_name}` : 'טוען...'}</h4>
+              <p className="font-black text-primary text-base truncate">{otherUser ? `${otherUser.first_name} ${otherUser.last_name}` : 'טוען...'}</p>
               <span className="text-[9px] text-muted-foreground font-bold whitespace-nowrap bg-muted/30 px-2 py-0.5 rounded-full">{chat.last_message_at ? new Date(chat.last_message_at).toLocaleDateString('he-IL') : ''}</span>
             </div>
             <p className={cn("text-xs truncate mt-1", isUnread ? "font-black text-primary" : "text-muted-foreground font-medium")}>{chat.last_message_text || 'תחילת שיחה'}</p>

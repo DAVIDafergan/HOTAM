@@ -759,7 +759,7 @@ function SearchContent() {
                     </div>
                   </div>
                   <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-background to-transparent md:hidden" />
-                  <div className="pointer-events-none absolute inset-y-0 left-2 z-20 hidden items-center text-primary/35 md:hidden sm:flex">
+                  <div className="pointer-events-none absolute inset-y-0 left-2 z-20 flex items-center text-primary/35 md:hidden">
                     <span className="flex animate-pulse items-center">
                       <ChevronLeft className="h-4 w-4" />
                       <ChevronLeft className="-mr-2 h-4 w-4" />

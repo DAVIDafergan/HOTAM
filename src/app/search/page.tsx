@@ -36,6 +36,7 @@ import {
   ShieldCheck,
   UserCheck,
   Truck,
+  ChevronLeft,
   ChevronRight,
   MapPin,
   LocateFixed,
@@ -716,44 +717,53 @@ function SearchContent() {
           <div className="space-y-0">
             <div className="container mx-auto px-4 pt-8 pb-6 md:pb-8">
               <div className="flex flex-col md:flex-row justify-between items-end gap-4 md:gap-6 border-b border-primary/5 pb-6 md:pb-8">
-                <div className="w-full overflow-x-auto pb-2 -mb-2 no-scrollbar">
-                  <div className="flex items-center gap-2 md:gap-3 min-w-max px-1">
-                    <Button onClick={() => setIsFilterPanelOpen(true)} className="rounded-full h-10 px-4 text-[11px] font-black border border-primary/10 bg-white text-primary hover:bg-primary hover:text-white active:scale-95 transition-all duration-200 shadow-sm group">
-                      <SlidersHorizontal className="ml-2 h-4 w-4 text-accent transition-colors group-hover:text-white" />
-                      סינון מותאם
-                    </Button>
-                    <div className="flex items-center rounded-full border border-primary/10 bg-white p-1 shadow-sm">
-                      <ToolbarChoiceButton active={shippingPreference === 'all'} onClick={() => setShippingPreference('all')}>
-                        הכל
-                      </ToolbarChoiceButton>
-                      <ToolbarChoiceButton active={shippingPreference === 'shipping'} onClick={() => setShippingPreference('shipping')}>
-                        <Truck className="ml-1.5 h-3.5 w-3.5" />
-                        משלוח
-                      </ToolbarChoiceButton>
-                      <ToolbarChoiceButton active={shippingPreference === 'pickup'} onClick={() => setShippingPreference('pickup')}>
-                        <MapPin className="ml-1.5 h-3.5 w-3.5" />
-                        איסוף עצמי
-                      </ToolbarChoiceButton>
-                    </div>
-                    <Select value={sortOrder} onValueChange={setSortOrder}>
-                      <SelectTrigger className="h-10 w-[168px] shrink-0 rounded-full border border-primary/10 bg-white px-4 text-[11px] font-black shadow-sm focus:ring-0">
-                        <div className="flex items-center gap-2">
-                          <ArrowUpNarrowWide className="h-4 w-4 text-accent" />
-                          <span className="text-primary/50">מיון לפי</span>
-                          <SelectValue placeholder="חדש" />
-                        </div>
-                      </SelectTrigger>
-                      <SelectContent className="rounded-[1.5rem] md:rounded-[2rem] shadow-2xl border-none p-2 bg-white/95 backdrop-blur-xl">
-                        <SelectItem value="newest" className="font-bold py-2 md:py-3 px-3 md:px-4 rounded-xl cursor-pointer text-xs md:text-sm">מוצרים חדשים</SelectItem>
-                        <SelectItem value="price_asc" className="font-bold py-2 md:py-3 px-3 md:px-4 rounded-xl cursor-pointer text-xs md:text-sm">מחיר: מהזול ליקר</SelectItem>
-                        <SelectItem value="price_desc" className="font-bold py-2 md:py-3 px-3 md:px-4 rounded-xl cursor-pointer text-xs md:text-sm">מחיר: מהיקר לזול</SelectItem>
-                        <SelectItem value="rating" className="font-bold py-2 md:py-3 px-3 md:px-4 rounded-xl cursor-pointer text-xs md:text-sm">דירוג לקוחות</SelectItem>
-                      </SelectContent>
-                    </Select>
+                <div className="relative w-full">
+                  <div className="w-full overflow-x-auto pb-2 -mb-2 no-scrollbar">
+                    <div className="flex items-center gap-2 md:gap-3 min-w-max px-1">
+                      <Button onClick={() => setIsFilterPanelOpen(true)} className="rounded-full h-10 px-4 text-[11px] font-black border border-primary/10 bg-white text-primary hover:bg-primary hover:text-white active:scale-95 transition-all duration-200 shadow-sm group">
+                        <SlidersHorizontal className="ml-2 h-4 w-4 text-accent transition-colors group-hover:text-white" />
+                        סינון מותאם
+                      </Button>
+                      <div className="flex items-center rounded-full border border-primary/10 bg-white p-1 shadow-sm">
+                        <ToolbarChoiceButton active={shippingPreference === 'all'} onClick={() => setShippingPreference('all')}>
+                          הכל
+                        </ToolbarChoiceButton>
+                        <ToolbarChoiceButton active={shippingPreference === 'shipping'} onClick={() => setShippingPreference('shipping')}>
+                          <Truck className="ml-1.5 h-3.5 w-3.5" />
+                          משלוח
+                        </ToolbarChoiceButton>
+                        <ToolbarChoiceButton active={shippingPreference === 'pickup'} onClick={() => setShippingPreference('pickup')}>
+                          <MapPin className="ml-1.5 h-3.5 w-3.5" />
+                          איסוף עצמי
+                        </ToolbarChoiceButton>
+                      </div>
+                      <Select value={sortOrder} onValueChange={setSortOrder}>
+                        <SelectTrigger className="h-10 w-[168px] shrink-0 rounded-full border border-primary/10 bg-white px-4 text-[11px] font-black shadow-sm focus:ring-0">
+                          <div className="flex items-center gap-2">
+                            <ArrowUpNarrowWide className="h-4 w-4 text-accent" />
+                            <span className="text-primary/50">מיון לפי</span>
+                            <SelectValue placeholder="חדש" />
+                          </div>
+                        </SelectTrigger>
+                        <SelectContent className="rounded-[1.5rem] md:rounded-[2rem] shadow-2xl border-none p-2 bg-white/95 backdrop-blur-xl">
+                          <SelectItem value="newest" className="font-bold py-2 md:py-3 px-3 md:px-4 rounded-xl cursor-pointer text-xs md:text-sm">מוצרים חדשים</SelectItem>
+                          <SelectItem value="price_asc" className="font-bold py-2 md:py-3 px-3 md:px-4 rounded-xl cursor-pointer text-xs md:text-sm">מחיר: מהזול ליקר</SelectItem>
+                          <SelectItem value="price_desc" className="font-bold py-2 md:py-3 px-3 md:px-4 rounded-xl cursor-pointer text-xs md:text-sm">מחיר: מהיקר לזול</SelectItem>
+                          <SelectItem value="rating" className="font-bold py-2 md:py-3 px-3 md:px-4 rounded-xl cursor-pointer text-xs md:text-sm">דירוג לקוחות</SelectItem>
+                        </SelectContent>
+                      </Select>
 
-                    <Button variant="ghost" onClick={resetFilters} className="h-10 rounded-full px-4 text-[11px] font-black text-primary/40 hover:bg-destructive/5 hover:text-destructive shrink-0 transition-all">
-                      <RotateCcw className="ml-2 h-4 w-4" /> איפוס
-                    </Button>
+                      <Button variant="ghost" onClick={resetFilters} className="h-10 rounded-full px-4 text-[11px] font-black text-primary/40 hover:bg-destructive/5 hover:text-destructive shrink-0 transition-all">
+                        <RotateCcw className="ml-2 h-4 w-4" /> איפוס
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-background to-transparent md:hidden" />
+                  <div className="pointer-events-none absolute inset-y-0 left-2 z-20 flex items-center text-primary/35 md:hidden">
+                    <span className="flex animate-pulse items-center">
+                      <ChevronLeft className="h-4 w-4" />
+                      <ChevronLeft className="-mr-2 h-4 w-4" />
+                    </span>
                   </div>
                 </div>
                 <div className="text-right shrink-0 w-full md:w-auto px-1">

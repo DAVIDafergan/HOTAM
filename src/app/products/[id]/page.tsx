@@ -55,7 +55,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const pageTitle = `${title}${subType} • ₪${displayPrice.toLocaleString('he-IL')} | חותם`;
     const description = fields.description || `רכישת ${title}${subType} מהודר בכתב ${scriptType}, במחיר ₪${displayPrice.toLocaleString('he-IL')} כולל מע"מ, ישירות מסופר סת"ם ירא שמיים.`;
 
-    let imageUrl = 'https://hotam.shop/opengraph-image.png';
+    let imageUrl = 'https://github.com/user-attachments/assets/c225c666-5c35-4add-86d2-ed2454e6f368';
     if (Array.isArray(fields.images) && fields.images.length > 0) {
       imageUrl = fields.images[0];
     }

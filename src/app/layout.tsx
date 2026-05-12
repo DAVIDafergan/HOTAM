@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: '/opengraph-image',
+        url: 'https://github.com/user-attachments/assets/c225c666-5c35-4add-86d2-ed2454e6f368',
         width: 1200,
         height: 630,
         alt: 'חותם - זירת המסחר היוקרתית לכלי קודש מהודרים',
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'חותם - כלי קודש מהודרים',
     description: 'זירת המסחר היוקרתית של עולם הסת\'\'ם.',
-    images: ['/opengraph-image'],
+    images: ['https://github.com/user-attachments/assets/c225c666-5c35-4add-86d2-ed2454e6f368'],
   },
   icons: {
     icon: [

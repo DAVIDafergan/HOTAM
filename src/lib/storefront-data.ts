@@ -25,6 +25,7 @@ const normalizeReviewWithProfile = (review: any) => {
   };
 };
 
+/** Fetch a public product by id for product page rendering and metadata. */
 export const getPublicProductById = cache(async (id: string) => {
   try {
     const client = getPublicSupabaseClient();
@@ -44,6 +45,7 @@ export const getPublicProductById = cache(async (id: string) => {
   }
 });
 
+/** Fetch a public seller profile by id for storefront rendering. */
 export const getPublicSellerById = cache(async (id: string) => {
   try {
     const client = getPublicSupabaseClient();
@@ -63,6 +65,7 @@ export const getPublicSellerById = cache(async (id: string) => {
   }
 });
 
+/** Fetch all public products that belong to a seller for storefront rendering. */
 export const getPublicSellerProducts = cache(async (sellerId: string) => {
   try {
     const client = getPublicSupabaseClient();
@@ -81,6 +84,7 @@ export const getPublicSellerProducts = cache(async (sellerId: string) => {
   }
 });
 
+/** Fetch normalized public reviews for a product page. */
 export const getPublicProductReviews = cache(async (productId: string) => {
   try {
     const client = getPublicSupabaseClient();
@@ -99,6 +103,7 @@ export const getPublicProductReviews = cache(async (productId: string) => {
   }
 });
 
+/** Fetch normalized public reviews for a seller profile page. */
 export const getPublicSellerReviews = cache(async (sellerId: string) => {
   try {
     const client = getPublicSupabaseClient();
@@ -117,6 +122,7 @@ export const getPublicSellerReviews = cache(async (sellerId: string) => {
   }
 });
 
+/** Fetch the seller page payload in parallel so the route can render from the server. */
 export async function getPublicSellerPageData(id: string) {
   const [seller, products, reviews] = await Promise.all([
     getPublicSellerById(id),

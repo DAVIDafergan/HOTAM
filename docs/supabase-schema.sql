@@ -580,7 +580,7 @@ BEGIN
         updated_at = NOW()
     WHERE id = NEW.chat_id;
 
-    -- Keep this message aligned with CHAT_BLOCK_ERROR_MESSAGE in src/lib/chat-guard.ts.
+    -- Keep this literal manually aligned with CHAT_BLOCK_ERROR_MESSAGE in src/lib/chat-guard.ts.
     RAISE EXCEPTION USING MESSAGE = 'Contact details are not allowed in chat';
   END IF;
 

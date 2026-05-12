@@ -7,7 +7,9 @@ type ChatGuardResult = {
 
 // Israeli phone formats: +972/00972/0 prefix, then area/mobile prefix, then remaining digits with separators.
 const PHONE_REGEX = /(?:(?:\+|00)\s*972|0)(?:\D*[23489]|\D*5\D*\d)(?:\D*\d){7,8}/u;
+// Catches regular emails plus simple obfuscations like "(at)" / "[dot]".
 const EMAIL_REGEX = /[a-z0-9._%+-]+(?:\s*(?:@|\(at\)|\[at\]| at )\s*)[a-z0-9.-]+(?:\s*(?:\.|\(dot\)|\[dot\]| dot )\s*)[a-z]{2,}/iu;
+// Catches direct links and common off-platform contact routes.
 const URL_REGEX = /(?:https?:\/\/|www\.|wa\.me\/|t\.me\/|discord(?:app)?\.com\/|instagram\.com\/|facebook\.com\/|telegram\.me\/|bit\.ly\/|tinyurl\.com\/)[^\s]+/iu;
 
 const DIGIT_WORDS: Record<string, string> = {

@@ -103,8 +103,8 @@ export function ProductDetailsClient({
     return doc(db, 'sellers', product.seller_id);
   }, [db, product?.seller_id]);
 
-  const { data: liveSeller, isLoading: isSellerLoading } = useDoc<any>(sellerRef);
-  const seller = liveSeller ?? initialSeller;
+  const { data: realtimeSeller, isLoading: isSellerLoading } = useDoc<any>(sellerRef);
+  const seller = realtimeSeller ?? initialSeller;
 
   const [reviews, setReviews] = useState<any[]>(initialReviews);
 

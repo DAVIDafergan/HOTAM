@@ -383,7 +383,6 @@ export default function AdminDashboard() {
                </div>
                 <div>
                   <h1 className="text-4xl font-headline font-black text-primary tracking-tight">ניהול מערכת HOTAM</h1>
-                  <h2 className="sr-only">מרכז ניהול המערכת</h2>
                   <p className="text-muted-foreground font-medium">פיקוח על כשרות, אימות סופרים וניטור פיננסי</p>
                 </div>
             </div>

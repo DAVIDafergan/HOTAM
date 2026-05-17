@@ -305,7 +305,7 @@ export function Navbar() {
             {!isUserLoading && user && mounted && (
               <div className="flex items-center gap-2">
                 {isSuperAdmin && (
-                  <DropdownMenu>
+                  <DropdownMenu dir="rtl">
                     <DropdownMenuTrigger asChild>
                       <Button 
                         variant="ghost" 
@@ -321,7 +321,7 @@ export function Navbar() {
                         )}
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-72 p-2 rounded-[2rem] shadow-premium border-none bg-white/95 backdrop-blur-md mt-2" dir="rtl">
+                    <DropdownMenuContent align="end" className="w-72 p-2 rounded-[2rem] shadow-premium border-none bg-white/95 backdrop-blur-md mt-2">
                       <DropdownMenuLabel className="text-sm font-black uppercase text-primary flex items-center gap-2 p-4">
                         <Bell className="w-4 h-4 text-accent" /> עדכוני מערכת
                       </DropdownMenuLabel>
@@ -370,7 +370,7 @@ export function Navbar() {
                 )}
 
                 {!isSeller && !isSuperAdmin && (
-                  <DropdownMenu>
+                  <DropdownMenu dir="rtl">
                     <DropdownMenuTrigger asChild>
                       <Button 
                         variant="ghost" 
@@ -386,7 +386,7 @@ export function Navbar() {
                         )}
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-72 p-2 rounded-[2rem] shadow-premium border-none bg-white/95 backdrop-blur-md mt-2" dir="rtl">
+                    <DropdownMenuContent align="end" className="w-72 p-2 rounded-[2rem] shadow-premium border-none bg-white/95 backdrop-blur-md mt-2">
                       <DropdownMenuLabel className="text-sm font-black uppercase text-primary flex items-center gap-2 p-4">
                         <Bell className="w-4 h-4 text-accent" /> התראות הודעות
                       </DropdownMenuLabel>
@@ -427,7 +427,7 @@ export function Navbar() {
                 )}
 
                 {isSeller && (
-                  <DropdownMenu>
+                  <DropdownMenu dir="rtl">
                     <DropdownMenuTrigger asChild>
                       <Button 
                         variant="ghost" 
@@ -443,7 +443,7 @@ export function Navbar() {
                         )}
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-72 p-2 rounded-[2rem] shadow-premium border-none bg-white/95 backdrop-blur-md mt-2" dir="rtl">
+                    <DropdownMenuContent align="end" className="w-72 p-2 rounded-[2rem] shadow-premium border-none bg-white/95 backdrop-blur-md mt-2">
                       <DropdownMenuLabel className="text-sm font-black uppercase text-primary flex items-center gap-2 p-4">
                         <Bell className="w-4 h-4 text-accent" /> התראות סופר
                       </DropdownMenuLabel>

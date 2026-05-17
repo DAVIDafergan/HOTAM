@@ -17,10 +17,10 @@ if (missingEnvVars.length > 0) {
 }
 
 const s3 = new S3Client({
-  region: AWS_REGION,
+  region: AWS_REGION!,
   credentials: {
-    accessKeyId: AWS_ACCESS_KEY_ID,
-    secretAccessKey: AWS_SECRET_ACCESS_KEY,
+    accessKeyId: AWS_ACCESS_KEY_ID!,
+    secretAccessKey: AWS_SECRET_ACCESS_KEY!,
   },
 });
 

@@ -629,6 +629,7 @@ function SearchContent() {
             <RadioGroup value={mikvehFreq} onValueChange={setMikvehFreq} className="grid gap-1.5">
               <CustomFilterTile value="all" label="הכל" active={mikvehFreq === 'all'} />
               <CustomFilterTile value="daily" label="טובל יומיום" active={mikvehFreq === 'daily'} />
+              <CustomFilterTile value="never" label="לא טובל בכלל" active={mikvehFreq === 'never'} />
             </RadioGroup>
           </div>
           <Label className="flex items-center justify-between rounded-2xl border border-primary/10 bg-white px-4 py-4 transition-all cursor-pointer hover:border-primary/20">

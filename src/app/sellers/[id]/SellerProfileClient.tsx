@@ -343,7 +343,8 @@ export default function SellerProfile({
       label: 'טבילות', 
       value: seller.mikveh_frequency === 'daily' ? 'טובל כל יום' : 
              seller.mikveh_frequency === 'before' ? 'טובל לפני הכתיבה' : 
-             seller.mikveh_frequency === 'ezra' ? 'טבילת עזרא' : 'לא צוין', 
+             seller.mikveh_frequency === 'ezra' ? 'טבילת עזרא' :
+             seller.mikveh_frequency === 'never' ? 'לא טובל בכלל' : 'לא צוין', 
       icon: <CheckCircle2 className="w-4 h-4" /> 
     },
     { 

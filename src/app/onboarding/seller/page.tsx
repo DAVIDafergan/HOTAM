@@ -553,6 +553,7 @@ export default function SellerOnboarding() {
                       <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => updateField('mikvehFrequency', 'ezra')}><RadioGroupItem value="ezra" id="m1" /><Label htmlFor="m1" className="text-xs cursor-pointer">טבילת עזרא</Label></div>
                       <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => updateField('mikvehFrequency', 'before')}><RadioGroupItem value="before" id="m2" /><Label htmlFor="m2" className="text-xs cursor-pointer">לפני כתיבה</Label></div>
                       <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => updateField('mikvehFrequency', 'daily')}><RadioGroupItem value="daily" id="m3" /><Label htmlFor="m3" className="text-xs cursor-pointer">כל יום</Label></div>
+                      <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => updateField('mikvehFrequency', 'never')}><RadioGroupItem value="never" id="m4" /><Label htmlFor="m4" className="text-xs cursor-pointer">לא טובל בכלל</Label></div>
                     </RadioGroup>
                   </div>
                 </div>

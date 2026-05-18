@@ -386,9 +386,12 @@ function SellerDashboardContent() {
   const uploadImage = async (file: File): Promise<string> => {
     const formData = new FormData();
     formData.append('file', file);
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token ?? '';
 
     const res = await fetch('/api/upload-image', {
       method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
       body: formData,
     });
 
@@ -497,6 +500,14 @@ function SellerDashboardContent() {
 
   const handleSubmitProduct = async () => {
     if (!user) return;
+    if (!profile?.is_approved) {
+      toast({
+        variant: "destructive",
+        title: "הפרופיל ממתין לאישור",
+        description: "לא ניתן להעלות מוצרים לפני שהאדמין יאשר את הפרופיל שלך.",
+      });
+      return;
+    }
     
     let finalSize = formParchmentSize;
     if (formType === 'מגילה') {

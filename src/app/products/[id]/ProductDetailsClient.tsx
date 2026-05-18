@@ -341,7 +341,6 @@ export function ProductDetailsClient({
     }
     setDeletingReviewId(reviewId);
     try {
-      console.log('[reviews] deleting:', { reviewId, buyerId: user.uid, authUid: (await supabase.auth.getUser()).data.user?.id });
       const { error, count } = await supabase
         .from('reviews')
         .delete({ count: 'exact' })

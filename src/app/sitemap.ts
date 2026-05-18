@@ -26,7 +26,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     if (supabaseUrl && supabaseAnonKey) {
       const client = createClient(supabaseUrl, supabaseAnonKey);
-      const { data } = await client.from('products').select('id');
+      const { data: sellers } = await client
+        .from('sellers').select('id').eq('is_approved', true);
+      const approvedIds = (sellers || []).map((s) => s.id);
+      const { data } = approvedIds.length === 0
+        ? { data: [] as { id: string }[] }
+        : await client
+          .from('products').select('id').in('seller_id', approvedIds);
       productRoutes = (data || []).map((row) => ({
         url: `${baseUrl}/products/${row.id}`,
         lastModified: new Date(),

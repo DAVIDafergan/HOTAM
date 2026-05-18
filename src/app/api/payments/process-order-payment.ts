@@ -11,22 +11,17 @@ const EMAIL_CODE_RADIUS = '12px';
 export async function markOrderAsPaidAndNotify(orderId: string, paymentProvider: string) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  console.log('SERVICE ROLE KEY:', process.env.SUPABASE_SERVICE_ROLE_KEY ? 'EXISTS' : 'MISSING');
-  console.log('SUPABASE URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'EXISTS' : 'MISSING');
-  console.log('Looking for orderId:', orderId);
 
   if (!supabaseUrl || !serviceRoleKey) {
     throw new Error('Missing Supabase server environment configuration');
   }
 
   const supabase = createClient(supabaseUrl, serviceRoleKey);
-  console.log('DB lookup orderId:', orderId);
   const { data: order, error: fetchError } = await supabase
     .from('orders')
     .select('status, buyer_email, buyer_name, seller_id, product_id')
     .eq('id', orderId)
     .single();
-  console.log('DB result:', JSON.stringify(order), 'error:', fetchError?.message);
 
   if (fetchError || !order) {
     throw new Error(`Order ${orderId} not found`);

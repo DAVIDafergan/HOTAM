@@ -346,7 +346,8 @@ CREATE POLICY "products_seller_delete"  ON public.products FOR DELETE
 CREATE POLICY "products_admin_all"      ON public.products FOR ALL USING (public.is_admin());
 
 -- ── orders policies ───────────────────────────────────────────────────────────
-CREATE POLICY "Allow public read"     ON public.orders FOR SELECT USING (true);
+CREATE POLICY "orders_parties_read"   ON public.orders FOR SELECT
+  USING (auth.uid()::TEXT = buyer_id OR auth.uid()::TEXT = seller_id OR public.is_admin());
 CREATE POLICY "orders_buyer_insert"   ON public.orders FOR INSERT
   WITH CHECK (auth.uid()::TEXT = buyer_id);
 CREATE POLICY "orders_parties_update" ON public.orders FOR UPDATE

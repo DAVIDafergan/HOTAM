@@ -44,6 +44,9 @@ function LoginContent() {
   // Route by role stored in user_metadata — no DB lookups needed.
   useEffect(() => {
     if (user && !isUserLoading) {
+      if (!user.emailVerified) {
+        return;
+      }
       // Validate redirect to prevent open redirect vulnerability (only allow relative paths)
       const safeRedirect = redirectTo && redirectTo.startsWith('/') && !redirectTo.startsWith('//') ? redirectTo : null;
       if (safeRedirect) {
@@ -71,7 +74,17 @@ function LoginContent() {
     e.preventDefault();
     setLoading(true);
     try {
-      await initiateEmailSignIn(auth, email, password);
+      const data = await initiateEmailSignIn(auth, email, password);
+      if (data.user?.email_confirmed_at == null) {
+        await auth._client.auth.signOut();
+        setLoading(false);
+        toast({
+          variant: "destructive",
+          title: "האימייל לא אומת",
+          description: "עליך לאמת את כתובת האימייל לפני הכניסה. בדוק את תיבת הדואר הנכנס שלך.",
+        });
+        return;
+      }
     } catch (error: any) {
       setLoading(false);
       toast({

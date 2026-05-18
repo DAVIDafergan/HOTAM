@@ -61,6 +61,7 @@ export default function CustomerDashboard() {
   const customerAddressInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState('orders');
   const [isSaving, setIsSaving] = useState(false);
+  const [isCompletingName, setIsCompletingName] = useState(false);
 
   // Route guard — redirect non-customers and unauthenticated users.
   // Prefer the DB profile role (more authoritative / up-to-date) and fall back
@@ -109,8 +110,21 @@ export default function CustomerDashboard() {
       const rawMeta = user?._raw?.user_metadata ?? {};
       const metaFirstName = (rawMeta.first_name ?? rawMeta.firstName ?? '') as string;
       const metaLastName  = (rawMeta.last_name  ?? rawMeta.lastName  ?? '') as string;
-      const firstName = customer.first_name || metaFirstName;
-      const lastName  = customer.last_name  || metaLastName;
+      let pendingFirstName = '';
+      let pendingLastName = '';
+      if (typeof window !== 'undefined') {
+        try {
+          const pending = JSON.parse(window.localStorage.getItem('hotam_pending_customer_name') || '{}');
+          pendingFirstName = (pending?.first_name ?? '').trim();
+          pendingLastName = (pending?.last_name ?? '').trim();
+        } catch {
+          pendingFirstName = '';
+          pendingLastName = '';
+        }
+      }
+
+      const firstName = customer.first_name || pendingFirstName || metaFirstName;
+      const lastName  = customer.last_name  || pendingLastName  || metaLastName;
 
       setFormData({
         first_name: firstName,
@@ -133,6 +147,10 @@ export default function CustomerDashboard() {
               toast({ title: 'שגיאה בשמירת השם', description: error.message, variant: 'destructive' });
             }
           });
+      }
+
+      if (typeof window !== 'undefined' && customer.first_name && customer.last_name) {
+        window.localStorage.removeItem('hotam_pending_customer_name');
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -225,9 +243,21 @@ export default function CustomerDashboard() {
 
   const handleSaveProfile = () => {
     if (!user || !customerRef) return;
+    const firstName = formData.first_name.trim();
+    const lastName = formData.last_name.trim();
+    if (!firstName || !lastName) {
+      toast({
+        variant: 'destructive',
+        title: 'שם מלא חובה',
+        description: 'יש להזין שם פרטי ושם משפחה כדי לשמור את הפרופיל.',
+      });
+      return;
+    }
     setIsSaving(true);
     updateDocumentNonBlocking(customerRef, {
       ...formData,
+      first_name: firstName,
+      last_name: lastName,
       updated_at: new Date().toISOString()
     });
     setTimeout(() => {
@@ -239,6 +269,57 @@ export default function CustomerDashboard() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deleteReason, setDeleteReason] = useState('');
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+
+  const handleCompleteName = async () => {
+    if (!user) return;
+    const firstName = formData.first_name.trim();
+    const lastName = formData.last_name.trim();
+    if (!firstName || !lastName) {
+      toast({
+        variant: 'destructive',
+        title: 'שם מלא חובה',
+        description: 'יש להזין שם פרטי ושם משפחה כדי להמשיך.',
+      });
+      return;
+    }
+
+    setIsCompletingName(true);
+    const fullName = `${firstName} ${lastName}`.trim();
+    const [{ error: customerError }, { error: profileError }] = await Promise.all([
+      supabase
+        .from('customers')
+        .update({ first_name: firstName, last_name: lastName, updated_at: new Date().toISOString() })
+        .eq('id', user.uid),
+      supabase
+        .from('profiles')
+        .update({ full_name: fullName, updated_at: new Date().toISOString() })
+        .eq('id', user.uid),
+    ]);
+
+    if (!customerError) {
+      try {
+        await supabase.auth.updateUser({
+          data: { first_name: firstName, last_name: lastName, full_name: fullName },
+        });
+      } catch {}
+    }
+
+    if (customerError || profileError) {
+      toast({
+        variant: 'destructive',
+        title: 'שגיאה בשמירת הפרטים',
+        description: customerError?.message || profileError?.message || 'אנא נסה שנית.',
+      });
+      setIsCompletingName(false);
+      return;
+    }
+
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem('hotam_pending_customer_name');
+    }
+    toast({ title: 'הפרטים נשמרו בהצלחה' });
+    setIsCompletingName(false);
+  };
 
   const handleDeleteAccount = async () => {
     if (!user) return;
@@ -312,6 +393,56 @@ export default function CustomerDashboard() {
 
   if (isUserLoading || isProfileLoading || isCustomerLoading) {
     return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>;
+  }
+
+  const isNameIncomplete = !!user && !!customer && (!formData.first_name.trim() || !formData.last_name.trim());
+  if (isNameIncomplete) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col" dir="rtl">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center p-4 pt-24">
+          <Card className="w-full max-w-xl border-none shadow-premium rounded-[2.5rem] bg-white">
+            <CardContent className="p-8 space-y-6 text-right">
+              <div className="space-y-2">
+                <p className="text-[10px] font-black text-accent uppercase tracking-widest">השלמת פרופיל</p>
+                <h1 className="text-2xl font-headline font-black text-primary">חובה להזין שם מלא</h1>
+                <p className="text-sm text-muted-foreground font-medium">
+                  כדי להמשיך כלקוח באתר, יש להזין שם פרטי ושם משפחה.
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-primary/70">שם פרטי</Label>
+                  <Input
+                    value={formData.first_name}
+                    onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                    className="rounded-xl h-11 border-primary/10 focus:border-primary/30"
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-primary/70">שם משפחה</Label>
+                  <Input
+                    value={formData.last_name}
+                    onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                    className="rounded-xl h-11 border-primary/10 focus:border-primary/30"
+                    required
+                  />
+                </div>
+              </div>
+              <Button
+                onClick={handleCompleteName}
+                disabled={isCompletingName}
+                className="w-full bg-primary text-white rounded-full h-12 font-black uppercase gap-2"
+              >
+                {isCompletingName ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserCheck className="w-4 h-4" />}
+                שמירה והמשך
+              </Button>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
   }
 
   const unreadChatsCount = chats.filter((c: any) => c?.unread_state?.[user?.uid ?? ''] === true).length;

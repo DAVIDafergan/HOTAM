@@ -220,6 +220,44 @@ export default function AdminDashboard() {
     setSearchTerm(search);
   };
 
+  const deleteManagedUser = async (id: string, role: 'seller' | 'customer') => {
+    const { data: { session } } = await db.auth.getSession();
+    const token = session?.access_token;
+    if (!token) {
+      toast({
+        variant: 'destructive',
+        title: 'שגיאת הרשאות',
+        description: 'לא ניתן לאמת את מנהל המערכת. התחבר מחדש ונסה שוב.',
+      });
+      return false;
+    }
+
+    const res = await fetch('/api/delete-account', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        targetUserId: id,
+        targetRole: role,
+        reason: 'admin_delete',
+      }),
+    });
+
+    if (!res.ok) {
+      const payload = await res.json().catch(() => null);
+      toast({
+        variant: 'destructive',
+        title: role === 'seller' ? 'מחיקת הסופר נכשלה' : 'מחיקת הלקוח נכשלה',
+        description: payload?.error || 'אירעה שגיאה במחיקת המשתמש מהמסד.',
+      });
+      return false;
+    }
+
+    return true;
+  };
+
   const approveScribe = async (id: string) => {
     const { error, count } = await db
       .from('sellers')
@@ -248,9 +286,8 @@ export default function AdminDashboard() {
 
   const deleteScribe = async (id: string) => {
     if (confirm('האם אתה בטוח שברצונך למחוק סופר זה לצמיתות?')) {
-      const { error } = await db.from('sellers').delete().eq('id', id);
-      if (error) {
-        toast({ variant: "destructive", title: "מחיקת הסופר נכשלה", description: error.message });
+      const ok = await deleteManagedUser(id, 'seller');
+      if (!ok) {
         return;
       }
       toast({ variant: "destructive", title: "הסופר נמחק" });
@@ -270,9 +307,8 @@ export default function AdminDashboard() {
 
   const deleteCustomer = async (id: string) => {
     if (confirm('האם אתה בטוח שברצונך למחוק לקוח זה לצמיתות?')) {
-      const { error } = await db.from('customers').delete().eq('id', id);
-      if (error) {
-        toast({ variant: "destructive", title: "מחיקת הלקוח נכשלה", description: error.message });
+      const ok = await deleteManagedUser(id, 'customer');
+      if (!ok) {
         return;
       }
       toast({ variant: "destructive", title: "הלקוח נמחק" });

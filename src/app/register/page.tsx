@@ -132,7 +132,11 @@ export default function RegisterPage() {
     if (typeof window !== 'undefined') {
       window.localStorage.setItem(
         'hotam_pending_customer_name',
-        JSON.stringify({ first_name: trimmedFirstName, last_name: trimmedLastName }),
+        JSON.stringify({
+          first_name: trimmedFirstName,
+          last_name: trimmedLastName,
+          role: registerAsSeller ? 'seller' : 'customer',
+        }),
       );
     }
 

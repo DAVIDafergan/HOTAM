@@ -14,6 +14,43 @@ import { ErrorBoundaryListener } from '@/components/ErrorBoundaryListener';
 import { useDoc } from '@/lib/use-doc';
 import { doc } from '@/lib/supabase-compat';
 
+const SELLER_FIELD_KEYS = [
+  'first_name',
+  'last_name',
+  'phone',
+  'address',
+  'age',
+  'marital_status',
+  'business_type',
+  'business_id',
+  'business_name',
+  'bank_name',
+  'bank_branch',
+  'bank_account_number',
+  'has_scribe_certificate',
+  'certificate_url',
+  'torah_study_frequency',
+  'mikveh_frequency',
+  'notes',
+  'experience_years',
+  'script_level',
+  'script_types',
+  'writing_samples',
+  'profile_image',
+] as const;
+
+function pickSellerFields(source: unknown): Record<string, unknown> {
+  if (!source || typeof source !== 'object') return {};
+  const record = source as Record<string, unknown>;
+  return SELLER_FIELD_KEYS.reduce<Record<string, unknown>>((acc, key) => {
+    const value = record[key];
+    if (value !== undefined && value !== null && value !== '') {
+      acc[key] = value;
+    }
+    return acc;
+  }, {});
+}
+
 // ─── Auth-compatible user shape ───────────────────────────────────────────────
 
 export interface AppUser {
@@ -108,28 +145,59 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
         const raw = window.localStorage.getItem('hotam_pending_customer_name');
         if (raw) {
           try {
-            const pending = JSON.parse(raw) as {
-              first_name: string;
-              last_name: string;
-              role?: string;
-            };
+            const pending = JSON.parse(raw) as Record<string, unknown>;
             if (pending.role === 'seller') {
-              window.localStorage.removeItem('hotam_pending_customer_name');
-              fetch('/api/register-seller', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${session.access_token}`,
-                },
-                body: JSON.stringify({
-                  id: session.user.id,
-                  email: session.user.email,
-                  first_name: pending.first_name,
-                  last_name: pending.last_name,
-                }),
-              }).catch((err) => {
-                console.error('[auth] register-seller error:', err);
-              });
+              const pendingSellerProfileRaw = window.localStorage.getItem('pendingSellerProfile');
+              let pendingSellerProfile: Record<string, unknown> = {};
+              if (pendingSellerProfileRaw) {
+                try {
+                  pendingSellerProfile = JSON.parse(pendingSellerProfileRaw) as Record<string, unknown>;
+                } catch (err) {
+                  console.error('[auth] failed to parse pending seller profile:', err);
+                }
+              }
+
+              const pendingBasic = pickSellerFields(pending);
+              const pendingProfile = pickSellerFields(pendingSellerProfile);
+              const firstName =
+                (pendingProfile.first_name as string | undefined) ??
+                (pendingBasic.first_name as string | undefined) ??
+                (session.user.user_metadata?.first_name as string | undefined) ??
+                null;
+              const lastName =
+                (pendingProfile.last_name as string | undefined) ??
+                (pendingBasic.last_name as string | undefined) ??
+                (session.user.user_metadata?.last_name as string | undefined) ??
+                null;
+              const payload = {
+                ...pendingBasic,
+                ...pendingProfile,
+                id: session.user.id,
+                email: session.user.email ?? null,
+                first_name: firstName,
+                last_name: lastName,
+              };
+
+              void (async () => {
+                try {
+                  const response = await fetch('/api/register-seller', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      Authorization: `Bearer ${session.access_token}`,
+                    },
+                    body: JSON.stringify(payload),
+                  });
+                  if (!response.ok) {
+                    const bodyText = await response.text();
+                    console.error('[auth] register-seller failed:', response.status, bodyText);
+                  }
+                } catch (err) {
+                  console.error('[auth] register-seller error:', err);
+                } finally {
+                  window.localStorage.removeItem('hotam_pending_customer_name');
+                }
+              })();
             }
           } catch (err) {
             console.error('[auth] failed to parse pending customer name:', err);

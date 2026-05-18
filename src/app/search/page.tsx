@@ -336,9 +336,10 @@ function SearchContent() {
       const matchMikveh = mikvehFreq === 'all' || (seller && seller.mikveh_frequency === mikvehFreq);
       const matchCert = certStatus === 'all' || (seller && seller.has_scribe_certificate === certStatus);
       const matchStudy = studyFreq === 'all' || (seller && seller.torah_study_frequency === studyFreq);
+      const matchApproved = seller?.is_approved === true;
       
       return matchType && matchSub && matchScript && matchQuality && matchQty && matchSize && matchPrice &&
-             matchShipping && matchRegion && matchMarried && matchMikveh && matchCert && matchStudy;
+             matchShipping && matchRegion && matchMarried && matchMikveh && matchCert && matchStudy && matchApproved;
     });
 
     if (sortOrder === 'price_asc') results = [...results].sort((a, b) => Number(a.price) - Number(b.price));

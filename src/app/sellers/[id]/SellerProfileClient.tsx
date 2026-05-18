@@ -296,7 +296,6 @@ export default function SellerProfile({
     }
     setDeletingReviewId(reviewId);
     try {
-      console.log('[reviews] deleting:', { reviewId, buyerId: user.uid, authUid: (await supabase.auth.getUser()).data.user?.id });
       const { error, count } = await supabase
         .from('supermarket_reviews')
         .delete({ count: 'exact' })

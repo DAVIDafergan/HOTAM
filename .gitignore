@@ -6,4 +6,5 @@ dist/
 build/
 *.log
 .env*
+!.env.example
 tsconfig.tsbuildinfo

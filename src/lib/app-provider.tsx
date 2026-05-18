@@ -14,43 +14,6 @@ import { ErrorBoundaryListener } from '@/components/ErrorBoundaryListener';
 import { useDoc } from '@/lib/use-doc';
 import { doc } from '@/lib/supabase-compat';
 
-const SELLER_FIELD_KEYS = [
-  'first_name',
-  'last_name',
-  'phone',
-  'address',
-  'age',
-  'marital_status',
-  'business_type',
-  'business_id',
-  'business_name',
-  'bank_name',
-  'bank_branch',
-  'bank_account_number',
-  'has_scribe_certificate',
-  'certificate_url',
-  'torah_study_frequency',
-  'mikveh_frequency',
-  'notes',
-  'experience_years',
-  'script_level',
-  'script_types',
-  'writing_samples',
-  'profile_image',
-] as const;
-
-function pickSellerFields(source: unknown): Record<string, unknown> {
-  if (!source || typeof source !== 'object') return {};
-  const record = source as Record<string, unknown>;
-  return SELLER_FIELD_KEYS.reduce<Record<string, unknown>>((acc, key) => {
-    const value = record[key];
-    if (value !== undefined && value !== null && value !== '') {
-      acc[key] = value;
-    }
-    return acc;
-  }, {});
-}
-
 // ─── Auth-compatible user shape ───────────────────────────────────────────────
 
 export interface AppUser {
@@ -140,69 +103,70 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
       setIsUserLoading(false);
       setUserError(null);
 
-      // After Google OAuth redirect, check if a pending seller registration exists
+      // After sign-in, finalize any pending profile data persisted before auth.
       if (_event === 'SIGNED_IN' && session?.user && typeof window !== 'undefined') {
-        const raw = window.localStorage.getItem('hotam_pending_customer_name');
-        if (raw) {
-          try {
-            const pending = JSON.parse(raw) as Record<string, unknown>;
-            if (pending.role === 'seller') {
-              const pendingSellerProfileRaw = window.localStorage.getItem('pendingSellerProfile');
-              let pendingSellerProfile: Record<string, unknown> = {};
-              if (pendingSellerProfileRaw) {
-                try {
-                  pendingSellerProfile = JSON.parse(pendingSellerProfileRaw) as Record<string, unknown>;
-                } catch (err) {
-                  console.error('[auth] failed to parse pending seller profile:', err);
-                }
-              }
-
-              const pendingBasic = pickSellerFields(pending);
-              const pendingProfile = pickSellerFields(pendingSellerProfile);
-              const firstName =
-                (pendingProfile.first_name as string | undefined) ??
-                (pendingBasic.first_name as string | undefined) ??
-                (session.user.user_metadata?.first_name as string | undefined) ??
-                null;
-              const lastName =
-                (pendingProfile.last_name as string | undefined) ??
-                (pendingBasic.last_name as string | undefined) ??
-                (session.user.user_metadata?.last_name as string | undefined) ??
-                null;
-              const payload = {
-                ...pendingBasic,
-                ...pendingProfile,
-                id: session.user.id,
-                email: session.user.email ?? null,
-                first_name: firstName,
-                last_name: lastName,
-              };
-
-              void (async () => {
-                try {
-                  const response = await fetch('/api/register-seller', {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      Authorization: `Bearer ${session.access_token}`,
-                    },
-                    body: JSON.stringify(payload),
-                  });
-                  if (!response.ok) {
-                    const bodyText = await response.text();
-                    console.error('[auth] register-seller failed:', response.status, bodyText);
-                  }
-                } catch (err) {
-                  console.error('[auth] register-seller error:', err);
-                } finally {
-                  window.localStorage.removeItem('hotam_pending_customer_name');
-                }
-              })();
-            }
-          } catch (err) {
-            console.error('[auth] failed to parse pending customer name:', err);
+        const authToken = session.access_token;
+        const userEmail = session.user.email ?? null;
+        const normalizedUserEmail = userEmail?.trim().toLowerCase();
+        const registerSeller = async (payload: Record<string, unknown>) => {
+          const response = await fetch('/api/register-seller', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${authToken}`,
+            },
+            body: JSON.stringify(payload),
+          });
+          if (!response.ok) {
+            const bodyText = await response.text();
+            throw new Error(`register-seller failed (${response.status}): ${bodyText}`);
           }
-        }
+        };
+
+        void (async () => {
+          const pendingSellerProfileRaw = window.localStorage.getItem('pendingSellerProfile');
+          if (pendingSellerProfileRaw) {
+            try {
+              const parsed = JSON.parse(pendingSellerProfileRaw) as Record<string, unknown>;
+              const pendingEmail = typeof parsed._pending_email === 'string'
+                ? parsed._pending_email.trim().toLowerCase()
+                : null;
+              if (pendingEmail && normalizedUserEmail && pendingEmail === normalizedUserEmail) {
+                const { _pending_email: _ignoredPendingEmail, ...pendingPayload } = parsed;
+                await registerSeller({
+                  id: session.user.id,
+                  email: userEmail,
+                  ...pendingPayload,
+                });
+                window.localStorage.removeItem('pendingSellerProfile');
+              }
+            } catch (err) {
+              console.error('[auth] pendingSellerProfile processing error:', err);
+            }
+          }
+
+          const rawPendingName = window.localStorage.getItem('hotam_pending_customer_name');
+          if (rawPendingName) {
+            try {
+              const pending = JSON.parse(rawPendingName) as Record<string, unknown>;
+              const role = typeof pending.role === 'string' ? pending.role : null;
+
+              if (role === 'seller') {
+                await registerSeller({
+                  id: session.user.id,
+                  email: userEmail,
+                  first_name: typeof pending.first_name === 'string' ? pending.first_name : null,
+                  last_name: typeof pending.last_name === 'string' ? pending.last_name : null,
+                });
+                window.localStorage.removeItem('hotam_pending_customer_name');
+              } else if (role === 'customer') {
+                window.localStorage.removeItem('hotam_pending_customer_name');
+              }
+            } catch (err) {
+              console.error('[auth] hotam_pending_customer_name processing error:', err);
+            }
+          }
+        })();
       }
     });
 

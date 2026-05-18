@@ -322,7 +322,10 @@ $$;
 -- ── sellers policies ──────────────────────────────────────────────────────────
 CREATE POLICY "Allow public read"  ON public.sellers FOR SELECT USING (true);
 CREATE POLICY "sellers_own_insert" ON public.sellers FOR INSERT WITH CHECK (auth.uid() = id);
-CREATE POLICY "sellers_own_update" ON public.sellers FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "sellers_own_update" ON public.sellers
+  FOR UPDATE
+  USING (auth.uid() = id OR public.is_admin())
+  WITH CHECK (auth.uid() = id OR public.is_admin());
 CREATE POLICY "sellers_admin_all"  ON public.sellers FOR ALL USING (public.is_admin());
 
 -- ── customers policies ────────────────────────────────────────────────────────

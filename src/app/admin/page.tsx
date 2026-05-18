@@ -134,6 +134,8 @@ export default function AdminDashboard() {
   }, [db, canLoadData]);
   const { data: allCustomers } = useCollection<any>(customersQuery);
 
+  const sellerIds = useMemo(() => new Set((allSellers || []).map((s: any) => s.id)), [allSellers]);
+
   const ordersQuery = useMemoStable(() => {
     if (!canLoadData) return null;
     return query(collection(db, 'orders'), orderBy('created_at', 'desc'));
@@ -152,7 +154,7 @@ export default function AdminDashboard() {
 
   const stats = useMemo(() => {
     const s = allSellers || [];
-    const c = allCustomers || [];
+    const c = (allCustomers || []).filter((x: any) => !sellerIds.has(x.id));
     const o = visibleOrders.filter((x: any) => x.status === 'completed');
     const totalVolume = o.reduce((acc: number, x: any) => acc + Number(x.amount || 0), 0);
     
@@ -163,7 +165,7 @@ export default function AdminDashboard() {
       totalVolume: totalVolume,
       siteEarnings: totalVolume * 0.20,
     };
-  }, [allSellers, allCustomers, visibleOrders]);
+  }, [allSellers, allCustomers, sellerIds, visibleOrders]);
 
   // Filtering Logic
   const filteredSellersPending = useMemo(() => {
@@ -186,12 +188,12 @@ export default function AdminDashboard() {
 
   const filteredCustomers = useMemo(() => {
     if (!allCustomers) return [];
-    return allCustomers.filter(c => (
+    return allCustomers.filter(c => !sellerIds.has(c.id) && (
       `${c.first_name || ''} ${c.last_name || ''}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (c.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (c.id || '').toLowerCase().includes(searchTerm.toLowerCase())
     ));
-  }, [allCustomers, searchTerm]);
+  }, [allCustomers, sellerIds, searchTerm]);
 
   const filteredOrders = useMemo(() => {
     return visibleOrders.filter(o => {

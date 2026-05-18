@@ -150,8 +150,8 @@ function SellerDashboardContent() {
       .then(({ data, error }) => {
         if (error) console.error('products fetch error:', error.message);
         else setProductsData(data || []);
-      })
-      .finally(() => setIsProductsLoading(false));
+        setIsProductsLoading(false);
+      });
   }, [canLoadData, user?.uid]);
 
   const products = (productsData || []).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
@@ -1068,7 +1068,7 @@ function SellerDashboardContent() {
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black uppercase text-primary/40 tracking-wider">סוג המוצר *</Label>
                         <div className="relative">
-                           <Select value={formType} onValueChange={v => { setFormType(v); setFormSubType(''); setFormParchmentSize(''); setMegRows(''); setMegHeight(''); }} modal={false}>
+                           <Select value={formType} onValueChange={v => { setFormType(v); setFormSubType(''); setFormParchmentSize(''); setMegRows(''); setMegHeight(''); }}>
                             <SelectTrigger className="h-14 rounded-2xl border-2 border-primary/5 bg-slate-50/50 focus:border-primary/20 text-right font-bold transition-all">
                               <SelectValue placeholder="בחר סוג כלי קודש..." />
                             </SelectTrigger>
@@ -1131,7 +1131,7 @@ function SellerDashboardContent() {
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black uppercase text-primary/40 tracking-wider">סוג כתב (מסורת) *</Label>
-                        <Select value={formScript} onValueChange={v => { setFormScript(v); setFormParchmentSize(''); }} modal={false}>
+                        <Select value={formScript} onValueChange={v => { setFormScript(v); setFormParchmentSize(''); }}>
                           <SelectTrigger className="h-14 rounded-2xl border-2 border-primary/5"><SelectValue placeholder="בחר מסורת..." /></SelectTrigger>
                           <SelectContent className="rounded-2xl shadow-xl">
                             <SelectItem value="ספרדי" className="font-bold py-3">ספרדי</SelectItem>
@@ -1143,7 +1143,7 @@ function SellerDashboardContent() {
                       </div>
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black uppercase text-primary/40 tracking-wider">רמת הידור *</Label>
-                        <Select value={formQuality} onValueChange={setFormQuality} modal={false}>
+                        <Select value={formQuality} onValueChange={setFormQuality}>
                           <SelectTrigger className="h-14 rounded-2xl border-2 border-primary/5"><SelectValue placeholder="בחר הידור..." /></SelectTrigger>
                           <SelectContent className="rounded-2xl shadow-xl">
                             <SelectItem value="כשר" className="font-bold py-3">כשר</SelectItem>
@@ -1156,7 +1156,7 @@ function SellerDashboardContent() {
 
                     <div className="space-y-2">
                        <Label className="text-[10px] font-black uppercase text-primary/40 tracking-wider">רמת הגהה שבוצעה *</Label>
-                       <Select value={formProofreading} onValueChange={setFormProofreading} modal={false}>
+                       <Select value={formProofreading} onValueChange={setFormProofreading}>
                          <SelectTrigger className="h-14 rounded-2xl border-2 border-primary/5"><SelectValue placeholder="בחר רמת הגהה..." /></SelectTrigger>
                          <SelectContent className="rounded-2xl shadow-xl">
                            <SelectItem value="מחשב" className="font-bold py-3">מחשב בלבד</SelectItem>
@@ -1170,7 +1170,7 @@ function SellerDashboardContent() {
                       <div className="grid grid-cols-2 gap-4 animate-in fade-in">
                          <div className="space-y-2">
                             <Label className="text-[10px] font-black text-primary/40">מס' שורות *</Label>
-                            <Select value={megRows} onValueChange={setMegRows} modal={false}>
+                            <Select value={megRows} onValueChange={setMegRows}>
                                <SelectTrigger className="h-14 rounded-2xl border-2 border-primary/5"><SelectValue placeholder="שורות..." /></SelectTrigger>
                                <SelectContent className="rounded-xl">
                                   {['11', '21', '28', '42'].map(r => <SelectItem key={r} value={r} className="font-bold">{r}</SelectItem>)}
@@ -1179,7 +1179,7 @@ function SellerDashboardContent() {
                          </div>
                          <div className="space-y-2">
                             <Label className="text-[10px] font-black text-primary/40">גובה קלף *</Label>
-                            <Select value={megHeight} onValueChange={setMegHeight} modal={false}>
+                            <Select value={megHeight} onValueChange={setMegHeight}>
                                <SelectTrigger className="h-14 rounded-2xl border-2 border-primary/5"><SelectValue placeholder="גובה (ס''מ)..." /></SelectTrigger>
                                <SelectContent className="rounded-xl">
                                   {megRows === '11' ? (
@@ -1252,7 +1252,7 @@ function SellerDashboardContent() {
                       </div>
                       <div className="space-y-2">
                          <Label className="text-[10px] font-black uppercase text-primary/40 tracking-wider">זמן אספקה (ימי עסקים) *</Label>
-                         <Select value={formDeliveryTime} onValueChange={setFormDeliveryTime} modal={false}>
+                         <Select value={formDeliveryTime} onValueChange={setFormDeliveryTime}>
                            <SelectTrigger className="h-14 rounded-2xl border-2 border-primary/5"><SelectValue /></SelectTrigger>
                            <SelectContent className="rounded-xl">
                              <SelectItem value="1" className="font-bold">יום אחד (מיידי)</SelectItem>

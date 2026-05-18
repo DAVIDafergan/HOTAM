@@ -102,6 +102,40 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
       setUser(session?.user ? toAppUser(session.user) : null);
       setIsUserLoading(false);
       setUserError(null);
+
+      // After Google OAuth redirect, check if a pending seller registration exists
+      if (_event === 'SIGNED_IN' && session?.user && typeof window !== 'undefined') {
+        const raw = window.localStorage.getItem('hotam_pending_customer_name');
+        if (raw) {
+          try {
+            const pending = JSON.parse(raw) as {
+              first_name: string;
+              last_name: string;
+              role?: string;
+            };
+            if (pending.role === 'seller') {
+              window.localStorage.removeItem('hotam_pending_customer_name');
+              fetch('/api/register-seller', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${session.access_token}`,
+                },
+                body: JSON.stringify({
+                  id: session.user.id,
+                  email: session.user.email,
+                  first_name: pending.first_name,
+                  last_name: pending.last_name,
+                }),
+              }).catch((err) => {
+                console.error('[auth] register-seller error:', err);
+              });
+            }
+          } catch (err) {
+            console.error('[auth] failed to parse pending customer name:', err);
+          }
+        }
+      }
     });
 
     return () => subscription.unsubscribe();

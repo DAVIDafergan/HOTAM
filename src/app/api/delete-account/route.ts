@@ -22,13 +22,52 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const uid = user.id;
-    const role = user.user_metadata?.role as string | undefined;
+    const requesterUid = user.id;
+    const requesterRole = user.user_metadata?.role as string | undefined;
+    const requesterEmail = (user.email ?? '').toLowerCase();
+    const superAdminEmails = new Set([
+      'admin@hotam.co.il',
+      'davidafergan999@gmail.com',
+      'davidafergan@gmail.com',
+      'da@101.org.il',
+    ]);
+    const superAdminUids = new Set([
+      'f9hcxiHpzKYMzw7UNpi5II2F13l1',
+      'aMqKTe1Y4NSQdupLPupviiyrdyj2',
+    ]);
 
-    let body: { reason?: string } = {};
+    let body: { reason?: string; targetUserId?: string; targetRole?: 'seller' | 'customer' | 'admin' } = {};
     try { body = await req.json(); } catch {}
     if (body.reason) {
-      console.info(`[delete-account] uid=${uid} role=${role} reason="${body.reason}"`);
+      console.info(`[delete-account] requester_uid=${requesterUid} requester_role=${requesterRole} reason="${body.reason}"`);
+    }
+
+    const { data: adminRow } = await serviceClient
+      .from('admins')
+      .select('id')
+      .eq('id', requesterUid)
+      .maybeSingle();
+    const isSuperAdmin = superAdminUids.has(requesterUid) || superAdminEmails.has(requesterEmail);
+    const canAdminDeleteUsers = isSuperAdmin || !!adminRow;
+
+    let uid = requesterUid;
+    let role = requesterRole;
+
+    if (body.targetUserId) {
+      if (!canAdminDeleteUsers) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+      uid = body.targetUserId;
+      role = body.targetRole;
+
+      if (!role) {
+        const [{ data: seller }, { data: customer }, { data: admin }] = await Promise.all([
+          serviceClient.from('sellers').select('id').eq('id', uid).maybeSingle(),
+          serviceClient.from('customers').select('id').eq('id', uid).maybeSingle(),
+          serviceClient.from('admins').select('id').eq('id', uid).maybeSingle(),
+        ]);
+        role = seller ? 'seller' : admin ? 'admin' : customer ? 'customer' : 'customer';
+      }
     }
 
     // Delete all products uploaded by the seller.
@@ -46,6 +85,11 @@ export async function POST(req: Request) {
       const { error: sellerError } = await serviceClient.from('sellers').delete().eq('id', uid);
       if (sellerError) {
         console.error('[delete-account] sellers row delete error:', sellerError);
+      }
+    } else if (role === 'admin') {
+      const { error: adminDeleteError } = await serviceClient.from('admins').delete().eq('id', uid);
+      if (adminDeleteError) {
+        console.error('[delete-account] admins row delete error:', adminDeleteError);
       }
     } else {
       const { error: customerError } = await serviceClient.from('customers').delete().eq('id', uid);

@@ -109,6 +109,32 @@ export default function RegisterPage() {
   };
 
   const handleGoogleRegister = () => {
+    const trimmedFirstName = firstName.trim();
+    const trimmedLastName = lastName.trim();
+    if (!trimmedFirstName || !trimmedLastName) {
+      toast({
+        variant: "destructive",
+        title: "חסר שם מלא",
+        description: "בהרשמה כלקוח חובה להזין שם פרטי ושם משפחה גם בהרשמה עם Google.",
+      });
+      return;
+    }
+    if (!termsAccepted) {
+      toast({
+        variant: "destructive",
+        title: "נדרש אישור תנאי שימוש",
+        description: "עליך לאשר את תנאי השימוש ומדיניות הפרטיות כדי להמשיך.",
+      });
+      return;
+    }
+
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(
+        'hotam_pending_customer_name',
+        JSON.stringify({ first_name: trimmedFirstName, last_name: trimmedLastName }),
+      );
+    }
+
     setLoading(true);
     initiateGoogleSignIn(auth).catch(() => {
       setLoading(false);

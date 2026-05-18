@@ -34,6 +34,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [registerAsSeller, setRegisterAsSeller] = useState(false);
   
   const [termsAccepted, setTermsAccepted] = useState(false);
 
@@ -73,7 +74,7 @@ export default function RegisterPage() {
       // The DB trigger creates the customers row automatically.
       // We pass firstName/lastName and role so the trigger populates the profile correctly.
       const data = await initiateEmailSignUp(auth, email, password, {
-        role: 'customer',
+        role: registerAsSeller ? 'seller' : 'customer',
         first_name: firstName,
         last_name: lastName,
       });
@@ -308,6 +309,17 @@ export default function RegisterPage() {
                       onChange={(e) => setPassword(e.target.value)}
                       className="rounded-xl h-11 text-right border-muted-foreground/20 focus:ring-primary/10 font-bold" 
                       required 
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2">
+                    <Label htmlFor="registerAsSeller" className="text-sm font-bold cursor-pointer">
+                      Register as a seller
+                    </Label>
+                    <Checkbox
+                      id="registerAsSeller"
+                      checked={registerAsSeller}
+                      onCheckedChange={(v) => setRegisterAsSeller(!!v)}
                     />
                   </div>
 

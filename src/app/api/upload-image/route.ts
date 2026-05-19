@@ -8,8 +8,10 @@ const ALLOWED_IMAGE_TYPES = new Set([
   'image/gif',
   'image/avif',
 ]);
-const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+const MAX_FILE_SIZE_MB = 10;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 export const maxDuration = 30;
+export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
   try {
@@ -47,7 +49,10 @@ export async function POST(req: NextRequest) {
     }
 
     if (file.size > MAX_FILE_SIZE_BYTES) {
-      return NextResponse.json({ error: 'File is too large (max 5MB)' }, { status: 400 });
+      return NextResponse.json(
+        { error: `File is too large (max ${MAX_FILE_SIZE_MB}MB)` },
+        { status: 400 }
+      );
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());

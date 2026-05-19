@@ -405,17 +405,36 @@ function SellerDashboardContent() {
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token ?? '';
 
-    const res = await fetch('/api/upload-image', {
+    const response = await fetch('/api/upload-image', {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
       body: formData,
     });
 
-    const payload = await res.json();
+    if (!response.ok) {
+      const contentType = response.headers.get('content-type') ?? '';
+      let errorMessage =
+        response.status === 413
+          ? 'הקובץ גדול מדי. אפשר להעלות עד 10MB.'
+          : 'העלאת התמונה נכשלה.';
 
-    if (!res.ok || !payload?.url) {
-      throw new Error(payload?.error || 'Upload failed');
+      if (contentType.includes('application/json')) {
+        const payload = await response.json().catch(() => null);
+        if (payload?.error) errorMessage = payload.error;
+      } else {
+        const text = await response.text().catch(() => '');
+        if (text?.trim()) {
+          errorMessage = response.status === 413
+            ? 'הקובץ גדול מדי. אפשר להעלות עד 10MB.'
+            : text;
+        }
+      }
+
+      throw new Error(errorMessage);
     }
+
+    const payload = await response.json().catch(() => null);
+    if (!payload?.url) throw new Error('העלאת התמונה נכשלה.');
 
     return payload.url as string;
   };

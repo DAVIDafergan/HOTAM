@@ -516,7 +516,7 @@ function SellerDashboardContent() {
 
   const handleSubmitProduct = async () => {
     if (!user) return;
-    if (!profile?.is_approved) {
+    if (!seller?.is_approved) {
       toast({
         variant: "destructive",
         title: "הפרופיל ממתין לאישור",

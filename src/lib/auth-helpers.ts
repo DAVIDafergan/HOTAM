@@ -143,17 +143,17 @@ export function initiatePasswordReset(auth: AuthLike, email: string) {
       const msg = error.message?.toLowerCase() ?? '';
       const isRedirectIssue =
         msg.includes('redirect') ||
-      msg.includes('invalid') ||
-      msg.includes('not allowed') ||
-      msg.includes('url');
+        msg.includes('invalid') ||
+        msg.includes('not allowed') ||
+        msg.includes('url');
 
-    if (isRedirectIssue) {
-      const fallback = await getClient(auth).auth.resetPasswordForEmail(normalizedEmail);
-      if (fallback.error) throw new Error(fallback.error.message);
-      return;
-    }
+      if (isRedirectIssue) {
+        const fallback = await getClient(auth).auth.resetPasswordForEmail(normalizedEmail);
+        if (fallback.error) throw new Error(fallback.error.message);
+        return;
+      }
 
-    throw new Error(error.message);
+      throw new Error(error.message);
     });
   });
 }

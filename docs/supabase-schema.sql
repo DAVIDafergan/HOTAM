@@ -764,8 +764,26 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
 
 -- =============================================================================
--- STORAGE (optional — for profile images if migrating from base64 to files)
+-- STORAGE
+-- Bucket: 'images' (public) — used for product images, profile images, and
+-- seller onboarding uploads (certificate, writing samples).
 -- =============================================================================
--- INSERT INTO storage.buckets (id, name, public) VALUES ('images', 'images', true);
--- CREATE POLICY "images_public_read" ON storage.objects FOR SELECT TO public USING (bucket_id = 'images');
--- CREATE POLICY "images_auth_upload" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'images');
+INSERT INTO storage.buckets (id, name, public) VALUES ('images', 'images', true)
+  ON CONFLICT (id) DO NOTHING;
+
+-- Anyone can read public objects
+CREATE POLICY "images_public_read" ON storage.objects
+  FOR SELECT TO public USING (bucket_id = 'images');
+
+-- Authenticated users (logged-in sellers) can upload anywhere in the bucket
+CREATE POLICY "images_auth_upload" ON storage.objects
+  FOR INSERT TO authenticated WITH CHECK (bucket_id = 'images');
+
+-- Anonymous users (new sellers not yet signed up) may upload only to the
+-- onboarding/ folder so they can attach certificate and writing-sample images
+-- during registration before a Supabase account is created.
+CREATE POLICY "images_anon_onboarding_upload" ON storage.objects
+  FOR INSERT TO anon WITH CHECK (
+    bucket_id = 'images' AND
+    (storage.foldername(name))[1] = 'onboarding'
+  );

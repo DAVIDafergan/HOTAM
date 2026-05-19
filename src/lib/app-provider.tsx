@@ -187,6 +187,7 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              Authorization: `Bearer ${authToken}`,
             },
             body: JSON.stringify({
               to: userEmail,

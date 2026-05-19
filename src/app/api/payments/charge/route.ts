@@ -143,7 +143,6 @@ export async function POST(req: Request) {
     const token = body?.token || body?.['og-token'];
     const cartData = body?.cartData || {};
     const orderId = body?.orderId || cartData?.orderId;
-    const price = Number(body?.price ?? cartData?.price);
     const { companyId, apiKey } = getSumitCredentials();
 
     if (!token) {
@@ -153,6 +152,27 @@ export async function POST(req: Request) {
     if (!orderId) {
       return NextResponse.json({ error: 'Missing required field: orderId' }, { status: 400 });
     }
+
+    const { createClient } = await import('@supabase/supabase-js');
+    const serviceClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } }
+    );
+    const { data: orderRow, error: orderFetchError } = await serviceClient
+      .from('orders')
+      .select('amount, status')
+      .eq('id', orderId)
+      .single();
+
+    if (orderFetchError || !orderRow) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
+    if (orderRow.status !== 'pending_payment') {
+      return NextResponse.json({ error: 'Order already processed' }, { status: 400 });
+    }
+
+    const price = Number(orderRow.amount);
 
     if (Number.isNaN(price) || price <= 0) {
       return NextResponse.json({ error: 'Invalid price value' }, { status: 400 });

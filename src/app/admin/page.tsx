@@ -108,14 +108,13 @@ export default function AdminDashboard() {
   const isSuperAdmin = !!adminData;
 
   useEffect(() => {
-    if (!isUserLoading && !isAdminCheckLoading) {
-      if (!user || (!adminData && !isSuperAdmin)) {
-        router.push('/');
-      }
+    if (isUserLoading || isAdminCheckLoading) return;
+    if (!user || !adminData) {
+      router.push('/');
     }
-  }, [user, isUserLoading, isAdminCheckLoading, adminData, isSuperAdmin, router]);
+  }, [user, isUserLoading, isAdminCheckLoading, adminData, router]);
 
-  const canLoadData = !!user && !isUserLoading && !isAdminCheckLoading && (isSuperAdmin || !!adminData);
+  const canLoadData = !!user && !isUserLoading && !isAdminCheckLoading && !!adminData;
 
   const sellersQuery = useMemoStable(() => {
     if (!canLoadData) return null;

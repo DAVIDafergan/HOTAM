@@ -415,43 +415,31 @@ function SellerDashboardContent() {
   };
 
   const uploadImage = async (file: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append('file', file);
-    const { data: { session } } = await supabase.auth.getSession();
-    const token = session?.access_token ?? '';
+    const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif']);
+    const MAX_SIZE_BYTES = 10 * 1024 * 1024;
 
-    const response = await fetch('/api/upload-image', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const contentType = response.headers.get('content-type') ?? '';
-      let errorMessage =
-        response.status === 413
-          ? 'הקובץ גדול מדי. אפשר להעלות עד 10MB.'
-          : 'העלאת התמונה נכשלה.';
-
-      if (contentType.includes('application/json')) {
-        const payload = await response.json().catch(() => null);
-        if (payload?.error) errorMessage = payload.error;
-      } else {
-        const text = await response.text().catch(() => '');
-        if (text?.trim()) {
-          errorMessage = response.status === 413
-            ? 'הקובץ גדול מדי. אפשר להעלות עד 10MB.'
-            : text;
-        }
-      }
-
-      throw new Error(errorMessage);
+    if (!ALLOWED_TYPES.has(file.type)) {
+      throw new Error('סוג קובץ לא נתמך.');
+    }
+    if (file.size > MAX_SIZE_BYTES) {
+      throw new Error('הקובץ גדול מדי. אפשר להעלות עד 10MB.');
     }
 
-    const payload = await response.json().catch(() => null);
-    if (!payload?.url) throw new Error('העלאת התמונה נכשלה.');
+    const ext = file.name.split('.').pop() ?? 'bin';
+    const path = `products/${Date.now()}_${Math.random().toString(36).slice(2, 10)}.${ext}`;
 
-    return payload.url as string;
+    const { error } = await supabase.storage.from('images').upload(path, file, {
+      contentType: file.type,
+      upsert: false,
+    });
+
+    if (error) {
+      console.error('Supabase Storage upload error:', error);
+      throw new Error('העלאת התמונה נכשלה.');
+    }
+
+    const { data: urlData } = supabase.storage.from('images').getPublicUrl(path);
+    return urlData.publicUrl;
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: 'product' | 'profile') => {

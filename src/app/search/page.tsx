@@ -298,7 +298,26 @@ function SearchContent() {
       const matchScript = scriptType === 'all' || p.script_type === scriptType;
       const matchQuality = qualityLevel === 'all' || p.script_level === qualityLevel;
       const matchQty = p.quantity >= quantity;
-      const matchSize = scrollSize === 'all' || p.parchment_size === scrollSize;
+      const knownSizesForSelection =
+        selectedProduct === 'מזוזה'
+          ? ['10', '12', '15']
+          : selectedProduct === 'תפילין'
+            ? ['סטנדרט (32-34)', 'פיצפונים', 'קטן (28)', 'שימושא רבא (40)']
+            : selectedProduct === 'ספר תורה'
+              ? scriptType === 'ספרדי'
+                ? ['17', '36', '48', '50', '56']
+                : ['17', '30', '36', '42', '48']
+              : [];
+      const normalizedKnownSizes = new Set(
+        knownSizesForSelection.map((size) => String(size).trim()),
+      );
+      const normalizedProductSize = String(p.parchment_size ?? '').trim();
+      const matchSize =
+        scrollSize === 'all' ||
+        (scrollSize === 'other'
+          ? (knownSizesForSelection.length === 0 ||
+            (Boolean(normalizedProductSize) && !normalizedKnownSizes.has(normalizedProductSize)))
+          : p.parchment_size === scrollSize);
       const numericPrice = Number(p.price) || 0;
       const matchPrice = numericPrice >= activePriceRange[0] && numericPrice <= activePriceRange[1];
       
@@ -524,7 +543,7 @@ function SearchContent() {
             <div className="space-y-2 animate-in fade-in">
               <Label className="font-black text-primary text-[10px] uppercase tracking-widest opacity-40">גודל (ס"מ)</Label>
               <RadioGroup value={scrollSize} onValueChange={setScrollSize} className="grid grid-cols-2 gap-1.5">
-                <CustomFilterTile value="all" label="כל הגדלים" active={scrollSize === 'all'} />
+                <CustomFilterTile value="other" label="שאר הגדלים" active={scrollSize === 'other'} />
                 {getParchmentSizes(selectedProduct, scriptType).map((size) => (
                   <CustomFilterTile key={size} value={size} label={size} active={scrollSize === size} />
                 ))}

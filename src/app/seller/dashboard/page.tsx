@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Dialog, 
   DialogContent, 
@@ -51,6 +52,7 @@ import {
   AlertCircle,
   TrendingUp,
   Sparkles,
+  ImageIcon,
   MapPin,
   ShieldAlert,
   ChevronDown,
@@ -108,6 +110,8 @@ const ISRAEL_CITIES = [
 ];
 
 const ITEMS_PER_PAGE = 6;
+const SIGNUP_SCRIPT_TYPES = ['ספרדי', 'בית יוסף', 'האר"י', 'אדמו"ר הזקן'];
+const SIGNUP_SCRIPT_LEVELS = ['כשר', 'מהודר', 'מהודר מאד'];
 
 function SellerDashboardContent() {
   const { user, isUserLoading } = useUser();
@@ -187,6 +191,8 @@ function SellerDashboardContent() {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const sellerAddressInputRef = useRef<HTMLInputElement>(null);
+  const certInputRef = useRef<HTMLInputElement>(null);
+  const writingSamplesInputRef = useRef<HTMLInputElement>(null);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [activeTab, setActiveTab] = useState('inventory');
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
@@ -255,6 +261,7 @@ function SellerDashboardContent() {
     last_name: '', 
     phone: '', 
     address: '', 
+    age: '' as string | number,
     profile_image: '', 
     notes: '',
     notification_email: true,
@@ -263,9 +270,10 @@ function SellerDashboardContent() {
     experience_years: '' as string | number,
     script_level: '',
     script_types: [] as string[],
+    writing_samples: [] as string[],
     torah_study_frequency: '',
     mikveh_frequency: '',
-    has_scribe_certificate: false,
+    has_scribe_certificate: 'none',
     certificate_url: '',
     marital_status: '',
   });
@@ -277,17 +285,24 @@ function SellerDashboardContent() {
         last_name: seller.last_name || '',
         phone: seller.phone || '',
         address: seller.address || '',
+        age: seller.age ?? '',
         profile_image: seller.profile_image || '',
         notes: seller.notes || '',
         notification_email: seller.notification_email ?? true,
         notification_sms: seller.notification_sms ?? true,
         notification_voice: seller.notification_voice ?? false,
         experience_years: seller.experience_years ?? '',
-        script_level: seller.script_level || '',
+        script_level: seller.script_level === 'מהודר מאוד' ? 'מהודר מאד' : (seller.script_level || ''),
         script_types: Array.isArray(seller.script_types) ? seller.script_types : [],
+        writing_samples: Array.isArray(seller.writing_samples) ? seller.writing_samples : [],
         torah_study_frequency: seller.torah_study_frequency || '',
         mikveh_frequency: seller.mikveh_frequency || '',
-        has_scribe_certificate: seller.has_scribe_certificate ?? false,
+        has_scribe_certificate:
+          seller.has_scribe_certificate === true
+            ? 'valid'
+            : seller.has_scribe_certificate === false
+              ? 'none'
+              : (seller.has_scribe_certificate || 'none'),
         certificate_url: seller.certificate_url || '',
         marital_status: seller.marital_status || '',
       });
@@ -471,6 +486,48 @@ function SellerDashboardContent() {
       toast({ variant: 'destructive', title: 'שגיאת העלאה', description: message });
     }
     e.target.value = '';
+  };
+
+  const handleCertificateUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const uploadedUrl = await uploadImage(file);
+      setProfileData(prev => ({ ...prev, certificate_url: uploadedUrl }));
+      toast({ title: 'התעודה הועלתה', description: 'צילום התעודה נשמר בהצלחה.' });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'העלאת התעודה נכשלה.';
+      toast({ variant: 'destructive', title: 'שגיאת העלאה', description: message });
+    } finally {
+      e.target.value = '';
+    }
+  };
+
+  const handleWritingSamplesUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    const allFiles = Array.from(files);
+    const remainingSlots = Math.max(0, 8 - profileData.writing_samples.length);
+    const filesToUpload = allFiles.slice(0, remainingSlots);
+
+    if (filesToUpload.length === 0) {
+      toast({ variant: 'destructive', title: 'מקסימום דוגמאות', description: 'ניתן להעלות עד 8 דוגמאות כתיבה.' });
+      e.target.value = '';
+      return;
+    }
+
+    try {
+      const uploadedUrls = await Promise.all(filesToUpload.map(uploadImage));
+      setProfileData(prev => ({ ...prev, writing_samples: [...prev.writing_samples, ...uploadedUrls] }));
+      if (allFiles.length > remainingSlots) {
+        toast({ title: 'חלק מהקבצים לא הועלו', description: 'ניתן להעלות עד 8 דוגמאות כתיבה.' });
+      }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'העלאת הדוגמאות נכשלה.';
+      toast({ variant: 'destructive', title: 'שגיאת העלאה', description: message });
+    } finally {
+      e.target.value = '';
+    }
   };
 
   const openEditDialog = (p: any) => {
@@ -965,99 +1022,135 @@ function SellerDashboardContent() {
                    </div>
 
                    <div className="md:col-span-2 space-y-10">
-                      <div className="space-y-6">
-                        <div className="grid grid-cols-2 gap-4">
-                           <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/60">שם פרטי</Label><Input value={profileData.first_name} onChange={e => setProfileData({...profileData, first_name: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
-                           <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/60">שם משפחה</Label><Input value={profileData.last_name} onChange={e => setProfileData({...profileData, last_name: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
+                      <div className="space-y-8">
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div className="space-y-2"><Label>שם פרטי *</Label><Input value={profileData.first_name} onChange={e => setProfileData({...profileData, first_name: e.target.value})} className="text-slate-900 rounded-xl h-11" /></div>
+                          <div className="space-y-2"><Label>שם משפחה *</Label><Input value={profileData.last_name} onChange={e => setProfileData({...profileData, last_name: e.target.value})} className="text-slate-900 rounded-xl h-11" /></div>
                         </div>
-                        <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/60">טלפון</Label><Input value={profileData.phone} onChange={e => setProfileData({...profileData, phone: e.target.value})} className="h-12 rounded-xl font-bold" dir="ltr" /></div>
-                         <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/60">כתובת</Label><Input ref={sellerAddressInputRef} value={profileData.address} onChange={e => setProfileData({...profileData, address: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
-                        <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/60">אודותיך (יוצג ללקוח)</Label><Textarea value={profileData.notes} onChange={e => setProfileData({...profileData, notes: e.target.value})} className="rounded-2xl min-h-[100px] font-medium" placeholder="ספר ללקוחות על ההנהגה שלך..." /></div>
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div className="space-y-2"><Label>טלפון *</Label><Input value={profileData.phone} onChange={e => setProfileData({...profileData, phone: e.target.value})} className="text-slate-900 rounded-xl h-11" dir="ltr" /></div>
+                          <div className="space-y-2"><Label>גיל *</Label><Input type="number" min={0} value={profileData.age === '' ? '' : String(profileData.age)} onChange={e => setProfileData({...profileData, age: e.target.value === '' ? '' : Number(e.target.value)})} className="text-slate-900 rounded-xl h-11" /></div>
+                        </div>
+                        <div className="space-y-2"><Label>כתובת מלאה *</Label><Input ref={sellerAddressInputRef} value={profileData.address} onChange={e => setProfileData({...profileData, address: e.target.value})} className="text-slate-900 rounded-xl h-11" /></div>
                       </div>
 
-                      <div className="pt-8 border-t space-y-6">
+                      <div className="pt-8 border-t space-y-8">
                         <h3 className="text-lg font-black text-primary flex items-center gap-2"><Scroll className="w-5 h-5 text-accent" /> פרטי הסופר</h3>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-1.5">
-                            <Label className="text-[10px] font-black uppercase text-primary/60">שנות ניסיון בכתיבה</Label>
-                            <Input type="number" min={0} value={profileData.experience_years === '' ? '' : String(profileData.experience_years)} onChange={e => setProfileData({...profileData, experience_years: e.target.value === '' ? '' : Number(e.target.value)})} className="h-12 rounded-xl font-bold" />
+                        <div className="space-y-4 text-right">
+                          <Label className="font-bold block mb-2">הסמכת סופר סת''ם *</Label>
+                          <RadioGroup value={profileData.has_scribe_certificate} onValueChange={v => setProfileData({...profileData, has_scribe_certificate: v})} className="grid gap-2">
+                            <div className="flex items-center space-x-reverse space-x-3 p-4 border rounded-2xl cursor-pointer" onClick={() => setProfileData({...profileData, has_scribe_certificate: 'valid'})}><RadioGroupItem value="valid" id="settings-v1" /><Label htmlFor="settings-v1" className="flex-1 cursor-pointer font-bold">תעודה בתוקף</Label></div>
+                            <div className="flex items-center space-x-reverse space-x-3 p-4 border rounded-2xl cursor-pointer" onClick={() => setProfileData({...profileData, has_scribe_certificate: 'expired'})}><RadioGroupItem value="expired" id="settings-v2" /><Label htmlFor="settings-v2" className="flex-1 cursor-pointer font-bold">הייתה תעודה בעבר</Label></div>
+                            <div className="flex items-center space-x-reverse space-x-3 p-4 border rounded-2xl cursor-pointer" onClick={() => setProfileData({...profileData, has_scribe_certificate: 'none'})}><RadioGroupItem value="none" id="settings-v3" /><Label htmlFor="settings-v3" className="flex-1 cursor-pointer font-bold">ללא תעודה</Label></div>
+                          </RadioGroup>
+                          {(profileData.has_scribe_certificate === 'valid' || profileData.has_scribe_certificate === 'expired') && (
+                            <div className="mt-4 p-6 bg-accent/5 rounded-2xl border-2 border-dashed border-accent/20 text-center space-y-4">
+                              {profileData.certificate_url ? (
+                                <div className="relative w-full h-40 rounded-xl overflow-hidden border bg-white shadow-sm">
+                                  <Image src={profileData.certificate_url} alt="Cert" fill className="object-contain" />
+                                  <button onClick={() => setProfileData({...profileData, certificate_url: ''})} className="absolute top-2 right-2 bg-destructive text-white rounded-full p-1 shadow-lg hover:scale-110 transition-transform"><X className="w-4 h-4" /></button>
+                                </div>
+                              ) : (
+                                <div onClick={() => certInputRef.current?.click()} className="cursor-pointer py-10 flex flex-col items-center text-accent hover:opacity-80 transition-opacity">
+                                  <div className="flex gap-4 mb-2">
+                                    <ImageIcon className="w-10 h-10" />
+                                    <Camera className="w-10 h-10" />
+                                  </div>
+                                  <span className="font-black text-xs uppercase tracking-widest">לחץ להעלאת צילום התעודה</span>
+                                </div>
+                              )}
+                              <input type="file" ref={certInputRef} onChange={handleCertificateUpload} className="hidden" accept="image/*" />
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-8">
+                          <div className="space-y-4">
+                            <Label className="font-bold">לימוד תורה קבוע *</Label>
+                            <RadioGroup value={profileData.torah_study_frequency} onValueChange={v => setProfileData({...profileData, torah_study_frequency: v})} className="flex flex-col gap-2">
+                              <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => setProfileData({...profileData, torah_study_frequency: 'fixed'})}><RadioGroupItem value="fixed" id="settings-t1" /><Label htmlFor="settings-t1" className="text-xs cursor-pointer">קובע עיתים</Label></div>
+                              <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => setProfileData({...profileData, torah_study_frequency: 'half-day'})}><RadioGroupItem value="half-day" id="settings-t2" /><Label htmlFor="settings-t2" className="text-xs cursor-pointer">אברך חצי יום</Label></div>
+                              <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => setProfileData({...profileData, torah_study_frequency: 'full-day'})}><RadioGroupItem value="full-day" id="settings-t3" /><Label htmlFor="settings-t3" className="text-xs cursor-pointer">אברך יום שלם</Label></div>
+                            </RadioGroup>
                           </div>
-                          <div className="space-y-1.5">
-                            <Label className="text-[10px] font-black uppercase text-primary/60">מצב משפחתי</Label>
-                            <Select value={profileData.marital_status} onValueChange={v => setProfileData({...profileData, marital_status: v})}>
-                              <SelectTrigger className="h-12 rounded-xl font-bold"><SelectValue placeholder="בחר..." /></SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="רווק">רווק</SelectItem>
-                                <SelectItem value="נשוי">נשוי</SelectItem>
-                                <SelectItem value="גרוש">גרוש</SelectItem>
-                                <SelectItem value="אלמן">אלמן</SelectItem>
-                              </SelectContent>
-                            </Select>
+
+                          <div className="space-y-4">
+                            <Label className="font-bold">מנהג טבילה *</Label>
+                            <RadioGroup value={profileData.mikveh_frequency} onValueChange={v => setProfileData({...profileData, mikveh_frequency: v})} className="flex flex-col gap-2">
+                              <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => setProfileData({...profileData, mikveh_frequency: 'ezra'})}><RadioGroupItem value="ezra" id="settings-m1" /><Label htmlFor="settings-m1" className="text-xs cursor-pointer">טבילת עזרא</Label></div>
+                              <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => setProfileData({...profileData, mikveh_frequency: 'before'})}><RadioGroupItem value="before" id="settings-m2" /><Label htmlFor="settings-m2" className="text-xs cursor-pointer">לפני כתיבה</Label></div>
+                              <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => setProfileData({...profileData, mikveh_frequency: 'daily'})}><RadioGroupItem value="daily" id="settings-m3" /><Label htmlFor="settings-m3" className="text-xs cursor-pointer">כל יום</Label></div>
+                              <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => setProfileData({...profileData, mikveh_frequency: 'never'})}><RadioGroupItem value="never" id="settings-m4" /><Label htmlFor="settings-m4" className="text-xs cursor-pointer">לא טובל בכלל</Label></div>
+                            </RadioGroup>
                           </div>
                         </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-[10px] font-black uppercase text-primary/60">רמת כתיבה</Label>
-                          <Select value={profileData.script_level} onValueChange={v => setProfileData({...profileData, script_level: v})}>
-                            <SelectTrigger className="h-12 rounded-xl font-bold"><SelectValue placeholder="בחר רמת כתיבה..." /></SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="מהודר">מהודר</SelectItem>
-                              <SelectItem value="מהודר מאוד">מהודר מאוד</SelectItem>
-                              <SelectItem value="למהדרין">למהדרין</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
+
                         <div className="space-y-2">
-                          <Label className="text-[10px] font-black uppercase text-primary/60">סוגי כתב</Label>
-                          <div className="grid grid-cols-3 gap-2">
-                            {['בית יוסף', 'ספרדי', 'אר"י', 'תימני', 'כתב ידי', 'אחר'].map(type => (
-                              <label key={type} className="flex items-center justify-end gap-2 cursor-pointer">
-                                <span className="text-sm font-bold">{type}</span>
-                                <input type="checkbox" checked={profileData.script_types.includes(type)} onChange={e => {
-                                  const updated = e.target.checked
-                                    ? [...profileData.script_types, type]
-                                    : profileData.script_types.filter(t => t !== type);
-                                  setProfileData({...profileData, script_types: updated});
-                                }} className="w-4 h-4 accent-primary" />
-                              </label>
+                          <Label className="font-bold">פרט על ההסמכה ואורח החיים הרוחני שלך *</Label>
+                          <Textarea placeholder="למדתי אצל הרב..., אני נוהג לטבול ב..., סדר היום שלי כולל..." value={profileData.notes} onChange={e => setProfileData({...profileData, notes: e.target.value})} className="text-slate-900 rounded-2xl min-h-[120px]" />
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-8">
+                          <div className="space-y-2">
+                            <Label className="font-bold">שנות ניסיון במלאכת הקודש *</Label>
+                            <Input type="number" min={0} value={profileData.experience_years === '' ? '' : String(profileData.experience_years)} onChange={e => setProfileData({...profileData, experience_years: e.target.value === '' ? '' : Number(e.target.value)})} className="text-slate-900 rounded-xl h-11" />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="font-bold">רמת הידור ממוצעת *</Label>
+                            <RadioGroup value={profileData.script_level} onValueChange={v => setProfileData({...profileData, script_level: v})} className="grid grid-cols-2 gap-2 mt-2">
+                              {SIGNUP_SCRIPT_LEVELS.map((level) => (
+                                <div key={level} className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => setProfileData({...profileData, script_level: level})}>
+                                  <RadioGroupItem value={level} id={`settings-level-${level}`} />
+                                  <Label htmlFor={`settings-level-${level}`} className="text-xs cursor-pointer">{level}</Label>
+                                </div>
+                              ))}
+                            </RadioGroup>
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <Label className="font-bold">סוגי כתב שהנך כותב (בחר את כולם) *</Label>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            {SIGNUP_SCRIPT_TYPES.map(type => (
+                              <div key={type} className={cn("flex items-center space-x-reverse space-x-2 p-3 border rounded-xl transition-all cursor-pointer", profileData.script_types.includes(type) ? 'bg-primary/5 border-primary' : 'bg-white')}>
+                                <Checkbox
+                                  id={`settings-script-${type}`}
+                                  checked={profileData.script_types.includes(type)}
+                                  onCheckedChange={() => {
+                                    const exists = profileData.script_types.includes(type);
+                                    const updated = exists
+                                      ? profileData.script_types.filter(t => t !== type)
+                                      : [...profileData.script_types, type];
+                                    setProfileData({...profileData, script_types: updated});
+                                  }}
+                                />
+                                <Label htmlFor={`settings-script-${type}`} className="cursor-pointer text-xs font-bold">{type}</Label>
+                              </div>
                             ))}
                           </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-1.5">
-                            <Label className="text-[10px] font-black uppercase text-primary/60">תדירות לימוד תורה</Label>
-                            <Select value={profileData.torah_study_frequency} onValueChange={v => setProfileData({...profileData, torah_study_frequency: v})}>
-                              <SelectTrigger className="h-12 rounded-xl font-bold"><SelectValue placeholder="בחר..." /></SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="יומי">יומי</SelectItem>
-                                <SelectItem value="שבועי">שבועי</SelectItem>
-                                <SelectItem value="לעיתים">לעיתים</SelectItem>
-                                <SelectItem value="לא לומד">לא לומד</SelectItem>
-                              </SelectContent>
-                            </Select>
+
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <Label className="font-bold">דוגמאות כתיבה חיות (מינימום 2) *</Label>
+                            <span className="text-[10px] text-muted-foreground font-bold">העלה צילומים ברורים של כתב ידך</span>
                           </div>
-                          <div className="space-y-1.5">
-                            <Label className="text-[10px] font-black uppercase text-primary/60">תדירות מקווה</Label>
-                            <Select value={profileData.mikveh_frequency} onValueChange={v => setProfileData({...profileData, mikveh_frequency: v})}>
-                              <SelectTrigger className="h-12 rounded-xl font-bold"><SelectValue placeholder="בחר..." /></SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="לפני כל כתיבה">לפני כל כתיבה</SelectItem>
-                                <SelectItem value="שבועי">שבועי</SelectItem>
-                                <SelectItem value="לעיתים">לעיתים</SelectItem>
-                                <SelectItem value="לא טובל">לא טובל</SelectItem>
-                              </SelectContent>
-                            </Select>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                            {profileData.writing_samples.map((img, idx) => (
+                              <div key={`${img}-${idx}`} className="relative aspect-square rounded-2xl overflow-hidden border shadow-sm group">
+                                <Image src={img} alt="Sample" fill className="object-cover" />
+                                <button onClick={() => setProfileData({...profileData, writing_samples: profileData.writing_samples.filter((_, i) => i !== idx)})} className="absolute top-2 right-2 bg-destructive text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"><X className="w-3 h-3" /></button>
+                              </div>
+                            ))}
+                            {profileData.writing_samples.length < 8 && (
+                              <button onClick={() => writingSamplesInputRef.current?.click()} className="aspect-square border-2 border-dashed border-primary/10 rounded-2xl flex flex-col items-center justify-center text-primary/30 hover:bg-primary/5 transition-all">
+                                <ImageIcon className="w-6 h-6 mb-1" />
+                                <span className="text-[9px] font-black uppercase">הוסף דוגמה</span>
+                              </button>
+                            )}
                           </div>
+                          <input type="file" ref={writingSamplesInputRef} onChange={handleWritingSamplesUpload} className="hidden" multiple accept="image/*" />
                         </div>
-                        <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/10">
-                          <Switch checked={profileData.has_scribe_certificate} onCheckedChange={v => setProfileData({...profileData, has_scribe_certificate: v})} />
-                          <Label className="text-sm font-bold cursor-pointer">יש תעודת סופר מוסמך</Label>
-                        </div>
-                        {profileData.has_scribe_certificate && (
-                          <div className="space-y-1.5">
-                            <Label className="text-[10px] font-black uppercase text-primary/60">קישור לתעודה</Label>
-                            <Input value={profileData.certificate_url} onChange={e => setProfileData({...profileData, certificate_url: e.target.value})} className="h-12 rounded-xl font-bold" dir="ltr" placeholder="https://..." />
-                          </div>
-                        )}
                       </div>
 
                       <div className="pt-8 border-t space-y-8">

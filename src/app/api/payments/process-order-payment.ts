@@ -48,14 +48,17 @@ export async function markOrderAsPaidAndNotify(orderId: string, paymentProvider:
     throw new Error(`Order update failed: ${updateError.message}`);
   }
 
+  let productTypeForSellerEmail = 'מוצר קודש';
+
   if (order.product_id) {
     const { data: product, error: productFetchError } = await supabase
       .from('products')
-      .select('quantity')
+      .select('quantity, product_type')
       .eq('id', order.product_id)
       .single();
 
     if (!productFetchError && product) {
+      productTypeForSellerEmail = product.product_type || productTypeForSellerEmail;
       const currentQuantity = Number(product.quantity || 0);
       if (currentQuantity <= 0) {
         console.warn(`Product ${order.product_id} quantity is already ${currentQuantity} while processing paid order ${orderId}`);
@@ -136,8 +139,45 @@ export async function markOrderAsPaidAndNotify(orderId: string, paymentProvider:
       const buyerName = order.buyer_name || 'קונה';
       sendEmail({
         to: seller.email,
-        subject: 'יש לך מכירה חדשה! (Hotam Shop)',
-        text: `מזל טוב, המוצר שלך נמכר! פרטי הקונה: ${buyerName}. שים לב: הכסף יועבר אליך רק לאחר שתמסור את המוצר ותזין במערכת את 6 הספרות שתקבל מהקונה במעמד המסירה.`,
+        subject: `🎉 מכירה חדשה! ${productTypeForSellerEmail} — Hotam Shop`,
+        text: `מזל טוב, יש לך מכירה חדשה מסוג ${productTypeForSellerEmail}. פרטי הקונה: ${buyerName}. הכסף יועבר אליך לאחר מסירת המוצר וקבלת קוד האימות מהקונה. לניהול ההזמנה: https://hotam.shop/seller/dashboard`,
+        html: `
+          <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: ${EMAIL_BACKGROUND}; color: ${EMAIL_TEXT_COLOR};">
+            <div style="background: ${EMAIL_PRIMARY}; padding: ${EMAIL_SECTION_PADDING}; text-align: center;">
+              <h1 style="color: ${EMAIL_BACKGROUND}; margin: 0; font-size: 28px; letter-spacing: 2px;">HOTAM</h1>
+              <p style="color: #a0a0b0; margin: 5px 0 0;">שוק המוצרים המובחרים</p>
+            </div>
+
+            <div style="padding: 40px 30px;">
+              <h2 style="color: ${EMAIL_PRIMARY}; margin-top: 0;">🎉 מכירה חדשה התקבלה!</h2>
+              <p style="color: #444; font-size: 16px; line-height: 1.8; margin: 0 0 16px;">
+                קיבלת הזמנה חדשה עבור <strong>${productTypeForSellerEmail}</strong>.
+              </p>
+              <p style="color: #444; font-size: 16px; line-height: 1.8; margin: 0 0 20px;">
+                פרטי הקונה: <strong>${buyerName}</strong>
+              </p>
+
+              <div style="background: #fff8e1; border-right: 4px solid #f59e0b; padding: 20px; border-radius: ${EMAIL_CODE_RADIUS}; margin: 20px 0;">
+                <p style="color: #92400e; font-weight: bold; margin: 0; line-height: 1.8;">
+                  הכסף יועבר אליך לאחר מסירת המוצר וקבלת קוד האימות מהקונה.
+                </p>
+              </div>
+
+              <div style="text-align: center; margin: 30px 0 10px;">
+                <a href="https://hotam.shop/seller/dashboard" style="display: inline-block; background: ${EMAIL_PRIMARY}; color: ${EMAIL_BACKGROUND}; text-decoration: none; padding: 14px 30px; border-radius: 999px; font-weight: bold;">
+                  מעבר לדשבורד המוכר
+                </a>
+              </div>
+            </div>
+
+            <div style="background: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+              <p style="color: #9ca3af; font-size: 13px; margin: 0;">
+                Hotam Shop | כל הזכויות שמורות<br/>
+                לשאלות ובירורים: support@hotam.shop
+              </p>
+            </div>
+          </div>
+        `,
       }).catch((err: Error) => console.error('Seller email error:', err.message));
     }
   }

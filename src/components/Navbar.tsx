@@ -51,6 +51,7 @@ import {
   useMemoStable, 
   useAuth,
   useCollection,
+  useDoc,
   updateDocumentNonBlocking
 } from '@/lib/supabase-hooks';
 import { doc, collection, query, where } from '@/lib/supabase-compat';
@@ -75,11 +76,13 @@ export function Navbar() {
   // Use profile (DB lookup, more up-to-date) as primary source; fall back to
   // JWT user_metadata role so the bell renders even when the DB is unavailable.
   const isSeller = profile?.role === 'seller' || user?.role === 'seller';
-  
-  const adminEmails = ["admin@hotam.co.il", "davidafergan999@gmail.com", "davidafergan@gmail.com", "da@101.org.il", "DA@101.ORG.IL"];
-  const isSuperAdmin = user?.uid === "f9hcxiHpzKYMzw7UNpi5II2F13l1" || 
-                       user?.uid === "aMqKTe1Y4NSQdupLPupviiyrdyj2" ||
-                       (user?.email && adminEmails.map(e => e.toLowerCase()).includes(user.email.toLowerCase()));
+
+  const adminRef = useMemoStable(() => {
+    if (!user?.uid) return null;
+    return doc(db, 'admins', user.uid);
+  }, [db, user?.uid]);
+  const { data: adminData } = useDoc<any>(adminRef);
+  const isSuperAdmin = !!adminData;
   
   const displayName = profile?.first_name?.trim() || user?.email?.split('@')[0] || 'משתמש';
   const dashboardLink = isSuperAdmin ? '/admin' : (isSeller ? '/seller/dashboard' : '/customer/dashboard');

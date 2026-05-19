@@ -24,17 +24,6 @@ export async function POST(req: Request) {
 
     const requesterUid = user.id;
     const requesterRole = user.user_metadata?.role as string | undefined;
-    const requesterEmail = (user.email ?? '').toLowerCase();
-    const superAdminEmails = new Set([
-      'admin@hotam.co.il',
-      'davidafergan999@gmail.com',
-      'davidafergan@gmail.com',
-      'da@101.org.il',
-    ]);
-    const superAdminUids = new Set([
-      'f9hcxiHpzKYMzw7UNpi5II2F13l1',
-      'aMqKTe1Y4NSQdupLPupviiyrdyj2',
-    ]);
 
     let body: { reason?: string; targetUserId?: string; targetRole?: 'seller' | 'customer' | 'admin' } = {};
     try { body = await req.json(); } catch {}
@@ -47,8 +36,7 @@ export async function POST(req: Request) {
       .select('id')
       .eq('id', requesterUid)
       .maybeSingle();
-    const isSuperAdmin = superAdminUids.has(requesterUid) || superAdminEmails.has(requesterEmail);
-    const canAdminDeleteUsers = isSuperAdmin || !!adminRow;
+    const canAdminDeleteUsers = !!adminRow;
 
     let uid = requesterUid;
     let role = requesterRole;

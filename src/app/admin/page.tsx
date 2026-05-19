@@ -100,17 +100,12 @@ export default function AdminDashboard() {
   const [reportsPage, setReportsPage] = useState(1);
   const [torahPage, setTorahPage] = useState(1);
 
-  const adminEmails = ["admin@hotam.co.il", "davidafergan999@gmail.com", "davidafergan@gmail.com", "da@101.org.il", "DA@101.ORG.IL"];
-  const isSuperAdmin = user?.uid === "f9hcxiHpzKYMzw7UNpi5II2F13l1" || 
-                       user?.uid === "aMqKTe1Y4NSQdupLPupviiyrdyj2" ||
-                       (user?.email && adminEmails.map(e => e.toLowerCase()).includes(user.email.toLowerCase())) ||
-                       user?.role === 'admin';
-  
   const adminRef = useMemoStable(() => {
     if (!user) return null;
     return doc(db, 'admins', user.uid);
   }, [db, user?.uid]);
   const { data: adminData, isLoading: isAdminCheckLoading } = useDoc<any>(adminRef);
+  const isSuperAdmin = !!adminData;
 
   useEffect(() => {
     if (!isUserLoading && !isAdminCheckLoading) {
@@ -261,6 +256,7 @@ export default function AdminDashboard() {
   };
 
   const approveScribe = async (id: string) => {
+    const { data: { session } } = await db.auth.getSession();
     const { error, count } = await db
       .from('sellers')
       .update({ is_approved: true }, { count: 'exact' })
@@ -278,6 +274,57 @@ export default function AdminDashboard() {
         description: failureMessage,
       });
       return;
+    }
+
+    const { data: approvedSeller } = await db
+      .from('sellers')
+      .select('email, first_name')
+      .eq('id', id)
+      .single();
+
+    if (approvedSeller?.email) {
+      await fetch('/api/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({
+          to: approvedSeller.email,
+          subject: '🎉 הפרופיל שלך באתר חותם אושר!',
+          text: `שלום ${approvedSeller.first_name}, הפרופיל שלך אושר על ידי צוות חותם. כעת תוכל להתחיל להעלות מוצרים ולמכור באתר.`,
+          html: `
+            <div dir="rtl" style="margin:0;padding:32px 16px;background:#f5f1e8;font-family:Arial,'Segoe UI',sans-serif;color:#1f2937;">
+              <div style="max-width:620px;margin:0 auto;background:#ffffff;border-radius:24px;overflow:hidden;box-shadow:0 18px 50px rgba(15,23,42,0.12);border:1px solid rgba(212,175,55,0.18);">
+                <div style="background:#111827;padding:32px;text-align:center;">
+                  <img src="https://hotam.shop/icon.svg" alt="Hotam" width="64" height="64" style="display:block;margin:0 auto 14px;" />
+                  <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:900;">🎉 הפרופיל שלך אושר!</h1>
+                  <p style="margin:10px 0 0;color:#d4af37;font-size:15px;font-weight:700;">ברוך הבא לקהילת המוכרים של חותם</p>
+                </div>
+                <div style="padding:32px;text-align:right;">
+                  <p style="margin:0 0 18px;font-size:17px;line-height:1.8;color:#111827;">שלום ${approvedSeller.first_name},</p>
+                  <p style="margin:0 0 20px;font-size:16px;line-height:1.9;color:#374151;">
+                    הפרופיל שלך אושר על ידי צוות חותם. כעת תוכל להתחיל להעלות מוצרים ולמכור באתר.
+                  </p>
+                  <div style="background:#fff8e1;border-right:4px solid #d4af37;border-radius:14px;padding:18px 16px;margin-bottom:24px;">
+                    <p style="margin:0;font-size:15px;line-height:1.8;color:#92400e;font-weight:700;">
+                      כדי להתחיל, היכנס לדשבורד המוכר שלך והעלה את המוצר הראשון.
+                    </p>
+                  </div>
+                  <div style="text-align:center;">
+                    <a href="https://hotam.shop/seller/dashboard" style="display:inline-block;background:#111827;color:#ffffff;text-decoration:none;padding:14px 30px;border-radius:999px;font-size:15px;font-weight:800;">
+                      מעבר לדשבורד המוכר
+                    </a>
+                  </div>
+                </div>
+                <div style="padding:18px 28px;background:#faf7f0;border-top:1px solid rgba(212,175,55,0.2);text-align:center;">
+                  <p style="margin:0;font-size:12px;color:#6b7280;">Hotam Shop · זירת המסחר המאובטחת לכלי קודש וסת&quot;ם מהודרים</p>
+                </div>
+              </div>
+            </div>
+          `,
+        }),
+      });
     }
 
     setActiveTab('active');

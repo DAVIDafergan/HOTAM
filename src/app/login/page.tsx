@@ -53,12 +53,7 @@ function LoginContent() {
         router.push(safeRedirect);
         return;
       }
-      const adminEmails = ["admin@hotam.co.il", "davidafergan999@gmail.com", "davidafergan@gmail.com", "da@101.org.il"];
-      const adminUids  = ["f9hcxiHpzKYMzw7UNpi5II2F13l1", "aMqKTe1Y4NSQdupLPupviiyrdyj2"];
-
-      const isSuperAdmin =
-        adminUids.includes(user.uid) ||
-        (user.email != null && adminEmails.includes(user.email.toLowerCase()));
+      const isSuperAdmin = false;
 
       if (isSuperAdmin || user.role === 'admin') {
         router.push('/admin');

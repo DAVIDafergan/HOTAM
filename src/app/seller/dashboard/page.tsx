@@ -259,7 +259,15 @@ function SellerDashboardContent() {
     notes: '',
     notification_email: true,
     notification_sms: true,
-    notification_voice: false
+    notification_voice: false,
+    experience_years: '' as string | number,
+    script_level: '',
+    script_types: [] as string[],
+    torah_study_frequency: '',
+    mikveh_frequency: '',
+    has_scribe_certificate: false,
+    certificate_url: '',
+    marital_status: '',
   });
 
   useEffect(() => {
@@ -273,7 +281,15 @@ function SellerDashboardContent() {
         notes: seller.notes || '',
         notification_email: seller.notification_email ?? true,
         notification_sms: seller.notification_sms ?? true,
-        notification_voice: seller.notification_voice ?? false
+        notification_voice: seller.notification_voice ?? false,
+        experience_years: seller.experience_years ?? '',
+        script_level: seller.script_level || '',
+        script_types: Array.isArray(seller.script_types) ? seller.script_types : [],
+        torah_study_frequency: seller.torah_study_frequency || '',
+        mikveh_frequency: seller.mikveh_frequency || '',
+        has_scribe_certificate: seller.has_scribe_certificate ?? false,
+        certificate_url: seller.certificate_url || '',
+        marital_status: seller.marital_status || '',
       });
     }
   }, [seller]);
@@ -957,6 +973,91 @@ function SellerDashboardContent() {
                         <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/60">טלפון</Label><Input value={profileData.phone} onChange={e => setProfileData({...profileData, phone: e.target.value})} className="h-12 rounded-xl font-bold" dir="ltr" /></div>
                          <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/60">כתובת</Label><Input ref={sellerAddressInputRef} value={profileData.address} onChange={e => setProfileData({...profileData, address: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
                         <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase text-primary/60">אודותיך (יוצג ללקוח)</Label><Textarea value={profileData.notes} onChange={e => setProfileData({...profileData, notes: e.target.value})} className="rounded-2xl min-h-[100px] font-medium" placeholder="ספר ללקוחות על ההנהגה שלך..." /></div>
+                      </div>
+
+                      <div className="pt-8 border-t space-y-6">
+                        <h3 className="text-lg font-black text-primary flex items-center gap-2"><Scroll className="w-5 h-5 text-accent" /> פרטי הסופר</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-1.5">
+                            <Label className="text-[10px] font-black uppercase text-primary/60">שנות ניסיון בכתיבה</Label>
+                            <Input type="number" min={0} value={profileData.experience_years === '' ? '' : String(profileData.experience_years)} onChange={e => setProfileData({...profileData, experience_years: e.target.value === '' ? '' : Number(e.target.value)})} className="h-12 rounded-xl font-bold" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-[10px] font-black uppercase text-primary/60">מצב משפחתי</Label>
+                            <Select value={profileData.marital_status} onValueChange={v => setProfileData({...profileData, marital_status: v})}>
+                              <SelectTrigger className="h-12 rounded-xl font-bold"><SelectValue placeholder="בחר..." /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="רווק">רווק</SelectItem>
+                                <SelectItem value="נשוי">נשוי</SelectItem>
+                                <SelectItem value="גרוש">גרוש</SelectItem>
+                                <SelectItem value="אלמן">אלמן</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-[10px] font-black uppercase text-primary/60">רמת כתיבה</Label>
+                          <Select value={profileData.script_level} onValueChange={v => setProfileData({...profileData, script_level: v})}>
+                            <SelectTrigger className="h-12 rounded-xl font-bold"><SelectValue placeholder="בחר רמת כתיבה..." /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="מהודר">מהודר</SelectItem>
+                              <SelectItem value="מהודר מאוד">מהודר מאוד</SelectItem>
+                              <SelectItem value="למהדרין">למהדרין</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-black uppercase text-primary/60">סוגי כתב</Label>
+                          <div className="grid grid-cols-3 gap-2">
+                            {['בית יוסף', 'ספרדי', 'אר"י', 'תימני', 'כתב ידי', 'אחר'].map(type => (
+                              <label key={type} className="flex items-center justify-end gap-2 cursor-pointer">
+                                <span className="text-sm font-bold">{type}</span>
+                                <input type="checkbox" checked={profileData.script_types.includes(type)} onChange={e => {
+                                  const updated = e.target.checked
+                                    ? [...profileData.script_types, type]
+                                    : profileData.script_types.filter(t => t !== type);
+                                  setProfileData({...profileData, script_types: updated});
+                                }} className="w-4 h-4 accent-primary" />
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-1.5">
+                            <Label className="text-[10px] font-black uppercase text-primary/60">תדירות לימוד תורה</Label>
+                            <Select value={profileData.torah_study_frequency} onValueChange={v => setProfileData({...profileData, torah_study_frequency: v})}>
+                              <SelectTrigger className="h-12 rounded-xl font-bold"><SelectValue placeholder="בחר..." /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="יומי">יומי</SelectItem>
+                                <SelectItem value="שבועי">שבועי</SelectItem>
+                                <SelectItem value="לעיתים">לעיתים</SelectItem>
+                                <SelectItem value="לא לומד">לא לומד</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-[10px] font-black uppercase text-primary/60">תדירות מקווה</Label>
+                            <Select value={profileData.mikveh_frequency} onValueChange={v => setProfileData({...profileData, mikveh_frequency: v})}>
+                              <SelectTrigger className="h-12 rounded-xl font-bold"><SelectValue placeholder="בחר..." /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="לפני כל כתיבה">לפני כל כתיבה</SelectItem>
+                                <SelectItem value="שבועי">שבועי</SelectItem>
+                                <SelectItem value="לעיתים">לעיתים</SelectItem>
+                                <SelectItem value="לא טובל">לא טובל</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/10">
+                          <Switch checked={profileData.has_scribe_certificate} onCheckedChange={v => setProfileData({...profileData, has_scribe_certificate: v})} />
+                          <Label className="text-sm font-bold cursor-pointer">יש תעודת סופר מוסמך</Label>
+                        </div>
+                        {profileData.has_scribe_certificate && (
+                          <div className="space-y-1.5">
+                            <Label className="text-[10px] font-black uppercase text-primary/60">קישור לתעודה</Label>
+                            <Input value={profileData.certificate_url} onChange={e => setProfileData({...profileData, certificate_url: e.target.value})} className="h-12 rounded-xl font-bold" dir="ltr" placeholder="https://..." />
+                          </div>
+                        )}
                       </div>
 
                       <div className="pt-8 border-t space-y-8">

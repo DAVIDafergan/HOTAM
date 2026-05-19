@@ -12,6 +12,7 @@ const ALLOWED_IMAGE_TYPES = new Set([
 ]);
 export const maxDuration = 30;
 export const runtime = 'nodejs';
+const MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024;
 
 const MIME_BY_EXT: Record<string, string> = {
   jpg: 'image/jpeg',
@@ -34,6 +35,14 @@ function resolveImageType(file: File): string | null {
 
 export async function POST(req: NextRequest) {
   try {
+    const contentLengthHeader = req.headers.get('content-length');
+    if (contentLengthHeader) {
+      const contentLength = Number(contentLengthHeader);
+      if (Number.isFinite(contentLength) && contentLength > MAX_UPLOAD_SIZE_BYTES) {
+        return NextResponse.json({ error: 'הקובץ גדול מדי (עד 10MB).' }, { status: 413 });
+      }
+    }
+
     const uploadContext = req.headers.get('x-upload-context');
     const isOnboardingUpload = uploadContext === 'onboarding';
 
@@ -63,6 +72,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
+    if (!file.name?.trim()) {
+      return NextResponse.json({ error: 'Invalid file name' }, { status: 400 });
+    }
+
+    if (file.size <= 0) {
+      return NextResponse.json({ error: 'Empty file is not allowed' }, { status: 400 });
+    }
+
+    if (file.size > MAX_UPLOAD_SIZE_BYTES) {
+      return NextResponse.json({ error: 'הקובץ גדול מדי (עד 10MB).' }, { status: 413 });
+    }
+
     const contentType = resolveImageType(file);
     if (!contentType) {
       return NextResponse.json({ error: 'Unsupported file type' }, { status: 400 });
@@ -74,7 +95,12 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ url });
   } catch (error: unknown) {
-    console.error('S3 upload error:', error);
+    const errorCode = typeof error === 'object' && error && 'code' in error ? (error as { code?: unknown }).code : undefined;
+    if (errorCode === 'S3_CONFIG_ERROR') {
+      console.error('S3 upload configuration error');
+      return NextResponse.json({ error: 'Upload service is not configured' }, { status: 503 });
+    }
+    console.error('S3 upload failed');
     return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
   }
 }

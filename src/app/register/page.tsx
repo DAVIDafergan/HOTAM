@@ -318,7 +318,7 @@ export default function RegisterPage() {
 
                   <div className="flex items-center justify-end gap-2">
                     <Label htmlFor="registerAsSeller" className="text-sm font-bold cursor-pointer">
-                      Register as a seller
+                      הרשמה כמוכר / סופר סת"ם
                     </Label>
                     <Checkbox
                       id="registerAsSeller"

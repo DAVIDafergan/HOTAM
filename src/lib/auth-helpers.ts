@@ -10,6 +10,12 @@ function getClient(auth: AuthLike): SupabaseClient {
   return auth as SupabaseClient;
 }
 
+function getBaseOrigin(): string | undefined {
+  if (typeof window !== 'undefined' && window.location.origin) return window.location.origin;
+  const envSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  return envSiteUrl && /^https?:\/\//i.test(envSiteUrl) ? envSiteUrl.replace(/\/+$/, '') : undefined;
+}
+
 export interface SignUpMetadata {
   role?: 'customer' | 'seller' | 'admin';
   firstName?: string;
@@ -54,12 +60,16 @@ export function initiateEmailSignUp(
   metadata?: SignUpMetadata,
 ) {
   const normalizedEmail = email.trim().toLowerCase();
+  const baseOrigin = getBaseOrigin();
 
   return ensureEmailNotRegistered(auth, normalizedEmail).then(() =>
     getClient(auth).auth.signUp({
       email: normalizedEmail,
       password,
-      options: metadata ? { data: metadata } : undefined,
+      options: {
+        ...(metadata ? { data: metadata } : {}),
+        ...(baseOrigin ? { emailRedirectTo: `${baseOrigin}/login` } : {}),
+      },
     }).then(({ data, error }) => {
       if (error) {
         const mappedError: any = new Error(error.message);
@@ -104,8 +114,47 @@ export function initiateGoogleSignIn(auth: AuthLike) {
 
 /** Initiate password reset email. */
 export function initiatePasswordReset(auth: AuthLike, email: string) {
-  return getClient(auth).auth.resetPasswordForEmail(email, {
-    redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/reset-password` : undefined,
+  const normalizedEmail = email.trim().toLowerCase();
+  if (!normalizedEmail) {
+    throw new Error('Email is required');
+  }
+
+  const baseOrigin = getBaseOrigin();
+  const redirectTo = baseOrigin ? `${baseOrigin}/reset-password` : undefined;
+
+  return getClient(auth).auth.resetPasswordForEmail(normalizedEmail, { redirectTo }).then(async ({ error }) => {
+    if (!error) return;
+
+    const msg = error.message?.toLowerCase() ?? '';
+    const isRedirectIssue =
+      msg.includes('redirect') ||
+      msg.includes('invalid') ||
+      msg.includes('not allowed') ||
+      msg.includes('url');
+
+    if (isRedirectIssue) {
+      const fallback = await getClient(auth).auth.resetPasswordForEmail(normalizedEmail);
+      if (fallback.error) throw new Error(fallback.error.message);
+      return;
+    }
+
+    throw new Error(error.message);
+  });
+}
+
+/** Resend signup confirmation email. */
+export function resendEmailConfirmation(auth: AuthLike, email: string) {
+  const normalizedEmail = email.trim().toLowerCase();
+  if (!normalizedEmail) {
+    throw new Error('Email is required');
+  }
+
+  const baseOrigin = getBaseOrigin();
+
+  return getClient(auth).auth.resend({
+    type: 'signup',
+    email: normalizedEmail,
+    options: baseOrigin ? { emailRedirectTo: `${baseOrigin}/login` } : undefined,
   }).then(({ error }) => {
     if (error) throw new Error(error.message);
   });

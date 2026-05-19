@@ -70,9 +70,9 @@ export function HeroAnimation() {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [scrollSize, setScrollSize] = useState('all');
   const [marriedOnly, setMarriedOnly] = useState(false);
-  const [mikvehFreq, setMikvehFreq] = useState('all');
-  const [certStatus, setCertStatus] = useState('all');
-  const [studyFreq, setStudyFreq] = useState('all');
+  const [mikvehFreq, setMikvehFreq] = useState('');
+  const [certStatus, setCertStatus] = useState('');
+  const [studyFreq, setStudyFreq] = useState('');
 
   // Megillah specific size states
   const [megillahRows, setMegillahRows] = useState('all');
@@ -186,9 +186,9 @@ export function HeroAnimation() {
     
     if (finalSize !== 'all' && finalSize !== '') params.set('size', finalSize);
     if (marriedOnly) params.set('married', 'true');
-    if (mikvehFreq !== 'all') params.set('mikveh', mikvehFreq);
-    if (certStatus !== 'all') params.set('cert', certStatus);
-    if (studyFreq !== 'all') params.set('study', studyFreq);
+    if (mikvehFreq) params.set('mikveh', mikvehFreq);
+    if (certStatus) params.set('cert', certStatus);
+    if (studyFreq) params.set('study', studyFreq);
 
     router.push(`/search?${params.toString()}`);
   };
@@ -465,30 +465,30 @@ export function HeroAnimation() {
                                 <div className="grid md:grid-cols-2 gap-4">
                                   <div className="space-y-3">
                                     <Label className="text-[9px] font-black uppercase text-primary/40 tracking-widest">הסמכת הסופר</Label>
-                                    <RadioGroup value={certStatus} onValueChange={setCertStatus} className="grid grid-cols-2 gap-2">
-                                      <CustomTile value="all" label="הכל" active={certStatus === 'all'} compact />
-                                      <CustomTile value="valid" label="תעודה בתוקף" active={certStatus === 'valid'} compact />
-                                      <CustomTile value="expired" label="תעודה בעבר" active={certStatus === 'expired'} compact />
-                                    </RadioGroup>
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <CustomTile value="valid" label="תעודה בתוקף" active={certStatus === 'valid'} compact onClick={() => setCertStatus(certStatus === 'valid' ? '' : 'valid')} />
+                                      <CustomTile value="expired" label="תעודה בעבר" active={certStatus === 'expired'} compact onClick={() => setCertStatus(certStatus === 'expired' ? '' : 'expired')} />
+                                      <CustomTile value="none" label="ללא תעודה" active={certStatus === 'none'} compact onClick={() => setCertStatus(certStatus === 'none' ? '' : 'none')} />
+                                    </div>
                                   </div>
 
                                   <div className="space-y-3">
                                     <Label className="text-[9px] font-black uppercase text-primary/40 tracking-widest">לימוד תורה יומיומי</Label>
-                                    <RadioGroup value={studyFreq} onValueChange={setStudyFreq} className="grid grid-cols-2 gap-2">
-                                      <CustomTile value="all" label="הכל" active={studyFreq === 'all'} compact />
-                                      <CustomTile value="fixed" label="קובע עיתים" active={studyFreq === 'fixed'} compact />
-                                      <CustomTile value="half-day" label="אברך חצי יום" active={studyFreq === 'half-day'} compact />
-                                      <CustomTile value="full-day" label="אברך יום שלם" active={studyFreq === 'full-day'} compact />
-                                    </RadioGroup>
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <CustomTile value="fixed" label="קובע עיתים" active={studyFreq === 'fixed'} compact onClick={() => setStudyFreq(studyFreq === 'fixed' ? '' : 'fixed')} />
+                                      <CustomTile value="half-day" label="אברך חצי יום" active={studyFreq === 'half-day'} compact onClick={() => setStudyFreq(studyFreq === 'half-day' ? '' : 'half-day')} />
+                                      <CustomTile value="full-day" label="אברך יום שלם" active={studyFreq === 'full-day'} compact onClick={() => setStudyFreq(studyFreq === 'full-day' ? '' : 'full-day')} />
+                                    </div>
                                   </div>
 
                                   <div className="space-y-3 md:col-span-2">
                                     <Label className="text-[9px] font-black uppercase text-primary/40 tracking-widest">מנהג טבילה</Label>
-                                    <RadioGroup value={mikvehFreq} onValueChange={setMikvehFreq} className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                                      {['all', 'daily', 'before', 'ezra'].map(mf => (
-                                        <CustomTile key={mf} value={mf} label={mf === 'all' ? 'הכל' : mf === 'daily' ? 'כל יום' : mf === 'before' ? 'לפני כתיבה' : 'טבילת עזרא'} active={mikvehFreq === mf} compact />
-                                      ))}
-                                    </RadioGroup>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                      <CustomTile value="daily" label="כל יום" active={mikvehFreq === 'daily'} compact onClick={() => setMikvehFreq(mikvehFreq === 'daily' ? '' : 'daily')} />
+                                      <CustomTile value="before" label="לפני כתיבה" active={mikvehFreq === 'before'} compact onClick={() => setMikvehFreq(mikvehFreq === 'before' ? '' : 'before')} />
+                                      <CustomTile value="ezra" label="טבילת עזרא" active={mikvehFreq === 'ezra'} compact onClick={() => setMikvehFreq(mikvehFreq === 'ezra' ? '' : 'ezra')} />
+                                      <CustomTile value="never" label="ללא טבילה" active={mikvehFreq === 'never'} compact onClick={() => setMikvehFreq(mikvehFreq === 'never' ? '' : 'never')} />
+                                    </div>
                                   </div>
 
                                   <Label className="md:col-span-2 flex items-center justify-between p-4 bg-white/80 border-2 border-primary/5 rounded-2xl cursor-pointer hover:bg-white hover:border-primary/10 transition-all shadow-sm">
@@ -553,16 +553,31 @@ function CategoryCard({ icon, label, onClick, color = 'primary' }: CategoryCardP
   );
 }
 
-function CustomTile({ value, label, active, compact = false }: any) {
-  return (
-    <Label className={cn(
-      "flex items-center justify-between rounded-2xl border-2 transition-all duration-200 cursor-pointer group px-5",
-      compact ? "py-3" : "py-4",
-      active ? "border-primary bg-primary/5 shadow-md scale-[1.02]" : "border-primary/5 bg-white/40 hover:bg-white hover:border-primary/15 hover:shadow-sm"
-    )}>
-      <RadioGroupItem value={value} className="hidden" />
+function CustomTile({ value, label, active, compact = false, onClick }: any) {
+  const className = cn(
+    "flex items-center justify-between rounded-2xl border-2 transition-all duration-200 cursor-pointer group px-5",
+    compact ? "py-3" : "py-4",
+    active ? "border-primary bg-primary/5 shadow-md scale-[1.02]" : "border-primary/5 bg-white/40 hover:bg-white hover:border-primary/15 hover:shadow-sm"
+  );
+  const content = (
+    <>
+      {!onClick && <RadioGroupItem value={value} className="hidden" />}
       <span className={cn("font-bold text-primary transition-colors", compact ? "text-[10px]" : "text-sm", active ? "opacity-100" : "opacity-60 group-hover:opacity-80")}>{label}</span>
       <div className={cn("w-3.5 h-3.5 rounded-full border-2 transition-all duration-200", active ? "bg-primary border-primary scale-110 shadow-sm" : "border-primary/10 group-hover:border-primary/30")} />
+    </>
+  );
+
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className={className} aria-pressed={active}>
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <Label className={className}>
+      {content}
     </Label>
   );
 }

@@ -123,59 +123,52 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
           }
         };
 
-        const isNewGoogleSignIn = session.user.app_metadata?.provider === 'google' && (() => {
-          const createdAtMs = new Date(session.user.created_at).getTime();
-          if (Number.isNaN(createdAtMs)) {
-            return false;
-          }
-          return Date.now() - createdAtMs <= 60_000;
-        })();
-
-        const welcomeEmailStorageKey = `hotam_google_welcome_email_sent_${session.user.id}`;
+        const isEmailVerified = session.user.email_confirmed_at != null;
+        const profileConfirmationEmailStorageKey = `hotam_profile_confirmation_email_sent_${session.user.id}`;
         const sendWelcomeEmail = async () => {
-          if (!isNewGoogleSignIn || !userEmail || window.localStorage.getItem(welcomeEmailStorageKey)) {
+          if (!isEmailVerified || !userEmail || window.localStorage.getItem(profileConfirmationEmailStorageKey)) {
             return false;
           }
 
-          const subject = 'ברוכים הבאים לחותם!';
-          const text = `ברוכים הבאים לחותם!
+          const subject = 'הפרופיל שלך בחותם אושר בהצלחה';
+          const text = `שלום וברוכים הבאים לחותם!
 
-שמחים שהצטרפתם לפלטפורמה שלנו.
-כעת תוכלו לגלות כלי קודש מהודרים, ליצור קשר עם סופרי סת"ם איכותיים וליהנות מחוויית קנייה בטוחה ונוחה.
+אישרנו בהצלחה את כתובת המייל שלך והפרופיל שלך פעיל במערכת.
+מעכשיו אפשר להיכנס לחשבון, לצפות במוצרים ולהתחיל להשתמש בפלטפורמה.
 
-להתחלת הגלישה: https://hotam.shop`;
+להתחלת גלישה: https://hotam.shop`;
           const html = `
             <div dir="rtl" style="margin:0;padding:32px 16px;background:#f5f1e8;font-family:Arial,'Segoe UI',sans-serif;color:#1f2937;">
               <div style="max-width:620px;margin:0 auto;background:#ffffff;border-radius:28px;overflow:hidden;box-shadow:0 18px 50px rgba(15,23,42,0.12);border:1px solid rgba(212,175,55,0.18);">
                 <div style="background:linear-gradient(135deg,#111827 0%,#1f2937 100%);padding:36px 32px;text-align:center;">
                   <img src="https://hotam.shop/icon.svg" alt="Hotam" width="72" height="72" style="display:block;margin:0 auto 16px;" />
                   <div style="color:#d4af37;font-size:13px;font-weight:800;letter-spacing:0.24em;text-transform:uppercase;">HOTAM</div>
-                  <h1 style="margin:14px 0 0;font-size:30px;line-height:1.3;color:#ffffff;font-weight:900;">ברוכים הבאים לחותם!</h1>
+                  <h1 style="margin:14px 0 0;font-size:30px;line-height:1.3;color:#ffffff;font-weight:900;">הפרופיל שלך אושר בהצלחה</h1>
                   <p style="margin:12px 0 0;color:rgba(255,255,255,0.82);font-size:16px;line-height:1.8;">
-                    שמחים שהצטרפתם לקהילה שמחברת בין קונים לבין סופרי סת"ם איכותיים וכלי קודש מהודרים.
+                    כתובת המייל אומתה והחשבון שלך מוכן לשימוש מלא בפלטפורמת חותם.
                   </p>
                 </div>
                 <div style="padding:36px 32px 20px;text-align:right;">
                   <div style="background:#fff8e1;border:1px solid rgba(212,175,55,0.25);border-radius:20px;padding:22px 20px;margin-bottom:24px;">
-                    <p style="margin:0 0 10px;font-size:18px;font-weight:800;color:#111827;">מה מחכה לכם עכשיו באתר?</p>
+                    <p style="margin:0 0 10px;font-size:18px;font-weight:800;color:#111827;">מה עכשיו?</p>
                     <ul style="margin:0;padding:0 20px 0 0;color:#4b5563;font-size:15px;line-height:2;">
-                      <li>עיון במגוון רחב של כלי קודש שנבחרו בקפידה</li>
-                      <li>יצירת קשר ישיר ונוח עם המוכרים</li>
-                      <li>חוויית קנייה בטוחה, מכובדת ופשוטה</li>
+                      <li>הפרופיל שלך מאומת ומוכן לפעילות</li>
+                      <li>אפשר להיכנס לחשבון ולהתחיל לגלוש במוצרים</li>
+                      <li>ניתן ליצור קשר עם מוכרים ולבצע רכישה בטוחה</li>
                     </ul>
                   </div>
                   <p style="margin:0 0 24px;font-size:16px;line-height:1.9;color:#374151;">
-                    אנחנו כאן כדי לעזור לכם למצוא בדיוק את מה שאתם מחפשים בדרך נעימה, אמינה ומכבדת.
+                    שמחים לראות אותך איתנו ונמשיך לשמור על חוויית שימוש בטוחה, אמינה ומכבדת.
                   </p>
                   <div style="text-align:center;padding-bottom:12px;">
                     <a href="https://hotam.shop" style="display:inline-block;background:#111827;color:#ffffff;text-decoration:none;padding:15px 34px;border-radius:999px;font-size:15px;font-weight:800;box-shadow:0 10px 25px rgba(17,24,39,0.18);">
-                      להתחיל לגלוש באתר
+                      כניסה לחשבון
                     </a>
                   </div>
                 </div>
                 <div style="padding:20px 32px 28px;background:#faf7f0;border-top:1px solid rgba(212,175,55,0.12);text-align:center;">
                   <p style="margin:0;font-size:12px;line-height:1.8;color:#6b7280;">
-                    תודה שהצטרפתם ל-<strong style="color:#111827;">חותם</strong><br />
+                    אישור פרופיל אוטומטי מ-<strong style="color:#111827;">חותם</strong><br />
                     זירת המסחר המאובטחת והאיכותית לכלי קודש וסת&quot;ם מהודרים
                   </p>
                 </div>
@@ -201,7 +194,7 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
             throw new Error(`send-email failed (${response.status})`);
           }
 
-          window.localStorage.setItem(welcomeEmailStorageKey, '1');
+          window.localStorage.setItem(profileConfirmationEmailStorageKey, '1');
           return true;
         };
 

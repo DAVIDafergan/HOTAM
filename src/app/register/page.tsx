@@ -15,7 +15,8 @@ import {
   useUser, 
   initiateEmailSignUp, 
   initiateGoogleSignIn, 
-  initiatePasswordReset
+  initiatePasswordReset,
+  resendEmailConfirmation,
 } from '@/lib/supabase-hooks';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -34,6 +35,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [isResendingVerification, setIsResendingVerification] = useState(false);
   const [registerAsSeller, setRegisterAsSeller] = useState(false);
   
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -168,6 +170,30 @@ export default function RegisterPage() {
     }
   };
 
+  const handleResendVerification = async () => {
+    if (!email) {
+      toast({ variant: "destructive", title: "חסר מייל", description: "לא נמצאה כתובת מייל לשליחה חוזרת." });
+      return;
+    }
+
+    setIsResendingVerification(true);
+    try {
+      await resendEmailConfirmation(auth, email);
+      toast({
+        title: "מייל האימות נשלח מחדש",
+        description: "בדוק את תיבת הדואר הנכנס שלך (וגם ספאם) להמשך האימות.",
+      });
+    } catch {
+      toast({
+        variant: "destructive",
+        title: "שגיאה בשליחת אימות",
+        description: "לא ניתן היה לשלוח שוב את מייל האימות כרגע. נסה שוב בעוד כמה דקות.",
+      });
+    } finally {
+      setIsResendingVerification(false);
+    }
+  };
+
   // ── Email-sent confirmation screen ──────────────────────────────────────────
   if (emailSent) {
     return (
@@ -192,6 +218,14 @@ export default function RegisterPage() {
               </div>
               <Button variant="outline" asChild className="w-full h-12 rounded-full font-black border-primary/10">
                 <Link href="/login">חזרה לדף הכניסה</Link>
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={handleResendVerification}
+                disabled={isResendingVerification}
+                className="w-full h-12 rounded-full font-black"
+              >
+                {isResendingVerification ? <Loader2 className="w-4 h-4 animate-spin" /> : 'שליחה חוזרת של מייל אימות'}
               </Button>
             </CardContent>
           </Card>

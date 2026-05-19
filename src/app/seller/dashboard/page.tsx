@@ -79,6 +79,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
+import { uploadImageViaApi } from '@/lib/image-upload';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -415,31 +416,7 @@ function SellerDashboardContent() {
   };
 
   const uploadImage = async (file: File): Promise<string> => {
-    const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif']);
-    const MAX_SIZE_BYTES = 10 * 1024 * 1024;
-
-    if (!ALLOWED_TYPES.has(file.type)) {
-      throw new Error('סוג קובץ לא נתמך.');
-    }
-    if (file.size > MAX_SIZE_BYTES) {
-      throw new Error('הקובץ גדול מדי. אפשר להעלות עד 10MB.');
-    }
-
-    const ext = file.name.split('.').pop() ?? 'bin';
-    const path = `products/${Date.now()}_${Math.random().toString(36).slice(2, 10)}.${ext}`;
-
-    const { error } = await supabase.storage.from('images').upload(path, file, {
-      contentType: file.type,
-      upsert: false,
-    });
-
-    if (error) {
-      console.error('Supabase Storage upload error:', error);
-      throw new Error('העלאת התמונה נכשלה.');
-    }
-
-    const { data: urlData } = supabase.storage.from('images').getPublicUrl(path);
-    return urlData.publicUrl;
+    return uploadImageViaApi(file, { client: db });
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: 'product' | 'profile') => {

@@ -9,6 +9,17 @@ import { diagnoseMezuzah } from '@/ai/flows/mezuzah-diagnosis';
 import { Upload, Loader2, CheckCircle2, AlertCircle, Camera } from 'lucide-react';
 import Image from 'next/image';
 
+const MAX_DIAGNOSIS_FILE_SIZE = 10 * 1024 * 1024;
+const SUPPORTED_DIAGNOSIS_IMAGE_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'image/avif',
+  'image/heic',
+  'image/heif',
+]);
+
 export default function DiagnosisPage() {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -17,8 +28,24 @@ export default function DiagnosisPage() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
+    e.target.value = '';
     if (selectedFile) {
+      if (!SUPPORTED_DIAGNOSIS_IMAGE_TYPES.has(selectedFile.type)) {
+        setFile(null);
+        setPreview(null);
+        setResult('סוג הקובץ אינו נתמך. נא להעלות JPG/PNG/WEBP/GIF/AVIF/HEIC.');
+        return;
+      }
+
+      if (selectedFile.size <= 0 || selectedFile.size > MAX_DIAGNOSIS_FILE_SIZE) {
+        setFile(null);
+        setPreview(null);
+        setResult('גודל הקובץ אינו תקין. ניתן להעלות עד 10MB.');
+        return;
+      }
+
       setFile(selectedFile);
+      setResult(null);
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result as string);

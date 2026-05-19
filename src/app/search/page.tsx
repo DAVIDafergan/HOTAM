@@ -143,9 +143,9 @@ function SearchContent() {
   const [selectedRegion, setSelectedRegion] = useState('all');
   const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
   const [marriedOnly, setMarriedOnly] = useState(false);
-  const [mikvehFreq, setMikvehFreq] = useState('all');
-  const [certStatus, setCertStatus] = useState('all');
-  const [studyFreq, setStudyFreq] = useState('all');
+  const [mikvehFreq, setMikvehFreq] = useState('');
+  const [certStatus, setCertStatus] = useState('');
+  const [studyFreq, setStudyFreq] = useState('');
 
   // Location logic
   const [isDetecting, setIsDetecting] = useState(false);
@@ -249,11 +249,11 @@ function SearchContent() {
     const mar = searchParams.get('married');
     if (mar === 'true') setMarriedOnly(true);
     const mkv = searchParams.get('mikveh');
-    if (mkv) setMikvehFreq(mkv);
+    setMikvehFreq(mkv && mkv !== 'all' ? mkv : '');
     const cert = searchParams.get('cert');
-    if (cert) setCertStatus(cert);
+    setCertStatus(cert && cert !== 'all' ? cert : '');
     const study = searchParams.get('study');
-    if (study) setStudyFreq(study);
+    setStudyFreq(study && study !== 'all' ? study : '');
 
     if (isViewingAll || searchParams.get('view') === 'results') setShowResults(true);
   }, [searchParams, isViewingAll]);
@@ -352,9 +352,9 @@ function SearchContent() {
           )
         );
       const matchMarried = !marriedOnly || (seller && seller.marital_status === 'married');
-      const matchMikveh = mikvehFreq === 'all' || (seller && seller.mikveh_frequency === mikvehFreq);
-      const matchCert = certStatus === 'all' || (seller && seller.has_scribe_certificate === certStatus);
-      const matchStudy = studyFreq === 'all' || (seller && seller.torah_study_frequency === studyFreq);
+      const matchMikveh = !mikvehFreq || mikvehFreq === 'all' || (seller && seller.mikveh_frequency === mikvehFreq);
+      const matchCert = !certStatus || certStatus === 'all' || (seller && seller.has_scribe_certificate === certStatus);
+      const matchStudy = !studyFreq || studyFreq === 'all' || (seller && seller.torah_study_frequency === studyFreq);
       const matchApproved = seller?.is_approved === true;
       
       return matchType && matchSub && matchScript && matchQuality && matchQty && matchSize && matchPrice &&
@@ -483,7 +483,7 @@ function SearchContent() {
   const resetFilters = () => {
     setSelectedProduct(''); setSubType('all'); setScriptType('all'); setQualityLevel('all');
     setQuantity(1); setScrollSize('all'); setSelectedRegion('all'); setUserCoords(null); setDetectedCity(null);
-    setMarriedOnly(false); setMikvehFreq('all'); setCertStatus('all'); setStudyFreq('all');
+    setMarriedOnly(false); setMikvehFreq(''); setCertStatus(''); setStudyFreq('');
     setShippingPreference('all'); setSortOrder('newest');
     resetPriceRange();
     setNearbyDistanceMap({}); setNearbySortedProducts([]);
@@ -632,25 +632,26 @@ function SearchContent() {
         <div className="grid grid-cols-1 gap-4 pt-2">
           <div className="space-y-2">
             <Label className="text-[9px] font-black text-primary/30">הסמכת הסופר</Label>
-            <RadioGroup value={certStatus} onValueChange={setCertStatus} className="grid gap-1.5">
-              <CustomFilterTile value="all" label="הכל" active={certStatus === 'all'} />
-              <CustomFilterTile value="valid" label="תעודה בתוקף" active={certStatus === 'valid'} />
-            </RadioGroup>
+            <div className="grid gap-1.5">
+              <CustomFilterTile value="valid" label="תעודה בתוקף" active={certStatus === 'valid'} onClick={() => setCertStatus(certStatus === 'valid' ? '' : 'valid')} />
+              <CustomFilterTile value="expired" label="תעודה בעבר" active={certStatus === 'expired'} onClick={() => setCertStatus(certStatus === 'expired' ? '' : 'expired')} />
+              <CustomFilterTile value="none" label="ללא תעודה" active={certStatus === 'none'} onClick={() => setCertStatus(certStatus === 'none' ? '' : 'none')} />
+            </div>
           </div>
           <div className="space-y-2">
             <Label className="text-[9px] font-black text-primary/30">לימוד תורה</Label>
-            <RadioGroup value={studyFreq} onValueChange={setStudyFreq} className="grid gap-1.5">
-              <CustomFilterTile value="all" label="הכל" active={studyFreq === 'all'} />
-              <CustomFilterTile value="full-day" label="אברך יום שלם" active={studyFreq === 'full-day'} />
-            </RadioGroup>
+            <div className="grid gap-1.5">
+              <CustomFilterTile value="fixed" label="קובע עיתים" active={studyFreq === 'fixed'} onClick={() => setStudyFreq(studyFreq === 'fixed' ? '' : 'fixed')} />
+              <CustomFilterTile value="half-day" label="אברך חצי יום" active={studyFreq === 'half-day'} onClick={() => setStudyFreq(studyFreq === 'half-day' ? '' : 'half-day')} />
+              <CustomFilterTile value="full-day" label="אברך יום שלם" active={studyFreq === 'full-day'} onClick={() => setStudyFreq(studyFreq === 'full-day' ? '' : 'full-day')} />
+            </div>
           </div>
           <div className="space-y-2">
             <Label className="text-[9px] font-black text-primary/30">מנהג טבילה</Label>
-            <RadioGroup value={mikvehFreq} onValueChange={setMikvehFreq} className="grid gap-1.5">
-              <CustomFilterTile value="all" label="הכל" active={mikvehFreq === 'all'} />
-              <CustomFilterTile value="daily" label="טובל יומיום" active={mikvehFreq === 'daily'} />
-              <CustomFilterTile value="never" label="לא טובל בכלל" active={mikvehFreq === 'never'} />
-            </RadioGroup>
+            <div className="grid gap-1.5">
+              <CustomFilterTile value="daily" label="טובל יומיום" active={mikvehFreq === 'daily'} onClick={() => setMikvehFreq(mikvehFreq === 'daily' ? '' : 'daily')} />
+              <CustomFilterTile value="never" label="ללא טבילה" active={mikvehFreq === 'never'} onClick={() => setMikvehFreq(mikvehFreq === 'never' ? '' : 'never')} />
+            </div>
           </div>
           <Label className="flex items-center justify-between rounded-2xl border border-primary/10 bg-white px-4 py-4 transition-all cursor-pointer hover:border-primary/20">
             <div className="flex items-center gap-2">
@@ -878,18 +879,33 @@ function WizardSmallCard({ value, selected, icon, label }: any) {
   );
 }
 
-function CustomFilterTile({ value, label, active }: any) {
-  return (
-    <Label className={cn(
-      "flex items-center justify-between rounded-xl border-2 transition-all duration-200 cursor-pointer group px-4 py-3",
-      active ? "border-primary bg-primary/5 shadow-sm scale-[1.01]" : "border-primary/5 bg-white hover:bg-slate-50 hover:border-primary/15"
-    )}>
-      <RadioGroupItem value={value} className="hidden" />
+function CustomFilterTile({ value, label, active, onClick }: any) {
+  const className = cn(
+    "flex items-center justify-between rounded-xl border-2 transition-all duration-200 cursor-pointer group px-4 py-3",
+    active ? "border-primary bg-primary/5 shadow-sm scale-[1.01]" : "border-primary/5 bg-white hover:bg-slate-50 hover:border-primary/15"
+  );
+  const content = (
+    <>
+      {!onClick && <RadioGroupItem value={value} className="hidden" />}
       <span className={cn("font-bold text-[10px] transition-colors", active ? "text-primary" : "text-primary/50 group-hover:text-primary/70")}>{label}</span>
       <div className={cn(
         "w-3 h-3 rounded-full border-2 transition-all duration-200",
         active ? "bg-primary border-primary scale-110 shadow-sm" : "border-primary/10 group-hover:border-primary/30"
       )} />
+    </>
+  );
+
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className={className} aria-pressed={active}>
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <Label className={className}>
+      {content}
     </Label>
   );
 }

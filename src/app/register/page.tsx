@@ -88,14 +88,14 @@ export default function RegisterPage() {
     } catch (error: any) {
       setLoading(false);
       if (error.code === 'auth/email-already-in-use') {
-        toast({
-          variant: "destructive",
-          title: "מייל כבר קיים",
-          description: "נראה שיש לך כבר חשבון. נסה להתחבר או לאפס סיסמה.",
-          action: (
-            <Button variant="outline" size="sm" onClick={() => {
-              setResetEmail(email);
-              setIsResetDialogOpen(true);
+          toast({
+            variant: "destructive",
+            title: "מייל כבר קיים",
+            description: "נראה שיש לך כבר חשבון על המייל הזה. התחבר עם אותו מייל, ואם שכחת סיסמה בצע איפוס. לקוח קיים יכול להפוך לסופר עם אותו מייל מתוך תהליך הרשמת סופר.",
+            action: (
+              <Button variant="outline" size="sm" onClick={() => {
+                setResetEmail(email);
+                setIsResetDialogOpen(true);
             }}>איפוס סיסמה</Button>
           )
         });

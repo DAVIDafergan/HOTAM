@@ -146,12 +146,10 @@ export default function SellerOnboarding() {
   const uploadImage = async (file: File): Promise<string> => {
     const formData = new FormData();
     formData.append('file', file);
-    const { data: { session } } = await db.auth.getSession();
-    const token = session?.access_token ?? '';
 
     const res = await fetch('/api/upload-image', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { 'x-upload-context': 'onboarding' },
       body: formData,
     });
 

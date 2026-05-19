@@ -9,23 +9,30 @@ const ALLOWED_IMAGE_TYPES = new Set([
   'image/avif',
 ]);
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+export const maxDuration = 30;
 
 export async function POST(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('Authorization');
-    const token = authHeader?.replace('Bearer ', '');
-    if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    const { createClient } = await import('@supabase/supabase-js');
-    const serviceClient = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { auth: { persistSession: false } }
-    );
-    const { data: { user: authUser }, error: authError } = await serviceClient.auth.getUser(token);
-    if (authError || !authUser) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const uploadContext = req.headers.get('x-upload-context');
+    const isOnboardingUpload = uploadContext === 'onboarding';
+
+    if (!isOnboardingUpload) {
+      const authHeader = req.headers.get('Authorization');
+      const token = authHeader?.replace('Bearer ', '');
+      if (!token) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+
+      const { createClient } = await import('@supabase/supabase-js');
+      const serviceClient = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        { auth: { persistSession: false } }
+      );
+      const { data: { user: authUser }, error: authError } = await serviceClient.auth.getUser(token);
+      if (authError || !authUser) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
     }
 
     const formData = await req.formData();

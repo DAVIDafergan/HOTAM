@@ -104,17 +104,17 @@ export default function AdminDashboard() {
     if (!user) return null;
     return doc(db, 'admins', user.uid);
   }, [db, user?.uid]);
-  const { data: adminData, isLoading: isAdminCheckLoading } = useDoc<any>(adminRef);
+  const { data: adminData, isLoading: isAdminCheckLoading, isLoaded: isAdminCheckLoaded } = useDoc<any>(adminRef);
   const isSuperAdmin = !!adminData;
 
   useEffect(() => {
-    if (isUserLoading || isAdminCheckLoading) return;
+    if (isUserLoading || isAdminCheckLoading || !isAdminCheckLoaded) return;
     if (!user || !adminData) {
       router.push('/');
     }
-  }, [user, isUserLoading, isAdminCheckLoading, adminData, router]);
+  }, [user, isUserLoading, isAdminCheckLoading, isAdminCheckLoaded, adminData, router]);
 
-  const canLoadData = !!user && !isUserLoading && !isAdminCheckLoading && !!adminData;
+  const canLoadData = !!user && !isUserLoading && isAdminCheckLoaded && !!adminData;
 
   const sellersQuery = useMemoStable(() => {
     if (!canLoadData) return null;

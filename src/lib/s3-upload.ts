@@ -27,9 +27,11 @@ const s3 = new S3Client({
 export async function uploadImageToS3(
   fileBuffer: Buffer,
   fileName: string,
-  contentType: string
+  contentType: string,
+  keyPrefix: string = 'products'
 ): Promise<string> {
-  const s3Key = `products/${Date.now()}_${Math.random().toString(36).slice(2, 10)}_${fileName.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+  const sanitizedPrefix = keyPrefix.replace(/[^a-zA-Z0-9/_-]/g, '').replace(/^\/+|\/+$/g, '') || 'products';
+  const s3Key = `${sanitizedPrefix}/${Date.now()}_${Math.random().toString(36).slice(2, 10)}_${fileName.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
 
   await s3.send(
     new PutObjectCommand({

@@ -7,11 +7,30 @@ const ALLOWED_IMAGE_TYPES = new Set([
   'image/webp',
   'image/gif',
   'image/avif',
+  'image/heic',
+  'image/heif',
 ]);
-const MAX_FILE_SIZE_MB = 10;
-const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 export const maxDuration = 30;
 export const runtime = 'nodejs';
+
+const MIME_BY_EXT: Record<string, string> = {
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+  gif: 'image/gif',
+  avif: 'image/avif',
+  heic: 'image/heic',
+  heif: 'image/heif',
+};
+
+function resolveImageType(file: File): string | null {
+  if (ALLOWED_IMAGE_TYPES.has(file.type)) return file.type;
+  const ext = file.name.split('.').pop()?.toLowerCase();
+  if (!ext) return null;
+  const inferredType = MIME_BY_EXT[ext];
+  return inferredType && ALLOWED_IMAGE_TYPES.has(inferredType) ? inferredType : null;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -44,19 +63,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+    const contentType = resolveImageType(file);
+    if (!contentType) {
       return NextResponse.json({ error: 'Unsupported file type' }, { status: 400 });
     }
 
-    if (file.size > MAX_FILE_SIZE_BYTES) {
-      return NextResponse.json(
-        { error: `File is too large (max ${MAX_FILE_SIZE_MB}MB)` },
-        { status: 400 }
-      );
-    }
-
     const buffer = Buffer.from(await file.arrayBuffer());
-    const url = await uploadImageToS3(buffer, file.name, file.type);
+    const keyPrefix = isOnboardingUpload ? 'onboarding' : 'products';
+    const url = await uploadImageToS3(buffer, file.name, contentType, keyPrefix);
 
     return NextResponse.json({ url });
   } catch (error: unknown) {

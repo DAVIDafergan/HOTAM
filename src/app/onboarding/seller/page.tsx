@@ -43,6 +43,7 @@ import {
 } from '@/components/ui/dialog';
 import { cn } from "@/lib/utils";
 import { loadGoogleMapsPlacesScript } from '@/lib/google-maps';
+import { uploadImageViaApi } from '@/lib/image-upload';
 
 export default function SellerOnboarding() {
   const [step, setStep] = useState(1);
@@ -144,31 +145,7 @@ export default function SellerOnboarding() {
   };
 
   const uploadImage = async (file: File): Promise<string> => {
-    const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif']);
-    const MAX_SIZE_BYTES = 10 * 1024 * 1024;
-
-    if (!ALLOWED_TYPES.has(file.type)) {
-      throw new Error('סוג קובץ לא נתמך.');
-    }
-    if (file.size > MAX_SIZE_BYTES) {
-      throw new Error('הקובץ גדול מדי. אפשר להעלות עד 10MB.');
-    }
-
-    const ext = file.name.split('.').pop() ?? 'bin';
-    const path = `onboarding/${Date.now()}_${Math.random().toString(36).slice(2, 10)}.${ext}`;
-
-    const { error } = await db.storage.from('images').upload(path, file, {
-      contentType: file.type,
-      upsert: false,
-    });
-
-    if (error) {
-      console.error('Supabase Storage upload error:', error);
-      throw new Error('העלאת התמונה נכשלה.');
-    }
-
-    const { data: urlData } = db.storage.from('images').getPublicUrl(path);
-    return urlData.publicUrl;
+    return uploadImageViaApi(file, { client: db, uploadContext: 'onboarding' });
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: 'cert' | 'samples') => {

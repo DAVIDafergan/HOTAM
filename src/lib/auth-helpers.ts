@@ -122,23 +122,39 @@ export function initiatePasswordReset(auth: AuthLike, email: string) {
   const baseOrigin = getBaseOrigin();
   const redirectTo = baseOrigin ? `${baseOrigin}/reset-password` : undefined;
 
-  return getClient(auth).auth.resetPasswordForEmail(normalizedEmail, { redirectTo }).then(async ({ error }) => {
-    if (!error) return;
+  const serverResetRequest =
+    typeof window !== 'undefined'
+      ? fetch('/api/auth/password-reset', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: normalizedEmail }),
+        }).then((response) => {
+          if (!response.ok) throw new Error('Password reset API failed');
+          return response.json() as Promise<{ ok?: boolean }>;
+        }).then((body) => body.ok === true)
+      : Promise.resolve(false);
 
-    const msg = error.message?.toLowerCase() ?? '';
-    const isRedirectIssue =
-      msg.includes('redirect') ||
-      msg.includes('invalid') ||
-      msg.includes('not allowed') ||
-      msg.includes('url');
+  return serverResetRequest.then(async (sentByServer) => {
+    if (sentByServer) return;
 
-    if (isRedirectIssue) {
-      const fallback = await getClient(auth).auth.resetPasswordForEmail(normalizedEmail);
-      if (fallback.error) throw new Error(fallback.error.message);
-      return;
-    }
+    return getClient(auth).auth.resetPasswordForEmail(normalizedEmail, { redirectTo }).then(async ({ error }) => {
+      if (!error) return;
 
-    throw new Error(error.message);
+      const msg = error.message?.toLowerCase() ?? '';
+      const isRedirectIssue =
+        msg.includes('redirect') ||
+        msg.includes('invalid') ||
+        msg.includes('not allowed') ||
+        msg.includes('url');
+
+      if (isRedirectIssue) {
+        const fallback = await getClient(auth).auth.resetPasswordForEmail(normalizedEmail);
+        if (fallback.error) throw new Error(fallback.error.message);
+        return;
+      }
+
+      throw new Error(error.message);
+    });
   });
 }
 

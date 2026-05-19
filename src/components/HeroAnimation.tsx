@@ -147,13 +147,13 @@ export function HeroAnimation() {
   };
 
   const getSizesForProduct = (type: ProductType, script: string) => {
-    if (type === 'תפילין') return ['all', 'סטנדרט (32-34)', 'פיצפונים', 'קטן (28)', 'שימושא רבא (40)'];
-    if (type === 'מזוזה') return ['all', '10', '12', '15'];
+    if (type === 'תפילין') return ['סטנדרט (32-34)', 'פיצפונים', 'קטן (28)', 'שימושא רבא (40)'];
+    if (type === 'מזוזה') return ['10', '12', '15'];
     if (type === 'ספר תורה') {
-      if (script === 'ספרדי') return ['all', '17', '36', '48', '50', '56'];
-      return ['all', '17', '30', '36', '42', '48'];
+      if (script === 'ספרדי') return ['17', '36', '48', '50', '56'];
+      return ['17', '30', '36', '42', '48'];
     }
-    return ['all'];
+    return [];
   };
   const hasSubTypes = getSubTypesForProduct(selectedProduct).length > 0;
   const finalSearchButtonClass = "w-full max-w-3xl bg-accent text-primary hover:bg-accent/90 rounded-full px-12 md:px-20 h-16 font-black text-base md:text-lg uppercase tracking-[0.16em] md:tracking-[0.2em] shadow-2xl gap-4 hover:scale-[1.02] focus:ring-4 focus:ring-accent/30 transition-all duration-300 group active:scale-95";
@@ -417,8 +417,8 @@ export function HeroAnimation() {
                         <div className="space-y-4">
                           <Label className="font-black text-[10px] uppercase text-primary/40 mr-1 tracking-widest">גודל הקלף (ס"מ)</Label>
                           <div className="grid grid-cols-2 gap-2">
-                            {getSizesForProduct(selectedProduct, scriptType).map(sz => (
-                              <button type="button" key={sz} onClick={() => setScrollSize(sz)} className={cn("h-12 rounded-xl border-2 font-black text-11px transition-all", scrollSize === sz ? "border-primary bg-primary text-white shadow-md" : "bg-white/40 border-primary/5 text-primary hover:border-accent/40")}>{sz === 'all' ? 'כל הגדלים' : sz}</button>
+                            {[...getSizesForProduct(selectedProduct, scriptType), 'other'].map(sz => (
+                              <button type="button" key={sz} onClick={() => setScrollSize(sz)} className={cn("h-12 rounded-xl border-2 font-black text-11px transition-all", scrollSize === sz ? "border-primary bg-primary text-white shadow-md" : "bg-white/40 border-primary/5 text-primary hover:border-accent/40")}>{sz === 'other' ? 'שאר הגדלים' : sz}</button>
                             ))}
                           </div>
                         </div>

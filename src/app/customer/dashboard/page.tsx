@@ -348,7 +348,7 @@ export default function CustomerDashboard() {
     if (!ratingOrderId || !user) return;
     setIsRatingSubmitting(true);
 
-    const { data: profile, error: profileError } = await supabase
+    const { data: profileRow, error: profileError } = await supabase
       .from('profiles')
       .select('full_name')
       .eq('id', user.uid)
@@ -367,7 +367,7 @@ export default function CustomerDashboard() {
       seller_id: ratingOrderId.seller_id,
       product_id: ratingOrderId.product_id,
       buyer_id: user.uid,
-      buyer_name: profile?.full_name || user.displayName || 'משתמש',
+      buyer_name: profileRow?.full_name || user.displayName || 'משתמש',
       is_anonymous: false,
       rating: scribeRatingVal,
       product_rating: productRatingVal,

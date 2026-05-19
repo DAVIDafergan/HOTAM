@@ -80,6 +80,22 @@ export async function POST(req: Request) {
         console.error('[delete-account] admins row delete error:', adminDeleteError);
       }
     } else {
+      const cleanupResults = await Promise.allSettled([
+        serviceClient.from('reports').delete().eq('reporter_id', uid),
+        serviceClient.from('reviews').delete().eq('buyer_id', uid),
+        serviceClient.from('supermarket_reviews').delete().eq('buyer_id', uid),
+        serviceClient.from('chats').delete().contains('participants', [uid]),
+      ]);
+
+      cleanupResults.forEach((result, index) => {
+        if (result.status === 'fulfilled' && result.value.error) {
+          console.error(`[delete-account] customer cleanup error ${index}:`, result.value.error);
+        }
+        if (result.status === 'rejected') {
+          console.error(`[delete-account] customer cleanup rejected ${index}:`, result.reason);
+        }
+      });
+
       const { error: customerError } = await serviceClient.from('customers').delete().eq('id', uid);
       if (customerError) {
         console.error('[delete-account] customers row delete error:', customerError);

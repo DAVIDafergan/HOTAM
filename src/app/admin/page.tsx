@@ -38,6 +38,7 @@ import {
   ArrowUpRight,
   ExternalLink,
   Banknote,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Landmark,
@@ -66,6 +67,7 @@ import {
   DialogTitle, 
   DialogTrigger 
 } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
@@ -99,6 +101,8 @@ export default function AdminDashboard() {
   const [salesPage, setSalesPage] = useState(1);
   const [reportsPage, setReportsPage] = useState(1);
   const [torahPage, setTorahPage] = useState(1);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const [deletingCustomerId, setDeletingCustomerId] = useState<string | null>(null);
 
   const adminRef = useMemoStable(() => {
     if (!user) return null;
@@ -182,11 +186,17 @@ export default function AdminDashboard() {
 
   const filteredCustomers = useMemo(() => {
     if (!allCustomers) return [];
-    return allCustomers.filter(c => !sellerIds.has(c.id) && (
-      `${c.first_name || ''} ${c.last_name || ''}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (c.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (c.id || '').toLowerCase().includes(searchTerm.toLowerCase())
-    ));
+    return allCustomers
+      .filter(c => !sellerIds.has(c.id) && (
+        `${c.first_name || ''} ${c.last_name || ''}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (c.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (c.id || '').toLowerCase().includes(searchTerm.toLowerCase())
+      ))
+      .sort((a, b) => {
+        const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return bTime - aTime;
+      });
   }, [allCustomers, sellerIds, searchTerm]);
 
   const filteredOrders = useMemo(() => {
@@ -355,13 +365,27 @@ export default function AdminDashboard() {
 
   const deleteCustomer = async (id: string) => {
     if (confirm('האם אתה בטוח שברצונך למחוק לקוח זה לצמיתות?')) {
-      const ok = await deleteManagedUser(id, 'customer');
-      if (!ok) {
-        return;
+      setDeletingCustomerId(id);
+      try {
+        const ok = await deleteManagedUser(id, 'customer');
+        if (!ok) {
+          return;
+        }
+        toast({ variant: "destructive", title: "הלקוח נמחק" });
+      } finally {
+        setDeletingCustomerId((current) => current === id ? null : current);
       }
-      toast({ variant: "destructive", title: "הלקוח נמחק" });
     }
   };
+
+  const adminTabItems = [
+    { id: 'pending', label: 'ממתינים לאישור', icon: <Clock className="w-4 h-4" /> },
+    { id: 'active', label: 'סופרים פעילים', icon: <CheckCircle2 className="w-4 h-4" /> },
+    { id: 'customers', label: 'לקוחות', icon: <UserRound className="w-4 h-4" /> },
+    { id: 'sales', label: 'יומן מכירות', icon: <History className="w-4 h-4" /> },
+    { id: 'torah', label: 'ספרי תורה', icon: <Scroll className="w-4 h-4" /> },
+    { id: 'reports', label: 'דיווחים', icon: <Flag className="w-4 h-4" /> },
+  ] as const;
 
   const exportSellersToExcel = () => {
     const sellers = allSellers || [];
@@ -459,30 +483,32 @@ export default function AdminDashboard() {
       <Navbar />
       
       <main className="container mx-auto px-4 py-32 max-w-7xl flex-1">
-        <div className="flex flex-col md:flex-row items-end justify-between mb-12 gap-6">
-          <div className="text-right">
-            <div className="flex items-center gap-3 mb-2">
-               <div className="bg-primary/5 p-3 rounded-2xl">
-                 <ShieldCheck className="w-8 h-8 text-primary" />
-               </div>
-                <div>
+        <div className="flex flex-col xl:flex-row xl:items-end justify-between mb-12 gap-4 xl:gap-6">
+          <div className="text-right w-full xl:w-auto">
+             <div className="flex items-center gap-3 mb-2">
+                <div className="bg-primary/5 p-3 rounded-2xl">
+                  <ShieldCheck className="w-8 h-8 text-primary" />
+                </div>
+                 <div>
                   <h1 className="text-4xl font-headline font-black text-primary tracking-tight">ניהול מערכת HOTAM</h1>
                   <p className="text-muted-foreground font-medium">פיקוח על כשרות, אימות סופרים וניטור פיננסי</p>
                 </div>
+             </div>
+           </div>
+          <div className="flex w-full xl:w-auto flex-col sm:flex-row gap-3">
+            <div className="relative w-full xl:w-96">
+              <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input 
+                placeholder="חפש לפי שם, אימייל או מזהה ID..." 
+                className="pr-11 h-14 rounded-2xl bg-white border-none shadow-premium focus:ring-2 focus:ring-primary/10 transition-all text-sm font-bold text-slate-900"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
+            <Button onClick={exportSellersToExcel} className="h-12 sm:h-14 rounded-2xl px-5 font-black gap-2 bg-primary text-white hover:bg-primary/90 w-full sm:w-auto">
+              <FileDown className="w-4 h-4" /> ייצוא סופרים לאקסל
+            </Button>
           </div>
-          <div className="relative w-full md:w-96">
-            <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input 
-              placeholder="חפש לפי שם, אימייל או מזהה ID..." 
-              className="pr-11 h-14 rounded-2xl bg-white border-none shadow-premium focus:ring-2 focus:ring-primary/10 transition-all text-sm font-bold text-slate-900"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <Button onClick={exportSellersToExcel} className="h-12 rounded-2xl px-5 font-black gap-2 bg-primary text-white hover:bg-primary/90">
-            <FileDown className="w-4 h-4" /> ייצוא סופרים לאקסל
-          </Button>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-12">
@@ -494,26 +520,60 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <TabsList className="bg-white/50 backdrop-blur-md p-1.5 rounded-[2rem] shadow-premium border h-16 w-full flex overflow-x-auto whitespace-nowrap scrollbar-hide">
-            <TabsTrigger value="pending" className="px-8 rounded-[1.5rem] data-[state=active]:bg-primary data-[state=active]:text-white font-black text-[10px] uppercase tracking-widest gap-2">
-              <Clock className="w-4 h-4" /> ממתינים לאישור
-            </TabsTrigger>
-            <TabsTrigger value="active" className="px-8 rounded-[1.5rem] data-[state=active]:bg-primary data-[state=active]:text-white font-black text-[10px] uppercase tracking-widest gap-2">
-              <CheckCircle2 className="w-4 h-4" /> סופרים פעילים ומאומתים
-            </TabsTrigger>
-            <TabsTrigger value="customers" className="px-8 rounded-[1.5rem] data-[state=active]:bg-primary data-[state=active]:text-white font-black text-[10px] uppercase tracking-widest gap-2">
-              <UserRound className="w-4 h-4" /> לקוחות
-            </TabsTrigger>
-            <TabsTrigger value="sales" className="px-8 rounded-[1.5rem] data-[state=active]:bg-primary data-[state=active]:text-white font-black text-[10px] uppercase tracking-widest gap-2">
-              <History className="w-4 h-4" /> יומן מכירות
-            </TabsTrigger>
-            <TabsTrigger value="torah" className="px-8 rounded-[1.5rem] data-[state=active]:bg-primary data-[state=active]:text-white font-black text-[10px] uppercase tracking-widest gap-2">
-              <Scroll className="w-4 h-4" /> ספרי תורה
-            </TabsTrigger>
-            <TabsTrigger value="reports" className="px-8 rounded-[1.5rem] data-[state=active]:bg-primary data-[state=active]:text-white font-black text-[10px] uppercase tracking-widest gap-2">
-              <Flag className="w-4 h-4" /> דיווחים
-            </TabsTrigger>
+          <TabsList className="hidden md:flex bg-white/50 backdrop-blur-md p-1.5 rounded-[2rem] shadow-premium border h-16 w-full overflow-x-auto whitespace-nowrap scrollbar-hide">
+            {adminTabItems.map((tab) => (
+              <TabsTrigger key={tab.id} value={tab.id} className="px-8 rounded-[1.5rem] data-[state=active]:bg-primary data-[state=active]:text-white font-black text-[10px] uppercase tracking-widest gap-2">
+                {tab.icon} {tab.label}
+              </TabsTrigger>
+            ))}
           </TabsList>
+
+          <div className="md:hidden">
+            <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
+              <SheetTrigger asChild>
+                <button className="w-full flex items-center justify-between bg-white rounded-2xl shadow-premium border border-primary/5 px-5 h-14 font-black text-primary text-sm">
+                  <div className="flex items-center gap-3">
+                    {adminTabItems.find((tab) => tab.id === activeTab)?.icon}
+                    <span>{adminTabItems.find((tab) => tab.id === activeTab)?.label}</span>
+                  </div>
+                  <ChevronDown className="w-4 h-4 text-primary/40" />
+                </button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[280px] p-0 border-none bg-white rounded-l-[2.5rem]" dir="rtl">
+                <SheetHeader className="sr-only">
+                  <SheetTitle>תפריט ניהול מערכת</SheetTitle>
+                  <SheetDescription>מעבר מהיר בין לקוחות, סופרים, מכירות ודיווחים</SheetDescription>
+                </SheetHeader>
+                <div className="bg-gradient-to-b from-primary to-primary/80 p-8 text-white">
+                  <h2 className="text-white font-headline font-black text-xl flex items-center gap-3">
+                    <ShieldCheck className="w-5 h-5 text-accent" /> ניהול מערכת
+                  </h2>
+                  <p className="text-white/60 text-xs font-bold mt-1">שליטה נוחה גם מהנייד</p>
+                </div>
+                <div className="p-4 space-y-2 mt-2">
+                  {adminTabItems.map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => {
+                        setActiveTab(tab.id);
+                        setIsMobileNavOpen(false);
+                      }}
+                      className={cn(
+                        "w-full flex items-center justify-between p-4 rounded-2xl transition-all font-black text-sm",
+                        activeTab === tab.id ? "bg-primary text-white shadow-lg" : "text-primary/60 hover:bg-primary/5"
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        {tab.icon}
+                        <span>{tab.label}</span>
+                      </div>
+                      <ChevronLeft className="w-4 h-4 opacity-30" />
+                    </button>
+                  ))}
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
 
           <TabsContent value="pending">
             <ScribeTable 
@@ -544,6 +604,7 @@ export default function AdminDashboard() {
               customers={filteredCustomers} 
               orders={visibleOrders}
               onDelete={deleteCustomer}
+              deletingCustomerId={deletingCustomerId}
               page={customersPage}
               setPage={setCustomersPage}
             />
@@ -695,49 +756,180 @@ function ScribeTable({ scribes, onApprove, onDelete, isLoading, orders, page, se
   );
 }
 
-function CustomerTable({ customers, orders, onDelete, page, setPage }: any) {
+function CustomerTable({ customers, orders, onDelete, deletingCustomerId, page, setPage }: any) {
   const paginatedData = customers.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  const customerStats = useMemo(() => {
+    const stats = new Map<string, { completedOrders: number; totalSpent: number }>();
+
+    for (const order of orders || []) {
+      if (!order?.buyer_id) continue;
+      const current = stats.get(order.buyer_id) || { completedOrders: 0, totalSpent: 0 };
+      if (order.status === 'completed') {
+        current.completedOrders += 1;
+        current.totalSpent += Number(order.amount || 0);
+      }
+      stats.set(order.buyer_id, current);
+    }
+
+    return stats;
+  }, [orders]);
+
+  const customerSummary = useMemo(() => {
+    const customersWithOrders = customers.filter((customer: any) => (customerStats.get(customer.id)?.completedOrders || 0) > 0).length;
+    const totalOrders = customers.reduce((sum: number, customer: any) => sum + (customerStats.get(customer.id)?.completedOrders || 0), 0);
+    const totalRevenue = customers.reduce((sum: number, customer: any) => sum + (customerStats.get(customer.id)?.totalSpent || 0), 0);
+
+    return {
+      customersWithOrders,
+      totalOrders,
+      totalRevenue,
+    };
+  }, [customers, customerStats]);
+
+  if (!customers || customers.length === 0) {
+    return (
+      <Card className="p-10 md:p-24 text-center bg-white rounded-[2.5rem] md:rounded-[3rem] shadow-premium text-muted-foreground border-2 border-dashed border-muted italic">
+        אין לקוחות להצגה.
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <Card className="border-none shadow-premium rounded-[2rem] bg-white">
+          <CardContent className="p-4 text-right space-y-1">
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">לקוחות מוצגים</p>
+            <p className="text-2xl font-black text-primary">{customers.length}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-none shadow-premium rounded-[2rem] bg-white">
+          <CardContent className="p-4 text-right space-y-1">
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">לקוחות שרכשו</p>
+            <p className="text-2xl font-black text-primary">{customerSummary.customersWithOrders}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-none shadow-premium rounded-[2rem] bg-white">
+          <CardContent className="p-4 text-right space-y-1">
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">סה&quot;כ הזמנות</p>
+            <p className="text-2xl font-black text-primary">{customerSummary.totalOrders}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-none shadow-premium rounded-[2rem] bg-white">
+          <CardContent className="p-4 text-right space-y-1">
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">סה&quot;כ רכישות</p>
+            <p className="text-2xl font-black text-emerald-600">₪{customerSummary.totalRevenue.toLocaleString()}</p>
+          </CardContent>
+        </Card>
+      </div>
+
       <Card className="border-none shadow-premium rounded-[2.5rem] overflow-hidden bg-white">
-        <Table>
-          <TableHeader className="bg-muted/30">
-            <TableRow className="border-none">
-              <TableHead className="text-right font-black text-[10px] uppercase py-6 px-8">לקוח / אימייל</TableHead>
-              <TableHead className="text-right font-black text-[10px] uppercase py-6">מזהה (ID)</TableHead>
-              <TableHead className="text-right font-black text-[10px] uppercase py-6">סך רכישות</TableHead>
-              <TableHead className="text-right font-black text-[10px] uppercase py-6">תאריך הצטרפות</TableHead>
-              <TableHead className="text-left font-black text-[10px] uppercase py-6 px-8">פעולות</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginatedData.map((cust: any) => {
-              const custOrdersCount = (orders || []).filter((o: any) => o.buyer_id === cust.id && o.status === 'completed').length;
-              return (
-                <TableRow key={cust.id} className="border-muted/20">
-                  <TableCell className="py-6 px-8">
-                    <div className="text-right">
-                      <p className="font-black text-primary text-sm">{cust.first_name} {cust.last_name}</p>
-                      <p className="text-[9px] text-muted-foreground">{cust.email}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-[10px] font-mono text-primary/60">{cust.id}</TableCell>
-                  <TableCell className="text-center">
-                    <Badge className="bg-primary/5 text-primary border-primary/10 rounded-full font-black text-[10px] px-3">{custOrdersCount} הזמנות</Badge>
-                  </TableCell>
-                  <TableCell className="text-[10px] font-bold text-muted-foreground">{cust.created_at ? new Date(cust.created_at).toLocaleDateString('he-IL') : '-'}</TableCell>
-                  <TableCell className="px-8 text-left">
-                    <Button variant="ghost" size="sm" onClick={() => setSelectedCustomer(cust)} aria-label={`צפה פרטי ${cust.first_name} ${cust.last_name}`} className="rounded-full h-8 px-4 text-[9px] font-black border-primary/5">
-                      צפה
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+        <div className="hidden md:block">
+          <Table>
+            <TableHeader className="bg-muted/30">
+              <TableRow className="border-none">
+                <TableHead className="text-right font-black text-[10px] uppercase py-6 px-8">לקוח / אימייל</TableHead>
+                <TableHead className="text-right font-black text-[10px] uppercase py-6">מזהה (ID)</TableHead>
+                <TableHead className="text-right font-black text-[10px] uppercase py-6">סך רכישות</TableHead>
+                <TableHead className="text-right font-black text-[10px] uppercase py-6">תאריך הצטרפות</TableHead>
+                <TableHead className="text-left font-black text-[10px] uppercase py-6 px-8">פעולות</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginatedData.map((cust: any) => {
+                const customerOrderData = customerStats.get(cust.id) || { completedOrders: 0, totalSpent: 0 };
+                const isDeleting = deletingCustomerId === cust.id;
+                return (
+                  <TableRow key={cust.id} className="border-muted/20">
+                    <TableCell className="py-6 px-8">
+                      <div className="text-right">
+                        <p className="font-black text-primary text-sm">{cust.first_name} {cust.last_name}</p>
+                        <p className="text-[9px] text-muted-foreground">{cust.email}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-[10px] font-mono text-primary/60 max-w-[220px] truncate">{cust.id}</TableCell>
+                    <TableCell className="text-center">
+                      <div className="flex flex-col items-center gap-2">
+                        <Badge className="bg-primary/5 text-primary border-primary/10 rounded-full font-black text-[10px] px-3">{customerOrderData.completedOrders} הזמנות</Badge>
+                        <span className="text-[10px] font-black text-emerald-600">₪{customerOrderData.totalSpent.toLocaleString()}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-[10px] font-bold text-muted-foreground">{cust.created_at ? new Date(cust.created_at).toLocaleDateString('he-IL') : '-'}</TableCell>
+                    <TableCell className="px-8 text-left">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button variant="ghost" size="sm" onClick={() => setSelectedCustomer(cust)} aria-label={`צפה פרטי ${cust.first_name} ${cust.last_name}`} className="rounded-full h-8 px-4 text-[9px] font-black border-primary/5">
+                          צפה
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onDelete(cust.id)}
+                          disabled={isDeleting}
+                          aria-label={`מחק את ${cust.first_name} ${cust.last_name}`}
+                          className="h-8 w-8 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                        >
+                          {isDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+
+        <div className="grid gap-3 p-3 md:hidden">
+          {paginatedData.map((cust: any) => {
+            const customerOrderData = customerStats.get(cust.id) || { completedOrders: 0, totalSpent: 0 };
+            const isDeleting = deletingCustomerId === cust.id;
+            return (
+              <div key={cust.id} className="rounded-[1.75rem] border border-primary/10 bg-muted/10 p-4 space-y-4 text-right">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="text-right min-w-0">
+                    <p className="font-black text-primary text-sm break-words">{cust.first_name} {cust.last_name}</p>
+                    <p className="text-[11px] text-muted-foreground break-all">{cust.email || 'ללא אימייל'}</p>
+                  </div>
+                  <Badge className="bg-primary/5 text-primary border-primary/10 rounded-full font-black text-[10px] px-3 shrink-0">
+                    {customerOrderData.completedOrders} הזמנות
+                  </Badge>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-[11px] font-bold">
+                  <div className="rounded-2xl bg-white p-3 border border-primary/5">
+                    <p className="text-muted-foreground text-[9px] uppercase tracking-widest mb-1">סה&quot;כ רכישות</p>
+                    <p className="text-emerald-600 font-black">₪{customerOrderData.totalSpent.toLocaleString()}</p>
+                  </div>
+                  <div className="rounded-2xl bg-white p-3 border border-primary/5">
+                    <p className="text-muted-foreground text-[9px] uppercase tracking-widest mb-1">תאריך הצטרפות</p>
+                    <p className="text-primary">{cust.created_at ? new Date(cust.created_at).toLocaleDateString('he-IL') : '-'}</p>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl bg-white p-3 border border-primary/5">
+                  <p className="text-muted-foreground text-[9px] uppercase tracking-widest mb-1">מזהה לקוח</p>
+                  <p className="text-[10px] font-mono text-primary/60 break-all">{cust.id}</p>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button onClick={() => setSelectedCustomer(cust)} className="flex-1 rounded-2xl h-11 font-black text-xs">
+                    צפה בפרטים
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => onDelete(cust.id)}
+                    disabled={isDeleting}
+                    className="rounded-2xl h-11 px-4 font-black text-xs gap-2"
+                  >
+                    {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                    מחק
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </Card>
       <Pagination current={page} total={customers.length} onChange={setPage} />
 
@@ -745,6 +937,7 @@ function CustomerTable({ customers, orders, onDelete, page, setPage }: any) {
         <CustomerDetailsDialog
           customer={selectedCustomer}
           orders={(orders || []).filter((o: any) => o.buyer_id === selectedCustomer.id)}
+          isDeleting={deletingCustomerId === selectedCustomer.id}
           onDelete={() => { onDelete(selectedCustomer.id); setSelectedCustomer(null); }}
           onClose={() => setSelectedCustomer(null)}
         />
@@ -753,36 +946,36 @@ function CustomerTable({ customers, orders, onDelete, page, setPage }: any) {
   );
 }
 
-function CustomerDetailsDialog({ customer, orders, onDelete, onClose }: any) {
+function CustomerDetailsDialog({ customer, orders, onDelete, onClose, isDeleting }: any) {
   return (
     <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="max-w-2xl rounded-[2.5rem] p-0 border-none shadow-2xl bg-white max-h-[85vh] overflow-y-auto z-[150]" dir="rtl">
-        <div className="bg-primary p-6 text-white text-right sticky top-0 z-50">
+      <DialogContent className="max-w-2xl rounded-[2rem] md:rounded-[2.5rem] p-0 border-none shadow-2xl bg-white max-h-[85vh] overflow-y-auto z-[150]" dir="rtl">
+        <div className="bg-primary p-5 md:p-6 text-white text-right sticky top-0 z-50">
           <DialogHeader>
-            <DialogTitle className="text-xl font-headline font-black tracking-tight flex items-center gap-4 text-white">
-              <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center border border-white/20">
+            <DialogTitle className="text-lg md:text-xl font-headline font-black tracking-tight flex items-center gap-4 text-white">
+              <div className="w-11 h-11 md:w-12 md:h-12 rounded-full bg-white/10 flex items-center justify-center border border-white/20 shrink-0">
                 <UserRound className="w-6 h-6 text-white" />
               </div>
-              <div>
-                <p>{customer.first_name} {customer.last_name}</p>
-                <p className="text-[11px] font-medium opacity-70 mt-0.5">{customer.email}</p>
+              <div className="min-w-0">
+                <p className="break-words">{customer.first_name} {customer.last_name}</p>
+                <p className="text-[11px] font-medium opacity-70 mt-0.5 break-all">{customer.email}</p>
               </div>
             </DialogTitle>
           </DialogHeader>
         </div>
 
-        <div className="p-8 space-y-6 text-right">
+        <div className="p-5 md:p-8 space-y-6 text-right">
           {/* Customer details */}
           <div className="space-y-4">
             <p className="text-[10px] font-black text-accent uppercase tracking-widest flex items-center gap-2"><IdCard className="w-4 h-4" /> פרטי לקוח</p>
-            <div className="bg-muted/30 p-5 rounded-2xl space-y-3 text-[11px] font-bold">
-              <div className="flex justify-between border-b border-white/50 pb-2"><span>{customer.first_name} {customer.last_name}</span><span className="text-muted-foreground">שם מלא:</span></div>
-              <div className="flex justify-between border-b border-white/50 pb-2"><span>{customer.email}</span><span className="text-muted-foreground">אימייל:</span></div>
-              <div className="flex justify-between border-b border-white/50 pb-2"><span>{customer.phone || '-'}</span><span className="text-muted-foreground">טלפון:</span></div>
-              <div className="flex justify-between border-b border-white/50 pb-2"><span>{customer.address || '-'}</span><span className="text-muted-foreground">כתובת:</span></div>
-              <div className="flex justify-between"><span>{customer.created_at ? new Date(customer.created_at).toLocaleDateString('he-IL') : '-'}</span><span className="text-muted-foreground">תאריך הצטרפות:</span></div>
-            </div>
-          </div>
+             <div className="bg-muted/30 p-5 rounded-2xl space-y-3 text-[11px] font-bold">
+               <div className="flex justify-between gap-4 border-b border-white/50 pb-2"><span className="break-words">{customer.first_name} {customer.last_name}</span><span className="text-muted-foreground shrink-0">שם מלא:</span></div>
+               <div className="flex justify-between gap-4 border-b border-white/50 pb-2"><span className="break-all">{customer.email}</span><span className="text-muted-foreground shrink-0">אימייל:</span></div>
+               <div className="flex justify-between gap-4 border-b border-white/50 pb-2"><span className="break-all">{customer.phone || '-'}</span><span className="text-muted-foreground shrink-0">טלפון:</span></div>
+               <div className="flex justify-between gap-4 border-b border-white/50 pb-2"><span className="break-words">{customer.address || '-'}</span><span className="text-muted-foreground shrink-0">כתובת:</span></div>
+               <div className="flex justify-between gap-4"><span>{customer.created_at ? new Date(customer.created_at).toLocaleDateString('he-IL') : '-'}</span><span className="text-muted-foreground shrink-0">תאריך הצטרפות:</span></div>
+             </div>
+           </div>
 
           {/* Orders */}
           <div className="space-y-4">
@@ -815,8 +1008,8 @@ function CustomerDetailsDialog({ customer, orders, onDelete, onClose }: any) {
 
           {/* Delete button */}
           <div className="pt-4 border-t flex justify-end">
-            <Button variant="destructive" onClick={onDelete} className="rounded-full px-6 h-10 text-[10px] font-black uppercase gap-2">
-              <Trash2 className="w-3.5 h-3.5" /> מחק לקוח
+            <Button variant="destructive" onClick={onDelete} disabled={isDeleting} className="rounded-full px-6 h-10 text-[10px] font-black uppercase gap-2">
+              {isDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />} מחק לקוח
             </Button>
           </div>
         </div>

@@ -550,7 +550,11 @@ export default function CustomerDashboard() {
                         )}
                       </div>
                       <div className="flex flex-col gap-2 shrink-0">
-                        <Button variant="outline" asChild size="sm" className="rounded-xl h-9 px-4 border-primary/10 font-bold text-xs"><Link href={`/products/${order.product_id}`}>צפה</Link></Button>
+                        {order.product_id && (
+                          <Button variant="outline" asChild size="sm" className="rounded-xl h-9 px-4 border-primary/20 bg-transparent font-bold text-xs">
+                            <Link href={`/products/${order.product_id}`}>צפה במוצר שוב</Link>
+                          </Button>
+                        )}
                         {order.status === 'completed' && !order.is_rated && (
                           <Button variant="secondary" size="sm" onClick={() => setRatingOrderId(order)} className="rounded-xl h-9 px-4 bg-accent/10 text-accent font-black text-xs gap-1"><Star className="w-3 h-3 fill-current" /> דרג</Button>
                         )}

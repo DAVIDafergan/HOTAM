@@ -110,8 +110,17 @@ CREATE TABLE IF NOT EXISTS public.customers (
 CREATE TABLE IF NOT EXISTS public.password_reset_log (
   id          UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
   email       TEXT        NOT NULL,
+  succeeded   BOOLEAN     NOT NULL DEFAULT TRUE,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Additive safety migrations for existing live DBs.
+ALTER TABLE public.customers
+  ADD COLUMN IF NOT EXISTS welcome_email_sent BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE public.sellers
+  ADD COLUMN IF NOT EXISTS welcome_email_sent BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE public.password_reset_log
+  ADD COLUMN IF NOT EXISTS succeeded BOOLEAN NOT NULL DEFAULT TRUE;
 
 -- ── admins ───────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.admins (

@@ -287,6 +287,41 @@ export default function RegisterPage() {
                 </div>
 
                 <form onSubmit={handleRegister} className="space-y-4">
+                  <div className="space-y-2.5">
+                    <Label className="font-black text-[10px] uppercase text-primary/60 tracking-wider">סוג החשבון</Label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <button
+                        type="button"
+                        onClick={() => setRegisterAsSeller(false)}
+                        className={`h-11 rounded-xl border text-sm font-black transition-colors ${
+                          !registerAsSeller
+                            ? 'bg-primary text-white border-primary'
+                            : 'bg-white text-primary border-primary/15 hover:border-primary/40'
+                        }`}
+                        aria-pressed={!registerAsSeller}
+                      >
+                        הרשמה כקונה
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRegisterAsSeller(true)}
+                        className={`h-11 rounded-xl border text-sm font-black transition-colors ${
+                          registerAsSeller
+                            ? 'bg-accent text-primary border-accent'
+                            : 'bg-white text-primary border-primary/15 hover:border-primary/40'
+                        }`}
+                        aria-pressed={registerAsSeller}
+                      >
+                        הצטרפות כסופר
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground font-bold">
+                      {registerAsSeller
+                        ? 'נפלא, נוביל אותך למסלול המתאים לסופרי סת"ם לאחר ההרשמה.'
+                        : 'מתאים לרוכשים המעוניינים להזמין כלי קודש בצורה בטוחה ונוחה.'}
+                    </p>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <Label htmlFor="firstName" className="font-black text-[10px] uppercase text-primary/60 tracking-wider">שם פרטי</Label>
@@ -350,17 +385,6 @@ export default function RegisterPage() {
                     />
                   </div>
 
-                  <div className="flex items-center justify-end gap-2">
-                    <Label htmlFor="registerAsSeller" className="text-sm font-bold cursor-pointer">
-                      הרשמה כמוכר / סופר סת"ם
-                    </Label>
-                    <Checkbox
-                      id="registerAsSeller"
-                      checked={registerAsSeller}
-                      onCheckedChange={(v) => setRegisterAsSeller(!!v)}
-                    />
-                  </div>
-
                   <div className="flex items-start gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10">
                     <Checkbox 
                       id="terms" 
@@ -389,8 +413,16 @@ export default function RegisterPage() {
                 </form>
               </div>
 
-              <div className="text-center text-[11px] text-muted-foreground pt-4 border-t border-muted">
-                <p className="font-bold">כבר יש לכם חשבון? <Link href="/login" className="text-primary font-black hover:underline uppercase tracking-tight">התחברו כאן</Link></p>
+              <div className="pt-4 border-t border-muted space-y-3 text-right">
+                <p className="text-[12px] text-muted-foreground font-bold">
+                  כבר יש לכם חשבון?{' '}
+                  <Link href="/login" className="text-primary font-black hover:underline tracking-tight">
+                    התחברות
+                  </Link>
+                </p>
+                <Button asChild variant="outline" className="w-full h-11 rounded-xl border-accent/40 text-accent hover:bg-accent/10 font-black">
+                  <Link href="/onboarding/seller">רוצים למכור? הצטרפו כסופר</Link>
+                </Button>
               </div>
             </CardContent>
           </div>
@@ -410,10 +442,14 @@ export default function RegisterPage() {
               </DialogDescription>
             </DialogHeader>
           </div>
-          <div className="p-8 space-y-6 text-right">
+          <div className="p-6 sm:p-8 space-y-6 text-right">
+            <p className="text-xs sm:text-sm text-muted-foreground font-bold">
+              הזן את כתובת האימייל של החשבון שלך ונשלח אליך קישור מאובטח לאיפוס סיסמה.
+            </p>
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase tracking-widest text-primary/60">כתובת אימייל</Label>
               <Input 
+                type="email"
                 value={resetEmail} 
                 onChange={(e) => setResetEmail(e.target.value)} 
                 placeholder="your@email.com" 
@@ -421,7 +457,7 @@ export default function RegisterPage() {
               />
             </div>
           </div>
-          <DialogFooter className="p-6 bg-muted/30 border-t flex gap-3">
+          <DialogFooter className="p-4 sm:p-6 bg-muted/30 border-t flex flex-col-reverse sm:flex-row gap-3">
             <Button onClick={handlePasswordReset} disabled={isResetting} className="flex-1 bg-primary text-white h-12 rounded-xl font-black uppercase shadow-lg">
               {isResetting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'שלח קישור לאיפוס'}
             </Button>

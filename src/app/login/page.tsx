@@ -195,10 +195,13 @@ function LoginContent() {
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <div className="flex justify-between items-center">
+                      <div className="flex items-center justify-between">
                         <button 
                           type="button" 
-                          onClick={() => setIsResetDialogOpen(true)}
+                          onClick={() => {
+                            setResetEmail(email);
+                            setIsResetDialogOpen(true);
+                          }}
                           className="text-[10px] text-muted-foreground hover:text-primary underline font-black"
                         >
                           שכחת סיסמה?
@@ -235,11 +238,18 @@ function LoginContent() {
                 </form>
               </div>
 
-              <div className="text-center text-[11px] text-muted-foreground pt-3 space-y-3.5 border-t border-muted">
-                <p className="font-bold">עדיין לא חברים בקהילה? <Link href="/register" className="text-primary font-black hover:underline uppercase tracking-tight">הצטרפו עכשיו כקונים</Link></p>
-                <div className="p-3 bg-accent/5 rounded-xl border border-accent/10 flex items-center justify-between">
-                  <Link href="/onboarding/seller" className="text-accent font-black hover:underline uppercase tracking-tight text-[10px]">הגש מועמדות למכירה באתר ←</Link>
-                  <p className="font-black text-primary text-[11px] sm:text-xs">הנך סופר סת"ם מוסמך?</p>
+              <div className="pt-4 border-t border-muted space-y-4">
+                <div className="text-right space-y-1">
+                  <p className="text-sm font-black text-primary">עדיין אין לך חשבון?</p>
+                  <p className="text-xs text-muted-foreground font-bold">בחרו את מסלול ההצטרפות המתאים לכם:</p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Button asChild className="h-12 rounded-xl bg-primary hover:bg-primary/90 text-white font-black">
+                    <Link href="/register">הרשמה כקונה</Link>
+                  </Button>
+                  <Button asChild variant="outline" className="h-12 rounded-xl border-accent/40 text-accent hover:bg-accent/10 font-black">
+                    <Link href="/onboarding/seller">הצטרפות כסופר</Link>
+                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -261,9 +271,13 @@ function LoginContent() {
             </DialogHeader>
           </div>
           <div className="p-5 sm:p-8 space-y-5 text-right">
+            <p className="text-xs sm:text-sm text-muted-foreground font-bold">
+              הזן את כתובת האימייל של החשבון שלך ונשלח אליך קישור מאובטח לאיפוס סיסמה.
+            </p>
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase tracking-widest text-primary/60">כתובת אימייל</Label>
               <Input 
+                type="email"
                 value={resetEmail} 
                 onChange={(e) => setResetEmail(e.target.value)} 
                 placeholder="your@email.com" 
@@ -271,7 +285,7 @@ function LoginContent() {
               />
             </div>
           </div>
-          <DialogFooter className="p-4 sm:p-6 bg-muted/30 border-t flex gap-3">
+          <DialogFooter className="p-4 sm:p-6 bg-muted/30 border-t flex flex-col-reverse sm:flex-row gap-3">
             <Button onClick={handlePasswordReset} disabled={isResetting} className="flex-1 bg-primary text-white h-11 sm:h-12 rounded-xl font-black shadow-lg">
               {isResetting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'שלח קישור לאיפוס'}
             </Button>

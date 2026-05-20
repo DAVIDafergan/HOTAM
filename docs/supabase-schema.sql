@@ -35,6 +35,7 @@ DROP TABLE IF EXISTS public.reports               CASCADE;
 DROP TABLE IF EXISTS public.orders    CASCADE;
 DROP TABLE IF EXISTS public.products  CASCADE;
 DROP TABLE IF EXISTS public.chats     CASCADE;
+DROP TABLE IF EXISTS public.password_reset_log CASCADE;
 DROP TABLE IF EXISTS public.customers CASCADE;
 DROP TABLE IF EXISTS public.sellers   CASCADE;
 DROP TABLE IF EXISTS public.admins    CASCADE;
@@ -84,6 +85,7 @@ CREATE TABLE IF NOT EXISTS public.sellers (
   notification_sms     BOOLEAN       NOT NULL DEFAULT TRUE,
   notification_voice   BOOLEAN       NOT NULL DEFAULT FALSE,
   favorite_product_ids  TEXT[]        NOT NULL DEFAULT '{}',
+  welcome_email_sent    BOOLEAN       NOT NULL DEFAULT FALSE,
   created_at           TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
   updated_at           TIMESTAMPTZ
 );
@@ -99,8 +101,16 @@ CREATE TABLE IF NOT EXISTS public.customers (
   favorite_product_ids TEXT[]        NOT NULL DEFAULT '{}',
   notif_msg_email      BOOLEAN       NOT NULL DEFAULT TRUE,
   notif_status_email   BOOLEAN       NOT NULL DEFAULT TRUE,
+  welcome_email_sent   BOOLEAN       NOT NULL DEFAULT FALSE,
   created_at          TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
   updated_at          TIMESTAMPTZ
+);
+
+-- ── password_reset_log ─────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.password_reset_log (
+  id          UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+  email       TEXT        NOT NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- ── admins ───────────────────────────────────────────────────────────────────
@@ -291,6 +301,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_supermarket_reviews_one_per_seller_per_buy
 CREATE INDEX IF NOT EXISTS idx_chats_participants     ON public.chats USING GIN (participants);
 CREATE INDEX IF NOT EXISTS idx_chats_unread_state     ON public.chats USING GIN (unread_state);
 CREATE INDEX IF NOT EXISTS idx_sellers_is_approved    ON public.sellers (is_approved);
+CREATE INDEX IF NOT EXISTS idx_password_reset_log_email_created_at ON public.password_reset_log (email, created_at DESC);
 
 -- =============================================================================
 -- ROW-LEVEL SECURITY (RLS)
@@ -307,6 +318,7 @@ ALTER TABLE public.profiles              ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reviews               ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.supermarket_reviews   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reports               ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.password_reset_log    ENABLE ROW LEVEL SECURITY;
 
 -- ── Admin helper (SECURITY DEFINER avoids infinite recursion when policies
 --    on other tables query the admins table, which itself has policies) ────────
@@ -417,6 +429,12 @@ CREATE POLICY "Allow public read"       ON public.reports FOR SELECT USING (true
 CREATE POLICY "reports_reporter_insert" ON public.reports FOR INSERT
   WITH CHECK (auth.uid()::TEXT = reporter_id);
 CREATE POLICY "reports_admin_all"       ON public.reports FOR ALL USING (public.is_admin());
+
+-- ── password_reset_log policies ────────────────────────────────────────────────
+CREATE POLICY "password_reset_log_service_role_all" ON public.password_reset_log
+  FOR ALL TO service_role
+  USING (true)
+  WITH CHECK (true);
 
 -- =============================================================================
 -- RPC HELPER FUNCTIONS

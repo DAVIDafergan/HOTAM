@@ -126,8 +126,41 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
         const isEmailVerified = session.user.email_confirmed_at != null;
         const profileConfirmationEmailStorageKey = `hotam_profile_confirmation_email_sent_${session.user.id}`;
         const sendWelcomeEmail = async () => {
-          if (!isEmailVerified || !userEmail || window.localStorage.getItem(profileConfirmationEmailStorageKey)) {
+          if (!isEmailVerified || !userEmail) {
             return false;
+          }
+          if (window.localStorage.getItem(profileConfirmationEmailStorageKey)) {
+            return false;
+          }
+
+          const userRole = typeof session.user.user_metadata?.role === 'string'
+            ? session.user.user_metadata.role
+            : null;
+          const candidateTables: Array<'customers' | 'sellers'> = userRole === 'seller'
+            ? ['sellers', 'customers']
+            : ['customers', 'sellers'];
+          let matchedTable: 'customers' | 'sellers' | null = null;
+
+          for (const tableName of candidateTables) {
+            const { data: customerRow, error } = await client
+              .from(tableName)
+              .select('welcome_email_sent')
+              .eq('id', session.user.id)
+              .maybeSingle();
+
+            if (error) {
+              console.warn('[auth] welcome_email_sent lookup error:', tableName, error);
+              continue;
+            }
+
+            if (customerRow) {
+              matchedTable = tableName;
+              if (customerRow.welcome_email_sent) {
+                window.localStorage.setItem(profileConfirmationEmailStorageKey, '1');
+                return false;
+              }
+              break;
+            }
           }
 
           const subject = 'הפרופיל שלך בחותם אושר בהצלחה';
@@ -192,6 +225,16 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
 
           if (!response.ok) {
             throw new Error(`send-email failed (${response.status})`);
+          }
+
+          if (matchedTable) {
+            const { error: updateError } = await client
+              .from(matchedTable)
+              .update({ welcome_email_sent: true })
+              .eq('id', session.user.id);
+            if (updateError) {
+              console.warn('[auth] welcome_email_sent update error:', matchedTable, updateError);
+            }
           }
 
           window.localStorage.setItem(profileConfirmationEmailStorageKey, '1');

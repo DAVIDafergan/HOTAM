@@ -19,7 +19,9 @@ const nextConfig: NextConfig = {
     serverActionsBodySizeLimit: '10mb',
   },
   images: {
-    unoptimized: true,
+    unoptimized: false,
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 31536000,
     remotePatterns: [
       {
         protocol: 'https',
@@ -42,6 +44,11 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: '**.amazonaws.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+        pathname: '/**',
       },
     ],
   },

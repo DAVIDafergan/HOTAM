@@ -47,7 +47,7 @@ import {
 } from 'lucide-react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useSupabaseClient, useCollection, useMemoStable } from '@/lib/supabase-hooks';
-import { collection, query, where } from '@/lib/supabase-compat';
+import { collection, query, where, limit } from '@/lib/supabase-compat';
 import { ProductCard } from '@/components/ProductCard';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -156,15 +156,15 @@ function SearchContent() {
   const [nearbySortedProducts, setNearbySortedProducts] = useState<any[]>([]);
 
   const productsQuery = useMemoStable(() => {
-    return query(collection(db, 'products'), where('quantity', '>', 0));
+    return query(collection(db, 'products'), where('quantity', '>', 0), limit(200));
   }, [db]);
 
   const { data: allProducts, isLoading } = useCollection<any>(productsQuery);
 
-  const sellersQuery = useMemoStable(() => query(collection(db, 'sellers')), [db]);
+  const sellersQuery = useMemoStable(() => query(collection(db, 'sellers'), limit(500)), [db]);
   const { data: allSellers } = useCollection<any>(sellersQuery);
 
-  const reviewsQuery = useMemoStable(() => query(collection(db, 'reviews')), [db]);
+  const reviewsQuery = useMemoStable(() => query(collection(db, 'reviews'), limit(1000)), [db]);
   const { data: allReviews } = useCollection<any>(reviewsQuery);
 
   useEffect(() => {

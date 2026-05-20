@@ -56,5 +56,5 @@ export async function uploadImageViaApi(
 
   const keyPrefix = options?.uploadContext === 'onboarding' ? 'onboarding' : 'products';
 
-  return uploadImageDirect(file, { authToken, keyPrefix });
+  return uploadImageDirect(file, { authToken, keyPrefix, contentType });
 }

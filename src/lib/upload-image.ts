@@ -4,9 +4,9 @@
  */
 export async function uploadImageDirect(
   file: File,
-  options: { authToken?: string; keyPrefix?: string } = {}
+  options: { authToken?: string; keyPrefix?: string; contentType?: string } = {}
 ): Promise<string> {
-  const { authToken, keyPrefix = 'products' } = options;
+  const { authToken, keyPrefix = 'products', contentType = file.type } = options;
 
   const presignRes = await fetch('/api/upload-image/presign', {
     method: 'POST',
@@ -17,7 +17,7 @@ export async function uploadImageDirect(
     },
     body: JSON.stringify({
       fileName: file.name,
-      contentType: file.type,
+      contentType,
       fileSize: file.size,
       keyPrefix,
     }),
@@ -32,7 +32,7 @@ export async function uploadImageDirect(
 
   const uploadRes = await fetch(presignedUrl, {
     method: 'PUT',
-    headers: { 'Content-Type': file.type },
+    headers: { 'Content-Type': contentType },
     body: file,
   });
 

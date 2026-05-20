@@ -3,6 +3,7 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 const S3_CACHE_CONTROL = 'public, max-age=31536000, immutable';
 const S3_UPLOAD_ERROR_CODE = 'S3_UPLOAD_ERROR';
 const S3_CONFIG_ERROR_CODE = 'S3_CONFIG_ERROR';
+const PUBLIC_IMAGE_BASE_URL = 'https://d2wz99qr883116.cloudfront.net';
 
 type S3EnvConfig = {
   region: string;
@@ -71,6 +72,11 @@ function sanitizeFilename(fileName: string): string {
   return safe || 'file';
 }
 
+export function buildPublicImageUrl(key: string): string {
+  const normalizedKey = key.replace(/^\/+/, '');
+  return `${PUBLIC_IMAGE_BASE_URL}/${normalizedKey}`;
+}
+
 export async function uploadImageToS3(
   fileBuffer: Buffer,
   fileName: string,
@@ -97,5 +103,5 @@ export async function uploadImageToS3(
     throw createS3UploadError('Failed to upload image to S3.');
   }
 
-  return `https://${config.bucket}.s3.${config.region}.amazonaws.com/${s3Key}`;
+  return buildPublicImageUrl(s3Key);
 }

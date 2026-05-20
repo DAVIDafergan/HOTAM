@@ -16,7 +16,9 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   experimental: {
-    serverActionsBodySizeLimit: '10mb',
+    serverActions: {
+      bodySizeLimit: '10mb',
+    },
   },
   images: {
     unoptimized: false,
@@ -44,6 +46,11 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: '**.amazonaws.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'd2wz99qr883116.cloudfront.net',
+        pathname: '/**',
       },
       {
         protocol: 'https',

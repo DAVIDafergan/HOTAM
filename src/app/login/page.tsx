@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ShieldCheck, Loader2, LogIn as LogInIcon, Mail, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, Loader2, LogIn as LogInIcon, Mail, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { 
@@ -29,6 +29,7 @@ import {
 function LoginContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
@@ -127,19 +128,19 @@ function LoginContent() {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       <main className="flex-1 flex items-center justify-center p-4 pt-20 sm:pt-28 pb-8 sm:pb-12">
-        <Card className="w-full max-w-5xl shadow-premium border-none rounded-[2.5rem] overflow-hidden bg-white">
-          <div className="grid md:grid-cols-5 min-h-[500px]">
+        <Card className="w-full max-w-4xl shadow-premium border-none rounded-3xl md:rounded-[2.25rem] overflow-hidden bg-white">
+          <div className="grid md:grid-cols-5 min-h-[440px]">
             {/* Left/Info Side — top on mobile, left panel on desktop */}
-            <div className="order-1 md:col-span-2 bg-primary text-white px-5 py-5 sm:p-8 md:p-10 flex flex-col justify-center text-right relative overflow-hidden">
+            <div className="order-1 md:col-span-2 bg-primary text-white px-5 py-4 sm:p-7 md:p-9 flex flex-col justify-center text-right relative overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl hidden md:block" />
-              <div className="relative z-10 space-y-3 md:space-y-6">
-                <div className="space-y-2 md:space-y-4">
-                  <h1 className="text-2xl md:text-5xl font-headline font-black tracking-tight leading-tight bg-clip-text text-transparent bg-gradient-to-r from-accent via-white to-accent/80">
+              <div className="relative z-10 space-y-3 md:space-y-5">
+                <div className="space-y-2 md:space-y-3">
+                  <h1 className="text-xl sm:text-2xl md:text-4xl font-headline font-black tracking-tight leading-tight bg-clip-text text-transparent bg-gradient-to-r from-accent via-white to-accent/80">
                     ברוכים השבים לחותם
                   </h1>
-                  <p className="text-white/70 font-black text-xs md:text-lg leading-relaxed">זירת המסחר המאובטחת והאיכותית ביותר לכלי קודש וסת"ם מהודרים.</p>
+                  <p className="text-white/75 font-black text-[11px] sm:text-xs md:text-base leading-relaxed">זירת מסחר מאובטחת ונוחה לכלי קודש וסת"ם מהודרים.</p>
                 </div>
-                <div className="flex flex-wrap justify-end gap-x-3 gap-y-1.5 pt-2 border-t border-white/10 md:gap-x-6 md:gap-y-3 md:pt-4">
+                <div className="flex flex-wrap justify-end gap-x-3 gap-y-1.5 pt-2 border-t border-white/10 md:gap-x-5 md:gap-y-2.5 md:pt-4">
                   <div className="flex items-center gap-1.5 md:gap-2 text-[10px] md:text-xs font-black">
                     <span>פיקוח הלכתי קפדני</span>
                     <CheckCircle2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-accent" />
@@ -157,18 +158,18 @@ function LoginContent() {
             </div>
 
             {/* Right/Form Side */}
-            <CardContent className="order-2 md:col-span-3 p-6 sm:p-8 md:p-14 space-y-8 text-right flex flex-col justify-center">
-              <div className="space-y-2">
-                <h2 className="text-2xl md:text-3xl font-black text-primary">כניסה למערכת</h2>
-                <p className="text-muted-foreground text-sm font-black">הזינו את הפרטים כדי להמשיך למלאכת הקודש</p>
+            <CardContent className="order-2 md:col-span-3 p-5 sm:p-7 md:p-10 space-y-6 text-right flex flex-col justify-center">
+              <div className="space-y-1.5">
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-primary">כניסה למערכת</h2>
+                <p className="text-muted-foreground text-xs sm:text-sm font-black">הזינו את הפרטים כדי להמשיך</p>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3.5">
                 <Button 
                   variant="outline" 
                   onClick={handleGoogleLogin}
                   disabled={loading || isUserLoading}
-                  className="w-full rounded-xl h-14 border-muted-foreground/20 font-black gap-3 text-sm uppercase tracking-tight hover:bg-muted/50 transition-all shadow-sm"
+                  className="w-full rounded-xl h-12 sm:h-13 border-muted-foreground/20 font-black gap-3 text-xs sm:text-sm tracking-tight hover:bg-muted/50 transition-all shadow-sm"
                 >
                   <GoogleIcon /> המשך עם חשבון Google
                 </Button>
@@ -179,8 +180,8 @@ function LoginContent() {
                   <div className="flex-1 h-px bg-muted" />
                 </div>
 
-                <form onSubmit={handleLogin} className="space-y-5">
-                  <div className="space-y-4">
+                <form onSubmit={handleLogin} className="space-y-4.5">
+                  <div className="space-y-3.5">
                     <div className="space-y-1.5">
                       <Label htmlFor="email" className="font-black text-[10px] uppercase text-primary/60 tracking-wider">דואר אלקטרוני</Label>
                       <Input 
@@ -189,7 +190,7 @@ function LoginContent() {
                         placeholder="your@email.com" 
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="rounded-xl h-12 text-right border-muted-foreground/20 focus:ring-primary/10 font-bold"
+                        className="rounded-xl h-11 sm:h-12 text-right border-muted-foreground/20 focus:ring-primary/10 font-bold"
                         required 
                       />
                     </div>
@@ -204,31 +205,41 @@ function LoginContent() {
                         </button>
                         <Label htmlFor="password" className="font-black text-[10px] uppercase text-primary/60 tracking-wider">סיסמה</Label>
                       </div>
-                      <Input 
-                        id="password" 
-                        type="password" 
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="rounded-xl h-12 text-right border-muted-foreground/20 focus:ring-primary/10 font-bold" 
-                        required 
-                      />
+                      <div className="relative">
+                        <Input 
+                          id="password" 
+                          type={showPassword ? "text" : "password"}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="rounded-xl h-11 sm:h-12 text-right border-muted-foreground/20 focus:ring-primary/10 font-bold pl-12" 
+                          required 
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword((prev) => !prev)}
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
+                          aria-label={showPassword ? 'הסתר סיסמה' : 'הצג סיסמה'}
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
                     </div>
                   </div>
                   <Button 
                     type="submit" 
                     disabled={loading || isUserLoading}
-                    className="w-full bg-primary hover:bg-primary/90 h-16 text-base font-black uppercase tracking-widest rounded-full shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3"
+                    className="w-full bg-primary hover:bg-primary/90 h-12 sm:h-14 text-sm sm:text-base font-black rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2.5"
                   >
                     {loading || isUserLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>התחברות <LogInIcon size={18} /></>}
                   </Button>
                 </form>
               </div>
 
-              <div className="text-center text-[11px] text-muted-foreground pt-4 space-y-4 border-t border-muted">
+              <div className="text-center text-[11px] text-muted-foreground pt-3 space-y-3.5 border-t border-muted">
                 <p className="font-bold">עדיין לא חברים בקהילה? <Link href="/register" className="text-primary font-black hover:underline uppercase tracking-tight">הצטרפו עכשיו כקונים</Link></p>
-                <div className="p-4 bg-accent/5 rounded-2xl border border-accent/10 flex items-center justify-between">
+                <div className="p-3 bg-accent/5 rounded-xl border border-accent/10 flex items-center justify-between">
                   <Link href="/onboarding/seller" className="text-accent font-black hover:underline uppercase tracking-tight text-[10px]">הגש מועמדות למכירה באתר ←</Link>
-                  <p className="font-black text-primary">הנך סופר סת"ם מוסמך?</p>
+                  <p className="font-black text-primary text-[11px] sm:text-xs">הנך סופר סת"ם מוסמך?</p>
                 </div>
               </div>
             </CardContent>
@@ -238,33 +249,33 @@ function LoginContent() {
 
       {/* Password Reset Dialog */}
       <Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
-        <DialogContent className="max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white" dir="rtl">
-          <div className="bg-primary p-8 text-white text-right">
+        <DialogContent className="max-w-sm sm:max-w-md rounded-3xl sm:rounded-[2.25rem] p-0 overflow-hidden border-none shadow-2xl bg-white" dir="rtl">
+          <div className="bg-primary p-6 sm:p-8 text-white text-right">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-headline font-black flex items-center gap-3">
-                <Mail className="w-6 h-6 text-accent" /> איפוס סיסמה
+              <DialogTitle className="text-xl sm:text-2xl font-headline font-black flex items-center gap-3">
+                <Mail className="w-5 h-5 sm:w-6 sm:h-6 text-accent" /> איפוס סיסמה
               </DialogTitle>
               <DialogDescription className="text-white/60 text-sm mt-1 font-bold">
                 נשלח אליך קישור לאימייל שיאפשר לך לבחור סיסמה חדשה.
               </DialogDescription>
             </DialogHeader>
           </div>
-          <div className="p-8 space-y-6 text-right">
+          <div className="p-5 sm:p-8 space-y-5 text-right">
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase tracking-widest text-primary/60">כתובת אימייל</Label>
               <Input 
                 value={resetEmail} 
                 onChange={(e) => setResetEmail(e.target.value)} 
                 placeholder="your@email.com" 
-                className="h-12 rounded-xl text-right font-bold"
+                className="h-11 sm:h-12 rounded-xl text-right font-bold"
               />
             </div>
           </div>
-          <DialogFooter className="p-6 bg-muted/30 border-t flex gap-3">
-            <Button onClick={handlePasswordReset} disabled={isResetting} className="flex-1 bg-primary text-white h-12 rounded-xl font-black uppercase shadow-lg">
+          <DialogFooter className="p-4 sm:p-6 bg-muted/30 border-t flex gap-3">
+            <Button onClick={handlePasswordReset} disabled={isResetting} className="flex-1 bg-primary text-white h-11 sm:h-12 rounded-xl font-black shadow-lg">
               {isResetting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'שלח קישור לאיפוס'}
             </Button>
-            <Button variant="ghost" onClick={() => setIsResetDialogOpen(false)} className="h-12 rounded-xl font-black">ביטול</Button>
+            <Button variant="outline" onClick={() => setIsResetDialogOpen(false)} className="h-11 sm:h-12 rounded-xl font-black">ביטול</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

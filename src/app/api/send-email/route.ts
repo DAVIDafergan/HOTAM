@@ -19,13 +19,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { to, subject, text, senderName, message, link } = await req.json();
+    const { to, subject, text, senderName, message, link, html: providedHtml } = await req.json();
 
     if (!to || !subject || !text) {
       return NextResponse.json({ error: 'Missing required fields: to, subject, text' }, { status: 400 });
     }
 
-    let html: string | undefined;
+    let html: string | undefined = typeof providedHtml === 'string' ? providedHtml : undefined;
     if (senderName && message) {
       const chatLink = link || 'https://hotam.shop';
       html = `
@@ -85,6 +85,31 @@ export async function POST(req: NextRequest) {
     </div>
   </div>
 `;
+    }
+
+    const isWelcomeEmail = typeof subject === 'string' && subject.includes('אושר בהצלחה');
+    if (isWelcomeEmail) {
+      for (const tableName of ['customers', 'sellers'] as const) {
+        const { data: row } = await serviceClient
+          .from(tableName)
+          .select('welcome_email_sent')
+          .eq('id', authUser.id)
+          .maybeSingle();
+
+        if (row) {
+          if (row.welcome_email_sent) {
+            return NextResponse.json({ message: 'Already sent' });
+          }
+
+          await sendEmail({ to, subject, text, html });
+          await serviceClient
+            .from(tableName)
+            .update({ welcome_email_sent: true })
+            .eq('id', authUser.id);
+
+          return NextResponse.json({ message: 'Email sent' });
+        }
+      }
     }
 
     await sendEmail({ to, subject, text, html });

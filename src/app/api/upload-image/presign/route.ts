@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { createClient } from '@supabase/supabase-js';
+import { buildPublicImageUrl } from '@/lib/s3-upload';
 
 const ALLOWED_TYPES = new Set([
   'image/jpeg',
@@ -68,7 +69,7 @@ export async function POST(req: NextRequest) {
       { expiresIn: 300 }
     );
 
-    const publicUrl = `https://${bucket}.s3.${region}.amazonaws.com/${key}`;
+    const publicUrl = buildPublicImageUrl(key);
 
     return NextResponse.json({ presignedUrl, publicUrl, key });
   } catch (err) {

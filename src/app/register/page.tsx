@@ -236,9 +236,9 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      <main className="flex-1 flex items-center justify-center p-4 pt-20 sm:pt-28 pb-8 sm:pb-12">
-        <Card className="w-full max-w-5xl shadow-premium border-none rounded-[2.5rem] overflow-hidden bg-white">
-          <div className="grid md:grid-cols-5 min-h-[550px]">
+      <main className="flex-1 flex items-center justify-center p-3 sm:p-4 pt-16 sm:pt-24 pb-6 sm:pb-10">
+        <Card className="w-full max-w-4xl shadow-premium border-none rounded-[2.5rem] overflow-hidden bg-white">
+          <div className="grid md:grid-cols-5 md:min-h-[500px]">
             {/* Left/Info Side */}
             <div className="order-2 md:order-1 md:col-span-2 bg-primary text-white p-5 sm:p-8 md:p-10 flex flex-col justify-center text-right relative overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl" />
@@ -263,7 +263,7 @@ export default function RegisterPage() {
             </div>
 
             {/* Right/Form Side */}
-            <CardContent className="order-1 md:order-2 md:col-span-3 p-6 sm:p-8 md:p-14 space-y-6 text-right flex flex-col justify-center">
+            <CardContent className="order-1 md:order-2 md:col-span-3 p-5 sm:p-7 md:p-10 space-y-5 text-right flex flex-col justify-center">
               <div className="space-y-1">
                 <h2 className="text-2xl md:text-3xl font-black text-primary">יצירת חשבון חדש</h2>
                 <p className="text-muted-foreground text-sm font-black">הצטרפו לקהילת חותם עוד היום</p>
@@ -369,7 +369,7 @@ export default function RegisterPage() {
                     <Button 
                       type="submit" 
                       disabled={loading || isUserLoading}
-                      className="w-full bg-primary hover:bg-primary/90 h-16 text-base font-black uppercase tracking-widest rounded-full shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3"
+                      className="w-full bg-primary hover:bg-primary/90 h-14 text-base font-black uppercase tracking-widest rounded-full shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3"
                     >
                       {loading || isUserLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>צרו חשבון עכשיו <Heart size={18} fill="currentColor" /></>}
                     </Button>

@@ -127,9 +127,9 @@ function LoginContent() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      <main className="flex-1 flex items-center justify-center p-4 pt-20 sm:pt-28 pb-8 sm:pb-12">
-        <Card className="w-full max-w-4xl shadow-premium border-none rounded-3xl md:rounded-[2.25rem] overflow-hidden bg-white">
-          <div className="grid md:grid-cols-5 min-h-[440px]">
+      <main className="flex-1 flex items-center justify-center p-3 sm:p-4 pt-16 sm:pt-24 pb-6 sm:pb-10">
+        <Card className="w-full max-w-3xl shadow-premium border-none rounded-3xl md:rounded-[2.25rem] overflow-hidden bg-white">
+          <div className="grid md:grid-cols-5 md:min-h-[410px]">
             {/* Left/Info Side — top on mobile, left panel on desktop */}
             <div className="order-1 md:col-span-2 bg-primary text-white px-5 py-4 sm:p-7 md:p-9 flex flex-col justify-center text-right relative overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl hidden md:block" />
@@ -158,7 +158,7 @@ function LoginContent() {
             </div>
 
             {/* Right/Form Side */}
-            <CardContent className="order-2 md:col-span-3 p-5 sm:p-7 md:p-10 space-y-6 text-right flex flex-col justify-center">
+            <CardContent className="order-2 md:col-span-3 p-4 sm:p-6 md:p-8 space-y-5 text-right flex flex-col justify-center">
               <div className="space-y-1.5">
                 <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-primary">כניסה למערכת</h2>
                 <p className="text-muted-foreground text-xs sm:text-sm font-black">הזינו את הפרטים כדי להמשיך</p>

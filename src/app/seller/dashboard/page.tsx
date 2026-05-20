@@ -86,7 +86,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
-import { loadGoogleMapsPlacesScript } from '@/lib/google-maps';
+import { getCityFromAddressComponents, loadGoogleMapsPlacesScript } from '@/lib/google-maps';
 
 const PRODUCT_SUBTYPES: Record<string, string[]> = {
   'מזוזה': ['קלף', 'קלף + בית'],
@@ -191,6 +191,7 @@ function SellerDashboardContent() {
   }, [chats, user?.uid]);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const sellerCityInputRef = useRef<HTMLInputElement>(null);
   const sellerAddressInputRef = useRef<HTMLInputElement>(null);
   const certInputRef = useRef<HTMLInputElement>(null);
   const writingSamplesInputRef = useRef<HTMLInputElement>(null);
@@ -224,6 +225,7 @@ function SellerDashboardContent() {
   const [formDeliveryType, setFormDeliveryType] = useState('pickup');
   const [formDeliveryFee, setFormDeliveryFee] = useState<string>('');
   const [formDeliveryArea, setFormDeliveryArea] = useState<string[]>(['כל הארץ']);
+  const [formPickupAddress, setFormPickupAddress] = useState('');
   const [citySearch, setCitySearch] = useState('');
 
   const [megRows, setMegRows] = useState('');
@@ -261,6 +263,7 @@ function SellerDashboardContent() {
     first_name: '', 
     last_name: '', 
     phone: '', 
+    city: '',
     address: '', 
     age: '' as string | number,
     profile_image: '', 
@@ -285,6 +288,11 @@ function SellerDashboardContent() {
         first_name: seller.first_name || '',
         last_name: seller.last_name || '',
         phone: seller.phone || '',
+        city:
+          seller.city ||
+          (typeof seller.address === 'string' && seller.address.includes(',')
+            ? seller.address.split(',').pop()?.trim() || ''
+            : ''),
         address: seller.address || '',
         age: seller.age ?? '',
         profile_image: seller.profile_image || '',
@@ -311,23 +319,28 @@ function SellerDashboardContent() {
   }, [seller]);
 
   useEffect(() => {
-    if (!sellerAddressInputRef.current) return;
+    if (!sellerCityInputRef.current) return;
     let autocomplete: any;
     let listener: any;
     let cancelled = false;
 
     loadGoogleMapsPlacesScript()
       .then(() => {
-        if (cancelled || !sellerAddressInputRef.current || !window.google?.maps?.places) return;
-        autocomplete = new window.google.maps.places.Autocomplete(sellerAddressInputRef.current, {
-          types: ['address'],
-          fields: ['formatted_address'],
+        if (cancelled || !sellerCityInputRef.current || !window.google?.maps?.places) return;
+        autocomplete = new window.google.maps.places.Autocomplete(sellerCityInputRef.current, {
+          types: ['(cities)'],
+          fields: ['name', 'formatted_address', 'address_components'],
           componentRestrictions: { country: 'il' },
         });
         listener = autocomplete.addListener('place_changed', () => {
           const place = autocomplete.getPlace();
-          if (place?.formatted_address) {
-            setProfileData((prev) => ({ ...prev, address: place.formatted_address }));
+          const city =
+            getCityFromAddressComponents(place?.address_components) ||
+            place?.name ||
+            place?.formatted_address ||
+            '';
+          if (city) {
+            setProfileData((prev) => ({ ...prev, city }));
           }
         });
       })
@@ -340,6 +353,53 @@ function SellerDashboardContent() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!sellerAddressInputRef.current) return;
+    let autocomplete: any;
+    let listener: any;
+    let cancelled = false;
+
+    loadGoogleMapsPlacesScript()
+      .then(() => {
+        if (cancelled || !sellerAddressInputRef.current || !window.google?.maps?.places) return;
+        autocomplete = new window.google.maps.places.Autocomplete(sellerAddressInputRef.current, {
+          types: ['address'],
+          fields: ['formatted_address', 'address_components'],
+          componentRestrictions: { country: 'il' },
+        });
+        listener = autocomplete.addListener('place_changed', () => {
+          const place = autocomplete.getPlace();
+          if (place?.formatted_address) {
+            setProfileData((prev) => ({ ...prev, address: place.formatted_address }));
+          }
+          const city = getCityFromAddressComponents(place?.address_components);
+          if (city) {
+            setProfileData((prev) => ({ ...prev, city }));
+          }
+        });
+      })
+      .catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+      if (listener && window.google?.maps?.event?.removeListener) {
+        window.google.maps.event.removeListener(listener);
+      }
+    };
+  }, []);
+
+  const sellerDefaultPickupAddress = useMemo(() => {
+    const address = profileData.address || seller?.address || '';
+    const city = profileData.city || seller?.city || '';
+    return [address, city].filter(Boolean).join(', ');
+  }, [profileData.address, profileData.city, seller?.address, seller?.city]);
+
+  useEffect(() => {
+    if ((formDeliveryType === 'pickup' || formDeliveryType === 'both') && !formPickupAddress) {
+      setFormPickupAddress(sellerDefaultPickupAddress);
+    }
+  }, [formDeliveryType, formPickupAddress, sellerDefaultPickupAddress]);
 
   // Apply any pending seller profile that was saved in localStorage during onboarding
   // when email confirmation was required (the full profile couldn't be written to the
@@ -530,6 +590,7 @@ function SellerDashboardContent() {
     setFormDeliveryType(p.delivery_type || 'pickup');
     setFormDeliveryFee(p.delivery_fee ? String(p.delivery_fee) : '');
     setFormDeliveryArea(Array.isArray(p.delivery_area) ? p.delivery_area : [p.delivery_area || 'כל הארץ']);
+    setFormPickupAddress(p.pickup_address || sellerDefaultPickupAddress);
     setFormStep(1);
     
     if (p.product_type === 'מגילה' && p.parchment_size) {
@@ -550,6 +611,7 @@ function SellerDashboardContent() {
     setFormScript(''); setFormQuality(''); setFormPrice(''); setFormImages([]);
     setFormParchmentSize(''); setFormProofreading(''); setFormDeliveryTime('3');
     setFormDeliveryType('pickup'); setFormDeliveryFee(''); setFormDeliveryArea(['כל הארץ']);
+    setFormPickupAddress(sellerDefaultPickupAddress);
     setCitySearch('');
     setMegRows(''); setMegHeight('');
     setFormStep(1);
@@ -586,6 +648,7 @@ function SellerDashboardContent() {
       formQuantity < 1 ||
       !formDeliveryTime ||
       !formDeliveryType ||
+      ((formDeliveryType === 'pickup' || formDeliveryType === 'both') && !formPickupAddress.trim()) ||
       (formDeliveryType !== 'pickup' && formDeliveryArea.length === 0)
     ) {
       toast({ variant: "destructive", title: "שדות חובה חסרים", description: "אנא מלא את כל השדות המסומנים בכוכבית." });
@@ -611,6 +674,7 @@ function SellerDashboardContent() {
       proofreading_level: formProofreading,
       delivery_time: formDeliveryTime,
       delivery_type: formDeliveryType,
+      pickup_address: formDeliveryType === 'shipping' ? '' : formPickupAddress.trim(),
       delivery_fee: formDeliveryType === 'pickup' ? 0 : Number(formDeliveryFee),
       delivery_area: formDeliveryArea,
     };
@@ -1015,7 +1079,10 @@ function SellerDashboardContent() {
                           <div className="space-y-2"><Label>טלפון *</Label><Input value={profileData.phone} onChange={e => setProfileData({...profileData, phone: e.target.value})} className="text-slate-900 rounded-xl h-11" dir="ltr" /></div>
                           <div className="space-y-2"><Label>גיל *</Label><Input type="number" min={0} value={profileData.age === '' ? '' : String(profileData.age)} onChange={e => setProfileData({...profileData, age: e.target.value === '' ? '' : Number(e.target.value)})} className="text-slate-900 rounded-xl h-11" /></div>
                         </div>
-                        <div className="space-y-2"><Label>כתובת מלאה *</Label><Input ref={sellerAddressInputRef} value={profileData.address} onChange={e => setProfileData({...profileData, address: e.target.value})} className="text-slate-900 rounded-xl h-11" /></div>
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div className="space-y-2"><Label>עיר *</Label><Input ref={sellerCityInputRef} value={profileData.city} onChange={e => setProfileData({...profileData, city: e.target.value})} className="text-slate-900 rounded-xl h-11" /></div>
+                          <div className="space-y-2"><Label>כתובת *</Label><Input ref={sellerAddressInputRef} value={profileData.address} onChange={e => setProfileData({...profileData, address: e.target.value})} className="text-slate-900 rounded-xl h-11" /></div>
+                        </div>
                       </div>
 
                       <div className="pt-8 border-t space-y-8">
@@ -1485,8 +1552,8 @@ function SellerDashboardContent() {
                            </button>
                         </RadioGroup>
                         
-                       {(formDeliveryType === 'shipping' || formDeliveryType === 'both') && (
-                           <div className="space-y-4 pt-2 animate-in slide-in-from-top-1">
+                        {(formDeliveryType === 'shipping' || formDeliveryType === 'both') && (
+                            <div className="space-y-4 pt-2 animate-in slide-in-from-top-1">
                              <div className="space-y-1">
                                <Label className="text-[9px] font-black">עלות משלוח (₪)</Label>
                                <Input type="number" value={formDeliveryFee} onChange={e => setFormDeliveryFee(e.target.value)} className="h-10 rounded-xl" />
@@ -1541,9 +1608,20 @@ function SellerDashboardContent() {
                                  }
                                </div>
                              </div>
+                           </div>
+                        )}
+                        {(formDeliveryType === 'pickup' || formDeliveryType === 'both') && (
+                          <div className="space-y-1">
+                            <Label className="text-[9px] font-black">כתובת לאיסוף עצמי *</Label>
+                            <Input
+                              value={formPickupAddress}
+                              onChange={e => setFormPickupAddress(e.target.value)}
+                              placeholder="ברירת מחדל: הכתובת שלך בפרופיל"
+                              className="h-10 rounded-xl text-sm"
+                            />
                           </div>
-                       )}
-                    </div>
+                        )}
+                     </div>
                   </motion.div>
                 )}
 

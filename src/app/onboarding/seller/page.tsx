@@ -42,7 +42,7 @@ import {
   DialogDescription
 } from '@/components/ui/dialog';
 import { cn } from "@/lib/utils";
-import { loadGoogleMapsPlacesScript } from '@/lib/google-maps';
+import { getCityFromAddressComponents, loadGoogleMapsPlacesScript } from '@/lib/google-maps';
 import { uploadImageViaApi } from '@/lib/image-upload';
 
 export default function SellerOnboarding() {
@@ -60,6 +60,7 @@ export default function SellerOnboarding() {
 
   const certInputRef = useRef<HTMLInputElement>(null);
   const samplesInputRef = useRef<HTMLInputElement>(null);
+  const cityInputRef = useRef<HTMLInputElement>(null);
   const addressInputRef = useRef<HTMLInputElement>(null);
 
   const isExistingCustomer = !!user?.uid && user.role === 'customer';
@@ -70,6 +71,7 @@ export default function SellerOnboarding() {
     email: '',
     password: '',
     phone: '',
+    city: '',
     address: '',
     age: '',
     maritalStatus: 'married',
@@ -105,6 +107,42 @@ export default function SellerOnboarding() {
   }, [user?.email, isExistingCustomer]);
 
   useEffect(() => {
+    if (!cityInputRef.current) return;
+    let autocomplete: any;
+    let listener: any;
+    let isCancelled = false;
+
+    loadGoogleMapsPlacesScript()
+      .then(() => {
+        if (isCancelled || !cityInputRef.current || !window.google?.maps?.places) return;
+        autocomplete = new window.google.maps.places.Autocomplete(cityInputRef.current, {
+          types: ['(cities)'],
+          fields: ['name', 'formatted_address', 'address_components'],
+          componentRestrictions: { country: 'il' },
+        });
+        listener = autocomplete.addListener('place_changed', () => {
+          const place = autocomplete.getPlace();
+          const city =
+            getCityFromAddressComponents(place?.address_components) ||
+            place?.name ||
+            place?.formatted_address ||
+            '';
+          if (city) {
+            updateField('city', city);
+          }
+        });
+      })
+      .catch(() => undefined);
+
+    return () => {
+      isCancelled = true;
+      if (listener && window.google?.maps?.event?.removeListener) {
+        window.google.maps.event.removeListener(listener);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     if (!addressInputRef.current) return;
     let autocomplete: any;
     let listener: any;
@@ -115,13 +153,17 @@ export default function SellerOnboarding() {
         if (isCancelled || !addressInputRef.current || !window.google?.maps?.places) return;
         autocomplete = new window.google.maps.places.Autocomplete(addressInputRef.current, {
           types: ['address'],
-          fields: ['formatted_address'],
+          fields: ['formatted_address', 'address_components'],
           componentRestrictions: { country: 'il' },
         });
         listener = autocomplete.addListener('place_changed', () => {
           const place = autocomplete.getPlace();
           if (place?.formatted_address) {
             updateField('address', place.formatted_address);
+          }
+          const city = getCityFromAddressComponents(place?.address_components);
+          if (city) {
+            updateField('city', city);
           }
         });
       })
@@ -184,7 +226,7 @@ export default function SellerOnboarding() {
 
   const validateStep = () => {
     if (step === 1) {
-      if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.address || !formData.age) {
+      if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.city || !formData.address || !formData.age) {
         toast({ variant: "destructive", title: "פרטים חסרים", description: "כל השדות האישיים הם חובה." });
         return false;
       }
@@ -244,6 +286,7 @@ export default function SellerOnboarding() {
         first_name: formData.firstName,
         last_name: formData.lastName,
         phone: formData.phone,
+        city: formData.city,
         address: formData.address,
         age: Number(formData.age),
         marital_status: formData.maritalStatus,
@@ -490,7 +533,10 @@ export default function SellerOnboarding() {
                   <div className="space-y-2"><Label>טלפון *</Label><Input value={formData.phone} onChange={(e) => updateField('phone', e.target.value)} required className="text-slate-900 rounded-xl h-11" /></div>
                   <div className="space-y-2"><Label>גיל *</Label><Input type="number" value={formData.age} onChange={(e) => updateField('age', e.target.value)} required className="text-slate-900 rounded-xl h-11" /></div>
                 </div>
-                <div className="space-y-2"><Label>כתובת מלאה *</Label><Input ref={addressInputRef} value={formData.address} onChange={(e) => updateField('address', e.target.value)} required className="text-slate-900 rounded-xl h-11" /></div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2"><Label>עיר *</Label><Input ref={cityInputRef} value={formData.city} onChange={(e) => updateField('city', e.target.value)} required className="text-slate-900 rounded-xl h-11" /></div>
+                  <div className="space-y-2"><Label>כתובת *</Label><Input ref={addressInputRef} value={formData.address} onChange={(e) => updateField('address', e.target.value)} required className="text-slate-900 rounded-xl h-11" /></div>
+                </div>
               </div>
             )}
 

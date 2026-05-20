@@ -377,8 +377,11 @@ export function ProductDetailsClient({
   const deliveryAreaText = (Array.isArray(product.delivery_area) ? product.delivery_area : [product.delivery_area])
     .filter(Boolean)
     .join(', ');
+  const pickupAddress = typeof product.pickup_address === 'string' ? product.pickup_address.trim() : '';
   const sellerCity =
     product.seller_city ||
+    seller?.city ||
+    (pickupAddress && pickupAddress.includes(',') ? pickupAddress.split(',').pop()?.trim() : '') ||
     (typeof seller?.address === 'string' && seller.address.includes(',')
       ? seller.address.split(',').pop()?.trim()
       : seller?.address) ||
@@ -554,9 +557,14 @@ export function ProductDetailsClient({
                   </div>
                 )}
                 {(normalizedDeliveryType === 'pickup' || normalizedDeliveryType === 'both') && (
-                  <div className="flex items-center justify-end gap-2.5 bg-amber-50/80 rounded-2xl px-4 py-3 border border-amber-100">
-                    <span className="text-sm font-bold text-amber-800">איסוף עצמי מ{sellerCity || 'עיר הסופר'}</span>
-                    <MapPin className="w-4 h-4 text-amber-600 shrink-0" />
+                  <div className="bg-amber-50/80 rounded-2xl px-4 py-3 border border-amber-100 space-y-1">
+                    <div className="flex items-center justify-end gap-2.5">
+                      <span className="text-sm font-bold text-amber-800">איסוף עצמי מ{sellerCity || 'עיר הסופר'}</span>
+                      <MapPin className="w-4 h-4 text-amber-600 shrink-0" />
+                    </div>
+                    {pickupAddress && (
+                      <p className="text-xs text-amber-700 font-bold text-right">{pickupAddress}</p>
+                    )}
                   </div>
                 )}
               </div>
@@ -605,7 +613,7 @@ export function ProductDetailsClient({
                           <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[9px] uppercase px-3 py-1">סופר מאומת</Badge>
                         </div>
                         <p className="text-muted-foreground text-sm font-bold flex items-center justify-center md:justify-end gap-2">
-                          {seller.address} <MapPin className="w-4 h-4 text-accent" />
+                          {sellerCity || 'לא צוין'} <MapPin className="w-4 h-4 text-accent" />
                         </p>
                       </div>
                       <p className="text-base md:text-lg italic leading-relaxed text-primary/70 max-w-2xl mx-auto md:mr-0">

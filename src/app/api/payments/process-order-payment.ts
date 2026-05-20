@@ -140,7 +140,7 @@ export async function markOrderAsPaidAndNotify(orderId: string, paymentProvider:
       sendEmail({
         to: seller.email,
         subject: `🎉 מכירה חדשה! ${productTypeForSellerEmail} — Hotam Shop`,
-        text: `מזל טוב, יש לך מכירה חדשה מסוג ${productTypeForSellerEmail}. פרטי הקונה: ${buyerName}. הכסף יועבר אליך לאחר מסירת המוצר וקבלת קוד האימות מהקונה. לניהול ההזמנה: https://hotam.shop/seller/dashboard`,
+        text: `מזל טוב, יש לך מכירה חדשה מסוג ${productTypeForSellerEmail}. פרטי הקונה נמצאים בדשבורד, בתוך ההזמנה הספציפית. הכסף יועבר אליך לאחר מסירת המוצר וקבלת קוד האימות מהקונה. לניהול ההזמנה: https://hotam.shop/seller/dashboard`,
         html: `
           <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: ${EMAIL_BACKGROUND}; color: ${EMAIL_TEXT_COLOR};">
             <div style="background: ${EMAIL_PRIMARY}; padding: ${EMAIL_SECTION_PADDING}; text-align: center;">
@@ -154,7 +154,7 @@ export async function markOrderAsPaidAndNotify(orderId: string, paymentProvider:
                 קיבלת הזמנה חדשה עבור <strong>${productTypeForSellerEmail}</strong>.
               </p>
               <p style="color: #444; font-size: 16px; line-height: 1.8; margin: 0 0 20px;">
-                פרטי הקונה: <strong>${buyerName}</strong>
+                פרטי הקונה נמצאים בדשבורד, בתוך ההזמנה הספציפית.
               </p>
 
               <div style="background: #fff8e1; border-right: 4px solid #f59e0b; padding: 20px; border-radius: ${EMAIL_CODE_RADIUS}; margin: 20px 0;">

@@ -26,6 +26,7 @@ export interface SupabaseQuery {
   table: string;
   filters: FilterItem[];
   ordering?: { column: string; ascending: boolean };
+  limitCount?: number;
   /** Path string used for error messages */
   path: string;
 }
@@ -157,6 +158,15 @@ export function orderBy(field: string, direction: 'asc' | 'desc' = 'asc'): Query
   };
 }
 
+/** Builds a limit constraint for query() */
+export function limit(n: number): QueryConstraint {
+  return {
+    apply(q: SupabaseQuery) {
+      q.limitCount = n;
+    },
+  };
+}
+
 // ─── collection() / query() / doc() ──────────────────────────────────────────
 
 /**
@@ -275,6 +285,10 @@ export function applyFilters(
 
   if (q.ordering) {
     b = b.order(q.ordering.column, { ascending: q.ordering.ascending });
+  }
+
+  if (q.limitCount) {
+    b = b.limit(q.limitCount);
   }
 
   return b;

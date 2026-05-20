@@ -215,13 +215,13 @@ export function Navbar() {
                       )}
                     </Button>
                   </SheetTrigger>
-                  <SheetContent side="right" className="w-[280px] p-0 border-none bg-white/95 backdrop-blur-2xl h-full shadow-2xl animate-in slide-in-from-right duration-500 overflow-hidden rounded-l-[2.5rem]">
+                  <SheetContent side="right" className="w-[88vw] max-w-[320px] p-0 border-none bg-white/95 backdrop-blur-2xl h-full shadow-2xl animate-in slide-in-from-right duration-500 overflow-hidden rounded-l-[2.5rem]">
                     <SheetHeader className="sr-only">
                       <SheetTitle>תפריט ניווט</SheetTitle>
                       <SheetDescription>גישה מהירה לאיזור אישי, חיפוש ויצירת קשר</SheetDescription>
                     </SheetHeader>
                     <div className="flex flex-col h-full">
-                      <div className="p-6 pb-4 text-right relative border-b border-primary/5 bg-gradient-to-br from-primary/5 to-accent/5">
+                      <div className="p-6 pb-5 text-right relative border-b border-primary/5 bg-gradient-to-br from-primary/5 to-accent/5">
                         <div className="flex justify-between items-center w-full">
                           {user ? (
                             <div className="flex items-center justify-end gap-3 w-full">
@@ -229,11 +229,11 @@ export function Navbar() {
                                 <p className="text-[10px] font-black text-accent uppercase tracking-widest flex items-center justify-end gap-1.5 leading-none">
                                   {greetingIcon} {greeting},
                                 </p>
-                                <p className="text-lg font-headline font-black text-primary tracking-tight truncate max-w-[140px] leading-tight">{displayName}</p>
+                                <p className="text-xl font-headline font-black text-primary tracking-tight truncate max-w-[150px] leading-tight">{displayName}</p>
                               </div>
-                              <Avatar className="h-12 w-12 border-2 border-white shadow-sm shrink-0">
+                              <Avatar className="h-14 w-14 border-2 border-white shadow-md shrink-0">
                                 <AvatarImage src={profile?.profile_image} />
-                                <AvatarFallback className="bg-primary/5 text-primary text-[10px] font-black">{displayName.charAt(0)}</AvatarFallback>
+                                <AvatarFallback className="bg-primary/5 text-primary text-sm font-black">{displayName.charAt(0)}</AvatarFallback>
                               </Avatar>
                             </div>
                           ) : (
@@ -245,12 +245,12 @@ export function Navbar() {
                         </div>
                       </div>
 
-                      <div className="flex-1 flex flex-col p-4 gap-1 text-right overflow-y-auto">
-                        <MobileNavLink href="/" icon={<Home className="w-4 h-4" />} label="דף הבית" onClick={() => setIsOpen(false)} />
-                        <MobileNavLink href="/search?view=all" icon={<ShoppingBag className="w-4 h-4" />} label="כל המוצרים" onClick={() => setIsOpen(false)} />
-                        <MobileNavLink href="/contact" icon={<PhoneCall className="w-4 h-4" />} label="צור קשר" onClick={() => setIsOpen(false)} />
+                      <div className="flex-1 flex flex-col p-4 gap-1.5 text-right overflow-y-auto">
+                        <MobileNavLink href="/" icon={<Home className="w-5 h-5" />} label="דף הבית" onClick={() => setIsOpen(false)} active={pathname === '/'} />
+                        <MobileNavLink href="/search?view=all" icon={<ShoppingBag className="w-5 h-5" />} label="כל המוצרים" onClick={() => setIsOpen(false)} active={pathname === '/search'} />
+                        <MobileNavLink href="/contact" icon={<PhoneCall className="w-5 h-5" />} label="צור קשר" onClick={() => setIsOpen(false)} active={pathname === '/contact'} />
                         
-                        <div className="my-4 border-t border-primary/5 relative">
+                        <div className="my-3 border-t border-primary/5 relative">
                            <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-[7px] font-black text-primary/20 tracking-[0.3em] uppercase">MEMBER</span>
                         </div>
 
@@ -258,24 +258,25 @@ export function Navbar() {
                           <>
                             <MobileNavLink 
                               href={dashboardLink} 
-                              icon={<LayoutDashboard className="w-4 h-4" />} 
+                              icon={<LayoutDashboard className="w-5 h-5" />} 
                               label="איזור אישי" 
                               onClick={() => setIsOpen(false)} 
                               hasBadge={hasUnreadMessages || (isSuperAdmin && adminNotificationCount > 0) || (isSeller && sellerNotificationCount > 0)}
+                              active={pathname === dashboardLink}
                             />
                             <button 
                               onClick={() => { handleLogout(); setIsOpen(false); }}
-                              className="flex items-center justify-end gap-4 p-3 rounded-xl hover:bg-destructive/5 transition-all text-destructive font-black text-[11px] uppercase tracking-wider mt-2 group"
+                              className="flex items-center justify-end gap-4 p-4 rounded-2xl hover:bg-destructive/5 transition-all text-destructive font-black text-sm mt-2 group active:scale-95 min-h-[56px]"
                             >
                               <span className="group-hover:-translate-x-1 transition-transform">התנתקות</span>
-                              <div className="p-2 bg-destructive/10 rounded-lg group-hover:scale-110 transition-transform">
-                                <LogOut className="w-3.5 h-3.5" />
+                              <div className="p-2.5 bg-destructive/10 rounded-xl group-hover:scale-110 transition-transform">
+                                <LogOut className="w-4 h-4" />
                               </div>
                             </button>
                           </>
                         ) : (
-                          <div className="mt-4">
-                            <Button asChild className="w-full bg-primary hover:bg-primary/90 h-12 rounded-xl shadow-lg font-black text-xs uppercase tracking-widest gap-2">
+                          <div className="mt-4 px-1">
+                            <Button asChild className="w-full bg-primary hover:bg-primary/90 h-14 rounded-2xl shadow-lg font-black text-sm uppercase tracking-widest gap-2">
                               <Link href="/login" onClick={() => setIsOpen(false)}>
                                 <LogIn className="w-4 h-4" /> התחברות למערכת 
                               </Link>
@@ -578,15 +579,23 @@ function NavLink({ href, icon, label }: { href: string, icon: any, label: string
   );
 }
 
-function MobileNavLink({ href, icon, label, onClick, hasBadge = false }: { href: string, icon: any, label: string, onClick: () => void, hasBadge?: boolean }) {
+function MobileNavLink({ href, icon, label, onClick, hasBadge = false, active = false }: { href: string, icon: any, label: string, onClick: () => void, hasBadge?: boolean, active?: boolean }) {
   return (
     <Link 
       href={href} 
       onClick={onClick}
-      className="flex items-center justify-end gap-4 p-3 rounded-xl hover:bg-white hover:shadow-sm transition-all text-primary font-black text-[13px] border border-transparent hover:border-primary/5 group active:scale-95 relative"
+      className={cn(
+        "flex items-center justify-end gap-4 px-4 py-3.5 rounded-2xl transition-all font-black text-sm border group active:scale-95 relative min-h-[56px]",
+        active
+          ? "bg-primary/5 border-primary/10 text-primary shadow-sm"
+          : "border-transparent text-primary/70 hover:bg-white hover:border-primary/5 hover:text-primary hover:shadow-sm"
+      )}
     >
-      <span className="group-hover:text-accent transition-colors">{label}</span>
-      <span className="text-accent bg-accent/10 p-2.5 rounded-lg group-hover:scale-110 group-hover:bg-accent/20 transition-all relative">
+      <span className={cn("transition-colors", active ? "text-primary" : "group-hover:text-accent")}>{label}</span>
+      <span className={cn(
+        "p-2.5 rounded-xl transition-all relative shrink-0",
+        active ? "bg-primary text-white shadow-md" : "text-accent bg-accent/10 group-hover:scale-110 group-hover:bg-accent/20"
+      )}>
         {icon}
         {hasBadge && (
           <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-destructive rounded-full border border-white" />

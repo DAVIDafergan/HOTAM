@@ -155,6 +155,10 @@ function SearchContent() {
   const [nearbyDistanceMap, setNearbyDistanceMap] = useState<Record<string, number>>({});
   const [nearbySortedProducts, setNearbySortedProducts] = useState<any[]>([]);
 
+  // Load more
+  const PRODUCTS_PAGE_SIZE = 17;
+  const [visibleCount, setVisibleCount] = useState(PRODUCTS_PAGE_SIZE);
+
   const productsQuery = useMemoStable(() => {
     return query(collection(db, 'products'), where('quantity', '>', 0), limit(200));
   }, [db]);
@@ -480,6 +484,12 @@ function SearchContent() {
     return baseFilteredProducts;
   }, [baseFilteredProducts, detectedCity, exactCityProducts, nearbySortedProducts, preferNearMe]);
 
+  useEffect(() => {
+    setVisibleCount(PRODUCTS_PAGE_SIZE);
+  }, [selectedProduct, subType, scriptType, qualityLevel, quantity, scrollSize,
+      selectedRegion, shippingPreference, sortOrder, certStatus, studyFreq, marriedOnly,
+      mikvehFreq, preferNearMe, detectedCity, priceRange]);
+
   const resetFilters = () => {
     setSelectedProduct(''); setSubType('all'); setScriptType('all'); setQualityLevel('all');
     setQuantity(1); setScrollSize('all'); setSelectedRegion('all'); setUserCoords(null); setDetectedCity(null);
@@ -488,6 +498,7 @@ function SearchContent() {
     resetPriceRange();
     setNearbyDistanceMap({}); setNearbySortedProducts([]);
     setPreferNearMe(false);
+    setVisibleCount(PRODUCTS_PAGE_SIZE);
     setShowResults(isViewingAll);
   };
 
@@ -810,12 +821,12 @@ function SearchContent() {
 
             <div className="container mx-auto px-4 pt-8 pb-20">
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 xl:gap-7">
-                {filteredProducts.map((p, i) => (
+                {filteredProducts.slice(0, visibleCount).map((p, i) => (
                   <motion.div
                     key={p.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.05 }}
+                    transition={{ delay: Math.min(i, 8) * 0.05 }}
                   >
                     <ProductCard product={p} distanceKm={isNearbyFallbackActive ? nearbyDistanceMap[p.id] : undefined} />
                   </motion.div>
@@ -839,6 +850,19 @@ function SearchContent() {
                   </div>
                 )}
               </div>
+
+              {visibleCount < filteredProducts.length && (
+                <div className="flex justify-center mt-10">
+                  <Button
+                    onClick={() => setVisibleCount(prev => prev + PRODUCTS_PAGE_SIZE)}
+                    variant="outline"
+                    className="rounded-full px-12 h-14 border-2 border-primary/10 text-primary font-black text-sm hover:bg-primary hover:text-white transition-all shadow-lg gap-3"
+                  >
+                    <ChevronRight className="w-4 h-4 rotate-[-90deg]" />
+                    טען עוד ({filteredProducts.length - visibleCount} נוספים)
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         )}

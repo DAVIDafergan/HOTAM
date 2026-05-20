@@ -221,6 +221,27 @@ export default function AdminDashboard() {
     ));
   }, [visibleOrders, searchTerm]);
 
+  const filteredReports = useMemo(() => {
+    if (!allReports) return [];
+    if (!searchTerm) return allReports;
+    const term = searchTerm.toLowerCase();
+    return allReports.filter(r =>
+      (r.reporter_name || '').toLowerCase().includes(term) ||
+      (r.seller_name || '').toLowerCase().includes(term) ||
+      (r.id || '').toLowerCase().includes(term) ||
+      (r.reason || '').toLowerCase().includes(term)
+    );
+  }, [allReports, searchTerm]);
+
+  useEffect(() => {
+    setPendingPage(1);
+    setActivePage(1);
+    setCustomersPage(1);
+    setSalesPage(1);
+    setReportsPage(1);
+    setTorahPage(1);
+  }, [searchTerm]);
+
   const handleTabLink = (tab: string, search: string = '') => {
     setActiveTab(tab);
     setSearchTerm(search);
@@ -638,7 +659,7 @@ export default function AdminDashboard() {
 
           <TabsContent value="reports">
             <ReportsTable 
-              reports={allReports} 
+              reports={filteredReports} 
               sellers={allSellers}
               onDelete={deleteReport} 
               onLinkToTab={handleTabLink}

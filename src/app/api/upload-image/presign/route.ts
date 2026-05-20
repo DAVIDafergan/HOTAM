@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
     const s3 = new S3Client({
       region,
       credentials: { accessKeyId, secretAccessKey },
+      requestChecksumCalculation: 'WHEN_REQUIRED',
     });
 
     const sanitized = (fileName || 'file').replace(/[^a-zA-Z0-9._-]/g, '_');

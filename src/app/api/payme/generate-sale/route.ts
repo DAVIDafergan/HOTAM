@@ -4,9 +4,12 @@ import { NextResponse } from 'next/server';
 export async function POST(req: Request) {
   try {
     const { amount, productName, buyerName, buyerEmail, buyerPhone, orderId } = await req.json();
-    
-    // PayMe Seller ID (API Key provided by user)
-    const PAYME_SELLER_ID = "12cd76ac-5ee8-4808-b43c-fb74bfddd9d0";
+
+    const PAYME_SELLER_ID = process.env.PAYME_SELLER_ID;
+    if (!PAYME_SELLER_ID) {
+      console.error('[payme] PAYME_SELLER_ID env var is not set');
+      return NextResponse.json({ error: 'Payment service not configured' }, { status: 500 });
+    }
     
     // Using PayMe NG API endpoint
     const response = await fetch('https://ng.payme.io/api/generate-sale', {

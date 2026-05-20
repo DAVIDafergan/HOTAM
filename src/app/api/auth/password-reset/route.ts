@@ -59,6 +59,24 @@ export async function POST(req: NextRequest) {
     const serviceClient = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
     const baseOrigin = getBaseOrigin();
     const redirectTo = baseOrigin ? `${baseOrigin}/reset-password` : undefined;
+    if (!baseOrigin && process.env.NODE_ENV === 'production') {
+      console.warn('[password-reset] NEXT_PUBLIC_SITE_URL is not set in production; redirectTo is undefined');
+    }
+
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { data: recentReset, error: recentResetError } = await serviceClient
+      .from('password_reset_log')
+      .select('id')
+      .eq('email', normalizedEmail)
+      .gte('created_at', oneHourAgo)
+      .limit(1)
+      .maybeSingle();
+    if (recentResetError) {
+      console.warn('[password-reset] rate-limit lookup failed:', recentResetError);
+    }
+    if (recentReset) {
+      return NextResponse.json({ ok: true });
+    }
 
     const { data, error } = await serviceClient.auth.admin.generateLink({
       type: 'recovery',
@@ -71,15 +89,26 @@ export async function POST(req: NextRequest) {
     }
 
     const actionLink = data?.properties?.action_link;
-    if (actionLink) {
-      const { sendEmail } = await import('@/lib/send-email');
-      const template = getResetEmailTemplate(actionLink);
-      await sendEmail({
-        to: normalizedEmail,
-        subject: template.subject,
-        text: template.text,
-        html: template.html,
-      });
+    if (!actionLink) {
+      console.warn('[password-reset] no actionLink returned for email:', normalizedEmail, '| data:', data);
+      return NextResponse.json({ ok: true });
+    }
+
+    const { sendEmail } = await import('@/lib/send-email');
+    const template = getResetEmailTemplate(actionLink);
+    await sendEmail({
+      to: normalizedEmail,
+      subject: template.subject,
+      text: template.text,
+      html: template.html,
+    });
+    console.info('[password-reset] email sent to:', normalizedEmail);
+
+    const { error: resetLogError } = await serviceClient
+      .from('password_reset_log')
+      .insert({ email: normalizedEmail });
+    if (resetLogError) {
+      console.warn('[password-reset] failed to write reset log:', resetLogError);
     }
 
     return NextResponse.json({ ok: true });

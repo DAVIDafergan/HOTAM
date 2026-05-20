@@ -133,14 +133,14 @@ function LoginContent() {
             {/* Left/Info Side — top on mobile, left panel on desktop */}
             <div className="order-1 md:col-span-2 bg-primary text-white px-5 py-4 sm:p-7 md:p-9 flex flex-col justify-center text-right relative overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl hidden md:block" />
-              <div className="relative z-10 space-y-3 md:space-y-5">
+              <div className="relative z-10 space-y-3 md:space-y-5 text-center sm:text-right">
                 <div className="space-y-2 md:space-y-3">
                   <h1 className="text-xl sm:text-2xl md:text-4xl font-headline font-black tracking-tight leading-tight bg-clip-text text-transparent bg-gradient-to-r from-accent via-white to-accent/80">
                     ברוכים השבים לחותם
                   </h1>
                   <p className="text-white/75 font-black text-[11px] sm:text-xs md:text-base leading-relaxed">זירת מסחר מאובטחת ונוחה לכלי קודש וסת"ם מהודרים.</p>
                 </div>
-                <div className="flex flex-wrap justify-end gap-x-3 gap-y-1.5 pt-2 border-t border-white/10 md:gap-x-5 md:gap-y-2.5 md:pt-4">
+                <div className="flex flex-wrap justify-center sm:justify-end gap-x-3 gap-y-1.5 pt-2 border-t border-white/10 md:gap-x-5 md:gap-y-2.5 md:pt-4">
                   <div className="flex items-center gap-1.5 md:gap-2 text-[10px] md:text-xs font-black">
                     <span>פיקוח הלכתי קפדני</span>
                     <CheckCircle2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-accent" />
@@ -180,7 +180,7 @@ function LoginContent() {
                   <div className="flex-1 h-px bg-muted" />
                 </div>
 
-                <form onSubmit={handleLogin} className="space-y-4.5">
+                <form onSubmit={handleLogin} className="space-y-5">
                   <div className="space-y-3.5">
                     <div className="space-y-1.5">
                       <Label htmlFor="email" className="font-black text-[10px] uppercase text-primary/60 tracking-wider">דואר אלקטרוני</Label>
@@ -238,19 +238,14 @@ function LoginContent() {
                 </form>
               </div>
 
-              <div className="pt-4 border-t border-muted space-y-4">
-                <div className="text-right space-y-1">
-                  <p className="text-sm font-black text-primary">עדיין אין לך חשבון?</p>
-                  <p className="text-xs text-muted-foreground font-bold">בחרו את מסלול ההצטרפות המתאים לכם:</p>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <Button asChild className="h-12 rounded-xl bg-primary hover:bg-primary/90 text-white font-black">
-                    <Link href="/register">הרשמה כקונה</Link>
-                  </Button>
-                  <Button asChild variant="outline" className="h-12 rounded-xl border-accent/40 text-accent hover:bg-accent/10 font-black">
-                    <Link href="/onboarding/seller">הצטרפות כסופר</Link>
-                  </Button>
-                </div>
+              <div className="pt-4 border-t border-muted space-y-3 text-right">
+                <p className="text-sm font-black text-primary">
+                  אין לך חשבון עדיין?{' '}
+                  <Link href="/register" className="text-accent hover:underline font-black">הירשם</Link>
+                </p>
+                <Button asChild variant="outline" className="w-full h-11 rounded-xl border-accent/40 text-accent hover:bg-accent/10 font-black">
+                  <Link href="/onboarding/seller">הרשמה כמוכר</Link>
+                </Button>
               </div>
             </CardContent>
           </div>

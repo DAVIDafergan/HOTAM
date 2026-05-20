@@ -36,7 +36,6 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [isResendingVerification, setIsResendingVerification] = useState(false);
-  const [registerAsSeller, setRegisterAsSeller] = useState(false);
   
   const [termsAccepted, setTermsAccepted] = useState(false);
 
@@ -76,7 +75,7 @@ export default function RegisterPage() {
       // The DB trigger creates the customers row automatically.
       // We pass firstName/lastName and role so the trigger populates the profile correctly.
       const data = await initiateEmailSignUp(auth, email, password, {
-        role: registerAsSeller ? 'seller' : 'customer',
+        role: 'customer',
         first_name: firstName,
         last_name: lastName,
       });
@@ -137,7 +136,7 @@ export default function RegisterPage() {
         JSON.stringify({
           first_name: trimmedFirstName,
           last_name: trimmedLastName,
-          role: registerAsSeller ? 'seller' : 'customer',
+          role: 'customer',
         }),
       );
     }
@@ -287,41 +286,6 @@ export default function RegisterPage() {
                 </div>
 
                 <form onSubmit={handleRegister} className="space-y-4">
-                  <div className="space-y-2.5">
-                    <Label className="font-black text-[10px] uppercase text-primary/60 tracking-wider">סוג החשבון</Label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      <button
-                        type="button"
-                        onClick={() => setRegisterAsSeller(false)}
-                        className={`h-11 rounded-xl border text-sm font-black transition-colors ${
-                          !registerAsSeller
-                            ? 'bg-primary text-white border-primary'
-                            : 'bg-white text-primary border-primary/15 hover:border-primary/40'
-                        }`}
-                        aria-pressed={!registerAsSeller}
-                      >
-                        הרשמה כקונה
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setRegisterAsSeller(true)}
-                        className={`h-11 rounded-xl border text-sm font-black transition-colors ${
-                          registerAsSeller
-                            ? 'bg-accent text-primary border-accent'
-                            : 'bg-white text-primary border-primary/15 hover:border-primary/40'
-                        }`}
-                        aria-pressed={registerAsSeller}
-                      >
-                        הצטרפות כסופר
-                      </button>
-                    </div>
-                    <p className="text-[11px] text-muted-foreground font-bold">
-                      {registerAsSeller
-                        ? 'נפלא, נוביל אותך למסלול המתאים לסופרי סת"ם לאחר ההרשמה.'
-                        : 'מתאים לרוכשים המעוניינים להזמין כלי קודש בצורה בטוחה ונוחה.'}
-                    </p>
-                  </div>
-
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <Label htmlFor="firstName" className="font-black text-[10px] uppercase text-primary/60 tracking-wider">שם פרטי</Label>

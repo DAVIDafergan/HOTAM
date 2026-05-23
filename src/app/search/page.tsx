@@ -484,6 +484,36 @@ function SearchContent() {
     return baseFilteredProducts;
   }, [baseFilteredProducts, detectedCity, exactCityProducts, nearbySortedProducts, preferNearMe]);
 
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (selectedProduct) count += 1;
+    if (scriptType !== 'all') count += 1;
+    if (scrollSize !== 'all') count += 1;
+    if (selectedRegion !== 'all') count += 1;
+    if (shippingPreference !== 'all') count += 1;
+    if (certStatus) count += 1;
+    if (studyFreq) count += 1;
+    if (mikvehFreq) count += 1;
+    if (marriedOnly) count += 1;
+    if (preferNearMe) count += 1;
+    if (sortOrder !== 'newest') count += 1;
+    if (priceRange !== null) count += 1;
+    return count;
+  }, [
+    certStatus,
+    marriedOnly,
+    mikvehFreq,
+    preferNearMe,
+    priceRange,
+    scriptType,
+    scrollSize,
+    selectedProduct,
+    selectedRegion,
+    shippingPreference,
+    sortOrder,
+    studyFreq,
+  ]);
+
   useEffect(() => {
     setVisibleCount(PRODUCTS_PAGE_SIZE);
   }, [selectedProduct, subType, scriptType, qualityLevel, quantity, scrollSize,
@@ -753,9 +783,15 @@ function SearchContent() {
                 <div className="relative w-full">
                   <div className="w-full overflow-x-auto pb-2 -mb-2 no-scrollbar">
                     <div className="flex items-center gap-2 md:gap-3 min-w-max px-1">
-                      <Button onClick={() => setIsFilterPanelOpen(true)} className="rounded-full h-10 px-4 text-[11px] font-black border border-primary/10 bg-white text-primary hover:bg-primary hover:text-white active:scale-95 transition-all duration-200 shadow-sm group">
-                        <SlidersHorizontal className="ml-2 h-4 w-4 text-accent transition-colors group-hover:text-white" />
-                        סינון מותאם
+                      <Button onClick={() => setIsFilterPanelOpen(true)} className="h-9 rounded-xl border border-primary/10 bg-white px-3 text-[11px] font-black text-primary shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-md active:scale-95 group">
+                        <SlidersHorizontal className="ml-1.5 h-3.5 w-3.5 text-accent transition-transform duration-300 group-hover:rotate-6" />
+                        <span>סינון</span>
+                        {activeFiltersCount > 0 && (
+                          <span className="mr-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] text-white">
+                            {activeFiltersCount}
+                          </span>
+                        )}
+                        <span className="mr-1 text-[10px] text-primary/50">פתח</span>
                       </Button>
                       <div className="flex items-center rounded-full border border-primary/10 bg-white p-1 shadow-sm">
                         <ToolbarChoiceButton active={shippingPreference === 'all'} onClick={() => setShippingPreference('all')}>

@@ -42,8 +42,8 @@ const steps = [
       icon: (
         <div className="relative">
           <motion.div
-            animate={{ rotate: [-6, 6, -6], y: [0, -3, 0] }}
-            transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+            animate={{ rotate: [-2, 2, -2], y: [0, -1.5, 0] }}
+            transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
           >
             <PenTool className="w-12 h-12 text-accent" />
           </motion.div>
@@ -60,8 +60,8 @@ const steps = [
       icon: (
         <div className="relative">
           <motion.div
-            animate={{ x: [0, 4, -4, 0], y: [0, -2, 2, 0], scale: [1, 1.04, 1] }}
-            transition={{ repeat: Infinity, duration: 4.5, ease: "easeInOut" }}
+            animate={{ x: [0, 2, 0, -2, 0], y: [0, -1, 0], scale: [1, 1.02, 1] }}
+            transition={{ repeat: Infinity, duration: 6.5, ease: "easeInOut" }}
           >
             <Search className="w-12 h-12 text-accent" />
           </motion.div>
@@ -117,7 +117,7 @@ export function WorkFlow() {
               initial={{ width: "0%" }}
               whileInView={{ width: "100%" }}
               viewport={{ once: true }}
-              transition={{ duration: 1.5, ease: "easeInOut" }}
+              transition={{ duration: 2, ease: "easeInOut" }}
               className="h-full bg-accent shadow-[0_0_10px_rgba(212,175,55,0.5)]"
             />
           </div>
@@ -128,7 +128,7 @@ export function WorkFlow() {
               initial={{ height: "0%" }}
               whileInView={{ height: "100%" }}
               viewport={{ once: true }}
-              transition={{ duration: 1.5, ease: "easeInOut" }}
+              transition={{ duration: 2, ease: "easeInOut" }}
               className="w-full bg-accent shadow-[0_0_10px_rgba(212,175,55,0.5)]"
             />
           </div>
@@ -140,14 +140,15 @@ export function WorkFlow() {
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: index * 0.2 }}
-                whileHover={{ y: -8 }}
+                transition={{ delay: index * 0.15, duration: 0.45, ease: 'easeOut' }}
+                whileHover={{ y: -4 }}
                 className="flex flex-col items-center md:items-center text-center md:text-center space-y-6 relative"
               >
                 {/* Icon Container */}
                 <div className="relative">
                   <motion.div 
-                    whileHover={{ scale: 1.1 }}
+                    whileHover={{ scale: 1.05 }}
+                    transition={{ type: 'spring', stiffness: 260, damping: 20 }}
                     className="w-20 h-20 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full flex items-center justify-center shadow-premium relative z-10"
                   >
                     {step.animation.icon}

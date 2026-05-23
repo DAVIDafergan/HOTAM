@@ -82,7 +82,6 @@ export function HeroAnimation() {
     setSelectedProduct(type);
     // Reset subType when the new product has no subtypes to avoid stale filter
     if (getSubTypesForProduct(type).length === 0) setSubType('all');
-    setStep(2);
   };
 
   const detectLocation = () => {
@@ -270,25 +269,43 @@ export function HeroAnimation() {
                 <motion.div key="step1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-5 md:space-y-8">
                   <div className="flex flex-col items-center gap-4">
                     <h2 className="text-xl md:text-2xl font-headline font-black text-primary">מה אתם מחפשים?</h2>
-                    {/* Quantity selector */}
-                    <div className="flex items-center gap-3 bg-primary/5 p-2 rounded-2xl border border-primary/10 shadow-sm">
-                      <button type="button" onClick={() => setQuantity(Math.max(1, quantity - 1))} aria-label="הפחת כמות" className="w-10 h-10 rounded-xl border-2 border-primary/15 font-bold hover:bg-white active:scale-90 transition-all text-primary flex items-center justify-center text-lg bg-white shadow-sm">−</button>
-                      <div className="flex items-center gap-2 px-4">
-                        <span className="text-2xl font-black text-primary tabular-nums leading-none">{quantity}</span>
-                        <span className="text-[10px] font-black text-primary/60 uppercase tracking-tight">יח'</span>
-                      </div>
-                      <button type="button" onClick={() => setQuantity(quantity + 1)} aria-label="הוסף כמות" className="w-10 h-10 rounded-xl border-2 border-primary/15 font-bold hover:bg-white active:scale-90 transition-all text-primary flex items-center justify-center text-lg bg-white shadow-sm">+</button>
-                    </div>
                   </div>
 
                   {/* Category cards */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 md:gap-4">
-                    <CategoryCard icon={<Scroll />} label="מזוזה" onClick={() => handleCategorySelect('מזוזה')} color="indigo" />
-                    <CategoryCard icon={<Package />} label="תפילין" onClick={() => handleCategorySelect('תפילין')} color="blue" />
-                    <CategoryCard icon={<Crown />} label="מגילה" onClick={() => handleCategorySelect('מגילה')} color="amber" />
-                    <CategoryCard icon={<BookOpen />} label="ספר תורה" onClick={() => handleCategorySelect('ספר תורה')} color="emerald" />
-                    <CategoryCard icon={<Palette />} label="יודאיקה" onClick={() => handleCategorySelect('מוצרי יודאיקה שונים')} color="purple" />
+                    <CategoryCard icon={<Scroll />} label="מזוזה" onClick={() => handleCategorySelect('מזוזה')} color="indigo" active={selectedProduct === 'מזוזה'} />
+                    <CategoryCard icon={<Package />} label="תפילין" onClick={() => handleCategorySelect('תפילין')} color="blue" active={selectedProduct === 'תפילין'} />
+                    <CategoryCard icon={<Crown />} label="מגילה" onClick={() => handleCategorySelect('מגילה')} color="amber" active={selectedProduct === 'מגילה'} />
+                    <CategoryCard icon={<BookOpen />} label="ספר תורה" onClick={() => handleCategorySelect('ספר תורה')} color="emerald" active={selectedProduct === 'ספר תורה'} />
+                    <CategoryCard icon={<Palette />} label="יודאיקה" onClick={() => handleCategorySelect('מוצרי יודאיקה שונים')} color="purple" active={selectedProduct === 'מוצרי יודאיקה שונים'} />
                   </div>
+
+                  <AnimatePresence>
+                    {selectedProduct && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 16, scale: 0.96 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ type: "spring", stiffness: 260, damping: 22 }}
+                        className="flex flex-col items-center gap-4 pt-2"
+                      >
+                        <p className="text-[11px] md:text-xs font-black text-primary/60 uppercase tracking-widest">
+                          בחרת: {selectedProduct}
+                        </p>
+                        <div className="flex items-center gap-3 bg-primary/5 p-2 rounded-2xl border border-primary/10 shadow-sm">
+                          <button type="button" onClick={() => setQuantity(Math.max(1, quantity - 1))} aria-label="הפחת כמות" className="w-10 h-10 rounded-xl border-2 border-primary/15 font-bold hover:bg-white active:scale-90 transition-all text-primary flex items-center justify-center text-lg bg-white shadow-sm">−</button>
+                          <div className="flex items-center gap-2 px-4">
+                            <span className="text-2xl font-black text-primary tabular-nums leading-none">{quantity}</span>
+                            <span className="text-[10px] font-black text-primary/60 uppercase tracking-tight">יח'</span>
+                          </div>
+                          <button type="button" onClick={() => setQuantity(quantity + 1)} aria-label="הוסף כמות" className="w-10 h-10 rounded-xl border-2 border-primary/15 font-bold hover:bg-white active:scale-90 transition-all text-primary flex items-center justify-center text-lg bg-white shadow-sm">+</button>
+                        </div>
+                        <Button onClick={() => setStep(2)} className="bg-primary text-white hover:bg-primary/90 rounded-full px-10 h-12 font-black uppercase text-xs tracking-[0.2em] shadow-xl transition-all hover:scale-105 active:scale-95 group gap-2">
+                          המשך למפרט <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                        </Button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
                   <div className="flex justify-center pt-2">
                     <Button
@@ -523,9 +540,10 @@ interface CategoryCardProps {
   label: string;
   onClick: () => void;
   color?: 'indigo' | 'blue' | 'amber' | 'emerald' | 'purple' | 'primary';
+  active?: boolean;
 }
 
-function CategoryCard({ icon, label, onClick, color = 'primary' }: CategoryCardProps) {
+function CategoryCard({ icon, label, onClick, color = 'primary', active = false }: CategoryCardProps) {
   const colorMap: Record<string, { bg: string; hover: string; text: string }> = {
     indigo:  { bg: 'bg-indigo-50',  hover: 'group-hover:bg-indigo-500',  text: 'group-hover:text-indigo-600' },
     blue:    { bg: 'bg-blue-50',    hover: 'group-hover:bg-blue-500',    text: 'group-hover:text-blue-600' },
@@ -540,7 +558,10 @@ function CategoryCard({ icon, label, onClick, color = 'primary' }: CategoryCardP
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="group flex flex-col items-center gap-2.5 md:gap-3 p-4 md:p-5 rounded-3xl bg-white border-2 border-transparent shadow-sm hover:shadow-xl hover:border-primary/10 hover:-translate-y-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 transition-all duration-300 w-full"
+      className={cn(
+        "group flex flex-col items-center gap-2.5 md:gap-3 p-4 md:p-5 rounded-3xl bg-white border-2 shadow-sm hover:shadow-xl hover:-translate-y-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 transition-all duration-300 w-full",
+        active ? "border-primary/35 ring-2 ring-accent/25 shadow-lg" : "border-transparent hover:border-primary/10"
+      )}
     >
       <div className={cn(
         "w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center text-primary transition-all duration-300 group-hover:text-white group-hover:scale-110",

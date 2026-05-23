@@ -3,6 +3,23 @@ import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   try {
+    const authHeader = req.headers.get('Authorization');
+    const token = authHeader?.replace('Bearer ', '');
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { createClient } = await import('@supabase/supabase-js');
+    const serviceClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } }
+    );
+    const { data: { user }, error: authError } = await serviceClient.auth.getUser(token);
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { amount, productName, buyerName, buyerEmail, buyerPhone, orderId } = await req.json();
 
     const PAYME_SELLER_ID = process.env.PAYME_SELLER_ID;

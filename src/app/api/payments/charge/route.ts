@@ -139,6 +139,12 @@ function isSuccessfulCharge(payload: any) {
 
 export async function POST(req: Request) {
   try {
+    const authHeader = req.headers.get('Authorization');
+    const bearerToken = authHeader?.replace('Bearer ', '');
+    if (!bearerToken) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = (await req.json()) as ChargeRequestBody;
     const token = body?.token || body?.['og-token'];
     const cartData = body?.cartData || {};
@@ -159,14 +165,23 @@ export async function POST(req: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
       { auth: { persistSession: false } }
     );
+
+    const { data: { user: authUser }, error: authError } = await serviceClient.auth.getUser(bearerToken);
+    if (authError || !authUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { data: orderRow, error: orderFetchError } = await serviceClient
       .from('orders')
-      .select('amount, status')
+      .select('amount, status, buyer_id')
       .eq('id', orderId)
       .single();
 
     if (orderFetchError || !orderRow) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
+    if (orderRow.buyer_id && orderRow.buyer_id !== authUser.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     if (orderRow.status !== 'pending_payment') {
       return NextResponse.json({ error: 'Order already processed' }, { status: 400 });

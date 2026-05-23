@@ -87,7 +87,10 @@ export async function POST(req: NextRequest) {
 `;
     }
 
-    const isWelcomeEmail = typeof subject === 'string' && subject.includes('אושר בהצלחה');
+    const isWelcomeEmail = typeof subject === 'string' && (
+      subject.includes('אושר בהצלחה') ||
+      subject.includes('באתר חותם אושר')
+    );
     if (isWelcomeEmail) {
       for (const tableName of ['customers', 'sellers'] as const) {
         const { data: row } = await serviceClient

@@ -352,17 +352,34 @@ CREATE POLICY "sellers_own_insert" ON public.sellers FOR INSERT WITH CHECK (auth
 CREATE POLICY "sellers_own_update" ON public.sellers
   FOR UPDATE
   USING (auth.uid() = id OR public.is_admin())
-  WITH CHECK (auth.uid() = id OR public.is_admin());
+  WITH CHECK (
+    public.is_admin()
+    OR (
+      auth.uid() = id
+      AND email = (SELECT s.email FROM public.sellers s WHERE s.id = sellers.id)
+      AND is_approved = (SELECT s.is_approved FROM public.sellers s WHERE s.id = sellers.id)
+      AND sales_count = (SELECT s.sales_count FROM public.sellers s WHERE s.id = sellers.id)
+      AND welcome_email_sent = (SELECT s.welcome_email_sent FROM public.sellers s WHERE s.id = sellers.id)
+      AND created_at = (SELECT s.created_at FROM public.sellers s WHERE s.id = sellers.id)
+    )
+  );
 CREATE POLICY "sellers_admin_all"  ON public.sellers FOR ALL USING (public.is_admin());
 
 -- ── customers policies ────────────────────────────────────────────────────────
-CREATE POLICY "Allow public read"   ON public.customers FOR SELECT USING (true);
+CREATE POLICY "customers_authenticated_read" ON public.customers FOR SELECT USING (auth.uid() IS NOT NULL);
 CREATE POLICY "customers_own_insert" ON public.customers FOR INSERT WITH CHECK (auth.uid() = id);
-CREATE POLICY "customers_own_update" ON public.customers FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "customers_own_update" ON public.customers FOR UPDATE
+  USING (auth.uid() = id)
+  WITH CHECK (
+    auth.uid() = id
+    AND email = (SELECT c.email FROM public.customers c WHERE c.id = customers.id)
+    AND welcome_email_sent = (SELECT c.welcome_email_sent FROM public.customers c WHERE c.id = customers.id)
+    AND created_at = (SELECT c.created_at FROM public.customers c WHERE c.id = customers.id)
+  );
 CREATE POLICY "customers_admin_all"  ON public.customers FOR ALL USING (public.is_admin());
 
 -- ── admins policies ───────────────────────────────────────────────────────────
-CREATE POLICY "Allow public read"  ON public.admins FOR SELECT USING (true);
+CREATE POLICY "admins_admin_read"  ON public.admins FOR SELECT USING (public.is_admin());
 CREATE POLICY "admins_own_write"   ON public.admins FOR ALL USING (public.is_admin());
 
 -- ── products policies ─────────────────────────────────────────────────────────
@@ -380,12 +397,60 @@ CREATE POLICY "orders_parties_read"   ON public.orders FOR SELECT
   USING (auth.uid()::TEXT = buyer_id OR auth.uid()::TEXT = seller_id OR public.is_admin());
 CREATE POLICY "orders_buyer_insert"   ON public.orders FOR INSERT
   WITH CHECK (auth.uid()::TEXT = buyer_id);
-CREATE POLICY "orders_parties_update" ON public.orders FOR UPDATE
-  USING (auth.uid()::TEXT = buyer_id OR auth.uid()::TEXT = seller_id);
+CREATE POLICY "orders_buyer_update_delivery" ON public.orders FOR UPDATE
+  USING (auth.uid()::TEXT = buyer_id)
+  WITH CHECK (
+    auth.uid()::TEXT = buyer_id
+    AND buyer_id = (SELECT o.buyer_id FROM public.orders o WHERE o.id = orders.id)
+    AND seller_id = (SELECT o.seller_id FROM public.orders o WHERE o.id = orders.id)
+    AND product_id = (SELECT o.product_id FROM public.orders o WHERE o.id = orders.id)
+    AND product_name = (SELECT o.product_name FROM public.orders o WHERE o.id = orders.id)
+    AND product_image IS NOT DISTINCT FROM (SELECT o.product_image FROM public.orders o WHERE o.id = orders.id)
+    AND amount = (SELECT o.amount FROM public.orders o WHERE o.id = orders.id)
+    AND status = (SELECT o.status FROM public.orders o WHERE o.id = orders.id)
+    AND verification_code IS NOT DISTINCT FROM (SELECT o.verification_code FROM public.orders o WHERE o.id = orders.id)
+    AND is_rated = (SELECT o.is_rated FROM public.orders o WHERE o.id = orders.id)
+    AND seller_net IS NOT DISTINCT FROM (SELECT o.seller_net FROM public.orders o WHERE o.id = orders.id)
+    AND platform_fee IS NOT DISTINCT FROM (SELECT o.platform_fee FROM public.orders o WHERE o.id = orders.id)
+    AND completed_at IS NOT DISTINCT FROM (SELECT o.completed_at FROM public.orders o WHERE o.id = orders.id)
+    AND verified_by_seller = (SELECT o.verified_by_seller FROM public.orders o WHERE o.id = orders.id)
+    AND is_seen_by_seller = (SELECT o.is_seen_by_seller FROM public.orders o WHERE o.id = orders.id)
+    AND paid_at IS NOT DISTINCT FROM (SELECT o.paid_at FROM public.orders o WHERE o.id = orders.id)
+    AND invoice_generated = (SELECT o.invoice_generated FROM public.orders o WHERE o.id = orders.id)
+    AND payment_provider IS NOT DISTINCT FROM (SELECT o.payment_provider FROM public.orders o WHERE o.id = orders.id)
+    AND created_at = (SELECT o.created_at FROM public.orders o WHERE o.id = orders.id)
+  );
+CREATE POLICY "orders_seller_update_flags" ON public.orders FOR UPDATE
+  USING (auth.uid()::TEXT = seller_id)
+  WITH CHECK (
+    auth.uid()::TEXT = seller_id
+    AND buyer_id = (SELECT o.buyer_id FROM public.orders o WHERE o.id = orders.id)
+    AND seller_id = (SELECT o.seller_id FROM public.orders o WHERE o.id = orders.id)
+    AND product_id = (SELECT o.product_id FROM public.orders o WHERE o.id = orders.id)
+    AND product_name = (SELECT o.product_name FROM public.orders o WHERE o.id = orders.id)
+    AND product_image IS NOT DISTINCT FROM (SELECT o.product_image FROM public.orders o WHERE o.id = orders.id)
+    AND amount = (SELECT o.amount FROM public.orders o WHERE o.id = orders.id)
+    AND status = (SELECT o.status FROM public.orders o WHERE o.id = orders.id)
+    AND delivery_method IS NOT DISTINCT FROM (SELECT o.delivery_method FROM public.orders o WHERE o.id = orders.id)
+    AND verification_code IS NOT DISTINCT FROM (SELECT o.verification_code FROM public.orders o WHERE o.id = orders.id)
+    AND is_rated = (SELECT o.is_rated FROM public.orders o WHERE o.id = orders.id)
+    AND seller_net IS NOT DISTINCT FROM (SELECT o.seller_net FROM public.orders o WHERE o.id = orders.id)
+    AND platform_fee IS NOT DISTINCT FROM (SELECT o.platform_fee FROM public.orders o WHERE o.id = orders.id)
+    AND completed_at IS NOT DISTINCT FROM (SELECT o.completed_at FROM public.orders o WHERE o.id = orders.id)
+    AND buyer_name IS NOT DISTINCT FROM (SELECT o.buyer_name FROM public.orders o WHERE o.id = orders.id)
+    AND buyer_phone IS NOT DISTINCT FROM (SELECT o.buyer_phone FROM public.orders o WHERE o.id = orders.id)
+    AND buyer_email IS NOT DISTINCT FROM (SELECT o.buyer_email FROM public.orders o WHERE o.id = orders.id)
+    AND buyer_address IS NOT DISTINCT FROM (SELECT o.buyer_address FROM public.orders o WHERE o.id = orders.id)
+    AND paid_at IS NOT DISTINCT FROM (SELECT o.paid_at FROM public.orders o WHERE o.id = orders.id)
+    AND invoice_generated = (SELECT o.invoice_generated FROM public.orders o WHERE o.id = orders.id)
+    AND payment_provider IS NOT DISTINCT FROM (SELECT o.payment_provider FROM public.orders o WHERE o.id = orders.id)
+    AND created_at = (SELECT o.created_at FROM public.orders o WHERE o.id = orders.id)
+  );
 CREATE POLICY "orders_admin_all"      ON public.orders FOR ALL USING (public.is_admin());
 
 -- ── chats policies ────────────────────────────────────────────────────────────
-CREATE POLICY "Allow public read"        ON public.chats FOR SELECT USING (true);
+CREATE POLICY "chats_participant_read"   ON public.chats FOR SELECT
+  USING (auth.uid()::TEXT = ANY(participants) OR public.is_admin());
 CREATE POLICY "chats_participant_insert" ON public.chats FOR INSERT
   WITH CHECK (auth.uid()::TEXT = ANY(participants));
 CREATE POLICY "chats_participant_update" ON public.chats FOR UPDATE
@@ -393,7 +458,16 @@ CREATE POLICY "chats_participant_update" ON public.chats FOR UPDATE
 CREATE POLICY "chats_admin_all"          ON public.chats FOR ALL USING (public.is_admin());
 
 -- ── messages policies ─────────────────────────────────────────────────────────
-CREATE POLICY "Allow public read"           ON public.messages FOR SELECT USING (true);
+CREATE POLICY "messages_participant_read" ON public.messages FOR SELECT
+  USING (
+    public.is_admin()
+    OR EXISTS (
+      SELECT 1
+      FROM public.chats
+      WHERE chats.id = messages.chat_id
+        AND auth.uid()::TEXT = ANY(chats.participants)
+    )
+  );
 CREATE POLICY "messages_participant_insert" ON public.messages FOR INSERT
   WITH CHECK (
     auth.uid()::TEXT = sender_id
@@ -468,10 +542,23 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 BEGIN
-  EXECUTE format(
-    'UPDATE public.%I SET %I = COALESCE(%I, 0) + $1 WHERE id::text = $2',
-    table_name, col_name, col_name
-  ) USING delta, row_id;
+  IF table_name = 'products' AND col_name = 'quantity' THEN
+    UPDATE public.products
+    SET quantity = COALESCE(quantity, 0) + delta
+    WHERE id::TEXT = row_id
+      AND seller_id = auth.uid();
+    RETURN;
+  END IF;
+
+  IF table_name = 'sellers' AND col_name = 'sales_count' THEN
+    UPDATE public.sellers
+    SET sales_count = COALESCE(sales_count, 0) + delta
+    WHERE id::TEXT = row_id
+      AND id = auth.uid();
+    RETURN;
+  END IF;
+
+  RAISE EXCEPTION 'safe_increment does not allow %.%', table_name, col_name;
 END;
 $$;
 
@@ -487,12 +574,25 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 BEGIN
-  EXECUTE format(
-    'UPDATE public.%I
-     SET %I = array_append(%I, $1)
-     WHERE id::text = $2 AND NOT ($1 = ANY(COALESCE(%I, ARRAY[]::TEXT[])))',
-    table_name, col_name, col_name, col_name
-  ) USING element, row_id;
+  IF table_name = 'customers' AND col_name = 'favorite_product_ids' THEN
+    UPDATE public.customers
+    SET favorite_product_ids = array_append(favorite_product_ids, element)
+    WHERE id::TEXT = row_id
+      AND id = auth.uid()
+      AND NOT (element = ANY(COALESCE(favorite_product_ids, ARRAY[]::TEXT[])));
+    RETURN;
+  END IF;
+
+  IF table_name = 'sellers' AND col_name = 'favorite_product_ids' THEN
+    UPDATE public.sellers
+    SET favorite_product_ids = array_append(favorite_product_ids, element)
+    WHERE id::TEXT = row_id
+      AND id = auth.uid()
+      AND NOT (element = ANY(COALESCE(favorite_product_ids, ARRAY[]::TEXT[])));
+    RETURN;
+  END IF;
+
+  RAISE EXCEPTION 'array_union_elem does not allow %.%', table_name, col_name;
 END;
 $$;
 
@@ -508,10 +608,23 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 BEGIN
-  EXECUTE format(
-    'UPDATE public.%I SET %I = array_remove(%I, $1) WHERE id::text = $2',
-    table_name, col_name, col_name
-  ) USING element, row_id;
+  IF table_name = 'customers' AND col_name = 'favorite_product_ids' THEN
+    UPDATE public.customers
+    SET favorite_product_ids = array_remove(favorite_product_ids, element)
+    WHERE id::TEXT = row_id
+      AND id = auth.uid();
+    RETURN;
+  END IF;
+
+  IF table_name = 'sellers' AND col_name = 'favorite_product_ids' THEN
+    UPDATE public.sellers
+    SET favorite_product_ids = array_remove(favorite_product_ids, element)
+    WHERE id::TEXT = row_id
+      AND id = auth.uid();
+    RETURN;
+  END IF;
+
+  RAISE EXCEPTION 'array_remove_elem does not allow %.%', table_name, col_name;
 END;
 $$;
 

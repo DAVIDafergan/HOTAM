@@ -160,6 +160,10 @@ function SellerDashboardContent() {
   }, [canLoadData, user?.uid]);
 
   const products = (productsData || []).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  const productTypeById = useMemo(
+    () => new Map((products || []).map((product: any) => [product.id, product.product_type])),
+    [products],
+  );
 
   const ordersQuery = useMemoStable(() => {
     if (!canLoadData) return null;
@@ -412,7 +416,7 @@ function SellerDashboardContent() {
       const raw = localStorage.getItem('pendingSellerProfile');
       if (!raw) return;
 
-      const { _pending_email, ...profileData } = JSON.parse(raw);
+      const { _pending_email, is_approved: _ignoredApproval, ...profileData } = JSON.parse(raw);
 
       // Safety check: only apply if the stored email matches the authenticated user.
       if (_pending_email && _pending_email !== seller.email) {
@@ -455,15 +459,7 @@ function SellerDashboardContent() {
       return;
     }
     setIsVerifying(order.id);
-    const totalAmount = Number(order.amount);
-    const platformFee = totalAmount * 0.20; 
-    const sellerNet = totalAmount - platformFee;
-
     updateDocumentNonBlocking(doc(db, 'orders', order.id), {
-      status: 'completed',
-      completed_at: new Date().toISOString(),
-      platform_fee: platformFee,
-      seller_net: sellerNet,
       verified_by_seller: true,
       is_seen_by_seller: true
     });
@@ -472,7 +468,7 @@ function SellerDashboardContent() {
       sales_count: increment(1)
     });
 
-    setTimeout(() => { setIsVerifying(null); toast({ title: "העסקה הושלמה!" }); }, 1000);
+    setTimeout(() => { setIsVerifying(null); toast({ title: "ההזמנה סומנה כמאומתת." }); }, 1000);
   };
 
   const uploadImage = async (file: File): Promise<string> => {
@@ -876,6 +872,10 @@ function SellerDashboardContent() {
                  {paginatedOrders.map((o: any) => {
                    const isExpanded = expandedOrderId === o.id;
                    const isTorahRequest = o.status === 'torah_request';
+                   const orderProductName =
+                     (typeof o.product_name === 'string' && o.product_name.trim()) ||
+                     productTypeById.get(o.product_id) ||
+                     'מוצר קודש';
                    return (
                      <Card key={o.id} className={cn("border-none shadow-premium rounded-[2rem] bg-white overflow-hidden text-right transition-all", isExpanded ? "ring-2 ring-primary/10" : "hover:shadow-lg")}>
                        <div 
@@ -892,7 +892,7 @@ function SellerDashboardContent() {
                               {isTorahRequest ? <Scroll className="w-6 h-6" /> : <ShoppingBag className="w-6 h-6" />}
                             </div>
                             <div className="text-right flex-1">
-                               <p className="font-black text-primary text-base leading-tight group-hover:text-accent transition-colors">{o.product_name}</p>
+                               <p className="font-black text-primary text-base leading-tight group-hover:text-accent transition-colors">{orderProductName}</p>
                                <div className="flex items-center gap-2 mt-1">
                                  <Badge className={cn("border-none font-black text-[8px] uppercase px-2 py-0.5", o.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : isTorahRequest ? 'bg-accent/10 text-accent' : 'bg-blue-100 text-blue-700')}>
                                    {o.status === 'completed' ? 'הושלם ושולם' : isTorahRequest ? 'בקשת תיאום והתרשמות' : 'ממתין למסירה'}

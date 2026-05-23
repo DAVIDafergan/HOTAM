@@ -103,6 +103,7 @@ export default function AdminDashboard() {
   const [torahPage, setTorahPage] = useState(1);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [deletingCustomerId, setDeletingCustomerId] = useState<string | null>(null);
+  const [customerAuthCreatedAt, setCustomerAuthCreatedAt] = useState<Record<string, string>>({});
 
   const adminRef = useMemoStable(() => {
     if (!user) return null;
@@ -131,6 +132,40 @@ export default function AdminDashboard() {
     return query(collection(db, 'customers'));
   }, [db, canLoadData]);
   const { data: allCustomers } = useCollection<any>(customersQuery);
+
+  useEffect(() => {
+    if (!canLoadData || !allCustomers?.length) return;
+    const missingCreatedAtIds = allCustomers
+      .filter((customer: any) => !customer?.created_at && typeof customer?.id === 'string')
+      .map((customer: any) => customer.id);
+    if (missingCreatedAtIds.length === 0) return;
+
+    let cancelled = false;
+    (async () => {
+      const { data: { session } } = await db.auth.getSession();
+      const token = session?.access_token;
+      if (!token) return;
+
+      const response = await fetch('/api/admin/customers-created-at', {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer ' + token,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ids: missingCreatedAtIds }),
+      });
+      if (!response.ok) return;
+      const payload = await response.json().catch(() => null);
+      const usersCreatedAt = payload?.usersCreatedAt;
+      if (!cancelled && usersCreatedAt && typeof usersCreatedAt === 'object') {
+        setCustomerAuthCreatedAt((prev) => ({ ...prev, ...(usersCreatedAt as Record<string, string>) }));
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [allCustomers, canLoadData, db]);
 
   const sellerIds = useMemo(() => new Set((allSellers || []).map((s: any) => s.id)), [allSellers]);
 
@@ -193,11 +228,13 @@ export default function AdminDashboard() {
         (c.id || '').toLowerCase().includes(searchTerm.toLowerCase())
       ))
       .sort((a, b) => {
-        const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
-        const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+        const aCreatedAt = a.created_at || customerAuthCreatedAt[a.id];
+        const bCreatedAt = b.created_at || customerAuthCreatedAt[b.id];
+        const aTime = aCreatedAt ? new Date(aCreatedAt).getTime() : 0;
+        const bTime = bCreatedAt ? new Date(bCreatedAt).getTime() : 0;
         return bTime - aTime;
       });
-  }, [allCustomers, sellerIds, searchTerm]);
+  }, [allCustomers, sellerIds, searchTerm, customerAuthCreatedAt]);
 
   const filteredOrders = useMemo(() => {
     return visibleOrders.filter(o => {
@@ -628,6 +665,7 @@ export default function AdminDashboard() {
               deletingCustomerId={deletingCustomerId}
               page={customersPage}
               setPage={setCustomersPage}
+              customerAuthCreatedAt={customerAuthCreatedAt}
             />
           </TabsContent>
 
@@ -777,8 +815,9 @@ function ScribeTable({ scribes, onApprove, onDelete, isLoading, orders, page, se
   );
 }
 
-function CustomerTable({ customers, orders, onDelete, deletingCustomerId, page, setPage }: any) {
+function CustomerTable({ customers, orders, onDelete, deletingCustomerId, page, setPage, customerAuthCreatedAt }: any) {
   const paginatedData = customers.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  const resolveCreatedAt = (customer: any) => customer?.created_at || customerAuthCreatedAt?.[customer?.id] || null;
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
   const customerStats = useMemo(() => {
     const stats = new Map<string, { completedOrders: number; totalSpent: number }>();
@@ -876,7 +915,7 @@ function CustomerTable({ customers, orders, onDelete, deletingCustomerId, page, 
                         <span className="text-[10px] font-black text-emerald-600">₪{customerOrderData.totalSpent.toLocaleString()}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-[10px] font-bold text-muted-foreground">{cust.created_at ? new Date(cust.created_at).toLocaleDateString('he-IL') : '-'}</TableCell>
+                    <TableCell className="text-[10px] font-bold text-muted-foreground">{resolveCreatedAt(cust) ? new Date(resolveCreatedAt(cust)).toLocaleDateString('he-IL') : '-'}</TableCell>
                     <TableCell className="px-8 text-left">
                       <div className="flex items-center justify-end gap-2">
                         <Button variant="ghost" size="sm" onClick={() => setSelectedCustomer(cust)} aria-label={`צפה פרטי ${cust.first_name} ${cust.last_name}`} className="rounded-full h-8 px-4 text-[9px] font-black border-primary/5">
@@ -924,7 +963,7 @@ function CustomerTable({ customers, orders, onDelete, deletingCustomerId, page, 
                   </div>
                   <div className="rounded-2xl bg-white p-3 border border-primary/5">
                     <p className="text-muted-foreground text-[9px] uppercase tracking-widest mb-1">תאריך הצטרפות</p>
-                    <p className="text-primary">{cust.created_at ? new Date(cust.created_at).toLocaleDateString('he-IL') : '-'}</p>
+                    <p className="text-primary">{resolveCreatedAt(cust) ? new Date(resolveCreatedAt(cust)).toLocaleDateString('he-IL') : '-'}</p>
                   </div>
                 </div>
 
@@ -957,6 +996,7 @@ function CustomerTable({ customers, orders, onDelete, deletingCustomerId, page, 
       {selectedCustomer && (
         <CustomerDetailsDialog
           customer={selectedCustomer}
+          customerCreatedAt={resolveCreatedAt(selectedCustomer)}
           orders={(orders || []).filter((o: any) => o.buyer_id === selectedCustomer.id)}
           isDeleting={deletingCustomerId === selectedCustomer.id}
           onDelete={() => { onDelete(selectedCustomer.id); setSelectedCustomer(null); }}
@@ -967,7 +1007,7 @@ function CustomerTable({ customers, orders, onDelete, deletingCustomerId, page, 
   );
 }
 
-function CustomerDetailsDialog({ customer, orders, onDelete, onClose, isDeleting }: any) {
+function CustomerDetailsDialog({ customer, customerCreatedAt, orders, onDelete, onClose, isDeleting }: any) {
   return (
     <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="max-w-2xl rounded-[2rem] md:rounded-[2.5rem] p-0 border-none shadow-2xl bg-white max-h-[85vh] overflow-y-auto z-[150]" dir="rtl">
@@ -994,7 +1034,7 @@ function CustomerDetailsDialog({ customer, orders, onDelete, onClose, isDeleting
                <div className="flex justify-between gap-4 border-b border-white/50 pb-2"><span className="break-all">{customer.email}</span><span className="text-muted-foreground shrink-0">אימייל:</span></div>
                <div className="flex justify-between gap-4 border-b border-white/50 pb-2"><span className="break-all">{customer.phone || '-'}</span><span className="text-muted-foreground shrink-0">טלפון:</span></div>
                <div className="flex justify-between gap-4 border-b border-white/50 pb-2"><span className="break-words">{customer.address || '-'}</span><span className="text-muted-foreground shrink-0">כתובת:</span></div>
-               <div className="flex justify-between gap-4"><span>{customer.created_at ? new Date(customer.created_at).toLocaleDateString('he-IL') : '-'}</span><span className="text-muted-foreground shrink-0">תאריך הצטרפות:</span></div>
+               <div className="flex justify-between gap-4"><span>{customerCreatedAt ? new Date(customerCreatedAt).toLocaleDateString('he-IL') : '-'}</span><span className="text-muted-foreground shrink-0">תאריך הצטרפות:</span></div>
              </div>
            </div>
 

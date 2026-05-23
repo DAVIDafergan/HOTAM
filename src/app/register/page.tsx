@@ -142,7 +142,7 @@ export default function RegisterPage() {
     }
 
     setLoading(true);
-    initiateGoogleSignIn(auth).catch(() => {
+    initiateGoogleSignIn(auth, '/customer/dashboard').catch(() => {
       setLoading(false);
       toast({
         variant: "destructive",

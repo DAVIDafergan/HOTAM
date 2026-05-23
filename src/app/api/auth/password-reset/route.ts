@@ -42,9 +42,10 @@ function getResetEmailTemplate(actionLink: string) {
 }
 
 export async function POST(req: NextRequest) {
+  let normalizedEmail = '';
   try {
     const { email } = await req.json();
-    const normalizedEmail = normalizeEmail(email);
+    normalizedEmail = normalizeEmail(email);
 
     if (!normalizedEmail) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
@@ -57,6 +58,14 @@ export async function POST(req: NextRequest) {
     }
 
     const serviceClient = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
+    const logResetAttempt = async (succeeded: boolean) => {
+      const { error: resetLogError } = await serviceClient
+        .from('password_reset_log')
+        .insert({ email: normalizedEmail, succeeded });
+      if (resetLogError) {
+        console.warn('[password-reset] failed to write reset log:', resetLogError);
+      }
+    };
     const baseOrigin = getBaseOrigin();
     const redirectTo = baseOrigin ? `${baseOrigin}/reset-password` : undefined;
     if (!baseOrigin && process.env.NODE_ENV === 'production') {
@@ -91,6 +100,7 @@ export async function POST(req: NextRequest) {
     const actionLink = data?.properties?.action_link;
     if (!actionLink) {
       console.warn('[password-reset] no actionLink returned for email:', normalizedEmail, '| data:', data);
+      await logResetAttempt(false);
       return NextResponse.json({ ok: true });
     }
 
@@ -104,16 +114,26 @@ export async function POST(req: NextRequest) {
     });
     console.info('[password-reset] email sent to:', normalizedEmail);
 
-    const { error: resetLogError } = await serviceClient
-      .from('password_reset_log')
-      .insert({ email: normalizedEmail });
-    if (resetLogError) {
-      console.warn('[password-reset] failed to write reset log:', resetLogError);
-    }
+    await logResetAttempt(true);
 
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error('[password-reset] failed:', error);
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (normalizedEmail && supabaseUrl && serviceRoleKey) {
+      try {
+        const serviceClient = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
+        const { error: resetLogError } = await serviceClient
+          .from('password_reset_log')
+          .insert({ email: normalizedEmail, succeeded: false });
+        if (resetLogError) {
+          console.warn('[password-reset] failed to write failure reset log:', resetLogError);
+        }
+      } catch (logError) {
+        console.warn('[password-reset] failed to log reset attempt:', logError);
+      }
+    }
     return NextResponse.json({ ok: false }, { status: 200 });
   }
 }

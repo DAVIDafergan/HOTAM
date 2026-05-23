@@ -749,6 +749,7 @@ function ScribeTable({ scribes, onApprove, onDelete, isLoading, orders, page, se
               <TableHead className="text-right font-black text-[10px] uppercase py-6 px-8">סופר / מזהה אישי</TableHead>
               <TableHead className="text-right font-black text-[10px] uppercase py-6">מיקום</TableHead>
               <TableHead className="text-right font-black text-[10px] uppercase py-6">חוב לסופר (החודש)</TableHead>
+              <TableHead className="text-right font-black text-[10px] uppercase py-6">תאריך הצטרפות</TableHead>
               <TableHead className="text-right font-black text-[10px] uppercase py-6">סטטוס הסמכה</TableHead>
               <TableHead className="text-left font-black text-[10px] uppercase py-6 px-8">ניהול</TableHead>
             </TableRow>
@@ -765,6 +766,9 @@ function ScribeTable({ scribes, onApprove, onDelete, isLoading, orders, page, se
                   return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
                 })
                 .reduce((acc: number, o: any) => acc + (Number(o.seller_net) || Number(o.amount) * 0.80), 0);
+              const scribeCreatedAt =
+                scribe?.created_at?.toDate?.() ??
+                (scribe?.created_at ? new Date(scribe.created_at) : null);
 
               return (
                 <TableRow key={scribe.id} className="hover:bg-muted/10 transition-colors border-muted/20">
@@ -787,6 +791,9 @@ function ScribeTable({ scribes, onApprove, onDelete, isLoading, orders, page, se
                     <div className="flex flex-col items-end">
                       <span className="text-sm font-black text-emerald-600">₪{monthlyEarnings.toLocaleString()}</span>
                     </div>
+                  </TableCell>
+                  <TableCell className="text-[10px] font-bold text-muted-foreground">
+                    {scribeCreatedAt ? scribeCreatedAt.toLocaleDateString('he-IL') : '-'}
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline" className={cn("text-[8px] font-black uppercase px-2 py-0.5 rounded-full", scribe.has_scribe_certificate === 'valid' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-orange-50 text-orange-600 border-orange-200')}>

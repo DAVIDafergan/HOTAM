@@ -76,6 +76,12 @@ const CITY_ALIAS_PAIRS = [
   ['jerusalem', 'ירושלים'],
   ['haifa', 'חיפה'],
 ] as const;
+const SORT_OPTIONS = [
+  { value: 'newest', label: 'מוצרים חדשים' },
+  { value: 'price_asc', label: 'מחיר: מהזול ליקר' },
+  { value: 'price_desc', label: 'מחיר: מהיקר לזול' },
+  { value: 'rating', label: 'דירוג לקוחות' },
+] as const;
 const normalizeCity = (value: string) =>
   value
     .normalize('NFKD')
@@ -783,7 +789,7 @@ function SearchContent() {
                 <div className="relative w-full">
                   <div className="w-full overflow-x-auto pb-2 -mb-2 no-scrollbar">
                     <div className="flex items-center gap-2 md:gap-3 min-w-max px-1">
-                      <Button onClick={() => setIsFilterPanelOpen(true)} className="h-9 rounded-xl border border-primary/10 bg-white px-3 text-[11px] font-black text-primary shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-md active:scale-95 group">
+                      <Button variant="outline" onClick={() => setIsFilterPanelOpen(true)} className="h-9 rounded-xl border border-primary/10 bg-white px-3 text-[11px] font-black text-primary shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:bg-primary/[0.03] hover:text-primary hover:shadow-md active:scale-95 group">
                         <SlidersHorizontal className="ml-1.5 h-3.5 w-3.5 text-accent transition-transform duration-300 group-hover:rotate-6" />
                         <span>סינון</span>
                         {activeFiltersCount > 0 && (
@@ -791,7 +797,6 @@ function SearchContent() {
                             {activeFiltersCount}
                           </span>
                         )}
-                        <span className="mr-1 text-[10px] text-primary/50">פתח</span>
                       </Button>
                       <div className="flex items-center rounded-full border border-primary/10 bg-white p-1 shadow-sm">
                         <ToolbarChoiceButton active={shippingPreference === 'all'} onClick={() => setShippingPreference('all')}>
@@ -807,18 +812,29 @@ function SearchContent() {
                         </ToolbarChoiceButton>
                       </div>
                       <Select value={sortOrder} onValueChange={setSortOrder}>
-                        <SelectTrigger className="h-10 w-[168px] shrink-0 rounded-full border border-primary/10 bg-white px-4 text-[11px] font-black shadow-sm focus:ring-0">
-                          <div className="flex items-center gap-2">
-                            <ArrowUpNarrowWide className="h-4 w-4 text-accent" />
-                            <span className="text-primary/50">מיון לפי</span>
-                            <SelectValue placeholder="חדש" />
+                        <SelectTrigger className="h-10 w-[196px] shrink-0 rounded-full border border-primary/10 bg-white px-3 text-[11px] font-black text-primary shadow-sm transition-all duration-300 hover:border-primary/20 hover:bg-primary/[0.03] hover:shadow-md focus:ring-0 focus:ring-offset-0 data-[state=open]:border-accent/30 data-[state=open]:bg-accent/5 data-[state=open]:shadow-lg">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent">
+                              <ArrowUpNarrowWide className="h-3.5 w-3.5" />
+                            </span>
+                            <div className="flex min-w-0 flex-col items-start leading-none">
+                              <span className="text-[9px] font-black uppercase tracking-[0.22em] text-primary/40">מיון</span>
+                              <span className="min-w-0 truncate text-[11px] text-primary">
+                                <SelectValue placeholder="מוצרים חדשים" />
+                              </span>
+                            </div>
                           </div>
                         </SelectTrigger>
-                        <SelectContent className="rounded-[1.5rem] md:rounded-[2rem] shadow-2xl border-none p-2 bg-white/95 backdrop-blur-xl">
-                          <SelectItem value="newest" className="font-bold py-2 md:py-3 px-3 md:px-4 rounded-xl cursor-pointer text-xs md:text-sm">מוצרים חדשים</SelectItem>
-                          <SelectItem value="price_asc" className="font-bold py-2 md:py-3 px-3 md:px-4 rounded-xl cursor-pointer text-xs md:text-sm">מחיר: מהזול ליקר</SelectItem>
-                          <SelectItem value="price_desc" className="font-bold py-2 md:py-3 px-3 md:px-4 rounded-xl cursor-pointer text-xs md:text-sm">מחיר: מהיקר לזול</SelectItem>
-                          <SelectItem value="rating" className="font-bold py-2 md:py-3 px-3 md:px-4 rounded-xl cursor-pointer text-xs md:text-sm">דירוג לקוחות</SelectItem>
+                        <SelectContent className="rounded-[1.5rem] border border-primary/10 bg-white/97 p-2 shadow-[0_24px_80px_-30px_rgba(15,23,42,0.45)] backdrop-blur-xl">
+                          {SORT_OPTIONS.map((option) => (
+                            <SelectItem
+                              key={option.value}
+                              value={option.value}
+                              className="rounded-2xl py-3 pr-4 pl-9 text-right text-xs font-black text-primary transition-colors focus:bg-accent/10 focus:text-primary data-[state=checked]:bg-primary/5 data-[state=checked]:text-primary md:text-sm"
+                            >
+                              {option.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
 

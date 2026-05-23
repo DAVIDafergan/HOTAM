@@ -245,6 +245,21 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
                 });
                 window.localStorage.removeItem('hotam_pending_customer_name');
               } else if (role === 'customer') {
+                const firstName = typeof pending.first_name === 'string' ? pending.first_name.trim() : '';
+                const lastName = typeof pending.last_name === 'string' ? pending.last_name.trim() : '';
+                if (firstName || lastName) {
+                  const { error } = await client
+                    .from('customers')
+                    .update({
+                      first_name: firstName,
+                      last_name: lastName,
+                      updated_at: new Date().toISOString(),
+                    })
+                    .eq('id', session.user.id);
+                  if (error) {
+                    throw error;
+                  }
+                }
                 window.localStorage.removeItem('hotam_pending_customer_name');
                 welcomeEmailSent = await sendWelcomeEmail();
               }

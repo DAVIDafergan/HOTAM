@@ -98,10 +98,21 @@ export function initiateEmailSignIn(auth: AuthLike, email: string, password: str
 }
 
 /** Initiate Google OAuth sign-in (redirect flow). */
-export function initiateGoogleSignIn(auth: AuthLike) {
+function buildOAuthRedirectTo(redirectPath?: string): string | undefined {
+  const baseOrigin = getBaseOrigin();
+  const origin =
+    baseOrigin ||
+    (typeof window !== 'undefined' && window.location.origin ? window.location.origin : undefined);
+  if (!origin) return undefined;
+  if (!redirectPath) return origin;
+  const normalizedPath = redirectPath.startsWith('/') ? redirectPath : `/${redirectPath}`;
+  return `${origin}${normalizedPath}`;
+}
+
+export function initiateGoogleSignIn(auth: AuthLike, redirectPath?: string) {
   return getClient(auth).auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: typeof window !== 'undefined' ? window.location.origin : undefined },
+    options: { redirectTo: buildOAuthRedirectTo(redirectPath) },
   }).then(({ data, error }) => {
     if (error) {
       const mappedError: any = new Error(error.message);

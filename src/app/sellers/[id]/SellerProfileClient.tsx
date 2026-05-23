@@ -163,6 +163,12 @@ export default function SellerProfile({
   }, [reviews]);
 
   const isOwnSellerReviewBlocked = Boolean(user && user.role === 'seller' && user.uid === id);
+  const sellerCity =
+    seller?.city ||
+    (typeof seller?.address === 'string' && seller.address.includes(',')
+      ? seller.address.split(',').pop()?.trim()
+      : seller?.address) ||
+    '';
   const currentUserSellerReview = useMemo(
     () => (user ? (reviews || []).find((rev: any) => rev?.buyer_id === user.uid) : null),
     [reviews, user]
@@ -418,7 +424,7 @@ export default function SellerProfile({
                 {seller.first_name} {seller.last_name}
               </h1>
               <p className="text-muted-foreground flex items-center justify-center gap-2 mb-6 font-bold text-[10px] uppercase tracking-tighter">
-                {seller.address} <MapPin className="w-3 h-3 text-accent" />
+                {sellerCity || 'לא צוין'} <MapPin className="w-3 h-3 text-accent" />
               </p>
               
               <div className="flex flex-col items-center gap-1 mb-8">

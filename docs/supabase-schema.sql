@@ -60,6 +60,7 @@ CREATE TABLE IF NOT EXISTS public.sellers (
   last_name            TEXT NOT NULL DEFAULT '',
   email                 TEXT NOT NULL DEFAULT '',
   phone                 TEXT,
+  city                  TEXT,
   address               TEXT,
   age                   INTEGER,
   marital_status       TEXT,
@@ -121,6 +122,10 @@ ALTER TABLE public.sellers
   ADD COLUMN IF NOT EXISTS welcome_email_sent BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE public.password_reset_log
   ADD COLUMN IF NOT EXISTS succeeded BOOLEAN NOT NULL DEFAULT TRUE;
+ALTER TABLE public.sellers
+  ADD COLUMN IF NOT EXISTS city TEXT;
+ALTER TABLE public.products
+  ADD COLUMN IF NOT EXISTS pickup_address TEXT;
 
 -- ── admins ───────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.admins (
@@ -155,6 +160,7 @@ CREATE TABLE IF NOT EXISTS public.products (
   proofreading_level TEXT,
   delivery_time      TEXT,
   delivery_type      TEXT,
+  pickup_address     TEXT,
   delivery_fee       NUMERIC(10,2),
   delivery_area      TEXT[]      NOT NULL DEFAULT '{}',
   created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),

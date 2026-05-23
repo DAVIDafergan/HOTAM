@@ -28,9 +28,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    // Strip fields that must only be set server-side — never allow client to overwrite them.
+    const {
+      is_approved: _isApproved,
+      welcome_email_sent: _welcomeEmailSent,
+      ...safeSellerData
+    } = sellerData;
+
     const { error: dbError } = await serviceClient
       .from('sellers')
-      .upsert(sellerData, { onConflict: 'id' });
+      .upsert(safeSellerData, { onConflict: 'id' });
 
     if (dbError) {
       console.error('Seller registration DB error:', dbError);

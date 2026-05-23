@@ -23,6 +23,7 @@ export async function POST(req: NextRequest) {
     const token = authHeader?.replace('Bearer ', '');
     const uploadContext = req.headers.get('x-upload-context');
     const isOnboarding = uploadContext === 'onboarding';
+    const { fileName, contentType, fileSize, keyPrefix = 'products' } = await req.json();
 
     if (!isOnboarding) {
       if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -33,9 +34,12 @@ export async function POST(req: NextRequest) {
       );
       const { data: { user }, error } = await serviceClient.auth.getUser(token);
       if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    } else {
+      const ONBOARDING_MAX_PRESIGN = 2 * 1024 * 1024;
+      if (fileSize && fileSize > ONBOARDING_MAX_PRESIGN) {
+        return NextResponse.json({ error: 'Onboarding upload must be under 2MB' }, { status: 413 });
+      }
     }
-
-    const { fileName, contentType, fileSize, keyPrefix = 'products' } = await req.json();
 
     if (!ALLOWED_TYPES.has(contentType)) {
       return NextResponse.json({ error: 'Unsupported file type' }, { status: 400 });

@@ -404,9 +404,13 @@ export default function CheckoutPage() {
         customerPhone: recipientPhone,
       };
 
+      const { data: { session: chargeSession } } = await db.auth.getSession();
       const response = await fetch('/api/payments/charge', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + (chargeSession?.access_token ?? ''),
+        },
         body: JSON.stringify({
           token,
           cartData,

@@ -12,6 +12,23 @@ function getSiteBaseUrl(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    const authHeader = req.headers.get('Authorization');
+    const token = authHeader?.replace('Bearer ', '');
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { createClient } = await import('@supabase/supabase-js');
+    const serviceClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } }
+    );
+    const { data: { user }, error: authError } = await serviceClient.auth.getUser(token);
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await req.json();
     const orderId = body?.orderId;
     const productName: string = body?.productName || body?.name || 'רכישת מוצר';

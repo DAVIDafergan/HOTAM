@@ -125,13 +125,18 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
 
         const isEmailVerified = session.user.email_confirmed_at != null;
         const profileConfirmationEmailStorageKey = `hotam_profile_confirmation_email_sent_${session.user.id}`;
+        let welcomeEmailInFlight = false;
         const sendWelcomeEmail = async () => {
           if (!isEmailVerified || !userEmail) {
+            return false;
+          }
+          if (welcomeEmailInFlight) {
             return false;
           }
           if (window.localStorage.getItem(profileConfirmationEmailStorageKey)) {
             return false;
           }
+          welcomeEmailInFlight = true;
 
           const subject = 'הפרופיל שלך בחותם אושר בהצלחה';
           const text = `שלום וברוכים הבאים לחותם!

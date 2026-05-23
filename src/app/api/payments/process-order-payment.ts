@@ -76,7 +76,7 @@ export async function markOrderAsPaidAndNotify(orderId: string, paymentProvider:
   }
 
   if (order.buyer_email) {
-    sendEmail({
+    await sendEmail({
       to: order.buyer_email,
       subject: '✅ אישור הזמנה - הקוד הסודי שלך | Hotam Shop',
       text: `תודה על הרכישה שלך ב-Hotam Shop. המוכר יצור איתך קשר בהקדם לתיאום המסירה. הקוד הסודי שלך הוא ${verificationCode}. קבל את המוצר מהמוכר, בדוק שהוא תקין ומתאים למה שהזמנת, ורק לאחר מכן מסור למוכר את הקוד. אל תמסור את הקוד לפני שבדקת את המוצר.`,
@@ -137,7 +137,7 @@ export async function markOrderAsPaidAndNotify(orderId: string, paymentProvider:
 
     if (seller?.email) {
       const buyerName = order.buyer_name || 'קונה';
-      sendEmail({
+      await sendEmail({
         to: seller.email,
         subject: `🎉 מכירה חדשה! ${productTypeForSellerEmail} — Hotam Shop`,
         text: `מזל טוב, יש לך מכירה חדשה מסוג ${productTypeForSellerEmail}. פרטי הקונה נמצאים בדשבורד, בתוך ההזמנה הספציפית. הכסף יועבר אליך לאחר מסירת המוצר וקבלת קוד האימות מהקונה. לניהול ההזמנה: https://hotam.shop/seller/dashboard`,

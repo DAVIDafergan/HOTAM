@@ -88,6 +88,7 @@ CREATE TABLE IF NOT EXISTS public.sellers (
   notification_sms     BOOLEAN       NOT NULL DEFAULT TRUE,
   notification_voice   BOOLEAN       NOT NULL DEFAULT FALSE,
   favorite_product_ids  TEXT[]        NOT NULL DEFAULT '{}',
+  is_email_verified    BOOLEAN       NOT NULL DEFAULT FALSE,
   welcome_email_sent    BOOLEAN       NOT NULL DEFAULT FALSE,
   created_at           TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
   updated_at           TIMESTAMPTZ
@@ -129,6 +130,8 @@ ALTER TABLE public.customers
   ADD COLUMN IF NOT EXISTS welcome_email_sent BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE public.sellers
   ADD COLUMN IF NOT EXISTS welcome_email_sent BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE public.sellers
+  ADD COLUMN IF NOT EXISTS is_email_verified BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE public.password_reset_log
   ADD COLUMN IF NOT EXISTS succeeded BOOLEAN NOT NULL DEFAULT TRUE;
 ALTER TABLE public.sellers
@@ -828,26 +831,28 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
+  v_meta      JSONB;
   v_role      TEXT;
   v_first     TEXT;
   v_last      TEXT;
   v_full_name TEXT;
 BEGIN
-  v_role  := NEW.raw_user_meta_data->>'role';
+  v_meta  := COALESCE(NEW.raw_user_meta_data, '{}'::jsonb);
+  v_role  := lower(COALESCE(NULLIF(v_meta->>'role', ''), 'customer'));
   -- Accept both snake_case (first_name) and camelCase (firstName) to be robust
   -- against whichever format the frontend sends in options.data.
-  v_first := COALESCE(NEW.raw_user_meta_data->>'first_name',
-                      NEW.raw_user_meta_data->>'firstName',
-                      split_part(COALESCE(NEW.raw_user_meta_data->>'full_name',
-                                          NEW.raw_user_meta_data->>'name', ''), ' ', 1),
+  v_first := COALESCE(v_meta->>'first_name',
+                      v_meta->>'firstName',
+                      split_part(COALESCE(v_meta->>'full_name',
+                                          v_meta->>'name', ''), ' ', 1),
                       '');
-  v_last  := COALESCE(NEW.raw_user_meta_data->>'last_name',
-                      NEW.raw_user_meta_data->>'lastName',
+  v_last  := COALESCE(v_meta->>'last_name',
+                      v_meta->>'lastName',
                       NULLIF(
-                        substring(COALESCE(NEW.raw_user_meta_data->>'full_name',
-                                           NEW.raw_user_meta_data->>'name', '')
-                                  FROM position(' ' IN COALESCE(NEW.raw_user_meta_data->>'full_name',
-                                                                 NEW.raw_user_meta_data->>'name', '')) + 1),
+                        substring(COALESCE(v_meta->>'full_name',
+                                           v_meta->>'name', '')
+                                  FROM position(' ' IN COALESCE(v_meta->>'full_name',
+                                                                 v_meta->>'name', '')) + 1),
                         ''
                       ),
                       '');
@@ -858,11 +863,11 @@ BEGIN
   ) VALUES (
     NEW.id,
     COALESCE(v_full_name,
-             NEW.raw_user_meta_data->>'full_name',
-             NEW.raw_user_meta_data->>'name',
+             v_meta->>'full_name',
+             v_meta->>'name',
              split_part(NEW.email, '@', 1),
              'משתמש'),
-    COALESCE(NEW.raw_user_meta_data->>'avatar_url', NEW.raw_user_meta_data->>'picture'),
+    COALESCE(v_meta->>'avatar_url', v_meta->>'picture'),
     NOW()
   )
   ON CONFLICT (id) DO UPDATE
@@ -872,14 +877,76 @@ BEGIN
 
   IF v_role = 'seller' THEN
     INSERT INTO public.sellers (
-      id, email, first_name, last_name
+      id, email, first_name, last_name, phone, city, address, age, marital_status,
+      business_type, business_id, business_name, bank_name, bank_branch, bank_account_number,
+      has_scribe_certificate, certificate_url, torah_study_frequency, mikveh_frequency, notes,
+      experience_years, script_level, script_types, writing_samples, is_email_verified
     ) VALUES (
-      NEW.id, NEW.email, v_first, v_last
+      NEW.id,
+      NEW.email,
+      v_first,
+      v_last,
+      NULLIF(v_meta->>'phone', ''),
+      NULLIF(v_meta->>'city', ''),
+      NULLIF(v_meta->>'address', ''),
+      CASE WHEN NULLIF(v_meta->>'age', '') IS NULL THEN NULL ELSE (v_meta->>'age')::INTEGER END,
+      NULLIF(v_meta->>'marital_status', ''),
+      NULLIF(v_meta->>'business_type', ''),
+      NULLIF(v_meta->>'business_id', ''),
+      NULLIF(v_meta->>'business_name', ''),
+      NULLIF(v_meta->>'bank_name', ''),
+      NULLIF(v_meta->>'bank_branch', ''),
+      NULLIF(v_meta->>'bank_account_number', ''),
+      NULLIF(v_meta->>'has_scribe_certificate', ''),
+      NULLIF(v_meta->>'certificate_url', ''),
+      NULLIF(v_meta->>'torah_study_frequency', ''),
+      NULLIF(v_meta->>'mikveh_frequency', ''),
+      NULLIF(v_meta->>'notes', ''),
+      CASE WHEN NULLIF(v_meta->>'experience_years', '') IS NULL THEN NULL ELSE (v_meta->>'experience_years')::INTEGER END,
+      NULLIF(v_meta->>'script_level', ''),
+      CASE
+        WHEN jsonb_typeof(v_meta->'script_types') = 'array'
+          THEN ARRAY(SELECT jsonb_array_elements_text(v_meta->'script_types'))
+        ELSE '{}'::TEXT[]
+      END,
+      CASE
+        WHEN jsonb_typeof(v_meta->'writing_samples') = 'array'
+          THEN ARRAY(SELECT jsonb_array_elements_text(v_meta->'writing_samples'))
+        ELSE '{}'::TEXT[]
+      END,
+      NEW.email_confirmed_at IS NOT NULL
     )
     ON CONFLICT (id) DO UPDATE
       SET email      = EXCLUDED.email,
           first_name = CASE WHEN public.sellers.first_name = '' THEN EXCLUDED.first_name ELSE public.sellers.first_name END,
-          last_name  = CASE WHEN public.sellers.last_name  = '' THEN EXCLUDED.last_name  ELSE public.sellers.last_name  END;
+          last_name  = CASE WHEN public.sellers.last_name  = '' THEN EXCLUDED.last_name  ELSE public.sellers.last_name  END,
+          phone = COALESCE(public.sellers.phone, EXCLUDED.phone),
+          city = COALESCE(public.sellers.city, EXCLUDED.city),
+          address = COALESCE(public.sellers.address, EXCLUDED.address),
+          age = COALESCE(public.sellers.age, EXCLUDED.age),
+          marital_status = COALESCE(public.sellers.marital_status, EXCLUDED.marital_status),
+          business_type = COALESCE(public.sellers.business_type, EXCLUDED.business_type),
+          business_id = COALESCE(public.sellers.business_id, EXCLUDED.business_id),
+          business_name = COALESCE(public.sellers.business_name, EXCLUDED.business_name),
+          bank_name = COALESCE(public.sellers.bank_name, EXCLUDED.bank_name),
+          bank_branch = COALESCE(public.sellers.bank_branch, EXCLUDED.bank_branch),
+          bank_account_number = COALESCE(public.sellers.bank_account_number, EXCLUDED.bank_account_number),
+          has_scribe_certificate = COALESCE(public.sellers.has_scribe_certificate, EXCLUDED.has_scribe_certificate),
+          certificate_url = COALESCE(public.sellers.certificate_url, EXCLUDED.certificate_url),
+          torah_study_frequency = COALESCE(public.sellers.torah_study_frequency, EXCLUDED.torah_study_frequency),
+          mikveh_frequency = COALESCE(public.sellers.mikveh_frequency, EXCLUDED.mikveh_frequency),
+          notes = COALESCE(public.sellers.notes, EXCLUDED.notes),
+          experience_years = COALESCE(public.sellers.experience_years, EXCLUDED.experience_years),
+          script_level = COALESCE(public.sellers.script_level, EXCLUDED.script_level),
+          script_types = CASE
+            WHEN COALESCE(array_length(public.sellers.script_types, 1), 0) > 0 THEN public.sellers.script_types
+            ELSE EXCLUDED.script_types
+          END,
+          writing_samples = CASE
+            WHEN COALESCE(array_length(public.sellers.writing_samples, 1), 0) > 0 THEN public.sellers.writing_samples
+            ELSE EXCLUDED.writing_samples
+          END,
+          is_email_verified = COALESCE(public.sellers.is_email_verified, false) OR EXCLUDED.is_email_verified;
 
   ELSIF v_role = 'admin' THEN
     INSERT INTO public.admins (id, email)

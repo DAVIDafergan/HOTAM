@@ -108,24 +108,28 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
       setIsUserLoading(false);
       setUserError(null);
 
-      // After sign-in, finalize any pending profile data persisted before auth.
-      if (_event === 'SIGNED_IN' && session?.user && typeof window !== 'undefined') {
+      // After sign-in/session restore, reconcile role/profile state.
+      if ((_event === 'SIGNED_IN' || _event === 'INITIAL_SESSION') && session?.user && typeof window !== 'undefined') {
         const authToken = session.access_token;
         const userEmail = session.user.email ?? null;
         const normalizedUserEmail = userEmail?.trim().toLowerCase();
-        const registerSeller = async (payload: Record<string, unknown>) => {
+        const userMeta = (session.user.user_metadata ?? {}) as Record<string, any>;
+
+        const registerSeller = async (payload: Record<string, unknown>, source: string) => {
+          console.info('[auth] seller recovery start', { source, userId: session.user.id, event: _event });
           const response = await fetch('/api/register-seller', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${authToken}`,
+              Authorization: 'Bearer ' + authToken,
             },
-            body: JSON.stringify(payload),
+            body: JSON.stringify({ ...payload, recovery_source: source }),
           });
           if (!response.ok) {
             const bodyText = await response.text();
             throw new Error(`register-seller failed (${response.status}): ${bodyText}`);
           }
+          console.info('[auth] seller recovery success', { source, userId: session.user.id, event: _event });
         };
 
         const isEmailVerified = session.user.email_confirmed_at != null;
@@ -193,7 +197,7 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${authToken}`,
+              Authorization: 'Bearer ' + authToken,
             },
             body: JSON.stringify({
               to: userEmail,
@@ -211,30 +215,8 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
           return true;
         };
 
-        const flushPendingSellerProfile = async () => {
+        const flushPendingCustomerProfile = async () => {
           let welcomeEmailSent = false;
-
-          const pendingSellerProfileRaw = window.localStorage.getItem('pendingSellerProfile');
-          if (pendingSellerProfileRaw) {
-            try {
-              const parsed = JSON.parse(pendingSellerProfileRaw) as Record<string, unknown>;
-              const pendingEmail = typeof parsed._pending_email === 'string'
-                ? parsed._pending_email.trim().toLowerCase()
-                : null;
-              if (pendingEmail && normalizedUserEmail && pendingEmail === normalizedUserEmail) {
-                const { _pending_email: _ignoredPendingEmail, ...pendingPayload } = parsed;
-                await registerSeller({
-                  id: session.user.id,
-                  email: userEmail,
-                  ...pendingPayload,
-                });
-                window.localStorage.removeItem('pendingSellerProfile');
-              }
-            } catch (err) {
-              console.error('[auth] pendingSellerProfile processing error:', err);
-            }
-          }
-
           const rawPendingName = window.localStorage.getItem('hotam_pending_customer_name');
           if (rawPendingName) {
             try {
@@ -247,7 +229,8 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
                   email: userEmail,
                   first_name: typeof pending.first_name === 'string' ? pending.first_name : null,
                   last_name: typeof pending.last_name === 'string' ? pending.last_name : null,
-                });
+                  is_email_verified: isEmailVerified,
+                }, 'legacy-customer-cache');
                 window.localStorage.removeItem('hotam_pending_customer_name');
               } else if (role === 'customer') {
                 const firstName = typeof pending.first_name === 'string' ? pending.first_name.trim() : '';
@@ -275,8 +258,95 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
           return welcomeEmailSent;
         };
 
+        const hasSellerMetadataHint = Boolean(
+          userMeta.business_name ||
+          userMeta.business_id ||
+          userMeta.script_types ||
+          userMeta.writing_samples,
+        );
+
+        const buildSellerPayloadFromMetadata = () => ({
+          id: session.user.id,
+          email: userEmail,
+          first_name: userMeta.first_name ?? userMeta.firstName ?? null,
+          last_name: userMeta.last_name ?? userMeta.lastName ?? null,
+          phone: userMeta.phone ?? null,
+          city: userMeta.city ?? null,
+          address: userMeta.address ?? null,
+          age: typeof userMeta.age === 'number' ? userMeta.age : null,
+          marital_status: userMeta.marital_status ?? null,
+          business_type: userMeta.business_type ?? null,
+          business_id: userMeta.business_id ?? null,
+          business_name: userMeta.business_name ?? null,
+          bank_name: userMeta.bank_name ?? null,
+          bank_branch: userMeta.bank_branch ?? null,
+          bank_account_number: userMeta.bank_account_number ?? null,
+          has_scribe_certificate: userMeta.has_scribe_certificate ?? null,
+          certificate_url: userMeta.certificate_url ?? null,
+          torah_study_frequency: userMeta.torah_study_frequency ?? null,
+          mikveh_frequency: userMeta.mikveh_frequency ?? null,
+          notes: userMeta.notes ?? null,
+          experience_years: typeof userMeta.experience_years === 'number' ? userMeta.experience_years : null,
+          script_level: userMeta.script_level ?? null,
+          script_types: Array.isArray(userMeta.script_types) ? userMeta.script_types : [],
+          writing_samples: Array.isArray(userMeta.writing_samples) ? userMeta.writing_samples : [],
+          is_email_verified: isEmailVerified,
+          updated_at: new Date().toISOString(),
+        });
+
+        const reconcileSellerAccount = async () => {
+          const [sellerResult, customerResult] = await Promise.all([
+            client.from('sellers').select('id', { count: 'exact', head: true }).eq('id', session.user.id),
+            client.from('customers').select('id', { count: 'exact', head: true }).eq('id', session.user.id),
+          ]);
+          const sellerCount = sellerResult.count ?? 0;
+          const customerCount = customerResult.count ?? 0;
+          const roleFromMetadata = userMeta.role as string | undefined;
+          const shouldBeSeller = roleFromMetadata === 'seller' || sellerCount > 0 || hasSellerMetadataHint;
+
+          console.info('[auth] seller reconciliation check', {
+            event: _event,
+            userId: session.user.id,
+            roleFromMetadata,
+            sellerCount,
+            customerCount,
+            shouldBeSeller,
+          });
+
+          if (!shouldBeSeller) return;
+
+          const metadataPayload = buildSellerPayloadFromMetadata();
+          const pendingSellerProfileRaw = window.localStorage.getItem('pendingSellerProfile');
+          if (pendingSellerProfileRaw) {
+            try {
+              const parsed = JSON.parse(pendingSellerProfileRaw) as Record<string, unknown>;
+              const pendingEmail = typeof parsed._pending_email === 'string'
+                ? parsed._pending_email.trim().toLowerCase()
+                : null;
+              if (!pendingEmail || (normalizedUserEmail && pendingEmail === normalizedUserEmail)) {
+                const { _pending_email: _ignoredPendingEmail, ...pendingPayload } = parsed;
+                await registerSeller({ ...metadataPayload, ...pendingPayload }, 'local-cache-recovery');
+                window.localStorage.removeItem('pendingSellerProfile');
+                return;
+              }
+              window.localStorage.removeItem('pendingSellerProfile');
+            } catch (err) {
+              console.error('[auth] pendingSellerProfile processing error:', err);
+              window.localStorage.removeItem('pendingSellerProfile');
+            }
+          }
+
+          await registerSeller(metadataPayload, 'metadata-recovery');
+        };
+
         void (async () => {
-          const welcomeEmailSent = await flushPendingSellerProfile();
+          try {
+            await reconcileSellerAccount();
+          } catch (err) {
+            console.error('[auth] seller reconciliation error:', err);
+          }
+
+          const welcomeEmailSent = await flushPendingCustomerProfile();
           if (!welcomeEmailSent) {
             try {
               await sendWelcomeEmail();
@@ -285,22 +355,14 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
             }
           }
 
-          // Auto-fix: if role is missing from metadata, check DB and patch it
-          const currentRole = session.user.user_metadata?.role;
-          if (!currentRole) {
-            try {
-              const { count: sellerCount } = await client
-                .from('sellers')
-                .select('id', { count: 'exact', head: true })
-                .eq('id', session.user.id);
-              if (sellerCount && sellerCount > 0) {
-                await client.auth.updateUser({ data: { role: 'seller' } });
-                const { data: { user: patchedUser } } = await client.auth.getUser();
-                if (patchedUser) setUser(toAppUser(patchedUser));
-              }
-            } catch (err) {
-              console.error('[auth] role auto-patch error:', err);
-            }
+          // Refresh the user object so any role update done by /api/register-seller
+          // (via the admin API) is reflected on the client without requiring a
+          // full sign-out/sign-in cycle.
+          try {
+            const { data: { user: refreshedUser } } = await client.auth.getUser();
+            if (refreshedUser) setUser(toAppUser(refreshedUser));
+          } catch (err) {
+            console.error('[auth] user refresh error:', err);
           }
         })();
       }

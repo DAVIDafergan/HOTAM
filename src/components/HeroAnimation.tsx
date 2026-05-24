@@ -149,7 +149,7 @@ export function HeroAnimation() {
     return [];
   };
   const hasSubTypes = getSubTypesForProduct(selectedProduct).length > 0;
-  const finalSearchButtonClass = "w-full max-w-3xl bg-accent text-primary hover:bg-accent/90 rounded-full px-12 md:px-20 h-16 font-black text-base md:text-lg uppercase tracking-[0.16em] md:tracking-[0.2em] shadow-2xl gap-4 hover:scale-[1.02] focus:ring-4 focus:ring-accent/30 transition-all duration-300 group active:scale-95";
+  const finalSearchButtonClass = "w-full max-w-3xl bg-accent text-primary hover:bg-accent/92 rounded-full px-12 md:px-20 h-[4.4rem] font-black text-base md:text-lg uppercase tracking-[0.16em] md:tracking-[0.2em] shadow-premium-lg gap-4 hover:scale-[1.02] focus:ring-4 focus:ring-accent/30 transition-all duration-500 group active:scale-95";
 
   const handleFinalSearch = () => {
     const params = new URLSearchParams();
@@ -195,7 +195,7 @@ export function HeroAnimation() {
   };
 
   return (
-    <section className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#FDFCF0] pt-24 pb-6 md:pt-28 md:pb-12">
+    <section className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#FDFCF0] pt-28 pb-14 md:pt-32 md:pb-20">
       <div className="absolute inset-0 z-0">
         {heroImg?.imageUrl && (
           <Image 
@@ -211,16 +211,16 @@ export function HeroAnimation() {
         <div className="absolute inset-0 bg-gradient-to-r from-[#FDFCF0]/50 via-transparent to-[#FDFCF0]/50" />
       </div>
 
-      <div className="container mx-auto px-4 relative z-20 flex flex-col items-center justify-center">
-        <div className="max-w-4xl w-full space-y-5 md:space-y-12 flex flex-col items-center text-center">
+      <div className="container mx-auto px-4 md:px-5 relative z-20 flex flex-col items-center justify-center">
+        <div className="max-w-4xl w-full space-y-8 md:space-y-14 flex flex-col items-center text-center">
           
-          <div className={`space-y-2 md:space-y-4 ${homeAnimations.animateFadeIn}`}>
-            <h1 className="text-3xl md:text-7xl font-headline font-black text-primary leading-tight tracking-tighter">
+          <div className={`space-y-3 md:space-y-5 ${homeAnimations.animateFadeIn}`}>
+            <h1 className="text-4xl md:text-8xl font-headline font-black text-primary leading-[1.08] tracking-tighter">
               קדושה <span className="text-accent underline decoration-accent/20 underline-offset-8">בכל תג</span>
             </h1>
           </div>
           
-          <div className="w-full bg-white/75 backdrop-blur-3xl border border-white/80 rounded-[3rem] p-6 md:p-10 shadow-premium-lg relative ring-1 ring-primary/5">
+          <div className="w-full bg-white/78 backdrop-blur-3xl border border-white/90 rounded-[3.2rem] p-7 md:p-12 shadow-premium-lg relative ring-1 ring-primary/10">
             
             {/* Step indicator */}
             <div className="flex flex-col items-center mb-6 md:mb-10 gap-4">
@@ -260,9 +260,9 @@ export function HeroAnimation() {
 
             <AnimatePresence mode="wait">
               {step === 1 && (
-                <motion.div key="step1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-5 md:space-y-8">
+                <motion.div key="step1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6 md:space-y-10">
                   <div className="flex flex-col items-center gap-4">
-                    <h2 className="text-xl md:text-2xl font-headline font-black text-primary">מה אתם מחפשים?</h2>
+                    <h2 className="text-2xl md:text-[2rem] font-headline font-black text-primary">מה אתם מחפשים?</h2>
                   </div>
 
                   {/* Category cards */}
@@ -294,7 +294,7 @@ export function HeroAnimation() {
                           </div>
                           <button type="button" onClick={() => setQuantity(quantity + 1)} aria-label="הוסף כמות" className="w-10 h-10 rounded-xl border-2 border-primary/15 font-bold hover:bg-white active:scale-90 transition-all text-primary flex items-center justify-center text-lg bg-white shadow-sm">+</button>
                         </div>
-                        <Button onClick={() => setStep(2)} className="bg-primary text-white hover:bg-primary/90 rounded-full px-10 h-12 font-black uppercase text-xs tracking-[0.2em] shadow-xl transition-all hover:scale-105 active:scale-95 group gap-2">
+                        <Button onClick={() => setStep(2)} className="bg-primary text-white hover:bg-primary/95 rounded-full px-10 h-12 font-black uppercase text-xs tracking-[0.2em] shadow-premium transition-all hover:scale-105 active:scale-95 group gap-2">
                           המשך למפרט <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                         </Button>
                       </motion.div>
@@ -316,7 +316,7 @@ export function HeroAnimation() {
               )}
 
               {step === 2 && (
-                <motion.div key="step2" initial={{ opacity: 0, x: 28 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ type: "spring", stiffness: 220, damping: 22 }} className="space-y-6 text-right">
+                <motion.div key="step2" initial={{ opacity: 0, x: 28 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ type: "spring", stiffness: 220, damping: 22 }} className="space-y-7 text-right">
                   <div className="flex justify-between items-center border-b border-primary/5 pb-4">
                     <Button variant="ghost" onClick={() => setStep(1)} className="font-black text-[11px] uppercase tracking-widest h-10 px-4 rounded-xl hover:bg-primary/5 gap-1"><ChevronRight className="w-4 h-4" /> חזור</Button>
                     <div className="text-right">
@@ -353,7 +353,7 @@ export function HeroAnimation() {
                   </div>
 
                   <div className="flex justify-center pt-8">
-                    <Button onClick={() => setStep(3)} className="bg-primary text-white hover:bg-primary/90 rounded-full px-16 h-14 font-black uppercase text-sm tracking-[0.2em] shadow-xl transition-all hover:scale-105 active:scale-95 group gap-2">
+                    <Button onClick={() => setStep(3)} className="bg-primary text-white hover:bg-primary/95 rounded-full px-16 h-14 font-black uppercase text-sm tracking-[0.2em] shadow-premium transition-all hover:scale-105 active:scale-95 group gap-2">
                       המשך להתאמה אישית <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
                     </Button>
                   </div>
@@ -361,7 +361,7 @@ export function HeroAnimation() {
               )}
 
               {step === 3 && (
-                <motion.div key="step3" initial={{ opacity: 0, x: 28 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ type: "spring", stiffness: 220, damping: 22 }} className="space-y-6 text-right">
+                <motion.div key="step3" initial={{ opacity: 0, x: 28 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ type: "spring", stiffness: 220, damping: 22 }} className="space-y-7 text-right">
                   <div className="flex justify-between items-center border-b border-primary/5 pb-4">
                     <Button variant="ghost" onClick={() => setStep(2)} className="font-black text-[11px] uppercase tracking-widest h-10 px-4 rounded-xl hover:bg-primary/5 gap-1"><ChevronRight className="w-4 h-4" /> חזור</Button>
                     <div className="text-right">

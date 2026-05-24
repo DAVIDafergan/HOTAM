@@ -19,8 +19,8 @@
     --muted-foreground: 220 10% 40%;
     --accent: 38 75% 55%; /* Rich Gold */
     --accent-foreground: 220 60% 10%;
-    --border: 220 20% 90%;
-    --input: 220 20% 90%;
+    --border: 220 20% 88%;
+    --input: 220 20% 88%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
     --ring: 38 75% 55%;
@@ -33,24 +33,44 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-body;
+    @apply bg-background text-foreground font-body antialiased;
+    line-height: 1.65;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-headline;
+    @apply font-headline leading-tight;
+    text-wrap: balance;
+  }
+  p {
+    @apply leading-relaxed;
+    text-wrap: pretty;
+  }
+  html[dir='rtl'] {
+    word-spacing: 0.02em;
+  }
+  section {
+    scroll-margin-top: 5.5rem;
   }
 }
 
 @layer components {
   .glass {
-    @apply bg-white/70 backdrop-blur-md border border-white/20;
+    @apply bg-white/72 backdrop-blur-lg border border-white/25;
   }
 
   .shadow-premium {
-    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 4px 10px -2px rgba(0, 0, 0, 0.02);
+    box-shadow: 0 12px 34px -12px rgba(13, 20, 34, 0.14), 0 3px 12px -8px rgba(13, 20, 34, 0.09), inset 0 1px 0 rgba(255, 255, 255, 0.65);
   }
 
   .shadow-premium-lg {
-    box-shadow: 0 24px 64px -12px rgba(0, 0, 0, 0.08), 0 8px 20px -4px rgba(0, 0, 0, 0.04), inset 0 0 0 1px rgba(255, 255, 255, 0.75);
+    box-shadow: 0 26px 70px -22px rgba(13, 20, 34, 0.2), 0 10px 28px -16px rgba(13, 20, 34, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  }
+
+  a, button, input, textarea, select {
+    transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+    transition-duration: 180ms;
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   /* Scrollbar hiding utilities (both class names used across the codebase) */

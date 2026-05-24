@@ -12,7 +12,7 @@ const ALLOWED_IMAGE_TYPES = new Set([
 ]);
 export const maxDuration = 30;
 export const runtime = 'nodejs';
-const MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024;
+const MAX_UPLOAD_SIZE_BYTES = 15 * 1024 * 1024;
 
 const MIME_BY_EXT: Record<string, string> = {
   jpg: 'image/jpeg',
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     if (contentLengthHeader) {
       const contentLength = Number(contentLengthHeader);
       if (Number.isFinite(contentLength) && contentLength > MAX_UPLOAD_SIZE_BYTES) {
-        return NextResponse.json({ error: 'הקובץ גדול מדי (עד 10MB).' }, { status: 413 });
+        return NextResponse.json({ error: 'הקובץ גדול מדי (עד 15MB).' }, { status: 413 });
       }
     }
 
@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (file.size > MAX_UPLOAD_SIZE_BYTES) {
-      return NextResponse.json({ error: 'הקובץ גדול מדי (עד 10MB).' }, { status: 413 });
+      return NextResponse.json({ error: 'הקובץ גדול מדי (עד 15MB).' }, { status: 413 });
     }
 
     const contentType = resolveImageType(file);

@@ -280,8 +280,7 @@ export default function SellerOnboarding() {
     setLoading(true);
 
     try {
-      // Build the full seller profile payload up-front so it can be persisted
-      // regardless of whether email confirmation is required.
+      // Build the full seller profile payload up-front.
       const profilePayload = {
         first_name: formData.firstName,
         last_name: formData.lastName,
@@ -307,52 +306,57 @@ export default function SellerOnboarding() {
         writing_samples: formData.writingSamples,
         is_approved: false,
         favorite_product_ids: [],
+        is_email_verified: false,
         updated_at: new Date().toISOString(),
+      };
+
+      const registerSellerWithSession = async (userId: string, source: string, emailOverride?: string | null) => {
+        const { data: { session } } = await db.auth.getSession();
+        const token = session?.access_token;
+        if (!token) {
+          throw new Error('Missing auth session for seller registration');
+        }
+        const response = await fetch('/api/register-seller', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer ' + token,
+          },
+          body: JSON.stringify({
+            id: userId,
+            email: emailOverride ?? formData.email,
+            recovery_source: source,
+            ...profilePayload,
+          }),
+        });
+        if (!response.ok) {
+          throw new Error(`register-seller failed (${response.status})`);
+        }
       };
 
       // If user is already logged in as a customer, upgrade them to seller
       if (isExistingCustomer && user?.uid) {
-        // Update auth metadata role to 'seller'
-        const { error: authUpdateError } = await db.auth.updateUser({
-          data: { role: 'seller' },
-        });
-        if (authUpdateError) throw authUpdateError;
-
-        // Upsert the sellers row with the full profile
-        const { error: dbError } = await db
-          .from('sellers')
-          .upsert({ id: user.uid, ...profilePayload });
-        if (dbError) throw dbError;
-
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('pendingSellerProfile');
-        }
+        console.info('[seller-onboarding] upgrading existing customer to seller', { userId: user.uid });
+        await registerSellerWithSession(user.uid, 'existing-customer-upgrade', user.email);
 
         toast({ title: 'ההרשמה הסתיימה', description: 'הפרופיל שלך הועבר לאישור מנהל.' });
         router.push('/seller/dashboard');
         return;
       }
 
-      // Persist the full profile to localStorage so that when email confirmation
-      // is required the seller dashboard can apply it automatically after login.
-      // We tag it with the email so the dashboard can verify ownership.
-      if (typeof window !== 'undefined') {
-        try {
-          localStorage.setItem(
-            'pendingSellerProfile',
-            JSON.stringify({ ...profilePayload, _pending_email: formData.email }),
-          );
-        } catch {
-          // localStorage quota exceeded (very unlikely) — ignore and continue.
-        }
-      }
-
-      // Sign up with role='seller' so the DB trigger creates the sellers row.
+      console.info('[seller-onboarding] signup start', { email: formData.email.trim().toLowerCase() });
+      // Sign up with role='seller' and profile metadata so the DB trigger can
+      // persist onboarding data immediately even before email confirmation.
       const signUpData = await initiateEmailSignUp(
         auth,
         formData.email,
         formData.password,
-        { role: 'seller', first_name: formData.firstName, last_name: formData.lastName },
+        {
+          role: 'seller',
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          ...profilePayload,
+        },
       );
 
       const userId: string | undefined =
@@ -371,31 +375,19 @@ export default function SellerOnboarding() {
 
       if ((signUpData as any)?.session) {
         // Session is immediately available (email confirmation disabled).
-        // The trigger already created the sellers row; update it with full profile.
-        const { error: dbError } = await db
-          .from('sellers')
-          .update(profilePayload)
-          .eq('id', userId);
-
-        if (dbError) throw dbError;
-
-        // Profile saved — no need for the localStorage copy.
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('pendingSellerProfile');
-        }
+        console.info('[seller-onboarding] signup session available', { userId });
+        await registerSellerWithSession(userId, 'signup-session-available', formData.email);
 
         toast({ title: 'ההרשמה הסתיימה', description: 'הפרופיל שלך הועבר לאישור מנהל.' });
         router.push('/seller/dashboard');
       } else {
         // Email confirmation is required.
-        // The DB trigger created the sellers row with only first/last name.
-        // The full profile is saved in localStorage and will be applied by the
-        // seller dashboard on the first login after email confirmation.
+        console.info('[seller-onboarding] signup requires email confirmation', { userId });
         setLoading(false);
         toast({
           title: 'הרשמה הצליחה — בדוק את תיבת הדואר שלך',
           description:
-            'שלחנו קישור אישור לכתובת המייל שלך. לאחר האישור תוכל להתחבר ולהשלים את הפרופיל.',
+            'שלחנו קישור אישור לכתובת המייל שלך. לאחר האישור ניתן להתחבר כרגיל.',
         });
         router.push('/login');
       }

@@ -415,6 +415,7 @@ function SellerDashboardContent() {
     try {
       const raw = localStorage.getItem('pendingSellerProfile');
       if (!raw) return;
+      console.info('[seller-dashboard] applying pendingSellerProfile cache');
 
       const { _pending_email, is_approved: _ignoredApproval, ...profileData } = JSON.parse(raw);
 
@@ -435,6 +436,7 @@ function SellerDashboardContent() {
         .eq('id', user.uid)
         .then(({ error }) => {
           if (!error) {
+            console.info('[seller-dashboard] pendingSellerProfile cache applied');
             localStorage.removeItem('pendingSellerProfile');
             toast({ title: 'הפרופיל הושלם', description: 'כל הפרטים שהזנת בהרשמה נשמרו בהצלחה.' });
           }
@@ -474,6 +476,7 @@ function SellerDashboardContent() {
 
     (async () => {
       try {
+        console.info('[seller-dashboard] running fallback seller recovery');
         const { data: { session } } = await supabase.auth.getSession();
         const token = session?.access_token;
         if (!token) return;
@@ -489,6 +492,7 @@ function SellerDashboardContent() {
         });
 
         if (response.ok) {
+          console.info('[seller-dashboard] fallback seller recovery succeeded');
           window.localStorage.removeItem('pendingSellerProfile');
           toast({ title: 'הפרופיל הושלם', description: 'כל הפרטים שהזנת בהרשמה נשמרו בהצלחה.' });
         }

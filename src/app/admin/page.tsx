@@ -203,7 +203,7 @@ export default function AdminDashboard() {
   // Filtering Logic
   const filteredSellersPending = useMemo(() => {
     if (!allSellers) return [];
-    return allSellers.filter(s => !s.is_approved && (
+    return allSellers.filter(s => s.is_approved !== true && (
       `${s.first_name || ''} ${s.last_name || ''}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (s.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (s.id || '').toLowerCase().includes(searchTerm.toLowerCase())

@@ -569,8 +569,8 @@ export default function SellerProfile({
                               </Badge>
                             </div>
                             <div className="p-5 text-right space-y-2">
-                              <p className="font-black text-primary text-sm md:text-base tracking-tight group-hover:text-accent transition-colors leading-tight">
-                                {p.product_type} {p.sub_type && `(${p.sub_type})`}
+                              <p className="font-black text-primary text-sm md:text-base tracking-tight group-hover:text-accent transition-colors leading-tight line-clamp-1">
+                               {p.product_type}{p.sub_type ? ` + ${p.sub_type}` : ''}
                               </p>
                               <p className="text-lg font-black text-accent">₪{p.price}</p>
                                <Button variant="link" size="sm" asChild className="p-0 h-auto mt-1 text-[9px] font-black uppercase tracking-widest">

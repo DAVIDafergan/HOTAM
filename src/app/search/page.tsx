@@ -214,8 +214,13 @@ function SearchContent() {
     setShippingPreference(shipping === 'shipping' || shipping === 'pickup' || shipping === 'all' ? shipping : 'all');
 
     const city = searchParams.get('city');
+    const detectedCityFromParams = searchParams.get('detectedCity');
     setSelectedCity(city || '');
-    setDetectedCity(searchParams.get('detectedCity') || city || null);
+    setDetectedCity(
+      detectedCityFromParams && detectedCityFromParams !== UNKNOWN_CITY_LABEL
+        ? detectedCityFromParams
+        : city || null,
+    );
     setIncludeNearbyCities(searchParams.get('nearby') === 'true' || searchParams.get('nearMe') === 'true');
 
     const lat = searchParams.get('lat');
@@ -248,11 +253,16 @@ function SearchContent() {
         
         try {
           const { city } = await reverseGeocodeWithGoogle(latitude, longitude);
-          const nextCity = city || UNKNOWN_CITY_LABEL;
-          setDetectedCity(nextCity);
-          setSelectedCity(nextCity);
+          if (city) {
+            setDetectedCity(city);
+            setSelectedCity(city);
+            toast({ title: "המיקום זוהה", description: `זוהית ב: ${city}` });
+          } else {
+            setDetectedCity(null);
+            setSelectedCity('');
+            toast({ title: "המיקום זוהה", description: "לא הצלחנו לזהות עיר מדויקת. אפשר לבחור עיר מהרשימה." });
+          }
           setIsDetecting(false);
-          toast({ title: "המיקום זוהה", description: `זוהית ב: ${nextCity}` });
         } catch (error: any) {
           setIsDetecting(false);
           toast({
@@ -623,6 +633,7 @@ function SearchContent() {
             options={availableCities}
             placeholder="בחר עיר לסינון"
             onChange={setSelectedCity}
+            layout="inline"
           />
           <Label className="flex items-center justify-between rounded-2xl border border-primary/10 bg-white px-4 py-4 transition-all cursor-pointer hover:border-primary/20">
             <div className="space-y-1 text-right">

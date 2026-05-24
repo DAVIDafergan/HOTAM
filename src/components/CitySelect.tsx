@@ -16,6 +16,7 @@ type CitySelectProps = {
   onChange: (value: string) => void;
   className?: string;
   triggerClassName?: string;
+  layout?: 'popover' | 'inline';
 };
 
 export function CitySelect({
@@ -26,6 +27,7 @@ export function CitySelect({
   onChange,
   className,
   triggerClassName,
+  layout = 'popover',
 }: CitySelectProps) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState('');
@@ -35,6 +37,55 @@ export function CitySelect({
     if (!query) return options;
     return options.filter((option) => option.toLowerCase().includes(query));
   }, [options, search]);
+
+  if (layout === 'inline') {
+    return (
+      <div className={cn('space-y-2', className)} dir="rtl">
+        <div className="relative">
+          <Search className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary/30" />
+          <Input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="חיפוש עיר..."
+            className="h-11 rounded-2xl border-primary/10 pr-10 text-right font-medium"
+          />
+        </div>
+
+        <div className="max-h-56 overflow-y-auto rounded-2xl border border-primary/10 bg-white divide-y divide-primary/5">
+          <button
+            type="button"
+            onClick={() => onChange('')}
+            className={cn(
+              'flex w-full items-center justify-between px-3 py-2.5 text-right text-sm font-bold transition-colors hover:bg-primary/5',
+              !value ? 'bg-primary/5 text-primary' : 'text-primary/70',
+            )}
+          >
+            <span>{placeholder}</span>
+            {!value && <Check className="h-4 w-4 text-accent" />}
+          </button>
+
+          {filteredOptions.length === 0 ? (
+            <div className="px-3 py-6 text-center text-sm font-medium text-primary/45">{emptyLabel}</div>
+          ) : (
+            filteredOptions.map((option) => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => onChange(option)}
+                className={cn(
+                  'flex w-full items-center justify-between px-3 py-2.5 text-right text-sm font-bold transition-colors hover:bg-primary/5',
+                  value === option ? 'bg-primary/5 text-primary' : 'text-primary/70',
+                )}
+              >
+                <span>{option}</span>
+                <Check className={cn('h-4 w-4 text-accent', value === option ? 'opacity-100' : 'opacity-0')} />
+              </button>
+            ))
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

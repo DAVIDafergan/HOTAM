@@ -53,7 +53,7 @@ export const COMMON_CITY_OPTIONS = [
   'תל אביב-יפו',
 ] as const;
 
-const HEBREW_ARTICLE_PREFIX = /^ה/;
+const HEBREW_ARTICLE_PREFIX = /^ה(?=\s)/;
 const HEBREW_CITY_PREFIX = /^עיר\s+/;
 
 const CITY_ALIAS_PAIRS = [

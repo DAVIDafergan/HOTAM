@@ -114,6 +114,12 @@ const ITEMS_PER_PAGE = 6;
 const SIGNUP_SCRIPT_TYPES = ['ספרדי', 'בית יוסף', 'האר"י', 'אדמו"ר הזקן'];
 const SIGNUP_SCRIPT_LEVELS = ['כשר', 'מהודר', 'מהודר מאד'];
 
+type ProductPublishValidationIssue = {
+  title: string;
+  description: string;
+  step: number;
+};
+
 function SellerDashboardContent() {
   const { user, isUserLoading } = useUser();
   const db = useSupabaseClient();
@@ -231,6 +237,7 @@ function SellerDashboardContent() {
   const [formDeliveryArea, setFormDeliveryArea] = useState<string[]>(['כל הארץ']);
   const [formPickupAddress, setFormPickupAddress] = useState('');
   const [citySearch, setCitySearch] = useState('');
+  const [productPublishError, setProductPublishError] = useState<ProductPublishValidationIssue | null>(null);
 
   const [megRows, setMegRows] = useState('');
   const [megHeight, setMegHeight] = useState('');
@@ -629,6 +636,7 @@ function SellerDashboardContent() {
   };
 
   const openEditDialog = (p: any) => {
+    setProductPublishError(null);
     setEditingProduct(p);
     setFormType(p.product_type || '');
     setFormSubType(p.sub_type || '');
@@ -660,6 +668,7 @@ function SellerDashboardContent() {
   };
 
   const resetForm = () => {
+    setProductPublishError(null);
     setEditingProduct(null);
     setFormType(''); setFormSubType(''); setFormDescription(''); setFormQuantity(1);
     setFormScript(''); setFormQuality(''); setFormPrice(''); setFormImages([]);
@@ -669,6 +678,50 @@ function SellerDashboardContent() {
     setCitySearch('');
     setMegRows(''); setMegHeight('');
     setFormStep(1);
+  };
+
+  useEffect(() => {
+    if (!productPublishError) return;
+    setProductPublishError(null);
+  }, [
+    formType,
+    formSubType,
+    formScript,
+    formQuality,
+    formProofreading,
+    formParchmentSize,
+    formPrice,
+    formQuantity,
+    formDeliveryTime,
+    formDeliveryType,
+    formPickupAddress,
+    formDeliveryArea,
+    formImages,
+    megRows,
+    megHeight,
+    productPublishError,
+  ]);
+
+  const validateProductForm = (): ProductPublishValidationIssue | null => {
+    if (!formType) return { title: "חסר סוג מוצר", description: "כדי לפרסם מוצר יש לבחור סוג מוצר.", step: 1 };
+    if (formType !== 'תפילין' && !formSubType) return { title: "חסר תת-סוג", description: "כדי לפרסם מוצר יש לבחור תת-סוג או דגם.", step: 1 };
+    if (!formScript) return { title: "חסר סוג כתב", description: "כדי לפרסם מוצר יש לבחור סוג כתב.", step: 2 };
+    if (!formQuality) return { title: "חסרה רמת הידור", description: "כדי לפרסם מוצר יש לבחור רמת הידור.", step: 2 };
+    if (!formProofreading) return { title: "חסרה רמת הגהה", description: "כדי לפרסם מוצר יש לבחור רמת הגהה שבוצעה.", step: 2 };
+    if (formType === 'מגילה' && (!megRows || !megHeight)) return { title: "חסר גודל מגילה", description: "כדי לפרסם מגילה יש לבחור גם מספר שורות וגם גובה קלף.", step: 2 };
+    if (formType !== 'מגילה' && !formParchmentSize.trim()) return { title: "חסר גודל קלף", description: "כדי לפרסם מוצר יש למלא גודל קלף או בתים.", step: 2 };
+    if (formPrice === '' || Number(formPrice) <= 0) return { title: "מחיר לא תקין", description: "כדי לפרסם מוצר יש להזין מחיר גדול מ-0.", step: 3 };
+    if (formQuantity < 1) return { title: "כמות לא תקינה", description: "כדי לפרסם מוצר יש להזין כמות של לפחות 1.", step: 3 };
+    if (!formDeliveryTime) return { title: "חסר זמן אספקה", description: "כדי לפרסם מוצר יש לבחור זמן אספקה.", step: 3 };
+    if (!formDeliveryType) return { title: "חסר סוג משלוח", description: "כדי לפרסם מוצר יש לבחור אפשרות איסוף/משלוח.", step: 3 };
+    if ((formDeliveryType === 'pickup' || formDeliveryType === 'both') && !formPickupAddress.trim()) {
+      return { title: "חסרה כתובת איסוף", description: "כדי לפרסם מוצר עם איסוף עצמי יש להזין כתובת לאיסוף.", step: 3 };
+    }
+    if (formDeliveryType !== 'pickup' && formDeliveryArea.length === 0) {
+      return { title: "חסר אזור משלוח", description: "כדי לפרסם מוצר עם משלוח יש לבחור לפחות עיר אחת למשלוח.", step: 3 };
+    }
+    if (formImages.length === 0) return { title: "חסרה תמונה", description: "כדי לפרסם מוצר יש להעלות לפחות תמונה אחת.", step: 4 };
+    return null;
   };
 
   const handleSubmitProduct = async () => {
@@ -682,37 +735,16 @@ function SellerDashboardContent() {
       return;
     }
     
-    let finalSize = formParchmentSize;
-    if (formType === 'מגילה') {
-      if (!megRows || !megHeight) {
-        toast({ variant: "destructive", title: "חסר גודל מגילה", description: "אנא בחר מספר שורות וגובה קלף." });
-        return;
-      }
-      finalSize = `${megRows} שורות, ${megHeight}`;
-    }
-
-    if (
-      !formType || 
-      (formType !== 'תפילין' && !formSubType) ||
-      !formScript || 
-      !formQuality || 
-      !formProofreading ||
-      !finalSize ||
-      formPrice === '' || Number(formPrice) <= 0 || 
-      formQuantity < 1 ||
-      !formDeliveryTime ||
-      !formDeliveryType ||
-      ((formDeliveryType === 'pickup' || formDeliveryType === 'both') && !formPickupAddress.trim()) ||
-      (formDeliveryType !== 'pickup' && formDeliveryArea.length === 0)
-    ) {
-      toast({ variant: "destructive", title: "שדות חובה חסרים", description: "אנא מלא את כל השדות המסומנים בכוכבית." });
+    const validationIssue = validateProductForm();
+    if (validationIssue) {
+      setProductPublishError(validationIssue);
+      setFormStep(validationIssue.step);
+      toast({ variant: "destructive", title: validationIssue.title, description: validationIssue.description });
       return;
     }
+    setProductPublishError(null);
 
-    if (formImages.length === 0) {
-      toast({ variant: "destructive", title: "חסרה תמונה", description: "יש להעלות לפחות תמונה אחת של המוצר." });
-      return;
-    }
+    const finalSize = formType === 'מגילה' ? `${megRows} שורות, ${megHeight}` : formParchmentSize;
 
     const data = {
       seller_id: user.uid,
@@ -1371,7 +1403,7 @@ function SellerDashboardContent() {
           </DialogContent>
         </Dialog>
 
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) setProductPublishError(null); }}>
           <DialogContent className="max-w-2xl rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl bg-white max-h-[95vh] flex flex-col" dir="rtl">
             <div className="bg-primary p-6 text-white text-right relative shrink-0">
               <div className="absolute top-4 left-6 flex gap-1.5">
@@ -1747,7 +1779,16 @@ function SellerDashboardContent() {
               </AnimatePresence>
             </div>
 
-            <DialogFooter className="p-6 bg-slate-50 border-t flex flex-row gap-3 shrink-0">
+            <DialogFooter className="p-6 bg-slate-50 border-t flex flex-col gap-3 shrink-0 sm:flex-row">
+              {productPublishError && (
+                <div className="w-full rounded-2xl border border-destructive/20 bg-destructive/10 p-3 text-right flex items-start gap-2 sm:order-last">
+                  <AlertCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-black text-destructive">{productPublishError.title}</p>
+                    <p className="text-[11px] font-medium text-destructive/90">{productPublishError.description}</p>
+                  </div>
+                </div>
+              )}
               {formStep > 1 && (
                 <Button 
                   variant="outline" 

@@ -58,7 +58,7 @@ import {
   useDoc, 
   useMemoStable
 } from '@/lib/supabase-hooks';
-import { collection, query, doc, orderBy, where } from '@/lib/supabase-compat';
+import { collection, query, doc, orderBy, where, limit } from '@/lib/supabase-compat';
 import Image from 'next/image';
 import { 
   Dialog, 
@@ -171,7 +171,7 @@ export default function AdminDashboard() {
 
   const ordersQuery = useMemoStable(() => {
     if (!canLoadData) return null;
-    return query(collection(db, 'orders'), orderBy('created_at', 'desc'));
+    return query(collection(db, 'orders'), orderBy('created_at', 'desc'), limit(1000));
   }, [db, canLoadData]);
   const { data: allOrders } = useCollection<any>(ordersQuery);
   const visibleOrders = useMemo(
@@ -181,7 +181,7 @@ export default function AdminDashboard() {
 
   const reportsQuery = useMemoStable(() => {
     if (!canLoadData) return null;
-    return query(collection(db, 'reports'), orderBy('created_at', 'desc'));
+    return query(collection(db, 'reports'), orderBy('created_at', 'desc'), limit(500));
   }, [db, canLoadData]);
   const { data: allReports } = useCollection<any>(reportsQuery);
 

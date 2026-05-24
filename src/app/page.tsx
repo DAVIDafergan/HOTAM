@@ -24,7 +24,7 @@ import {
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import dynamic from 'next/dynamic';
 import { useUser, useSupabaseClient, useDoc, useMemoStable, useCollection } from '@/lib/supabase-hooks';
-import { collection, query, where, orderBy, doc } from '@/lib/supabase-compat';
+import { collection, query, where, orderBy, doc, limit } from '@/lib/supabase-compat';
 import unsplashLoader from '@/lib/unsplashLoader';
 import { motion } from 'framer-motion';
 import { useMemo } from 'react';
@@ -50,7 +50,7 @@ export default function Home() {
   const sellersQuery = useMemoStable(() => query(collection(db, 'sellers'), where('is_approved', '==', true)), [db]);
   const { data: allSellers } = useCollection<any>(sellersQuery);
 
-  const reviewsQuery = useMemoStable(() => query(collection(db, 'reviews')), [db]);
+  const reviewsQuery = useMemoStable(() => query(collection(db, 'reviews'), limit(500)), [db]);
   const { data: allReviews } = useCollection<any>(reviewsQuery);
 
   const getTimestampMillis = (ts: any): number => {

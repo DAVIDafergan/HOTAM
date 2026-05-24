@@ -51,6 +51,7 @@ import {
   useMemoStable, 
   useAuth,
   useCollection,
+  useCollectionCount,
   useDoc,
   updateDocumentNonBlocking
 } from '@/lib/supabase-hooks';
@@ -121,13 +122,13 @@ export function Navbar() {
   }, [db, isSuperAdmin, mounted]);
   const { data: pendingSellers } = useCollection<any>(pendingSellersQuery);
 
-  const reportsQuery = useMemoStable(() => {
+  const reportsCountQuery = useMemoStable(() => {
     if (!isSuperAdmin || !mounted) return null;
     return query(collection(db, 'reports'));
   }, [db, isSuperAdmin, mounted]);
-  const { data: allReports } = useCollection<any>(reportsQuery);
+  const { count: reportsCount } = useCollectionCount(reportsCountQuery);
 
-  const adminNotificationCount = (pendingSellers?.length || 0) + (allReports?.length || 0);
+  const adminNotificationCount = (pendingSellers?.length || 0) + (reportsCount || 0);
 
   const sellerOrdersQuery = useMemoStable(() => {
     if (!isSeller || !user || !mounted) return null;
@@ -344,14 +345,14 @@ export function Navbar() {
                           </DropdownMenuItem>
                         ) : null}
 
-                        {allReports && allReports.length > 0 ? (
+                        {reportsCount != null && reportsCount > 0 ? (
                           <DropdownMenuItem asChild className="rounded-xl p-3 cursor-pointer hover:bg-primary/5 transition-colors">
                             <Link href="/admin" className="flex items-center justify-between w-full">
                               <div className="flex items-center gap-3">
                                 <div className="p-2 bg-destructive/5 rounded-lg text-destructive"><Flag className="w-4 h-4" /></div>
                                 <span className="text-[11px] font-bold text-primary">דיווחים חדשים</span>
                               </div>
-                              <Badge className="bg-destructive text-white border-none text-[10px]">{allReports.length}</Badge>
+                              <Badge className="bg-destructive text-white border-none text-[10px]">{reportsCount}</Badge>
                             </Link>
                           </DropdownMenuItem>
                         ) : null}

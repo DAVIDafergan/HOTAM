@@ -6,7 +6,6 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { 
   Search, 
-  ChevronDown, 
   Scroll, 
   Package, 
   Crown, 
@@ -14,18 +13,10 @@ import {
   Palette, 
   ChevronRight, 
   ChevronLeft,
-  ArrowRight,
-  ShieldCheck,
   UserCheck,
-  MapPin,
   LocateFixed,
   Loader2,
-  Waves,
   Settings2,
-  Info,
-  Sparkles,
-  Shield,
-  GraduationCap,
   ArrowLeft
 } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -37,14 +28,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { CitySelect } from '@/components/CitySelect';
 import { reverseGeocodeWithGoogle } from '@/lib/google-maps';
+import { COMMON_CITY_OPTIONS, NEARBY_RADIUS_KM, UNKNOWN_CITY_LABEL } from '@/lib/location-utils';
 
 type ProductType = 'מזוזה' | 'תפילין' | 'מגילה' | 'ספר תורה' | 'מוצרי יודאיקה שונים' | '';
 type ShippingPreference = 'all' | 'shipping' | 'pickup';
-
-const ISRAEL_REGIONS = [
-  "ירושלים והסביבה", "תל אביב וגוש דן", "חיפה והצפון", "באר שבע והדרום", "בני ברק והמרכז", "השרון", "יהודה ושומרון"
-];
 
 export function HeroAnimation() {
   const router = useRouter();
@@ -60,10 +49,11 @@ export function HeroAnimation() {
   const [quantity, setQuantity] = useState(1);
   
   // Location States
-  const [selectedLocation, setSelectedRegion] = useState('all');
+  const [selectedCity, setSelectedCity] = useState('');
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
   const [userCoords, setUserCoords] = useState<{lat: number, lng: number} | null>(null);
   const [detectedCity, setDetectedCity] = useState<string | null>(null);
+  const [includeNearbyCities, setIncludeNearbyCities] = useState(false);
   const [shippingPreference, setShippingPreference] = useState<ShippingPreference>('all');
 
   // Advanced Scribe Filters
@@ -99,12 +89,10 @@ export function HeroAnimation() {
 
         try {
           const { city } = await reverseGeocodeWithGoogle(latitude, longitude);
-          if (city) {
-            setDetectedCity(city);
-            toast({ title: `מיקום זוהה: ${city}` });
-          } else {
-            toast({ title: "מיקום זוהה" });
-          }
+          const nextCity = city || UNKNOWN_CITY_LABEL;
+          setDetectedCity(nextCity);
+          setSelectedCity(nextCity);
+          toast({ title: `מיקום זוהה: ${nextCity}` });
         } catch {
           toast({ title: "מיקום זוהה" });
         }
@@ -165,14 +153,14 @@ export function HeroAnimation() {
     if (scriptType !== 'all') params.set('script', scriptType);
     if (qualityLevel !== 'all') params.set('quality', qualityLevel);
     if (quantity > 1) params.set('quantity', String(quantity));
-    if (selectedLocation !== 'all') params.set('region', selectedLocation);
+    if (selectedCity) params.set('city', selectedCity);
     if (shippingPreference !== 'all') params.set('shipping', shippingPreference);
     if (userCoords) {
       params.set('lat', String(userCoords.lat));
       params.set('lng', String(userCoords.lng));
-      params.set('nearMe', 'true');
-      if (detectedCity) params.set('city', detectedCity);
+      if (detectedCity) params.set('detectedCity', detectedCity);
     }
+    if (includeNearbyCities) params.set('nearby', 'true');
 
     let finalSize = scrollSize;
     if (selectedProduct === 'מגילה') {
@@ -450,15 +438,20 @@ export function HeroAnimation() {
                             {isDetectingLocation ? <Loader2 className="w-5 h-5 animate-spin" /> : <LocateFixed className="w-5 h-5" />}
                             {userCoords ? (detectedCity ? `המיקום שלך: ${detectedCity}` : 'המיקום שלך זוהה בהצלחה') : 'זהה את המיקום הנוכחי שלי'}
                           </Button>
-                          <div className="relative">
-                            <Select value={selectedLocation} onValueChange={setSelectedRegion}>
-                              <SelectTrigger className="h-14 rounded-2xl text-right font-bold text-sm bg-white/50 border-2 border-transparent focus:border-primary/20"><SelectValue placeholder="בחר אזור בארץ..." /></SelectTrigger>
-                              <SelectContent className="rounded-2xl border-none shadow-2xl p-1">
-                                <SelectItem value="all" className="font-bold py-3 rounded-xl">כל הארץ</SelectItem>
-                                {ISRAEL_REGIONS.map(r => <SelectItem key={r} value={r} className="font-bold py-3 rounded-xl">{r}</SelectItem>)}
-                              </SelectContent>
-                            </Select>
-                          </div>
+                          <CitySelect
+                            value={selectedCity}
+                            options={[...COMMON_CITY_OPTIONS]}
+                            placeholder="בחר עיר"
+                            onChange={setSelectedCity}
+                            triggerClassName="h-14 rounded-2xl text-sm border-2 border-transparent bg-white/50 focus:border-primary/20"
+                          />
+                          <Label className="flex items-center justify-between rounded-2xl border-2 border-primary/5 bg-white/80 px-4 py-4 shadow-sm transition-all hover:border-primary/10">
+                            <div className="space-y-1 text-right">
+                              <span className="block text-[11px] font-black uppercase tracking-tight text-primary">חפש גם בערים קרובות</span>
+                              <span className="block text-[10px] font-medium text-primary/50">עד {NEARBY_RADIUS_KM} ק״מ מהעיר שנבחרה</span>
+                            </div>
+                            <Checkbox checked={includeNearbyCities} onCheckedChange={(value) => setIncludeNearbyCities(!!value)} className="w-5 h-5 rounded-md" />
+                          </Label>
                         </div>
                       </div>
 

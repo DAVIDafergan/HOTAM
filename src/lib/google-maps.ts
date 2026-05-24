@@ -15,6 +15,8 @@ export type GoogleAddressSelection = {
 const getGoogleMapsApiKey = () => process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
 const CITY_KEYS = ['locality', 'administrative_area_level_2', 'administrative_area_level_1'];
+const reverseGeocodeCache = new Map<string, { city: string | null }>();
+const geocodeAddressCache = new Map<string, { lat: number | null; lng: number | null; city: string | null }>();
 
 const normalizeCityName = (value: string) =>
   value
@@ -63,6 +65,10 @@ export async function loadGoogleMapsPlacesScript(): Promise<void> {
 }
 
 export async function reverseGeocodeWithGoogle(lat: number, lng: number): Promise<{ city: string | null }> {
+  const cacheKey = `${lat.toFixed(5)},${lng.toFixed(5)}`;
+  const cached = reverseGeocodeCache.get(cacheKey);
+  if (cached) return cached;
+
   const googleMapsApiKey = getGoogleMapsApiKey();
   if (!googleMapsApiKey) throw new Error('Missing NEXT_PUBLIC_GOOGLE_MAPS_API_KEY (set it in environment variables) / חסר NEXT_PUBLIC_GOOGLE_MAPS_API_KEY');
 
@@ -83,10 +89,16 @@ export async function reverseGeocodeWithGoogle(lat: number, lng: number): Promis
     getCityFromAddressComponents(data.results[0].address_components) ||
     getCityFromAddressComponents(data.results.find((result: any) => Array.isArray(result?.address_components))?.address_components);
 
-  return { city };
+  const result = { city };
+  reverseGeocodeCache.set(cacheKey, result);
+  return result;
 }
 
 export async function geocodeAddressWithGoogle(address: string): Promise<{ lat: number | null; lng: number | null; city: string | null }> {
+  const cacheKey = address.trim().toLowerCase();
+  const cached = geocodeAddressCache.get(cacheKey);
+  if (cached) return cached;
+
   const googleMapsApiKey = getGoogleMapsApiKey();
   if (!googleMapsApiKey) throw new Error('Missing NEXT_PUBLIC_GOOGLE_MAPS_API_KEY (set it in environment variables) / חסר NEXT_PUBLIC_GOOGLE_MAPS_API_KEY');
 
@@ -100,7 +112,9 @@ export async function geocodeAddressWithGoogle(address: string): Promise<{ lat: 
 
   const data = await response.json();
   if (data.status !== 'OK' || !Array.isArray(data.results) || data.results.length === 0) {
-    return { lat: null, lng: null, city: null };
+    const emptyResult = { lat: null, lng: null, city: null };
+    geocodeAddressCache.set(cacheKey, emptyResult);
+    return emptyResult;
   }
 
   const firstResult = data.results[0];
@@ -108,5 +122,7 @@ export async function geocodeAddressWithGoogle(address: string): Promise<{ lat: 
   const lat = typeof firstResult?.geometry?.location?.lat === 'number' ? firstResult.geometry.location.lat : null;
   const lng = typeof firstResult?.geometry?.location?.lng === 'number' ? firstResult.geometry.location.lng : null;
 
-  return { lat, lng, city };
+  const result = { lat, lng, city };
+  geocodeAddressCache.set(cacheKey, result);
+  return result;
 }

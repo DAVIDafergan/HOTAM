@@ -86,19 +86,19 @@ const steps = [
 
 export function WorkFlow() {
   return (
-    <section className="py-28 bg-primary text-white overflow-hidden relative" dir="rtl">
+    <section className="py-32 md:py-36 bg-primary text-white overflow-hidden relative" dir="rtl">
       {/* Background patterns */}
       <div className="absolute inset-0 opacity-5 pointer-events-none">
         <svg width="100%" height="100%"><pattern id="wf-grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="1"/></pattern><rect width="100%" height="100%" fill="url(#wf-grid)" /></svg>
       </div>
 
       <div className="container mx-auto px-4 md:px-5 relative z-10">
-        <div className="text-center mb-24 space-y-5">
+        <div className="text-center mb-24 md:mb-28 space-y-6">
           <motion.h2 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-[2.2rem] md:text-[3.1rem] font-headline font-black tracking-tight"
+            className="text-[2.35rem] md:text-[3.3rem] font-headline font-black tracking-tight"
           >
             תהליך העבודה שלנו
           </motion.h2>
@@ -142,14 +142,14 @@ export function WorkFlow() {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.15, duration: 0.45, ease: 'easeOut' }}
                 whileHover={{ y: -4 }}
-                className="flex flex-col items-center md:items-center text-center md:text-center space-y-7 relative"
+                className="flex flex-col items-center md:items-center text-center md:text-center space-y-8 relative"
               >
                 {/* Icon Container */}
                 <div className="relative">
                   <motion.div 
                     whileHover={{ scale: 1.05 }}
                     transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-                    className="w-20 h-20 bg-white/5 backdrop-blur-xl border border-white/15 rounded-full flex items-center justify-center shadow-premium relative z-10"
+                    className="w-20 h-20 bg-white/10 backdrop-blur-2xl border border-white/20 rounded-full flex items-center justify-center shadow-premium relative z-10"
                   >
                     {step.animation.icon}
                   </motion.div>
@@ -161,9 +161,9 @@ export function WorkFlow() {
                 </div>
 
                 {/* Text Content */}
-                <div className="space-y-3.5 px-4">
-                  <h3 className="text-[1.35rem] font-headline font-black text-accent">{step.title}</h3>
-                  <p className="text-[0.95rem] text-white/70 leading-relaxed font-medium max-w-[230px] mx-auto">
+                <div className="space-y-4 px-4">
+                  <h3 className="text-[1.45rem] font-headline font-black text-accent">{step.title}</h3>
+                  <p className="text-base text-white/75 leading-relaxed font-medium max-w-[240px] mx-auto">
                     {step.desc}
                   </p>
                 </div>

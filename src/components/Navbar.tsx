@@ -179,9 +179,9 @@ export function Navbar() {
   );
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-[100] p-4" role="navigation">
+    <nav className="fixed top-0 left-0 right-0 z-[100] p-4 md:p-5" role="navigation">
       <div className="container mx-auto max-w-7xl">
-        <div className="bg-white/70 backdrop-blur-md border border-white/20 shadow-premium rounded-full px-4 sm:px-6 h-16 flex items-center justify-between relative overflow-hidden">
+        <div className="bg-white/78 backdrop-blur-xl border border-white/35 ring-1 ring-primary/5 shadow-premium-lg rounded-full px-5 sm:px-7 h-[4.5rem] flex items-center justify-between relative overflow-hidden">
           
           <div className="flex-1 flex items-center justify-start z-10 gap-2">
             {mounted && pathname !== '/' && (
@@ -207,7 +207,7 @@ export function Navbar() {
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      className="rounded-full h-10 w-10 bg-white/40 border border-white/30 shadow-sm active:scale-90 transition-transform relative"
+                      className="rounded-full h-11 w-11 bg-white/55 border border-white/45 shadow-premium active:scale-90 transition-all relative"
                       aria-label="פתח תפריט ניווט"
                     >
                       <Menu className="w-5 h-5 text-primary" />
@@ -315,7 +315,7 @@ export function Navbar() {
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="rounded-full h-11 w-11 bg-white/40 border border-white/30 shadow-sm relative hover:bg-white/60 transition-all"
+                        className="rounded-full h-11 w-11 bg-white/55 border border-white/45 shadow-premium relative hover:bg-white/72 transition-all"
                         aria-label="עדכוני ניהול"
                       >
                         <Bell className="w-5 h-5 text-primary" />
@@ -380,7 +380,7 @@ export function Navbar() {
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="rounded-full h-11 w-11 bg-white/40 border border-white/30 shadow-sm relative hover:bg-white/60 transition-all"
+                        className="rounded-full h-11 w-11 bg-white/55 border border-white/45 shadow-premium relative hover:bg-white/72 transition-all"
                         aria-label="התראות הודעות"
                       >
                         <Bell className="w-5 h-5 text-primary" />
@@ -437,7 +437,7 @@ export function Navbar() {
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="rounded-full h-11 w-11 bg-white/40 border border-white/30 shadow-sm relative hover:bg-white/60 transition-all"
+                        className="rounded-full h-11 w-11 bg-white/55 border border-white/45 shadow-premium relative hover:bg-white/72 transition-all"
                         aria-label="עדכוני סופר"
                       >
                         <Bell className="w-5 h-5 text-primary" />
@@ -518,7 +518,7 @@ export function Navbar() {
                   <DropdownMenuTrigger asChild>
                     <Button 
                       variant="ghost" 
-                      className="h-11 px-3 gap-3 rounded-full bg-white/40 hover:bg-white/60 border border-white/30 transition-all group shadow-sm relative"
+                      className="h-11 px-3.5 gap-3 rounded-full bg-white/55 hover:bg-white/72 border border-white/45 transition-all group shadow-premium relative"
                       aria-label="פתח תפריט משתמש"
                     >
                       <div className="hidden sm:flex flex-col items-end text-right">
@@ -555,7 +555,7 @@ export function Navbar() {
             )}
 
             {!isUserLoading && !user && mounted && (
-              <Button asChild className="bg-primary text-white hover:bg-primary/90 px-6 h-9 rounded-full shadow-lg text-xs font-bold gap-2 border border-white/20">
+              <Button asChild className="bg-primary text-white hover:bg-primary/95 px-7 h-10 rounded-full shadow-premium text-xs font-bold gap-2 border border-white/30">
                 <Link href="/login"> <LogIn className="w-3.5 h-3.5" /> התחברות</Link>
               </Button>
             )}
@@ -571,7 +571,7 @@ function NavLink({ href, icon, label }: { href: string, icon: any, label: string
   return (
     <Link 
       href={href} 
-      className="text-xs font-bold text-primary/60 hover:text-primary transition-all flex items-center gap-1.5 group relative py-1"
+      className="text-[13px] font-bold text-primary/65 hover:text-primary transition-all flex items-center gap-1.5 group relative py-1.5"
     >
       <span className="opacity-0 group-hover:opacity-100 transition-opacity text-accent" aria-hidden="true">{icon}</span>
       {label}

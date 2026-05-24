@@ -50,7 +50,7 @@ export default function Home() {
   const sellersQuery = useMemoStable(() => query(collection(db, 'sellers'), where('is_approved', '==', true)), [db]);
   const { data: allSellers } = useCollection<any>(sellersQuery);
 
-  const reviewsQuery = useMemoStable(() => query(collection(db, 'reviews'), limit(500)), [db]);
+  const reviewsQuery = useMemoStable(() => query(collection(db, 'reviews'), limit(100)), [db]);
   const { data: allReviews } = useCollection<any>(reviewsQuery);
 
   const getTimestampMillis = (ts: any): number => {

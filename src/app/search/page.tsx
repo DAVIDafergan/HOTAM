@@ -171,10 +171,10 @@ function SearchContent() {
 
   const { data: allProducts, isLoading } = useCollection<any>(productsQuery);
 
-  const sellersQuery = useMemoStable(() => query(collection(db, 'sellers'), limit(500)), [db]);
+  const sellersQuery = useMemoStable(() => query(collection(db, 'sellers'), where('is_approved', '==', true), limit(200)), [db]);
   const { data: allSellers } = useCollection<any>(sellersQuery);
 
-  const reviewsQuery = useMemoStable(() => query(collection(db, 'reviews'), limit(1000)), [db]);
+  const reviewsQuery = useMemoStable(() => query(collection(db, 'reviews'), limit(200)), [db]);
   const { data: allReviews } = useCollection<any>(reviewsQuery);
 
   useEffect(() => {

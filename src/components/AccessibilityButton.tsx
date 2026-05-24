@@ -78,18 +78,26 @@ export function AccessibilityButton() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    let frameId = 0;
+
     const syncToViewport = () => {
-      setPosition(prev => {
-        if (prev.y === 0) {
-          return clampPosition(prev.x, window.innerHeight - ACCESSIBILITY_DEFAULT_BOTTOM_OFFSET_PX);
-        }
-        return clampPosition(prev.x, prev.y);
+      if (frameId) cancelAnimationFrame(frameId);
+      frameId = requestAnimationFrame(() => {
+        setPosition(prev => {
+          if (prev.y === 0) {
+            return clampPosition(prev.x, window.innerHeight - ACCESSIBILITY_DEFAULT_BOTTOM_OFFSET_PX);
+          }
+          return clampPosition(prev.x, prev.y);
+        });
       });
     };
 
     syncToViewport();
-    window.addEventListener('resize', syncToViewport);
-    return () => window.removeEventListener('resize', syncToViewport);
+    window.addEventListener('resize', syncToViewport, { passive: true });
+    return () => {
+      if (frameId) cancelAnimationFrame(frameId);
+      window.removeEventListener('resize', syncToViewport);
+    };
   }, []);
 
   const reset = () => {
@@ -166,7 +174,10 @@ export function AccessibilityButton() {
   };
 
   return (
-    <div className="fixed z-[200]" style={{ left: position.x, top: position.y }}>
+    <div
+      className="fixed z-[200]"
+      style={{ left: position.x, top: position.y === 0 ? `calc(100dvh - ${ACCESSIBILITY_DEFAULT_BOTTOM_OFFSET_PX}px)` : position.y }}
+    >
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button 

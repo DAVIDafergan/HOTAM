@@ -349,6 +349,14 @@ export default function SellerOnboarding() {
       // persist onboarding data immediately even before email confirmation.
       // Persist the full seller profile so reconcileSellerAccount can recover it
       // after the user clicks the confirmation link and signs in.
+      const {
+        first_name: _pendingFirstName,
+        last_name: _pendingLastName,
+        bank_account_number: _pendingBankAccountNumber,
+        has_scribe_certificate: _pendingHasScribeCertificate,
+        certificate_url: _pendingCertificateUrl,
+        ...pendingSellerProfilePayload
+      } = profilePayload;
       try {
         window.localStorage.setItem(
           'pendingSellerProfile',
@@ -357,7 +365,7 @@ export default function SellerOnboarding() {
             id: '',
             first_name: formData.firstName,
             last_name: formData.lastName,
-            ...profilePayload,
+            ...pendingSellerProfilePayload,
           }),
         );
       } catch (_storageErr) {

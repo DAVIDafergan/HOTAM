@@ -17,7 +17,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
@@ -32,8 +31,6 @@ import {
   Package,
   Crown,
   Loader2,
-  Waves,
-  ShieldCheck,
   UserCheck,
   Truck,
   ChevronLeft,
@@ -41,11 +38,10 @@ import {
   MapPin,
   LocateFixed,
   ArrowUpNarrowWide,
-  Star,
   GraduationCap,
   CheckCircle2
 } from 'lucide-react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useSupabaseClient, useCollection, useMemoStable } from '@/lib/supabase-hooks';
 import { collection, query, where, limit } from '@/lib/supabase-compat';
 import { ProductCard } from '@/components/ProductCard';
@@ -54,78 +50,33 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import { TorahExpertBanner } from '@/components/TorahExpertBanner';
+import { CitySelect } from '@/components/CitySelect';
 import { geocodeAddressWithGoogle, reverseGeocodeWithGoogle } from '@/lib/google-maps';
+import {
+  buildAvailableCities,
+  getCityCandidates,
+  getProductCityTokens,
+  haversineDistance,
+  NEARBY_RADIUS_KM,
+  normalizeCity,
+  UNKNOWN_CITY_LABEL,
+} from '@/lib/location-utils';
 
 type ProductType = 'מזוזה' | 'תפילין' | 'מגילה' | 'ספר תורה' | 'מוצרי יודאיקה שונים' | '';
 type ShippingPreference = 'all' | 'shipping' | 'pickup';
 
-const ISRAEL_REGIONS = [
-  "ירושלים והסביבה", "תל אביב וגוש דן", "חיפה והצפון", "באר שבע והדרום", "בני ברק והמרכז", "השרון", "יהודה ושומרון"
-];
-const HEBREW_ARTICLE_PREFIX = /^ה/;
-const HEBREW_CITY_PREFIX = /^עיר\s+/;
-const CITY_MATCH_SEPARATORS = [' ', '-'];
-const UNKNOWN_CITY_LABEL = 'עיר לא ידועה';
 const PRICE_THRESHOLD_FOR_ROUNDING = 1000;
 const SMALL_PRICE_ROUND_FACTOR = 100;
 const LARGE_PRICE_ROUND_FACTOR = 500;
-const CITY_ALIAS_PAIRS = [
-  ['raanana', 'רעננה'],
-  ['tel aviv', 'תל אביב'],
-  ['tel aviv', 'תל אביב-יפו'],
-  ['jerusalem', 'ירושלים'],
-  ['haifa', 'חיפה'],
-] as const;
 const SORT_OPTIONS = [
   { value: 'newest', label: 'מוצרים חדשים' },
   { value: 'price_asc', label: 'מחיר: מהזול ליקר' },
   { value: 'price_desc', label: 'מחיר: מהיקר לזול' },
   { value: 'rating', label: 'דירוג לקוחות' },
 ] as const;
-const normalizeCity = (value: string) =>
-  value
-    .normalize('NFKD')
-    .replace(/[\u0591-\u05C7]/g, '')
-    .replace(/[^\p{L}\p{N}\s-]/gu, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase();
 const sanitizePriceInput = (value: string) => value.replace(/[^\d]/g, '');
-const REGION_CITY_MAP: Record<string, string[]> = {
-  'השרון': ['נתניה', 'הרצליה', 'רעננה', 'כפר סבא', 'הוד השרון', 'רמת השרון', 'פרדסיה', 'קדימה', 'אבן יהודה'],
-  'תל אביב וגוש דן': ['תל אביב', 'תל אביב-יפו', 'רמת גן', 'גבעתיים', 'חולון', 'בת ים', 'בני ברק', 'פתח תקווה'],
-  'ירושלים והסביבה': ['ירושלים', 'בית שמש', 'מעלה אדומים'],
-  'חיפה והצפון': ['חיפה', 'נהריה', 'עכו', 'קריות', 'טבריה', 'צפת', 'כרמיאל'],
-  'באר שבע והדרום': ['באר שבע', 'אשקלון', 'אשדוד', 'אילת', 'דימונה', 'אופקים', 'ירוחם'],
-  'בני ברק והמרכז': ['בני ברק', 'ראשון לציון', 'רחובות', 'רמלה', 'לוד', 'מודיעין'],
-  'יהודה ושומרון': ['אריאל', 'מעלה אדומים', 'ביתר עילית', 'מודיעין עילית'],
-};
-const NORMALIZED_REGION_CITY_MAP: Record<string, string[]> = Object.fromEntries(
-  Object.entries(REGION_CITY_MAP).map(([region, cities]) => [region, cities.map(normalizeCity)]),
-);
-const CITY_ALIASES: Record<string, string[]> = CITY_ALIAS_PAIRS.reduce((acc, [a, b]) => {
-  const left = normalizeCity(a);
-  const right = normalizeCity(b);
-  acc[left] = Array.from(new Set([...(acc[left] || []), right]));
-  acc[right] = Array.from(new Set([...(acc[right] || []), left]));
-  return acc;
-}, {} as Record<string, string[]>);
-
-function haversineDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const R = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLng = ((lng2 - lng1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
-const getDeliveryAreaValues = (product: any): string[] =>
-  Array.isArray(product?.delivery_area) ? product.delivery_area : product?.delivery_area ? [product.delivery_area] : [];
 
 function SearchContent() {
-  const router = useRouter();
   const { toast } = useToast();
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [isDesktopFilters, setIsDesktopFilters] = useState(false);
@@ -143,10 +94,9 @@ function SearchContent() {
   const [scriptType, setScriptType] = useState('all');
   const [qualityLevel, setQualityLevel] = useState('all');
   const [quantity, setQuantity] = useState(1);
-  
+
   // Advanced Filter States
   const [scrollSize, setScrollSize] = useState('all');
-  const [selectedRegion, setSelectedRegion] = useState('all');
   const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
   const [marriedOnly, setMarriedOnly] = useState(false);
   const [mikvehFreq, setMikvehFreq] = useState('');
@@ -155,11 +105,12 @@ function SearchContent() {
 
   // Location logic
   const [isDetecting, setIsDetecting] = useState(false);
+  const [selectedCity, setSelectedCity] = useState('');
   const [detectedCity, setDetectedCity] = useState<string | null>(null);
   const [userCoords, setUserCoords] = useState<{lat: number, lng: number} | null>(null);
-  const [preferNearMe, setPreferNearMe] = useState(false);
+  const [includeNearbyCities, setIncludeNearbyCities] = useState(false);
+  const [nearbyCityDistanceMap, setNearbyCityDistanceMap] = useState<Record<string, number>>({});
   const [nearbyDistanceMap, setNearbyDistanceMap] = useState<Record<string, number>>({});
-  const [nearbySortedProducts, setNearbySortedProducts] = useState<any[]>([]);
 
   // Load more
   const PRODUCTS_PAGE_SIZE = 17;
@@ -176,6 +127,25 @@ function SearchContent() {
 
   const reviewsQuery = useMemoStable(() => query(collection(db, 'reviews'), limit(200)), [db]);
   const { data: allReviews } = useCollection<any>(reviewsQuery);
+
+  const sellerById = useMemo(
+    () => new Map((allSellers || []).map((seller: any) => [seller.id, seller])),
+    [allSellers],
+  );
+
+  const reviewTotalsByProduct = useMemo(() => {
+    const totals = new Map<string, number>();
+    (allReviews || []).forEach((review: any) => {
+      if (!review?.product_id) return;
+      totals.set(review.product_id, (totals.get(review.product_id) || 0) + Number(review.rating || 5));
+    });
+    return totals;
+  }, [allReviews]);
+
+  const availableCities = useMemo(
+    () => buildAvailableCities(allProducts || [], allSellers || []),
+    [allProducts, allSellers],
+  );
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -223,41 +193,37 @@ function SearchContent() {
 
   useEffect(() => {
     const type = searchParams.get('product') as ProductType;
-    if (type) setSelectedProduct(type);
+    setSelectedProduct(type || '');
     
     const sub = searchParams.get('subtype');
-    if (sub) setSubType(sub);
+    setSubType(sub || 'all');
 
     const script = searchParams.get('script');
-    if (script) setScriptType(script);
+    setScriptType(script || 'all');
 
     const qual = searchParams.get('quality');
-    if (qual) setQualityLevel(qual);
+    setQualityLevel(qual || 'all');
 
     const qty = searchParams.get('quantity');
-    if (qty) setQuantity(Number(qty));
+    setQuantity(qty ? Number(qty) : 1);
 
     const size = searchParams.get('size');
-    if (size) setScrollSize(size);
-
-    const reg = searchParams.get('region');
-    if (reg) setSelectedRegion(reg);
+    setScrollSize(size || 'all');
 
     const shipping = searchParams.get('shipping');
-    if (shipping === 'all' || shipping === 'shipping' || shipping === 'pickup') {
-      setShippingPreference(shipping);
-    }
+    setShippingPreference(shipping === 'shipping' || shipping === 'pickup' || shipping === 'all' ? shipping : 'all');
 
     const city = searchParams.get('city');
-    if (city) setDetectedCity(city);
-    setPreferNearMe(searchParams.get('nearMe') === 'true');
+    setSelectedCity(city || '');
+    setDetectedCity(searchParams.get('detectedCity') || city || null);
+    setIncludeNearbyCities(searchParams.get('nearby') === 'true' || searchParams.get('nearMe') === 'true');
 
     const lat = searchParams.get('lat');
     const lng = searchParams.get('lng');
-    if (lat && lng) setUserCoords({ lat: Number(lat), lng: Number(lng) });
+    setUserCoords(lat && lng ? { lat: Number(lat), lng: Number(lng) } : null);
 
     const mar = searchParams.get('married');
-    if (mar === 'true') setMarriedOnly(true);
+    setMarriedOnly(mar === 'true');
     const mkv = searchParams.get('mikveh');
     setMikvehFreq(mkv && mkv !== 'all' ? mkv : '');
     const cert = searchParams.get('cert');
@@ -279,13 +245,14 @@ function SearchContent() {
       async (pos) => {
         const { latitude, longitude } = pos.coords;
         setUserCoords({ lat: latitude, lng: longitude });
-        setPreferNearMe(true);
         
         try {
           const { city } = await reverseGeocodeWithGoogle(latitude, longitude);
-          setDetectedCity(city || UNKNOWN_CITY_LABEL);
+          const nextCity = city || UNKNOWN_CITY_LABEL;
+          setDetectedCity(nextCity);
+          setSelectedCity(nextCity);
           setIsDetecting(false);
-          toast({ title: "המיקום זוהה", description: `זוהית ב: ${city || UNKNOWN_CITY_LABEL}` });
+          toast({ title: "המיקום זוהה", description: `זוהית ב: ${nextCity}` });
         } catch (error: any) {
           setIsDetecting(false);
           toast({
@@ -330,11 +297,6 @@ function SearchContent() {
           : p.parchment_size === scrollSize);
       const numericPrice = Number(p.price) || 0;
       const matchPrice = numericPrice >= activePriceRange[0] && numericPrice <= activePriceRange[1];
-      
-      const normalizedAreaValues = getDeliveryAreaValues(p)
-        .flatMap((area: string) => area.split(','))
-        .map(normalizeCity)
-        .filter(Boolean);
 
       const productDeliveryType =
         p.delivery_type === 'pickup_only' || p.delivery_type === 'pickup'
@@ -347,20 +309,7 @@ function SearchContent() {
         (shippingPreference === 'shipping' && (productDeliveryType === 'shipping' || productDeliveryType === 'both')) ||
         (shippingPreference === 'pickup' && (productDeliveryType === 'pickup' || productDeliveryType === 'both'));
       
-      const seller = allSellers?.find(s => s.id === p.seller_id);
-      const selectedRegionCities = REGION_CITY_MAP[selectedRegion] || [];
-      const sellerAddressNormalized = normalizeCity(seller?.address || '');
-      const normalizedRegionCities = NORMALIZED_REGION_CITY_MAP[selectedRegion] || [];
-      const matchRegion =
-        selectedRegion === 'all' ||
-        (
-          seller &&
-          (
-            (seller.address || '').includes(selectedRegion.split(' ')[0]) ||
-            normalizedRegionCities.some((city) => sellerAddressNormalized.includes(city)) ||
-            normalizedRegionCities.some((city) => normalizedAreaValues.some((area: string) => area.includes(city)))
-          )
-        );
+      const seller = sellerById.get(p.seller_id);
       const matchMarried = !marriedOnly || (seller && seller.marital_status === 'married');
       const matchMikveh = !mikvehFreq || mikvehFreq === 'all' || (seller && seller.mikveh_frequency === mikvehFreq);
       const matchCert = !certStatus || certStatus === 'all' || (seller && seller.has_scribe_certificate === certStatus);
@@ -368,153 +317,160 @@ function SearchContent() {
       const matchApproved = seller?.is_approved === true;
       
       return matchType && matchSub && matchScript && matchQuality && matchQty && matchSize && matchPrice &&
-             matchShipping && matchRegion && matchMarried && matchMikveh && matchCert && matchStudy && matchApproved;
+             matchShipping && matchMarried && matchMikveh && matchCert && matchStudy && matchApproved;
     });
 
     if (sortOrder === 'price_asc') results = [...results].sort((a, b) => Number(a.price) - Number(b.price));
     else if (sortOrder === 'price_desc') results = [...results].sort((a, b) => Number(b.price) - Number(a.price));
     else if (sortOrder === 'rating') {
       results = [...results].sort((a, b) => {
-        const ratingA = allReviews?.filter(r => r.product_id === a.id).reduce((acc, r) => acc + (r.rating || 5), 0) || 0;
-        const ratingB = allReviews?.filter(r => r.product_id === b.id).reduce((acc, r) => acc + (r.rating || 5), 0) || 0;
+        const ratingA = reviewTotalsByProduct.get(a.id) || 0;
+        const ratingB = reviewTotalsByProduct.get(b.id) || 0;
         return ratingB - ratingA;
       });
     }
 
     return results;
-  }, [activePriceRange, allProducts, allSellers, allReviews, selectedProduct, subType, scriptType, qualityLevel, quantity, shippingPreference, sortOrder, scrollSize, selectedRegion, certStatus, studyFreq, marriedOnly, mikvehFreq]);
-
-  const exactCityProducts = useMemo(() => {
-    if (!preferNearMe || !detectedCity) return [];
-
-    const normalizedDetectedCity = normalizeCity(detectedCity);
-    const cityCandidates = Array.from(
-      new Set([
-        normalizedDetectedCity,
-        normalizedDetectedCity.replace(HEBREW_ARTICLE_PREFIX, '').replace(HEBREW_CITY_PREFIX, '').trim(),
-        ...(CITY_ALIASES[normalizedDetectedCity] || []).map(normalizeCity),
-      ].filter(Boolean)),
-    );
-
-    return baseFilteredProducts.filter((product) => {
-      const normalizedAreaValues = getDeliveryAreaValues(product)
-        .flatMap((area: string) => area.split(','))
-        .map(normalizeCity)
-        .filter(Boolean);
-
-      if (normalizedAreaValues.includes(normalizeCity('כל הארץ'))) return true;
-
-      return cityCandidates.some((candidate) =>
-        normalizedAreaValues.some((area: string) =>
-          area === candidate || CITY_MATCH_SEPARATORS.some((separator) => area.startsWith(`${candidate}${separator}`)),
-        ),
-      );
-    });
-  }, [baseFilteredProducts, detectedCity, preferNearMe]);
+  }, [activePriceRange, allProducts, certStatus, marriedOnly, mikvehFreq, qualityLevel, quantity, reviewTotalsByProduct, scriptType, scrollSize, selectedProduct, sellerById, shippingPreference, sortOrder, studyFreq, subType]);
 
   useEffect(() => {
     let cancelled = false;
+    const exactCityMap = Object.fromEntries(getCityCandidates(selectedCity).map((city) => [city, 0]));
 
-    if (!preferNearMe || !detectedCity || !userCoords || exactCityProducts.length > 0) {
-      setNearbyDistanceMap({});
-      setNearbySortedProducts([]);
+    if (!selectedCity || !includeNearbyCities) {
+      setNearbyCityDistanceMap({});
       return () => {
         cancelled = true;
       };
     }
 
-    const geocodeAndSort = async () => {
-      const sellerById = new Map((allSellers || []).map((seller: any) => [seller.id, seller]));
-      const geocodeTargets = Array.from(
-        new Set(
-          baseFilteredProducts
-            .map((product) => {
-              const seller = sellerById.get(product.seller_id);
-              if (seller?.address) return seller.address;
-              return getDeliveryAreaValues(product).find((area: string) => area && area !== 'כל הארץ') || '';
-            })
-            .filter(Boolean),
-        ),
-      );
+    setNearbyCityDistanceMap(exactCityMap);
 
-      const geoEntries = await Promise.all(
-        geocodeTargets.map(async (target) => {
-          try {
-            const { lat, lng } = await geocodeAddressWithGoogle(target);
-            if (typeof lat === 'number' && typeof lng === 'number') {
-              return [target, { lat, lng }] as const;
+    const loadNearbyCities = async () => {
+      try {
+        const referenceCoords = userCoords || await (async () => {
+          const { lat, lng } = await geocodeAddressWithGoogle(selectedCity);
+          return typeof lat === 'number' && typeof lng === 'number' ? { lat, lng } : null;
+        })();
+
+        if (!referenceCoords) {
+          if (!cancelled) setNearbyCityDistanceMap(exactCityMap);
+          return;
+        }
+
+        const cityEntries = await Promise.all(
+          availableCities.map(async (city) => {
+            try {
+              const { lat, lng } = await geocodeAddressWithGoogle(city);
+              if (typeof lat === 'number' && typeof lng === 'number') {
+                return [normalizeCity(city), Math.round(haversineDistance(referenceCoords.lat, referenceCoords.lng, lat, lng))] as const;
+              }
+            } catch {
+              return null;
             }
-          } catch {
             return null;
-          }
-          return null;
-        }),
-      );
+          }),
+        );
 
-      const geoMap = new Map(geoEntries.filter(Boolean) as ReadonlyArray<readonly [string, { lat: number; lng: number }]>);
-      const mapped = baseFilteredProducts
-        .map((product) => {
-          const seller = sellerById.get(product.seller_id);
-          const target = seller?.address || getDeliveryAreaValues(product).find((area: string) => area && area !== 'כל הארץ') || '';
-          const coords = geoMap.get(target);
-          if (!coords) return null;
-          const distanceKm = haversineDistance(userCoords.lat, userCoords.lng, coords.lat, coords.lng);
-          return { product, distanceKm };
-        })
-        .filter((item): item is { product: any; distanceKm: number } => Boolean(item))
-        .sort((a, b) => a.distanceKm - b.distanceKm);
+        if (cancelled) return;
 
-      if (cancelled) return;
-
-      setNearbySortedProducts(mapped.map((entry) => entry.product));
-      setNearbyDistanceMap(
-        Object.fromEntries(
-          mapped.map((entry) => [entry.product.id, Math.round(entry.distanceKm)]),
-        ),
-      );
+        setNearbyCityDistanceMap(
+          {
+            ...exactCityMap,
+            ...Object.fromEntries(
+              cityEntries.filter(Boolean).filter((entry) => entry![1] <= NEARBY_RADIUS_KM) as ReadonlyArray<readonly [string, number]>,
+            ),
+          },
+        );
+      } catch {
+        if (!cancelled) setNearbyCityDistanceMap(exactCityMap);
+      }
     };
 
-    geocodeAndSort();
+    loadNearbyCities();
 
     return () => {
       cancelled = true;
     };
-  }, [allSellers, baseFilteredProducts, detectedCity, exactCityProducts.length, preferNearMe, userCoords]);
+  }, [availableCities, includeNearbyCities, selectedCity, userCoords]);
 
-  const isNearbyFallbackActive = preferNearMe && Boolean(detectedCity) && exactCityProducts.length === 0;
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!selectedCity) {
+      setNearbyCityDistanceMap({});
+      setNearbyDistanceMap({});
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const nextDistanceMap = Object.fromEntries(
+      baseFilteredProducts.map((product) => {
+        const seller = sellerById.get(product.seller_id);
+        const productCityTokens = getProductCityTokens(product, seller);
+        const matchedDistances = productCityTokens
+          .map((city) => nearbyCityDistanceMap[city])
+          .filter((distance): distance is number => typeof distance === 'number');
+        return [product.id, matchedDistances.length > 0 ? Math.min(...matchedDistances) : 0];
+      }),
+    );
+
+    if (!cancelled) {
+      setNearbyDistanceMap(nextDistanceMap);
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [baseFilteredProducts, includeNearbyCities, nearbyCityDistanceMap, selectedCity, sellerById]);
 
   const filteredProducts = useMemo(() => {
-    if (!preferNearMe || !detectedCity) return baseFilteredProducts;
-    if (exactCityProducts.length > 0) return exactCityProducts;
-    if (nearbySortedProducts.length > 0) return nearbySortedProducts;
-    return baseFilteredProducts;
-  }, [baseFilteredProducts, detectedCity, exactCityProducts, nearbySortedProducts, preferNearMe]);
+    if (!selectedCity) return baseFilteredProducts;
+
+    const exactCityCandidates = new Set(getCityCandidates(selectedCity));
+    const allowedCities = includeNearbyCities
+      ? new Set(Object.keys(nearbyCityDistanceMap))
+      : exactCityCandidates;
+
+    const results = baseFilteredProducts.filter((product) => {
+      const seller = sellerById.get(product.seller_id);
+      const productCityTokens = getProductCityTokens(product, seller);
+      return productCityTokens.some((city) => allowedCities.has(city));
+    });
+
+    if (includeNearbyCities) {
+      return [...results].sort((a, b) => (nearbyDistanceMap[a.id] || 0) - (nearbyDistanceMap[b.id] || 0));
+    }
+
+    return results;
+  }, [baseFilteredProducts, includeNearbyCities, nearbyCityDistanceMap, nearbyDistanceMap, selectedCity, sellerById]);
 
   const activeFiltersCount = useMemo(() => {
     let count = 0;
     if (selectedProduct) count += 1;
     if (scriptType !== 'all') count += 1;
     if (scrollSize !== 'all') count += 1;
-    if (selectedRegion !== 'all') count += 1;
+    if (selectedCity) count += 1;
     if (shippingPreference !== 'all') count += 1;
     if (certStatus) count += 1;
     if (studyFreq) count += 1;
     if (mikvehFreq) count += 1;
     if (marriedOnly) count += 1;
-    if (preferNearMe) count += 1;
+    if (includeNearbyCities) count += 1;
     if (sortOrder !== 'newest') count += 1;
     if (priceRange !== null) count += 1;
     return count;
   }, [
     certStatus,
+    includeNearbyCities,
     marriedOnly,
     mikvehFreq,
-    preferNearMe,
     priceRange,
     scriptType,
     scrollSize,
     selectedProduct,
-    selectedRegion,
+    selectedCity,
     shippingPreference,
     sortOrder,
     studyFreq,
@@ -523,17 +479,22 @@ function SearchContent() {
   useEffect(() => {
     setVisibleCount(PRODUCTS_PAGE_SIZE);
   }, [selectedProduct, subType, scriptType, qualityLevel, quantity, scrollSize,
-      selectedRegion, shippingPreference, sortOrder, certStatus, studyFreq, marriedOnly,
-      mikvehFreq, preferNearMe, detectedCity, priceRange]);
+      selectedCity, shippingPreference, sortOrder, certStatus, studyFreq, marriedOnly,
+      mikvehFreq, includeNearbyCities, detectedCity, priceRange]);
+
+  const nearbyCityLabels = useMemo(
+    () => availableCities.filter((city) => Object.prototype.hasOwnProperty.call(nearbyCityDistanceMap, normalizeCity(city))),
+    [availableCities, nearbyCityDistanceMap],
+  );
 
   const resetFilters = () => {
     setSelectedProduct(''); setSubType('all'); setScriptType('all'); setQualityLevel('all');
-    setQuantity(1); setScrollSize('all'); setSelectedRegion('all'); setUserCoords(null); setDetectedCity(null);
+    setQuantity(1); setScrollSize('all'); setSelectedCity(''); setUserCoords(null); setDetectedCity(null);
     setMarriedOnly(false); setMikvehFreq(''); setCertStatus(''); setStudyFreq('');
     setShippingPreference('all'); setSortOrder('newest');
     resetPriceRange();
-    setNearbyDistanceMap({}); setNearbySortedProducts([]);
-    setPreferNearMe(false);
+    setNearbyCityDistanceMap({}); setNearbyDistanceMap({});
+    setIncludeNearbyCities(false);
     setVisibleCount(PRODUCTS_PAGE_SIZE);
     setShowResults(isViewingAll);
   };
@@ -658,15 +619,19 @@ function SearchContent() {
             {isDetecting ? <Loader2 className="w-3 h-3 animate-spin" /> : <LocateFixed className="w-3 h-3" />}
             {detectedCity ? `זוהית ב: ${detectedCity}` : 'זהה מיקום נוכחי'}
           </Button>
-          <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-            <SelectTrigger className="h-11 w-full rounded-2xl text-right font-bold text-xs bg-white/50 border border-primary/10">
-              <SelectValue placeholder="בחר אזור..." />
-            </SelectTrigger>
-            <SelectContent className="rounded-2xl shadow-2xl p-1">
-              <SelectItem value="all" className="font-bold py-2 rounded-lg">כל הארץ</SelectItem>
-              {ISRAEL_REGIONS.map((region) => <SelectItem key={region} value={region} className="font-bold py-2 rounded-lg">{region}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <CitySelect
+            value={selectedCity}
+            options={availableCities}
+            placeholder="בחר עיר לסינון"
+            onChange={setSelectedCity}
+          />
+          <Label className="flex items-center justify-between rounded-2xl border border-primary/10 bg-white px-4 py-4 transition-all cursor-pointer hover:border-primary/20">
+            <div className="space-y-1 text-right">
+              <span className="block text-sm font-bold text-primary">חפש גם בערים קרובות</span>
+              <span className="block text-[11px] font-medium text-primary/45">מוצרים מערים עד {NEARBY_RADIUS_KM} ק״מ</span>
+            </div>
+            <Checkbox checked={includeNearbyCities} onCheckedChange={(value) => setIncludeNearbyCities(!!value)} />
+          </Label>
           <RadioGroup value={shippingPreference} onValueChange={(value) => setShippingPreference(value as ShippingPreference)} className="grid gap-1.5">
             <CustomFilterTile value="all" label="משלוח ואיסוף עצמי" active={shippingPreference === 'all'} />
             <CustomFilterTile value="shipping" label="משלוח בלבד" active={shippingPreference === 'shipping'} />
@@ -789,18 +754,9 @@ function SearchContent() {
                 <div className="relative w-full">
                   <div className="w-full overflow-x-auto pb-2 -mb-2 no-scrollbar">
                     <div className="flex items-center gap-2 md:gap-3 min-w-max px-1">
-                      <Button variant="outline" onClick={() => setIsFilterPanelOpen(true)} className="h-9 rounded-xl border border-primary/10 bg-white px-3 text-[11px] font-black text-primary shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:bg-primary/[0.03] hover:text-primary hover:shadow-md active:scale-95 group">
-                        <SlidersHorizontal className="ml-1.5 h-3.5 w-3.5 text-accent transition-transform duration-300 group-hover:rotate-6" />
-                        <span>סינון</span>
-                        {activeFiltersCount > 0 && (
-                          <span className="mr-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] text-white">
-                            {activeFiltersCount}
-                          </span>
-                        )}
-                      </Button>
-                      <div className="flex items-center rounded-full border border-primary/10 bg-white p-1 shadow-sm">
-                        <ToolbarChoiceButton active={shippingPreference === 'all'} onClick={() => setShippingPreference('all')}>
-                          הכל
+                    <div className="flex items-center rounded-full border border-primary/10 bg-white p-1 shadow-sm">
+                      <ToolbarChoiceButton active={shippingPreference === 'all'} onClick={() => setShippingPreference('all')}>
+                        הכל
                         </ToolbarChoiceButton>
                         <ToolbarChoiceButton active={shippingPreference === 'shipping'} onClick={() => setShippingPreference('shipping')}>
                           <Truck className="ml-1.5 h-3.5 w-3.5" />
@@ -856,14 +812,40 @@ function SearchContent() {
                 </div>
               </div>
 
-              {detectedCity && (
-                <div className="flex items-center justify-end gap-2 text-[10px] font-black text-emerald-600 bg-emerald-50 w-fit px-4 py-1.5 rounded-full mr-1 mt-4 animate-in fade-in">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> זיהינו: {detectedCity}
-                </div>
-              )}
-              {isNearbyFallbackActive && detectedCity && (
-                <div className="text-right text-sm font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mt-3">
-                  לא נמצאו מוצרים ב{detectedCity}. מציג מוצרים מערים קרובות:
+              <div className="mt-3 flex justify-end">
+                <Button variant="outline" onClick={() => setIsFilterPanelOpen(true)} className="h-8 rounded-full border border-primary/10 bg-white px-3 text-[10px] font-black text-primary shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:bg-primary/[0.03] hover:text-primary hover:shadow-md active:scale-95 group">
+                  <SlidersHorizontal className="ml-1.5 h-3 w-3 text-accent transition-transform duration-300 group-hover:rotate-6" />
+                  <span>סינון</span>
+                  {activeFiltersCount > 0 && (
+                    <span className="mr-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] text-white">
+                      {activeFiltersCount}
+                    </span>
+                  )}
+                </Button>
+              </div>
+
+              <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
+                {detectedCity && (
+                  <div className="flex items-center gap-2 text-[10px] font-black text-emerald-600 bg-emerald-50 px-4 py-1.5 rounded-full animate-in fade-in">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> זיהינו: {detectedCity}
+                  </div>
+                )}
+                {selectedCity && (
+                  <div className="flex items-center gap-2 rounded-full bg-primary/5 px-4 py-1.5 text-[10px] font-black text-primary">
+                    <MapPin className="h-3.5 w-3.5 text-accent" />
+                    מחפש ב{selectedCity}
+                  </div>
+                )}
+                {includeNearbyCities && selectedCity && (
+                  <div className="rounded-full bg-amber-50 px-4 py-1.5 text-[10px] font-black text-amber-700">
+                    כולל ערים קרובות עד {NEARBY_RADIUS_KM} ק״מ
+                  </div>
+                )}
+              </div>
+
+              {includeNearbyCities && nearbyCityLabels.length > 1 && (
+                <div className="mt-3 text-right text-sm font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                  מציג גם ערים קרובות: {nearbyCityLabels.join(' • ')}
                 </div>
               )}
             </div>
@@ -880,7 +862,7 @@ function SearchContent() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: Math.min(i, 8) * 0.05 }}
                   >
-                    <ProductCard product={p} distanceKm={isNearbyFallbackActive ? nearbyDistanceMap[p.id] : undefined} />
+                    <ProductCard product={p} distanceKm={includeNearbyCities && selectedCity ? nearbyDistanceMap[p.id] : undefined} />
                   </motion.div>
                 ))}
                 

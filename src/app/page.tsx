@@ -119,19 +119,19 @@ export default function Home() {
 
         {/* Top Scribes Section */}
         {topScribes.length > 0 && (
-          <section className="py-14 md:py-24 bg-[#F8F9FA]" aria-labelledby="top-scribes-heading">
-            <div className="container mx-auto px-4">
-              <div className="text-center mb-10 md:mb-16 space-y-4">
+          <section className="py-16 md:py-28 bg-[#F8F9FA]" aria-labelledby="top-scribes-heading">
+            <div className="container mx-auto px-4 md:px-5">
+              <div className="text-center mb-12 md:mb-20 space-y-5">
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-accent/10 rounded-full text-accent font-black text-[10px] uppercase tracking-widest">
                   <Trophy className="w-3.5 h-3.5" /> נבחרת הסופרים
                 </div>
-                <h2 id="top-scribes-heading" className="text-3xl md:text-4xl font-headline font-black text-primary tracking-tight">
+                <h2 id="top-scribes-heading" className="text-[2.05rem] md:text-[2.75rem] font-headline font-black text-primary tracking-tight">
                    {TOP_SCRIBES_SECTION_TITLE}
                 </h2>
                 <div className="w-16 h-1 rounded-full bg-accent mx-auto" />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 md:gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 md:gap-6">
                 {topScribes.map((scribe, i) => (
                   <motion.div
                     key={scribe.id}
@@ -140,8 +140,8 @@ export default function Home() {
                     transition={{ delay: i * 0.1 }}
                   >
                     <Link href={`/sellers/${scribe.id}`}>
-                      <Card className="group overflow-hidden border border-primary/5 shadow-premium rounded-[2rem] bg-white hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 text-center p-4">
-                        <div className="relative w-16 h-16 mx-auto mb-3">
+                      <Card className="group overflow-hidden border border-primary/5 shadow-premium rounded-[2.15rem] bg-white hover:-translate-y-1 transition-all duration-300 text-center p-5">
+                        <div className="relative w-16 h-16 mx-auto mb-4">
                            <div className="absolute inset-0 rounded-full border-4 border-accent/10 group-hover:scale-110 transition-transform duration-500" />
                            <div className="w-full h-full rounded-full border-4 border-white shadow-lg overflow-hidden relative bg-muted flex items-center justify-center">
                              {scribe.profile_image ? (
@@ -154,11 +154,11 @@ export default function Home() {
                               <ShieldCheck className="w-3 h-3" />
                             </div>
                          </div>
-                        <h3 className="text-sm font-headline font-black text-primary mb-1 group-hover:text-accent transition-colors">{scribe.first_name} {scribe.last_name}</h3>
-                        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wide mb-3 flex items-center justify-center gap-1.5">
+                        <h3 className="text-[0.95rem] font-headline font-black text-primary mb-1.5 group-hover:text-accent transition-colors">{scribe.first_name} {scribe.last_name}</h3>
+                        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wide mb-4 flex items-center justify-center gap-1.5">
                           <MapPin size={10} className="text-accent" /> {scribe.address?.split(' ')[0]}
                         </p>
-                        <div className="flex items-center justify-center gap-3 border-t pt-3">
+                        <div className="flex items-center justify-center gap-3 border-t pt-4">
                            <div className="text-right">
                               <p className="text-[8px] font-black text-muted-foreground uppercase tracking-tighter">ניסיון</p>
                               <p className="text-xs font-black text-primary tabular-nums">{scribe.experience_years}ש'</p>
@@ -178,8 +178,8 @@ export default function Home() {
                                </div>
                             </div>
                          </div>
-                        <div className="mt-3">
-                           <Button variant="outline" className="rounded-full w-full h-9 border-primary/10 text-[9px] font-black uppercase tracking-wide group-hover:bg-primary group-hover:text-white transition-all">
+                        <div className="mt-4">
+                           <Button variant="outline" className="rounded-full w-full h-10 border-primary/10 text-[9px] font-black uppercase tracking-wide group-hover:bg-primary group-hover:text-white transition-all">
                               צפה בפרופיל <ArrowLeft className="w-3 h-3 mr-2" />
                             </Button>
                          </div>
@@ -193,20 +193,20 @@ export default function Home() {
         )}
 
         {/* About Section */}
-        <section className="py-14 md:py-24 bg-white/30 backdrop-blur-sm relative overflow-hidden" aria-labelledby="about-heading">
+        <section className="py-16 md:py-28 bg-white/30 backdrop-blur-sm relative overflow-hidden" aria-labelledby="about-heading">
           <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none" />
-          <div className="container mx-auto px-4 relative z-10">
-            <div className="max-w-4xl mx-auto text-center space-y-8 mb-12 md:mb-20">
-              <h2 id="about-heading" className="text-4xl md:text-5xl font-headline font-black text-primary tracking-tight">
+          <div className="container mx-auto px-4 md:px-5 relative z-10">
+            <div className="max-w-4xl mx-auto text-center space-y-9 mb-14 md:mb-24">
+              <h2 id="about-heading" className="text-[2.25rem] md:text-[3.15rem] font-headline font-black text-primary tracking-tight">
                 חותם – מלאכת שמיים ושקיפות מלאה
               </h2>
               <div className="w-16 h-1 rounded-full bg-accent mx-auto" />
-              <p className="text-lg md:text-xl text-primary/70 leading-relaxed font-medium">
+              <p className="text-lg md:text-[1.35rem] text-primary/70 leading-relaxed font-medium mx-auto">
                 פלטפורמת חותם נולדה מתוך חזון לחבר בין עולם הסת''ם העתיק לבין הטכנולוגיה המודרנית, תוך שמירה על קדושה וכשרות ללא פשרות. אנו מאפשרים לכם לרכוש כלי קודש ישירות מסופרי סת''ם יראי שמיים, ללא פערי תיווך ובשקיפות מלאה על זהות הכותב, רמת ההידור והנהגת הקדושה שלו.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-9">
               <AboutCard 
                 icon={<HandHeart className="w-8 h-8" />}
                 title="קנייה ישירה מהסופר"
@@ -224,7 +224,7 @@ export default function Home() {
               />
             </div>
 
-            <div className="mt-12 md:mt-20 text-center">
+            <div className="mt-14 md:mt-24 text-center">
               <div className="flex flex-col items-center gap-3">
                 <Button size="lg" asChild className="rounded-full gap-3 font-black text-white bg-primary hover:bg-primary/90 hover:scale-105 active:scale-95 focus:ring-4 focus:ring-primary/30 transition-all duration-300 px-12 h-16 shadow-xl">
                   <Link href="/search?view=all">
@@ -243,11 +243,11 @@ export default function Home() {
 
         {/* Seller Recruitment */}
         {!isSeller && (
-          <section className="py-14 md:py-24 bg-primary text-white relative overflow-hidden">
+          <section className="py-16 md:py-28 bg-primary text-white relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-full opacity-[0.03] pointer-events-none">
               <svg width="100%" height="100%"><pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M 60 0 L 0 0 0 60" fill="none" stroke="white" strokeWidth="1"/></pattern><rect width="100%" height="100%" fill="url(#grid)" /></svg>
             </div>
-            <div className="container mx-auto px-4 text-center relative z-10 space-y-8">
+            <div className="container mx-auto px-4 md:px-5 text-center relative z-10 space-y-9">
               <motion.div 
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{ opacity: 1, scale: 1 }}
@@ -255,9 +255,9 @@ export default function Home() {
               >
                 <PenTool className="w-10 h-10" />
               </motion.div>
-              <div className="space-y-4">
-                <h2 className="text-3xl md:text-5xl font-headline font-black tracking-tight leading-tight">הנך סופר סת''ם ירא שמיים?</h2>
-                <p className="text-base md:text-xl text-white/70 max-w-2xl mx-auto leading-relaxed font-medium">
+              <div className="space-y-5">
+                <h2 className="text-[2.1rem] md:text-[3rem] font-headline font-black tracking-tight leading-tight">הנך סופר סת''ם ירא שמיים?</h2>
+                <p className="text-base md:text-[1.35rem] text-white/70 max-w-2xl mx-auto leading-relaxed font-medium">
                   הצטרף לנבחרת הסופרים המקצועית של HOTAM. פתח חנות אישית, נהל הזמנות בקלות ומכור את מלאכת הקודש שלך ישירות ללקוח, ללא פערי תיווך ובקדושה.
                 </p>
               </div>
@@ -309,13 +309,13 @@ function AboutCard({ icon, title, desc }: { icon: React.ReactNode, title: string
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className="p-6 md:p-10 rounded-[2.5rem] bg-white shadow-premium border border-primary/5 hover:border-accent/20 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group text-right"
+      className="p-7 md:p-11 rounded-[2.6rem] bg-white shadow-premium border border-primary/5 hover:border-accent/20 transition-all duration-300 hover:-translate-y-1.5 group text-right"
     >
-      <div className="w-16 h-16 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-accent group-hover:text-primary transition-all mb-6">
+      <div className="w-16 h-16 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-accent group-hover:text-primary transition-all mb-7">
         {icon}
       </div>
-      <h3 className="text-xl font-headline font-black text-primary mb-4">{title}</h3>
-      <p className="text-sm text-primary/60 leading-relaxed font-medium">{desc}</p>
+      <h3 className="text-[1.35rem] font-headline font-black text-primary mb-4">{title}</h3>
+      <p className="text-[0.95rem] text-primary/60 leading-relaxed font-medium">{desc}</p>
     </motion.div>
   );
 }

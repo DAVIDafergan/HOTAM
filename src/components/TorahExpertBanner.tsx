@@ -11,15 +11,15 @@ export function TorahExpertBanner() {
   const message = encodeURIComponent("שלום, אני מעוניין בייעוץ לרכישת ספר תורה דרך מערכת חותם.");
 
   return (
-    <section className="relative w-full overflow-hidden border-y border-white/10 bg-[#0D111A] py-6 shadow-[0_22px_60px_rgba(6,10,18,0.45)] md:py-8">
+    <section className="relative w-full overflow-hidden border-y border-white/10 bg-[#0D111A] py-8 shadow-[0_22px_60px_rgba(6,10,18,0.45)] md:py-10">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_40%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.04),transparent_35%)]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-l from-transparent via-white/30 to-transparent" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-l from-transparent via-white/20 to-transparent" />
 
-      <div className="container mx-auto px-4 max-w-7xl relative z-10">
-        <div className="flex flex-col items-center justify-between gap-6 md:flex-row md:gap-10">
+      <div className="container mx-auto px-4 md:px-5 max-w-7xl relative z-10">
+        <div className="flex flex-col items-center justify-between gap-7 md:flex-row md:gap-12">
           
-          <div className="flex flex-1 flex-col items-center gap-4 text-right md:flex-row md:gap-6">
+          <div className="flex flex-1 flex-col items-center gap-5 text-right md:flex-row md:gap-7">
             <motion.div 
               initial={{ opacity: 0, scale: 0.94 }}
               whileInView={{ opacity: 1, scale: 1 }}
@@ -29,7 +29,7 @@ export function TorahExpertBanner() {
               <Gem className="h-6 w-6" />
             </motion.div>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="mb-1 flex items-center justify-center gap-3 md:justify-start">
                 <motion.div 
                   initial={{ opacity: 0, y: 4 }}
@@ -53,11 +53,11 @@ export function TorahExpertBanner() {
                 initial={{ y: 6, opacity: 0 }}
                 whileInView={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.5, ease: 'easeOut' }}
-                className="text-center font-headline text-[1.9rem] font-black leading-tight tracking-tight text-white md:text-right lg:text-[2.35rem]"
+                className="text-center font-headline text-[2rem] font-black leading-tight tracking-tight text-white md:text-right lg:text-[2.45rem]"
               >
                 רכישת ספר תורה יוקרתי בליווי אישי של צוות חותם
               </motion.h2>
-              <p className="max-w-3xl text-center text-sm font-medium leading-relaxed text-white/70 md:text-right md:text-base">
+              <p className="max-w-3xl text-center text-[0.95rem] font-medium leading-relaxed text-white/70 md:text-right md:text-[1.05rem]">
                 ייעוץ דיסקרטי, בחירת כתב והידור, תיאום התרשמות מלאה וליווי מדויק עד למסירת ספר התורה.
               </p>
             </div>
@@ -71,7 +71,7 @@ export function TorahExpertBanner() {
           >
             <Button 
               asChild
-              className="h-14 w-full rounded-2xl border border-white/20 bg-white/5 px-8 text-base font-black tracking-tight text-white shadow-[0_16px_34px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/10 active:scale-95 group md:w-auto"
+              className="h-14 w-full rounded-2xl border border-white/25 bg-white/5 px-9 text-base font-black tracking-tight text-white shadow-[0_16px_34px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/10 active:scale-95 group md:w-auto"
             >
               <a href={`https://wa.me/${whatsappNumber}?text=${message}`} target="_blank" rel="noopener noreferrer">
                 <MessageCircle className="ml-2.5 h-5 w-5 transition-transform duration-300 group-hover:rotate-6" />

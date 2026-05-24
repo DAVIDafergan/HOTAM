@@ -477,10 +477,10 @@ export function ProductDetailsClient({
           <div className="text-right space-y-6 md:space-y-8">
             <div className="space-y-3">
               <div className="flex flex-wrap gap-2 justify-start items-center">
-                <Badge variant="outline" className="border-accent/40 text-accent font-black text-[10px] py-1 px-3 rounded-full bg-accent/5">
+                <Badge variant="outline" className="border-accent/40 text-accent font-black text-xs py-1.5 px-3 rounded-full bg-accent/5 whitespace-nowrap">
                   {product.script_level}
                 </Badge>
-                <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[10px] py-1 px-3 rounded-full">
+                <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-xs py-1.5 px-3 rounded-full whitespace-nowrap">
                   <CheckCircle2 className="w-3 h-3 ml-1.5" />
                   זמין במלאי ({product.quantity})
                 </Badge>
@@ -501,34 +501,34 @@ export function ProductDetailsClient({
                       <span className="text-primary text-5xl md:text-6xl font-black tabular-nums tracking-tighter">{displayPrice}</span>
                       <span className="text-accent text-2xl md:text-3xl font-black">₪</span>
                     </div>
-                    <p className="text-[10px] font-black text-primary/60 uppercase tracking-[0.2em] mt-1">
-                      {hasDelivery ? 'מחיר סופי כולל מע"מ ומשלוח' : 'מחיר סופי כולל מע"מ'}
+                    <p className="text-xs font-black text-primary/60 uppercase tracking-[0.15em] mt-1 whitespace-nowrap">
+                      {hasDelivery ? 'כולל מע"מ ומשלוח' : 'כולל מע"מ'}
                     </p>
                   </div>
 
                   <div className="h-px bg-primary/5 w-full" />
 
                    <div className="grid grid-cols-2 gap-4">
-                     <section aria-labelledby="delivery-time-label" className="flex flex-col items-end gap-1.5 rounded-2xl bg-slate-50/50 p-3 text-right">
+                    <section aria-labelledby="delivery-time-label" className="flex flex-col items-end gap-1.5 rounded-2xl bg-slate-50/50 p-3.5 text-right">
                        <Clock className="w-5 h-5 text-accent" />
-                        <span id="delivery-time-label" className="text-[9px] font-black text-primary/60 uppercase tracking-widest">זמן אספקה</span>
-                       <span className="text-xs font-black text-primary leading-none">
+                       <span id="delivery-time-label" className="text-[11px] font-black text-primary/60 uppercase tracking-wide whitespace-nowrap">זמן אספקה</span>
+                      <span className="text-sm font-black text-primary leading-none whitespace-nowrap">
                          {product.product_type === 'ספר תורה' ? 'בתיאום אישי' : `${product.delivery_time || '3'} ימים`}
                        </span>
                      </section>
                      {hasDelivery ? (
-                       <section aria-labelledby="delivery-fee-label" className="flex flex-col items-end gap-1.5 rounded-2xl bg-slate-50/50 p-3 text-right">
+                      <section aria-labelledby="delivery-fee-label" className="flex flex-col items-end gap-1.5 rounded-2xl bg-slate-50/50 p-3.5 text-right">
                          <Truck className="w-5 h-5 text-accent" />
-                          <span id="delivery-fee-label" className="text-[9px] font-black text-primary/60 uppercase tracking-widest">עלות משלוח</span>
-                         <span className="text-xs font-black text-emerald-600 leading-none">
+                         <span id="delivery-fee-label" className="text-[11px] font-black text-primary/60 uppercase tracking-wide whitespace-nowrap">עלות משלוח</span>
+                        <span className="text-sm font-black text-emerald-600 leading-none whitespace-nowrap">
                            {Number(product.delivery_fee) > 0 ? `₪${product.delivery_fee}` : 'משלוח חינם'}
                          </span>
                        </section>
                      ) : (
-                       <section aria-labelledby="delivery-method-label" className="flex flex-col items-end gap-1.5 rounded-2xl bg-slate-50/50 p-3 text-right">
-                         <MapPin className="w-5 h-5 text-accent" />
-                          <span id="delivery-method-label" className="text-[9px] font-black text-primary/60 uppercase tracking-widest">אופן קבלה</span>
-                         <span className="text-xs font-black text-amber-700 leading-none">איסוף עצמי</span>
+                      <section aria-labelledby="stock-status-label" className="flex flex-col items-end gap-1.5 rounded-2xl bg-slate-50/50 p-3.5 text-right">
+                        <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                         <span id="stock-status-label" className="text-[11px] font-black text-primary/60 uppercase tracking-wide whitespace-nowrap">זמינות</span>
+                        <span className="text-sm font-black text-emerald-600 leading-none whitespace-nowrap">{product.quantity > 0 ? 'במלאי' : 'אזל זמנית'}</span>
                        </section>
                      )}
                    </div>
@@ -586,10 +586,10 @@ export function ProductDetailsClient({
         {/* Technical Details Tabs */}
         <div className="mt-10 md:mt-20">
           <Tabs defaultValue="specs" className="text-right">
-            <TabsList className="w-full flex bg-white/40 backdrop-blur-xl p-1.5 rounded-3xl shadow-premium h-16 border border-white/50 mb-8">
-              <TabsTrigger value="specs" className="flex-1 py-3 text-[10px] md:text-xs font-black rounded-2xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all">מפרט טכני</TabsTrigger>
-              <TabsTrigger value="seller" className="flex-1 py-3 text-[10px] md:text-xs font-black rounded-2xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all">הסופר הכותב</TabsTrigger>
-              <TabsTrigger value="reviews" className="flex-1 py-3 text-[10px] md:text-xs font-black rounded-2xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all">ביקורות ({(reviews || []).length})</TabsTrigger>
+            <TabsList className="w-full flex bg-white/40 backdrop-blur-xl p-1.5 rounded-3xl shadow-premium h-14 md:h-16 border border-white/50 mb-8">
+             <TabsTrigger value="specs" className="flex-1 py-2.5 text-xs md:text-sm font-black rounded-2xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all whitespace-nowrap leading-none">מפרט טכני</TabsTrigger>
+             <TabsTrigger value="seller" className="flex-1 py-2.5 text-xs md:text-sm font-black rounded-2xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all whitespace-nowrap leading-none">הסופר הכותב</TabsTrigger>
+             <TabsTrigger value="reviews" className="flex-1 py-2.5 text-xs md:text-sm font-black rounded-2xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all whitespace-nowrap leading-none">ביקורות ({(reviews || []).length})</TabsTrigger>
             </TabsList>
             
             <TabsContent value="specs" className="animate-in fade-in slide-in-from-bottom-2 duration-500">

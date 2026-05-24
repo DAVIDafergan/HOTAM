@@ -362,6 +362,18 @@ $$;
 
 -- ── sellers policies ──────────────────────────────────────────────────────────
 CREATE POLICY "Allow public read"  ON public.sellers FOR SELECT USING (true);
+-- NOTE: The public read policy intentionally allows reading seller profiles
+-- for marketplace display. Sensitive columns (bank_name, bank_branch,
+-- bank_account_number) must be protected at the application layer.
+-- Run this in Supabase SQL editor to create a restricted public view:
+-- CREATE OR REPLACE VIEW public.sellers_public AS
+--   SELECT id, first_name, last_name, email, phone, city, address, age,
+--          marital_status, business_type, business_name, has_scribe_certificate,
+--          torah_study_frequency, mikveh_frequency, notes, experience_years,
+--          script_level, script_types, writing_samples, profile_image,
+--          is_approved, sales_count, created_at
+--   FROM public.sellers
+--   WHERE is_approved = true;
 CREATE POLICY "sellers_own_insert" ON public.sellers FOR INSERT WITH CHECK (auth.uid() = id);
 CREATE POLICY "sellers_own_update" ON public.sellers
   FOR UPDATE

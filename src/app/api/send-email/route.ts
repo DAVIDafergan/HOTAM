@@ -25,6 +25,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields: to, subject, text' }, { status: 400 });
     }
 
+    // Security: verify the recipient is either the authenticated user themselves,
+    // or a verified seller/customer that the user has a legitimate relationship with.
+    const normalizedTo = String(to).trim().toLowerCase();
+    const isOwnEmail = normalizedTo === (authUser.email ?? '').toLowerCase();
+
+    if (!isOwnEmail) {
+      // Check recipient is a registered seller or customer in the system
+      const [{ count: sellerCount }, { count: customerCount }] = await Promise.all([
+        serviceClient.from('sellers').select('id', { count: 'exact', head: true }).eq('email', normalizedTo),
+        serviceClient.from('customers').select('id', { count: 'exact', head: true }).eq('email', normalizedTo),
+      ]);
+      const recipientIsRegistered = (sellerCount ?? 0) > 0 || (customerCount ?? 0) > 0;
+      if (!recipientIsRegistered) {
+        console.warn('[send-email] blocked unregistered recipient', { from: authUser.id, to: normalizedTo });
+        return NextResponse.json({ error: 'Recipient not found in system' }, { status: 403 });
+      }
+    }
+
     // Rate limiting: max 10 emails per user per hour using Supabase
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
     const { count: recentEmailCount } = await serviceClient

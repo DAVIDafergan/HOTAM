@@ -71,7 +71,10 @@ function LoginContent() {
     setLoading(true);
     try {
       const data = await initiateEmailSignIn(auth, email, password);
-      if (data.user?.email_confirmed_at == null) {
+      // Sellers bypass email confirmation (admin verifies their profile manually).
+      // Only enforce email confirmation for customers.
+      const userRole = data.user?.user_metadata?.role;
+      if (data.user?.email_confirmed_at == null && userRole !== 'seller') {
         await auth._client.auth.signOut();
         setLoading(false);
         toast({

@@ -259,6 +259,7 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
         };
 
         const hasSellerMetadataHint = Boolean(
+          userMeta.role === 'seller' ||
           userMeta.business_name ||
           userMeta.business_id ||
           userMeta.script_types ||

@@ -445,6 +445,60 @@ function SellerDashboardContent() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canLoadData, user?.uid, seller?.email]);
 
+  // Fallback: if the sellers row was never created (e.g. the DB trigger didn't fire,
+  // or the app-provider flush failed), and the user has a pendingSellerProfile saved
+  // in localStorage, call /api/register-seller now to create the row.
+  useEffect(() => {
+    if (!user || isUserLoading || isSellerLoading || seller) return;
+    if (typeof window === 'undefined') return;
+
+    const raw = window.localStorage.getItem('pendingSellerProfile');
+    if (!raw) return;
+
+    let parsed: Record<string, unknown>;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      window.localStorage.removeItem('pendingSellerProfile');
+      return;
+    }
+
+    const pendingEmail = typeof parsed._pending_email === 'string'
+      ? parsed._pending_email.trim().toLowerCase()
+      : null;
+    const userEmail = user.email?.trim().toLowerCase() ?? null;
+    if (pendingEmail && userEmail && pendingEmail !== userEmail) {
+      window.localStorage.removeItem('pendingSellerProfile');
+      return;
+    }
+
+    (async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
+        if (!token) return;
+
+        const { _pending_email: _ignored, is_approved: _ia, ...profileData } = parsed;
+        const response = await fetch('/api/register-seller', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ id: user.uid, email: user.email, ...profileData }),
+        });
+
+        if (response.ok) {
+          window.localStorage.removeItem('pendingSellerProfile');
+          toast({ title: 'הפרופיל הושלם', description: 'כל הפרטים שהזנת בהרשמה נשמרו בהצלחה.' });
+        }
+      } catch (err) {
+        console.error('[seller-dashboard] pendingSellerProfile fallback error:', err);
+      }
+    })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.uid, isUserLoading, isSellerLoading, seller]);
+
   useEffect(() => {
     const tabParam = searchParams.get('tab');
     if (tabParam && ['inventory', 'sales', 'chats', 'settings'].includes(tabParam)) {

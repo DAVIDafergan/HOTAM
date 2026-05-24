@@ -44,6 +44,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Database error' }, { status: 500 });
     }
 
+    // Remove any erroneous customers row for this user (e.g. created by the DB
+    // trigger when role metadata was missing at signup time).
+    const { error: custDeleteError } = await serviceClient
+      .from('customers')
+      .delete()
+      .eq('id', user.id);
+    if (custDeleteError) {
+      console.error('[register-seller] Failed to clean up customers row:', custDeleteError);
+    }
+
     // Ensure auth metadata reflects seller role so redirects work correctly
     const { error: roleUpdateError } = await serviceClient.auth.admin.updateUserById(
       user.id,

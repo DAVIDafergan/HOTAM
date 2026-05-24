@@ -285,9 +285,26 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
             }
           }
 
-          // Auto-fix: if role is missing from metadata, check DB and patch it
-          const currentRole = session.user.user_metadata?.role;
-          if (!currentRole) {
+          // Refresh the user object so any role update done by /api/register-seller
+          // (via the admin API) is reflected on the client without requiring a
+          // full sign-out/sign-in cycle.
+          try {
+            const { data: { user: refreshedUser } } = await client.auth.getUser();
+            if (refreshedUser) setUser(toAppUser(refreshedUser));
+          } catch (err) {
+            console.error('[auth] user refresh error:', err);
+          }
+
+          // Auto-fix: if role is missing or wrong, cross-check the DB and patch.
+          // Also handles the case where the DB trigger erroneously created a
+          // customers row and the user should be a seller (pendingSellerProfile
+          // in localStorage is the signal).
+          const { data: { user: latestUser } } = await client.auth.getUser().catch(() => ({ data: { user: null } }));
+          const currentRole = latestUser?.user_metadata?.role ?? session.user.user_metadata?.role;
+          const hasPendingSellerProfile = typeof window !== 'undefined' &&
+            !!window.localStorage.getItem('pendingSellerProfile');
+
+          if (!currentRole || (currentRole === 'customer' && hasPendingSellerProfile)) {
             try {
               const { count: sellerCount } = await client
                 .from('sellers')

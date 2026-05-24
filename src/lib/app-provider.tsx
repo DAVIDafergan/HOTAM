@@ -314,7 +314,15 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
             shouldBeSeller,
           });
 
-          if (!shouldBeSeller) return;
+          if (!shouldBeSeller) {
+            // One final check: if a customers row exists but auth metadata says
+            // seller, the DB trigger misfired. Recover.
+            if (customerCount > 0 && roleFromMetadata === 'seller') {
+              console.warn('[auth] seller registered as customer — forcing recovery');
+              await registerSeller(buildSellerPayloadFromMetadata(), 'misfire-recovery');
+            }
+            return;
+          }
 
           const metadataPayload = buildSellerPayloadFromMetadata();
           const pendingSellerProfileRaw = window.localStorage.getItem('pendingSellerProfile');
@@ -389,9 +397,12 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
 
   const profile = useMemo(() => {
     if (sellerData) return { ...sellerData, role: 'seller' };
+    // If auth metadata says seller but sellerData not yet loaded, do not
+    // fall through to customerData — return null so UI waits for seller row.
+    if (user?.role === 'seller') return null;
     if (customerData) return { ...customerData, role: 'customer' };
     return null;
-  }, [customerData, sellerData]);
+  }, [customerData, sellerData, user?.role]);
 
   const isProfileLoading = isCustLoading || isSellLoading;
 

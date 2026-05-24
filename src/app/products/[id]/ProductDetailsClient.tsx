@@ -486,9 +486,9 @@ export function ProductDetailsClient({
                 </Badge>
               </div>
               <h1 className="text-3xl md:text-5xl font-headline font-black text-primary leading-[1.1] tracking-tight">
-                {product.product_type} 
+                {product.product_type}
                 {product.sub_type && product.sub_type !== 'all' && (
-                  <span className="text-accent block md:inline md:mr-3 mt-1 md:mt-0 font-black">{product.sub_type}</span>
+                  <span className="text-accent inline mr-2 font-black"><span className="text-primary/30 mx-1">+</span>{product.sub_type}</span>
                 )}
               </h1>
             </div>
@@ -536,8 +536,8 @@ export function ProductDetailsClient({
             </Card>
 
             <div className="space-y-4">
-              <h2 className="font-black text-sm text-primary/60 uppercase tracking-widest flex items-center justify-end gap-2">
-                על כלי הקודש <ScrollText className="w-4 h-4" />
+              <h2 className="font-black text-sm text-primary/60 uppercase tracking-widest flex items-center justify-end gap-2 whitespace-nowrap">
+                על כלי הקודש <ScrollText className="w-4 h-4 shrink-0" />
               </h2>
               <div className="bg-white/60 backdrop-blur-sm p-6 rounded-[2.5rem] border-r-[6px] border-accent shadow-sm italic text-primary/80 font-medium text-lg leading-relaxed">
                 "{product.description}"
@@ -619,9 +619,9 @@ export function ProductDetailsClient({
                     </div>
                     <div className="flex-1 space-y-5 text-center md:text-right">
                       <div className="space-y-1">
-                        <div className="flex items-center justify-center md:justify-end gap-3">
-                          <h2 className="text-2xl md:text-3xl font-headline font-black text-primary tracking-tight">{seller.first_name} {seller.last_name}</h2>
-                          <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[9px] uppercase px-3 py-1">סופר מאומת</Badge>
+                        <div className="flex items-center justify-center md:justify-end gap-2 min-w-0">
+                          <h2 className="text-xl md:text-3xl font-headline font-black text-primary tracking-tight whitespace-nowrap truncate min-w-0">{seller.first_name} {seller.last_name}</h2>
+                          <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[9px] uppercase px-3 py-1 shrink-0">סופר מאומת</Badge>
                         </div>
                         <p className="text-muted-foreground text-sm font-bold flex items-center justify-center md:justify-end gap-2">
                           {sellerCity || 'לא צוין'} <MapPin className="w-4 h-4 text-accent" />

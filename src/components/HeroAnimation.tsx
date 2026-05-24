@@ -195,7 +195,7 @@ export function HeroAnimation() {
   };
 
   return (
-    <section className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#FDFCF0] pt-28 pb-14 md:pt-32 md:pb-20">
+    <section className="relative min-h-screen w-full flex items-start justify-center overflow-hidden bg-[#FDFCF0] pt-20 pb-14 md:pt-32 md:pb-20">
       <div className="absolute inset-0 z-0">
         {heroImg?.imageUrl && (
           <Image 
@@ -220,10 +220,10 @@ export function HeroAnimation() {
             </h1>
           </div>
           
-          <div className="w-full bg-white/78 backdrop-blur-3xl border border-white/90 rounded-[3.2rem] p-7 md:p-12 shadow-premium-lg relative ring-1 ring-primary/10">
+          <div className="w-full bg-white/78 backdrop-blur-3xl border border-white/90 rounded-[3.2rem] p-5 md:p-12 shadow-premium-lg relative ring-1 ring-primary/10">
             
             {/* Step indicator */}
-            <div className="flex flex-col items-center mb-6 md:mb-10 gap-4">
+            <div className="flex flex-col items-center mb-4 md:mb-10 gap-4">
               <div className="flex items-center gap-0">
                 {[
                   { n: 1, label: 'בחירת מוצר' },
@@ -316,7 +316,7 @@ export function HeroAnimation() {
               )}
 
               {step === 2 && (
-                <motion.div key="step2" initial={{ opacity: 0, x: 28 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ type: "spring", stiffness: 220, damping: 22 }} className="space-y-7 text-right">
+                <motion.div key="step2" initial={{ opacity: 0, x: 28 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ type: "spring", stiffness: 220, damping: 22 }} className="space-y-5 md:space-y-7 text-right">
                   <div className="flex justify-between items-center border-b border-primary/5 pb-4">
                     <Button variant="ghost" onClick={() => setStep(1)} className="font-black text-[11px] uppercase tracking-widest h-10 px-4 rounded-xl hover:bg-primary/5 gap-1"><ChevronRight className="w-4 h-4" /> חזור</Button>
                     <div className="text-right">
@@ -325,7 +325,7 @@ export function HeroAnimation() {
                     </div>
                   </div>
 
-                  <div className={cn("grid gap-6 pt-4", hasSubTypes ? "md:grid-cols-2" : "grid-cols-1 max-w-3xl mx-auto")}>
+                  <div className={cn("grid gap-4 pt-2 md:gap-6 md:pt-4", hasSubTypes ? "md:grid-cols-2" : "grid-cols-1 max-w-3xl mx-auto")}>
                     {hasSubTypes && (
                       <div className="space-y-4 rounded-3xl bg-white/60 border border-primary/5 p-5 shadow-sm">
                         <Label className="font-black text-[10px] uppercase text-primary/60 mr-1 tracking-widest">תת-סוג המוצר</Label>
@@ -352,16 +352,16 @@ export function HeroAnimation() {
                     </div>
                   </div>
 
-                  <div className="flex justify-center pt-8">
-                    <Button onClick={() => setStep(3)} className="bg-primary text-white hover:bg-primary/95 rounded-full px-16 h-14 font-black uppercase text-sm tracking-[0.2em] shadow-premium transition-all hover:scale-105 active:scale-95 group gap-2">
-                      המשך להתאמה אישית <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                    </Button>
-                  </div>
+                  <div className="flex justify-center pt-4 md:pt-8">
+                     <Button onClick={() => setStep(3)} className="bg-primary text-white hover:bg-primary/95 rounded-full px-16 h-12 md:h-14 font-black uppercase text-sm tracking-[0.2em] shadow-premium transition-all hover:scale-105 active:scale-95 group gap-2">
+                       המשך להתאמה אישית <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                     </Button>
+                   </div>
                 </motion.div>
               )}
 
               {step === 3 && (
-                <motion.div key="step3" initial={{ opacity: 0, x: 28 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ type: "spring", stiffness: 220, damping: 22 }} className="space-y-7 text-right">
+                <motion.div key="step3" initial={{ opacity: 0, x: 28 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ type: "spring", stiffness: 220, damping: 22 }} className="space-y-5 md:space-y-7 text-right">
                   <div className="flex justify-between items-center border-b border-primary/5 pb-4">
                     <Button variant="ghost" onClick={() => setStep(2)} className="font-black text-[11px] uppercase tracking-widest h-10 px-4 rounded-xl hover:bg-primary/5 gap-1"><ChevronRight className="w-4 h-4" /> חזור</Button>
                     <div className="text-right">
@@ -370,7 +370,7 @@ export function HeroAnimation() {
                     </div>
                   </div>
 
-                  <div className="grid lg:grid-cols-2 gap-6 pt-4">
+                  <div className="grid md:grid-cols-2 gap-4 md:gap-6 pt-2 md:pt-4">
                     <div className="space-y-6 rounded-3xl bg-white/60 border border-primary/5 p-5 shadow-sm">
                       <div className="space-y-4">
                         <Label className="font-black text-[10px] uppercase text-primary/60 mr-1 tracking-widest">רמת הידור מבוקשת</Label>
@@ -440,7 +440,7 @@ export function HeroAnimation() {
                       <div className="space-y-4 pb-5 border-b border-primary/5">
                         <Label className="font-black text-[10px] uppercase text-primary/40 mr-1 tracking-widest">מיקום וקרבה (אופציונלי)</Label>
                         <div className="flex flex-col gap-3">
-                          <Button variant="outline" onClick={detectLocation} disabled={isDetectingLocation} className={cn("h-14 rounded-2xl gap-3 font-black text-xs uppercase border-2 transition-all", userCoords ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'hover:border-primary/20')}>
+                          <Button variant="outline" onClick={detectLocation} disabled={isDetectingLocation} className={cn("h-12 md:h-14 rounded-2xl gap-3 font-black text-xs uppercase border-2 transition-all", userCoords ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'hover:border-primary/20')}>
                             {isDetectingLocation ? <Loader2 className="w-5 h-5 animate-spin" /> : <LocateFixed className="w-5 h-5" />}
                             {userCoords ? (detectedCity ? `המיקום שלך: ${detectedCity}` : 'המיקום שלך זוהה בהצלחה') : 'זהה את המיקום הנוכחי שלי'}
                           </Button>
@@ -449,7 +449,7 @@ export function HeroAnimation() {
                             options={[...COMMON_CITY_OPTIONS]}
                             placeholder="בחר עיר"
                             onChange={setSelectedCity}
-                            triggerClassName="h-14 rounded-2xl text-sm border-2 border-transparent bg-white/50 focus:border-primary/20"
+                            triggerClassName="h-12 md:h-14 rounded-2xl text-sm border-2 border-transparent bg-white/50 focus:border-primary/20"
                           />
                           <Label className="flex items-center justify-between rounded-2xl border-2 border-primary/5 bg-white/80 px-4 py-4 shadow-sm transition-all hover:border-primary/10">
                             <div className="space-y-1 text-right">
@@ -464,14 +464,14 @@ export function HeroAnimation() {
                       <div className="pt-2">
                         <div className="space-y-3">
                           <Label className="font-black text-[10px] uppercase text-primary/40 mr-1 tracking-widest">אופן קבלת המוצר</Label>
-                          <RadioGroup value={shippingPreference} onValueChange={(v) => setShippingPreference(v as ShippingPreference)} className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                          <RadioGroup value={shippingPreference} onValueChange={(v) => setShippingPreference(v as ShippingPreference)} className="grid grid-cols-3 gap-2">
                             <CustomTile value="all" label="הכל" active={shippingPreference === 'all'} compact />
                             <CustomTile value="shipping" label="משלוח בלבד" active={shippingPreference === 'shipping'} compact />
                             <CustomTile value="pickup" label="איסוף עצמי בלבד" active={shippingPreference === 'pickup'} compact />
                           </RadioGroup>
                         </div>
                         <div className="pt-5">
-                          <Button variant="ghost" onClick={() => setShowAdvanced(!showAdvanced)} className="w-full h-14 rounded-2xl border-2 border-dashed border-primary/10 gap-3 font-black text-[10px] uppercase tracking-widest text-primary/60 hover:bg-primary/5 hover:border-primary/20 transition-all">
+                          <Button variant="ghost" onClick={() => setShowAdvanced(!showAdvanced)} className="w-full h-12 md:h-14 rounded-2xl border-2 border-dashed border-primary/10 gap-3 font-black text-[10px] uppercase tracking-widest text-primary/60 hover:bg-primary/5 hover:border-primary/20 transition-all">
                             <Settings2 className="w-5 h-5 text-accent" /> {showAdvanced ? 'הסתר הגדרות סופר מתקדמות' : 'מסנני קדושה והנהגת הסופר'}
                           </Button>
                         </div>
@@ -519,11 +519,11 @@ export function HeroAnimation() {
                     </div>
                   </div>
 
-                  <div className="flex justify-center pt-8">
-                    <Button onClick={handleFinalSearch} className={finalSearchButtonClass}>
-                      <Search className="w-6 h-6 group-hover:rotate-12 transition-transform" /> הצג כלי קודש מתאימים
-                    </Button>
-                  </div>
+                  <div className="flex justify-center pt-4 md:pt-8">
+                     <Button onClick={handleFinalSearch} className={finalSearchButtonClass}>
+                       <Search className="w-6 h-6 group-hover:rotate-12 transition-transform" /> הצג כלי קודש מתאימים
+                     </Button>
+                   </div>
                 </motion.div>
               )}
             </AnimatePresence>

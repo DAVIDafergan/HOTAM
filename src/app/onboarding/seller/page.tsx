@@ -347,6 +347,22 @@ export default function SellerOnboarding() {
       console.info('[seller-onboarding] signup start', { email: formData.email.trim().toLowerCase() });
       // Sign up with role='seller' and profile metadata so the DB trigger can
       // persist onboarding data immediately even before email confirmation.
+      // Persist the full seller profile so reconcileSellerAccount can recover it
+      // after the user clicks the confirmation link and signs in.
+      try {
+        window.localStorage.setItem(
+          'pendingSellerProfile',
+          JSON.stringify({
+            _pending_email: formData.email.trim().toLowerCase(),
+            id: '',
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            ...profilePayload,
+          }),
+        );
+      } catch (_storageErr) {
+        // localStorage unavailable — recovery will fall back to metadata only
+      }
       const signUpData = await initiateEmailSignUp(
         auth,
         formData.email,

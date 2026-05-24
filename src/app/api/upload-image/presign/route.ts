@@ -13,7 +13,7 @@ const ALLOWED_TYPES = new Set([
   'image/heic',
   'image/heif',
 ]);
-const MAX_SIZE = 10 * 1024 * 1024;
+const MAX_SIZE = 15 * 1024 * 1024;
 
 export const runtime = 'nodejs';
 
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unsupported file type' }, { status: 400 });
     }
     if (!fileSize || fileSize > MAX_SIZE) {
-      return NextResponse.json({ error: 'File too large (max 10MB)' }, { status: 400 });
+      return NextResponse.json({ error: 'File too large (max 15MB)' }, { status: 400 });
     }
 
     const region = process.env.AWS_REGION?.trim();

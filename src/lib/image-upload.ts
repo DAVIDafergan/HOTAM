@@ -10,7 +10,7 @@ const ALLOWED_IMAGE_TYPES = new Set([
   'image/heic',
   'image/heif',
 ]);
-const MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024;
+const MAX_UPLOAD_SIZE_BYTES = 15 * 1024 * 1024;
 
 const MIME_BY_EXT: Record<string, string> = {
   jpg: 'image/jpeg',
@@ -35,7 +35,7 @@ function validateUploadFile(file: File): void {
   if (!(file instanceof File)) throw new Error('קובץ לא תקין.');
   if (!file.name?.trim()) throw new Error('שם קובץ לא תקין.');
   if (file.size <= 0) throw new Error('לא ניתן להעלות קובץ ריק.');
-  if (file.size > MAX_UPLOAD_SIZE_BYTES) throw new Error('הקובץ גדול מדי. ניתן להעלות עד 10MB.');
+  if (file.size > MAX_UPLOAD_SIZE_BYTES) throw new Error('הקובץ גדול מדי. ניתן להעלות עד 15MB.');
 }
 
 export async function uploadImageViaApi(

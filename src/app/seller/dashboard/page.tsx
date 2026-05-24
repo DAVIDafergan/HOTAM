@@ -1596,6 +1596,13 @@ function SellerDashboardContent() {
                             הרווח שלך: ₪{formPrice !== '' ? (Number(formPrice) * 0.8).toFixed(0) : '---'}
                           </div>
                         </div>
+                        <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mt-1">
+                          <Info className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                          <span className="text-[10px] font-bold text-amber-700">
+                            המחיר שיוצג ללקוחות באתר כולל מע&quot;מ 18%:{' '}
+                            <span className="text-amber-900">₪{formPrice !== '' ? (Number(formPrice) * 1.18).toFixed(0) : '---'}</span>
+                          </span>
+                        </div>
                       </div>
                     </div>
 

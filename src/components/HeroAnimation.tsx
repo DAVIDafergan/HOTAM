@@ -31,6 +31,7 @@ import { cn } from '@/lib/utils';
 import { CitySelect } from '@/components/CitySelect';
 import { reverseGeocodeWithGoogle } from '@/lib/google-maps';
 import { COMMON_CITY_OPTIONS, NEARBY_RADIUS_KM } from '@/lib/location-utils';
+import homeAnimations from '@/components/home-animations.module.css';
 
 type ProductType = 'מזוזה' | 'תפילין' | 'מגילה' | 'ספר תורה' | 'מוצרי יודאיקה שונים' | '';
 type ShippingPreference = 'all' | 'shipping' | 'pickup';
@@ -213,7 +214,7 @@ export function HeroAnimation() {
       <div className="container mx-auto px-4 relative z-20 flex flex-col items-center justify-center">
         <div className="max-w-4xl w-full space-y-5 md:space-y-12 flex flex-col items-center text-center">
           
-          <div className="space-y-2 md:space-y-4 animate-fade-in">
+          <div className={`space-y-2 md:space-y-4 ${homeAnimations.animateFadeIn}`}>
             <h1 className="text-3xl md:text-7xl font-headline font-black text-primary leading-tight tracking-tighter">
               קדושה <span className="text-accent underline decoration-accent/20 underline-offset-8">בכל תג</span>
             </h1>

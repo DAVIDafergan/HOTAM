@@ -8,14 +8,19 @@ import { AccessibilityButton } from '@/components/AccessibilityButton';
 
 const frank = Frank_Ruhl_Libre({
   subsets: ['hebrew', 'latin'],
+  weight: ['400', '700', '900'],
   variable: '--font-frank',
-  display: 'swap',
+  display: 'optional',
+  fallback: ['serif'],
 });
 
 const assistant = Assistant({
   subsets: ['hebrew', 'latin'],
+  weight: ['400', '500', '700', '800'],
   variable: '--font-assistant',
-  display: 'swap',
+  display: 'optional',
+  preload: false,
+  fallback: ['Arial', 'sans-serif'],
 });
 
 export const metadata: Metadata = {

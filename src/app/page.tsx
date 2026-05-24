@@ -29,12 +29,13 @@ import unsplashLoader from '@/lib/unsplashLoader';
 import { motion } from 'framer-motion';
 import { useMemo } from 'react';
 import { TorahExpertBanner } from '@/components/TorahExpertBanner';
+import homeAnimations from '@/components/home-animations.module.css';
 
 const HeroAnimation = dynamic(() => import('@/components/HeroAnimation').then(mod => mod.HeroAnimation), {
-  ssr: false
+  loading: () => <section aria-hidden="true" className="min-h-screen w-full bg-[#FDFCF0]" />,
 });
 const WorkFlow = dynamic(() => import('@/components/WorkFlow').then(mod => mod.WorkFlow), {
-  ssr: false
+  loading: () => <section aria-hidden="true" className="min-h-[680px] w-full bg-primary" />,
 });
 const TOP_SCRIBES_LIMIT = 5;
 const TOP_SCRIBES_SECTION_TITLE = `${TOP_SCRIBES_LIMIT} סופרים מובילים`;
@@ -250,7 +251,7 @@ export default function Home() {
               <motion.div 
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{ opacity: 1, scale: 1 }}
-                className="inline-block p-5 bg-accent/20 rounded-full text-accent mb-2 animate-floating"
+                className={`inline-block p-5 bg-accent/20 rounded-full text-accent mb-2 ${homeAnimations.animateFloating}`}
               >
                 <PenTool className="w-10 h-10" />
               </motion.div>

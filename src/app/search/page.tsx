@@ -48,7 +48,7 @@ import { ProductCard } from '@/components/ProductCard';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { TorahExpertBanner } from '@/components/TorahExpertBanner';
 import { CitySelect } from '@/components/CitySelect';
 import { geocodeAddressWithGoogle, reverseGeocodeWithGoogle } from '@/lib/google-maps';
@@ -78,6 +78,7 @@ const sanitizePriceInput = (value: string) => value.replace(/[^\d]/g, '');
 
 function SearchContent() {
   const { toast } = useToast();
+  const shouldReduceMotion = useReducedMotion();
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [isDesktopFilters, setIsDesktopFilters] = useState(false);
   const [showResults, setShowResults] = useState(false);
@@ -716,7 +717,7 @@ function SearchContent() {
           </Sheet>
         ) : (
           <Dialog open={isFilterPanelOpen} onOpenChange={setIsFilterPanelOpen}>
-            <DialogContent className="max-w-[95vw] rounded-[2rem] border-none bg-white p-0 shadow-2xl max-h-[92vh] flex flex-col ring-1 ring-primary/5" dir="rtl">
+            <DialogContent className="max-h-[92vh] w-[calc(100vw-1rem)] max-w-[95vw] overflow-hidden rounded-[2rem] border-none bg-white p-0 shadow-2xl ring-1 ring-primary/5 sm:max-w-[560px] flex flex-col" dir="rtl">
               <div className="border-b border-primary/10 bg-primary px-5 py-5 text-right text-white">
                 <DialogHeader>
                   <DialogTitle className="text-xl font-headline font-black">סינון מתקדם</DialogTitle>
@@ -760,11 +761,11 @@ function SearchContent() {
         ) : (
           <div className="space-y-0">
             <div className="container mx-auto px-4 pt-8 pb-6 md:pb-8">
-              <div className="flex flex-col md:flex-row justify-between items-end gap-4 md:gap-6 border-b border-primary/5 pb-6 md:pb-8">
+              <div className="flex flex-col justify-between gap-4 border-b border-primary/5 pb-5 md:flex-row md:items-end md:gap-6 md:pb-8">
                 <div className="relative w-full">
-                  <div className="w-full overflow-x-auto pb-2 -mb-2 no-scrollbar">
-                    <div className="flex items-center gap-2 md:gap-3 min-w-max px-1">
-                    <div className="flex items-center rounded-full border border-primary/10 bg-white p-1 shadow-sm">
+                  <div className="no-scrollbar -mb-2 w-full overflow-x-auto pb-2 touch-pan-x">
+                    <div className="flex min-w-max snap-x snap-mandatory items-center gap-2 px-1 md:gap-3">
+                    <div className="flex snap-start items-center rounded-full border border-primary/10 bg-white p-1 shadow-sm">
                       <ToolbarChoiceButton active={shippingPreference === 'all'} onClick={() => setShippingPreference('all')}>
                         הכל
                         </ToolbarChoiceButton>
@@ -778,7 +779,7 @@ function SearchContent() {
                         </ToolbarChoiceButton>
                       </div>
                       <Select value={sortOrder} onValueChange={setSortOrder}>
-                        <SelectTrigger className="h-10 w-[196px] shrink-0 rounded-full border border-primary/10 bg-white px-3 text-[11px] font-black text-primary shadow-sm transition-all duration-300 hover:border-primary/20 hover:bg-primary/[0.03] hover:shadow-md focus:ring-0 focus:ring-offset-0 data-[state=open]:border-accent/30 data-[state=open]:bg-accent/5 data-[state=open]:shadow-lg">
+                        <SelectTrigger className="h-11 w-[196px] shrink-0 snap-start rounded-full border border-primary/10 bg-white px-3 text-[11px] font-black text-primary shadow-sm transition-all duration-300 hover:border-primary/20 hover:bg-primary/[0.03] hover:shadow-md focus:ring-0 focus:ring-offset-0 data-[state=open]:border-accent/30 data-[state=open]:bg-accent/5 data-[state=open]:shadow-lg md:h-10">
                           <div className="flex min-w-0 items-center gap-2">
                             <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent">
                               <ArrowUpNarrowWide className="h-3.5 w-3.5" />
@@ -804,7 +805,7 @@ function SearchContent() {
                         </SelectContent>
                       </Select>
 
-                      <Button variant="ghost" onClick={resetFilters} className="h-10 rounded-full px-4 text-[11px] font-black text-primary/40 hover:bg-destructive/5 hover:text-destructive shrink-0 transition-all">
+                      <Button variant="ghost" onClick={resetFilters} className="h-11 shrink-0 snap-start rounded-full px-4 text-[11px] font-black text-primary/40 transition-all hover:bg-destructive/5 hover:text-destructive md:h-10">
                         <RotateCcw className="ml-2 h-4 w-4" /> איפוס
                       </Button>
                     </div>
@@ -817,13 +818,13 @@ function SearchContent() {
                     </span>
                   </div>
                 </div>
-                <div className="text-right shrink-0 w-full md:w-auto px-1">
+                <div className="w-full shrink-0 px-1 text-right md:w-auto">
                   <h2 className="text-2xl md:text-4xl font-headline font-black text-primary tracking-tighter">מוצרים שנמצאו ({filteredProducts.length})</h2>
                 </div>
               </div>
 
               <div className="mt-3 flex justify-end">
-                <Button variant="outline" onClick={() => setIsFilterPanelOpen(true)} className="h-8 rounded-full border border-primary/10 bg-white px-3 text-[10px] font-black text-primary shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:bg-primary/[0.03] hover:text-primary hover:shadow-md active:scale-95 group">
+                <Button variant="outline" onClick={() => setIsFilterPanelOpen(true)} className="group h-10 rounded-full border border-primary/10 bg-white px-4 text-[11px] font-black text-primary shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:bg-primary/[0.03] hover:text-primary hover:shadow-md active:scale-95">
                   <SlidersHorizontal className="ml-1.5 h-3 w-3 text-accent transition-transform duration-300 group-hover:rotate-6" />
                   <span>סינון</span>
                   {activeFiltersCount > 0 && (
@@ -834,20 +835,20 @@ function SearchContent() {
                 </Button>
               </div>
 
-              <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
+              <div className="mt-4 flex flex-wrap items-center justify-end gap-2.5">
                 {detectedCity && (
-                  <div className="flex items-center gap-2 text-[10px] font-black text-emerald-600 bg-emerald-50 px-4 py-1.5 rounded-full animate-in fade-in">
+                  <div className="animate-in fade-in flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-[11px] font-black text-emerald-600">
                     <CheckCircle2 className="w-3.5 h-3.5" /> זיהינו: {detectedCity}
                   </div>
                 )}
                 {selectedCity && (
-                  <div className="flex items-center gap-2 rounded-full bg-primary/5 px-4 py-1.5 text-[10px] font-black text-primary">
+                  <div className="flex items-center gap-2 rounded-full bg-primary/5 px-4 py-2 text-[11px] font-black text-primary">
                     <MapPin className="h-3.5 w-3.5 text-accent" />
                     מחפש ב{selectedCity}
                   </div>
                 )}
                 {includeNearbyCities && selectedCity && (
-                  <div className="rounded-full bg-amber-50 px-4 py-1.5 text-[10px] font-black text-amber-700">
+                  <div className="rounded-full bg-amber-50 px-4 py-2 text-[11px] font-black text-amber-700">
                     כולל ערים קרובות עד {NEARBY_RADIUS_KM} ק״מ
                   </div>
                 )}
@@ -863,14 +864,14 @@ function SearchContent() {
             {/* Torah Banner placement: Truly full width, below search filters */}
             {selectedProduct === 'ספר תורה' && <TorahExpertBanner />}
 
-            <div className="container mx-auto px-4 pt-8 pb-20">
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 xl:gap-7">
+            <div className="container mx-auto px-4 pb-20 pt-6 md:pt-8">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:gap-5 xl:grid-cols-3 xl:gap-7">
                 {filteredProducts.slice(0, visibleCount).map((p, i) => (
                   <motion.div
                     key={p.id}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={shouldReduceMotion ? false : { opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: Math.min(i, 8) * 0.05 }}
+                    transition={{ delay: shouldReduceMotion ? 0 : Math.min(i, 6) * 0.04, duration: shouldReduceMotion ? 0.1 : 0.25 }}
                   >
                     <ProductCard product={p} distanceKm={includeNearbyCities && selectedCity ? nearbyDistanceMap[p.id] : undefined} />
                   </motion.div>
@@ -926,7 +927,7 @@ export default function SearchPage() {
 function WizardSmallCard({ value, selected, icon, label }: any) {
   return (
     <Label className={cn(
-      "group p-4 rounded-[1.5rem] border-2 transition-all duration-200 cursor-pointer flex flex-col items-center justify-center gap-2",
+      "group flex min-h-24 cursor-pointer flex-col items-center justify-center gap-2 rounded-[1.5rem] border-2 p-4 transition-all duration-200",
       selected 
         ? "border-primary bg-primary/5 shadow-xl scale-105 z-10" 
         : "border-primary/5 hover:border-accent/30 hover:shadow-md bg-white shadow-sm"
@@ -949,7 +950,7 @@ function WizardSmallCard({ value, selected, icon, label }: any) {
 
 function CustomFilterTile({ value, label, active, onClick }: any) {
   const className = cn(
-    "flex items-center justify-between rounded-xl border-2 transition-all duration-200 cursor-pointer group px-4 py-3",
+    "group flex min-h-11 cursor-pointer items-center justify-between rounded-xl border-2 px-4 py-3 transition-all duration-200",
     active ? "border-primary bg-primary/5 shadow-sm scale-[1.01]" : "border-primary/5 bg-white hover:bg-slate-50 hover:border-primary/15"
   );
   const content = (
@@ -992,7 +993,7 @@ function ToolbarChoiceButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex h-8 items-center rounded-full px-3 text-[10px] font-black transition-all",
+        "flex h-9 min-w-[74px] touch-manipulation items-center justify-center rounded-full px-3 text-[11px] font-black transition-all md:h-8 md:min-w-0 md:text-[10px]",
         active ? "bg-primary text-white shadow-sm" : "text-primary/55 hover:text-primary",
       )}
     >
@@ -1004,11 +1005,11 @@ function ToolbarChoiceButton({
 function FilterSection({ title, icon, children, defaultOpen = false }: { title: string; icon: React.ReactNode; children: React.ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = React.useState(defaultOpen);
   return (
-    <div className="rounded-2xl border-2 border-primary/5 bg-white overflow-hidden">
+    <div className="overflow-hidden rounded-2xl border-2 border-primary/5 bg-white">
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-4 py-3 text-right hover:bg-slate-50 transition-colors"
+        className="flex min-h-12 w-full touch-manipulation items-center justify-between px-4 py-3 text-right transition-colors hover:bg-slate-50"
       >
         <div className="flex items-center gap-2">
           {icon}

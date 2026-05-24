@@ -39,10 +39,6 @@ export async function POST(req: NextRequest) {
       if (keyPrefix && keyPrefix !== 'onboarding') {
         return NextResponse.json({ error: 'Invalid upload context' }, { status: 403 });
       }
-      const ONBOARDING_MAX_PRESIGN = 2 * 1024 * 1024;
-      if (fileSize && fileSize > ONBOARDING_MAX_PRESIGN) {
-        return NextResponse.json({ error: 'Onboarding upload must be under 2MB' }, { status: 413 });
-      }
     }
 
     if (!ALLOWED_TYPES.has(contentType)) {

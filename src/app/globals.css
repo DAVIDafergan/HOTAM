@@ -29,6 +29,10 @@
 }
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
   * {
     @apply border-border;
   }
@@ -37,6 +41,7 @@
     line-height: 1.76;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline leading-tight;
@@ -62,6 +67,12 @@
   }
   section {
     scroll-margin-top: 6rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
   }
 }
 

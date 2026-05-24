@@ -63,16 +63,6 @@ export async function POST(req: NextRequest) {
       if (authError || !authUser) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
-    } else {
-      // Onboarding uploads without a token are allowed but capped at 2MB to limit abuse.
-      const ONBOARDING_MAX_SIZE = 2 * 1024 * 1024;
-      const contentLengthHeader = req.headers.get('content-length');
-      if (contentLengthHeader) {
-        const cl = Number(contentLengthHeader);
-        if (Number.isFinite(cl) && cl > ONBOARDING_MAX_SIZE) {
-          return NextResponse.json({ error: 'Onboarding upload must be under 2MB' }, { status: 413 });
-        }
-      }
     }
 
     const formData = await req.formData();

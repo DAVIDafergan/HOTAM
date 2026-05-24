@@ -29,7 +29,7 @@ import {
   Info
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useAuth, useUser, initiateEmailSignUp, useSupabaseClient } from '@/lib/supabase-hooks';
+import { useAuth, useUser, initiateEmailSignUp, initiateSellerEmailSignUp, useSupabaseClient } from '@/lib/supabase-hooks';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -371,7 +371,7 @@ export default function SellerOnboarding() {
       } catch (_storageErr) {
         // localStorage unavailable — recovery will fall back to metadata only
       }
-      const signUpData = await initiateEmailSignUp(
+      const signUpData = await initiateSellerEmailSignUp(
         auth,
         formData.email,
         formData.password,
@@ -405,15 +405,16 @@ export default function SellerOnboarding() {
         toast({ title: 'ההרשמה הסתיימה', description: 'הפרופיל שלך הועבר לאישור מנהל.' });
         router.push('/seller/dashboard');
       } else {
-        // Email confirmation is required.
-        console.info('[seller-onboarding] signup requires email confirmation', { userId });
+        // No immediate session — register-seller will be called on first sign-in
+        // via reconcileSellerAccount in app-provider. Just inform the user.
+        console.info('[seller-onboarding] signup has no immediate session', { userId });
+        await registerSellerWithSession(userId, 'signup-no-session', formData.email);
         setLoading(false);
         toast({
-          title: 'הרשמה הצליחה — בדוק את תיבת הדואר שלך',
-          description:
-            'שלחנו קישור אישור לכתובת המייל שלך. לאחר האישור ניתן להתחבר כרגיל.',
+          title: 'ההרשמה הסתיימה',
+          description: 'הפרופיל שלך הועבר לאישור מנהל.',
         });
-        router.push('/login');
+        router.push('/seller/dashboard');
       }
     } catch (error: any) {
       setLoading(false);

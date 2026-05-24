@@ -85,6 +85,39 @@ export function initiateEmailSignUp(
   );
 }
 
+/** Sign up a seller — no email confirmation required; session is immediate. */
+export function initiateSellerEmailSignUp(
+  auth: AuthLike,
+  email: string,
+  password: string,
+  metadata?: SignUpMetadata,
+) {
+  const normalizedEmail = email.trim().toLowerCase();
+  return ensureEmailNotRegistered(auth, normalizedEmail).then(() =>
+    getClient(auth).auth.signUp({
+      email: normalizedEmail,
+      password,
+      options: {
+        ...(metadata ? { data: metadata } : {}),
+        // No emailRedirectTo — Supabase will issue a session immediately
+        // when email confirmation is disabled at the project level, or
+        // the caller handles the unconfirmed state explicitly.
+      },
+    }).then(({ data, error }) => {
+      if (error) {
+        const mappedError: any = new Error(error.message);
+        if (error.message.toLowerCase().includes('already registered')) {
+          mappedError.code = 'auth/email-already-in-use';
+        } else {
+          mappedError.code = 'auth/unknown';
+        }
+        throw mappedError;
+      }
+      return data;
+    }),
+  );
+}
+
 /** Initiate email/password sign-in. */
 export function initiateEmailSignIn(auth: AuthLike, email: string, password: string) {
   return getClient(auth).auth.signInWithPassword({ email, password }).then(({ data, error }) => {

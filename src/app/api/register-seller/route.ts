@@ -74,8 +74,14 @@ export async function POST(req: Request) {
     }
 
     if (dbError) {
-      console.error('Seller registration DB error:', dbError);
-      return NextResponse.json({ error: 'Database error' }, { status: 500 });
+      console.error('Seller registration DB error:', JSON.stringify(dbError));
+      return NextResponse.json({
+        error: 'Database error',
+        message: dbError.message,
+        code: dbError.code,
+        details: dbError.details,
+        hint: dbError.hint,
+      }, { status: 500 });
     }
     console.info('[register-seller] seller upserted', { source: recoverySource, userId: user.id });
 

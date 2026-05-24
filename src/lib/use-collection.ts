@@ -9,6 +9,87 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 /** Utility type to add an 'id' field to a given type T. */
 export type WithId<T> = T & { id: string };
 
+export interface UseCollectionCountResult {
+  count: number | null;
+  isLoading: boolean;
+}
+
+/**
+ * Subscribe to the row-count of a Supabase table query in real-time.
+ *
+ * Uses `{ count: 'exact', head: true }` so no row data is transferred —
+ * significantly cheaper than useCollection for notification badges / stats.
+ * Accepts the same SupabaseQuery descriptor as useCollection.
+ */
+export function useCollectionCount(
+  memoizedQuery: (SupabaseQuery & { __memo?: boolean }) | null | undefined,
+): UseCollectionCountResult {
+  const [count, setCount] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const queryRef = useRef(memoizedQuery);
+  queryRef.current = memoizedQuery;
+
+  useEffect(() => {
+    if (!memoizedQuery) {
+      setCount(null);
+      setIsLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+
+    const fetchCount = async () => {
+      try {
+        const builder = applyFilters(
+          queryRef.current!.client.from(queryRef.current!.table).select('*', { count: 'exact', head: true }),
+          queryRef.current!,
+        );
+        const { count: rowCount, error } = await (builder as any);
+
+        if (!isMounted) return;
+        if (error) throw error;
+
+        setCount(rowCount ?? 0);
+        setIsLoading(false);
+      } catch (err: any) {
+        if (!isMounted) return;
+        console.error(
+          `[useCollectionCount] Supabase error on table '${queryRef.current?.table}':`,
+          err?.message ?? err,
+        );
+        setIsLoading(false);
+      }
+    };
+
+    setIsLoading(true);
+    fetchCount();
+
+    const channelName = `count:${memoizedQuery.table}:${JSON.stringify(memoizedQuery.filters)}`;
+    let channel: RealtimeChannel | null = null;
+    try {
+      channel = memoizedQuery.client
+        .channel(channelName)
+        .on('postgres_changes', { event: '*', schema: 'public', table: memoizedQuery.table }, () => {
+          fetchCount();
+        })
+        .subscribe();
+    } catch {
+      // Realtime not available — silent fallback
+    }
+
+    return () => {
+      isMounted = false;
+      if (channel) {
+        try { memoizedQuery.client.removeChannel(channel); } catch { /* noop */ }
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [memoizedQuery]);
+
+  return { count, isLoading };
+}
+
 export interface UseCollectionResult<T> {
   data: WithId<T>[] | null;
   isLoading: boolean;

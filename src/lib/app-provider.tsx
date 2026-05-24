@@ -93,13 +93,18 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
   // ── Auth state listener ────────────────────────────────────────────────────
   useEffect(() => {
     // Hydrate from existing session immediately
-    client.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ? toAppUser(session.user) : null);
+    client.auth.getUser().then(({ data: { user: freshUser } }) => {
+      setUser(freshUser ? toAppUser(freshUser) : null);
       setIsUserLoading(false);
     });
 
-    const { data: { subscription } } = client.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ? toAppUser(session.user) : null);
+    const { data: { subscription } } = client.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        const { data: { user: freshUser } } = await client.auth.getUser();
+        setUser(freshUser ? toAppUser(freshUser) : null);
+      } else {
+        setUser(null);
+      }
       setIsUserLoading(false);
       setUserError(null);
 
@@ -277,6 +282,24 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
               await sendWelcomeEmail();
             } catch (err) {
               console.error('[auth] welcome email error:', err);
+            }
+          }
+
+          const currentUser = session.user;
+          const currentRole = currentUser.user_metadata?.role;
+          if (!currentRole) {
+            try {
+              const { count: sellerCount } = await client
+                .from('sellers')
+                .select('id', { count: 'exact', head: true })
+                .eq('id', currentUser.id);
+              if (sellerCount && sellerCount > 0) {
+                await client.auth.updateUser({ data: { role: 'seller' } });
+                const { data: { user: patchedUser } } = await client.auth.getUser();
+                if (patchedUser) setUser(toAppUser(patchedUser));
+              }
+            } catch (err) {
+              console.error('[auth] role patch error:', err);
             }
           }
         })();

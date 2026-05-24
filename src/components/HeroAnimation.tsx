@@ -30,7 +30,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { CitySelect } from '@/components/CitySelect';
 import { reverseGeocodeWithGoogle } from '@/lib/google-maps';
-import { COMMON_CITY_OPTIONS, NEARBY_RADIUS_KM, UNKNOWN_CITY_LABEL } from '@/lib/location-utils';
+import { COMMON_CITY_OPTIONS, NEARBY_RADIUS_KM } from '@/lib/location-utils';
 
 type ProductType = 'מזוזה' | 'תפילין' | 'מגילה' | 'ספר תורה' | 'מוצרי יודאיקה שונים' | '';
 type ShippingPreference = 'all' | 'shipping' | 'pickup';
@@ -89,10 +89,15 @@ export function HeroAnimation() {
 
         try {
           const { city } = await reverseGeocodeWithGoogle(latitude, longitude);
-          const nextCity = city || UNKNOWN_CITY_LABEL;
-          setDetectedCity(nextCity);
-          setSelectedCity(nextCity);
-          toast({ title: `מיקום זוהה: ${nextCity}` });
+          if (city) {
+            setDetectedCity(city);
+            setSelectedCity(city);
+            toast({ title: `מיקום זוהה: ${city}` });
+          } else {
+            setDetectedCity(null);
+            setSelectedCity('');
+            toast({ title: "המיקום זוהה", description: "לא הצלחנו לזהות עיר מדויקת. אפשר לבחור עיר ידנית מהרשימה." });
+          }
         } catch {
           toast({ title: "מיקום זוהה" });
         }

@@ -14,13 +14,22 @@ export type GoogleAddressSelection = {
 
 const getGoogleMapsApiKey = () => process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
-const CITY_KEYS = ['locality', 'administrative_area_level_2', 'administrative_area_level_1'];
+const CITY_KEYS = [
+  'locality',
+  'postal_town',
+  'administrative_area_level_3',
+  'sublocality',
+  'sublocality_level_1',
+  'neighborhood',
+  'administrative_area_level_2',
+  'administrative_area_level_1',
+];
 const reverseGeocodeCache = new Map<string, { city: string | null }>();
 const geocodeAddressCache = new Map<string, { lat: number | null; lng: number | null; city: string | null }>();
 
 const normalizeCityName = (value: string) =>
   value
-    .replace(/^ה/, '')
+    .replace(/^העיר\s+/, '')
     .replace(/^עיר\s+/, '')
     .trim();
 
@@ -30,6 +39,17 @@ export function getCityFromAddressComponents(components?: any[]): string | null 
   for (const cityKey of CITY_KEYS) {
     const component = components.find((item: any) => Array.isArray(item?.types) && item.types.includes(cityKey));
     if (component?.long_name) return normalizeCityName(component.long_name);
+  }
+
+  return null;
+}
+
+function getCityFromGeocodeResults(results?: any[]): string | null {
+  if (!Array.isArray(results)) return null;
+
+  for (const result of results) {
+    const city = getCityFromAddressComponents(result?.address_components);
+    if (city) return city;
   }
 
   return null;
@@ -85,9 +105,7 @@ export async function reverseGeocodeWithGoogle(lat: number, lng: number): Promis
     return { city: null };
   }
 
-  const city =
-    getCityFromAddressComponents(data.results[0].address_components) ||
-    getCityFromAddressComponents(data.results.find((result: any) => Array.isArray(result?.address_components))?.address_components);
+  const city = getCityFromGeocodeResults(data.results);
 
   const result = { city };
   reverseGeocodeCache.set(cacheKey, result);
@@ -118,7 +136,7 @@ export async function geocodeAddressWithGoogle(address: string): Promise<{ lat: 
   }
 
   const firstResult = data.results[0];
-  const city = getCityFromAddressComponents(firstResult?.address_components);
+  const city = getCityFromAddressComponents(firstResult?.address_components) || getCityFromGeocodeResults(data.results);
   const lat = typeof firstResult?.geometry?.location?.lat === 'number' ? firstResult.geometry.location.lat : null;
   const lng = typeof firstResult?.geometry?.location?.lng === 'number' ? firstResult.geometry.location.lng : null;
 

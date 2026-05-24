@@ -374,6 +374,7 @@ export function ProductDetailsClient({
     if (raw === 'pickup' || raw === 'pickup_only') return 'pickup';
     return 'both';
   })();
+  const hasDelivery = normalizedDeliveryType === 'delivery' || normalizedDeliveryType === 'both';
   const deliveryAreaText = (Array.isArray(product.delivery_area) ? product.delivery_area : [product.delivery_area])
     .filter(Boolean)
     .join(', ');
@@ -500,7 +501,9 @@ export function ProductDetailsClient({
                       <span className="text-primary text-5xl md:text-6xl font-black tabular-nums tracking-tighter">{displayPrice}</span>
                       <span className="text-accent text-2xl md:text-3xl font-black">₪</span>
                     </div>
-                    <p className="text-[10px] font-black text-primary/60 uppercase tracking-[0.2em] mt-1">מחיר סופי כולל מע"מ ומשלוח</p>
+                    <p className="text-[10px] font-black text-primary/60 uppercase tracking-[0.2em] mt-1">
+                      {hasDelivery ? 'מחיר סופי כולל מע"מ ומשלוח' : 'מחיר סופי כולל מע"מ'}
+                    </p>
                   </div>
 
                   <div className="h-px bg-primary/5 w-full" />
@@ -513,13 +516,21 @@ export function ProductDetailsClient({
                          {product.product_type === 'ספר תורה' ? 'בתיאום אישי' : `${product.delivery_time || '3'} ימים`}
                        </span>
                      </section>
-                     <section aria-labelledby="delivery-fee-label" className="flex flex-col items-end gap-1.5 rounded-2xl bg-slate-50/50 p-3 text-right">
-                       <Truck className="w-5 h-5 text-accent" />
-                        <span id="delivery-fee-label" className="text-[9px] font-black text-primary/60 uppercase tracking-widest">עלות משלוח</span>
-                       <span className="text-xs font-black text-emerald-600 leading-none">
-                         {Number(product.delivery_fee) > 0 ? `₪${product.delivery_fee}` : 'משלוח חינם'}
-                       </span>
-                     </section>
+                     {hasDelivery ? (
+                       <section aria-labelledby="delivery-fee-label" className="flex flex-col items-end gap-1.5 rounded-2xl bg-slate-50/50 p-3 text-right">
+                         <Truck className="w-5 h-5 text-accent" />
+                          <span id="delivery-fee-label" className="text-[9px] font-black text-primary/60 uppercase tracking-widest">עלות משלוח</span>
+                         <span className="text-xs font-black text-emerald-600 leading-none">
+                           {Number(product.delivery_fee) > 0 ? `₪${product.delivery_fee}` : 'משלוח חינם'}
+                         </span>
+                       </section>
+                     ) : (
+                       <section aria-labelledby="delivery-method-label" className="flex flex-col items-end gap-1.5 rounded-2xl bg-slate-50/50 p-3 text-right">
+                         <MapPin className="w-5 h-5 text-accent" />
+                          <span id="delivery-method-label" className="text-[9px] font-black text-primary/60 uppercase tracking-widest">אופן קבלה</span>
+                         <span className="text-xs font-black text-amber-700 leading-none">איסוף עצמי</span>
+                       </section>
+                     )}
                    </div>
                </div>
             </Card>

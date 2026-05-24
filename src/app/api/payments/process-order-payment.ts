@@ -59,18 +59,12 @@ export async function markOrderAsPaidAndNotify(orderId: string, paymentProvider:
 
     if (!productFetchError && product) {
       productTypeForSellerEmail = product.product_type || productTypeForSellerEmail;
-      const currentQuantity = Number(product.quantity || 0);
-      if (currentQuantity <= 0) {
-        console.warn(`Product ${order.product_id} quantity is already ${currentQuantity} while processing paid order ${orderId}`);
-      } else {
-        const nextQuantity = Math.max(0, currentQuantity - 1);
-        const { error: productUpdateError } = await supabase
-          .from('products')
-          .update({ quantity: nextQuantity })
-          .eq('id', order.product_id);
-        if (productUpdateError) {
-          console.error('Failed to decrement product quantity after payment:', productUpdateError.message);
-        }
+      const { data: decrementedQuantity, error: productUpdateError } = await supabase
+        .rpc('decrement_product_quantity', { product_id: order.product_id });
+      if (productUpdateError) {
+        console.error('Failed to decrement product quantity after payment:', productUpdateError.message);
+      } else if (decrementedQuantity == null) {
+        console.warn(`[payment] Concurrent purchase detected for product ${order.product_id}, quantity not decremented`);
       }
     }
   }

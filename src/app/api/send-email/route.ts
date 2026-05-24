@@ -25,6 +25,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields: to, subject, text' }, { status: 400 });
     }
 
+    // Rate limiting: max 10 emails per user per hour using Supabase
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { count: recentEmailCount } = await serviceClient
+      .from('email_rate_limit_log')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', authUser.id)
+      .gte('sent_at', oneHourAgo);
+
+    if ((recentEmailCount ?? 0) >= 10) {
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
+    }
+
+    await serviceClient
+      .from('email_rate_limit_log')
+      .insert({ user_id: authUser.id, sent_at: new Date().toISOString() });
+
     let html: string | undefined = typeof providedHtml === 'string' ? providedHtml : undefined;
     if (senderName && message) {
       const chatLink = link || 'https://hotam.shop';

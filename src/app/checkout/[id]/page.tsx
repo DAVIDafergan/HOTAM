@@ -423,6 +423,8 @@ export default function CheckoutPage() {
       }
 
       setIsSuccess(true);
+      pendingOrderRef.current = null;
+      chargeInFlightRef.current = false;
       router.push('/checkout/success');
     } catch (err: any) {
       console.error('Payment Charge Error:', err);

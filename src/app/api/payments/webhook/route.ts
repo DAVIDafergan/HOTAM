@@ -45,6 +45,19 @@ async function readWebhookPayload(req: Request) {
 }
 
 async function handleWebhook(req: Request) {
+  // Verify the request comes from Sumit using a shared secret
+  const webhookSecret = process.env.SUMIT_WEBHOOK_SECRET;
+  if (webhookSecret) {
+    const providedSecret =
+      req.headers.get('x-sumit-secret') ||
+      req.headers.get('x-webhook-secret') ||
+      new URL(req.url).searchParams.get('secret');
+    if (providedSecret !== webhookSecret) {
+      console.warn('[webhook] Invalid secret, rejecting request');
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+  }
+
   try {
     const payload = await readWebhookPayload(req);
 

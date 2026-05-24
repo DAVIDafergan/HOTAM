@@ -36,6 +36,7 @@ DROP TABLE IF EXISTS public.orders    CASCADE;
 DROP TABLE IF EXISTS public.products  CASCADE;
 DROP TABLE IF EXISTS public.chats     CASCADE;
 DROP TABLE IF EXISTS public.password_reset_log CASCADE;
+DROP TABLE IF EXISTS public.email_rate_limit_log CASCADE;
 DROP TABLE IF EXISTS public.customers CASCADE;
 DROP TABLE IF EXISTS public.sellers   CASCADE;
 DROP TABLE IF EXISTS public.admins    CASCADE;
@@ -45,6 +46,7 @@ DROP TABLE IF EXISTS public.admins    CASCADE;
 -- functions, so the drops succeed without needing CASCADE.
 DROP FUNCTION IF EXISTS public.is_admin();
 DROP FUNCTION IF EXISTS public.safe_increment(TEXT, TEXT, TEXT, INTEGER);
+DROP FUNCTION IF EXISTS public.decrement_product_quantity(UUID);
 DROP FUNCTION IF EXISTS public.array_union_elem(TEXT, TEXT, TEXT, TEXT);
 DROP FUNCTION IF EXISTS public.array_remove_elem(TEXT, TEXT, TEXT, TEXT);
 DROP FUNCTION IF EXISTS public.update_unread_state(TEXT, TEXT, BOOLEAN);
@@ -113,6 +115,13 @@ CREATE TABLE IF NOT EXISTS public.password_reset_log (
   email       TEXT        NOT NULL,
   succeeded   BOOLEAN     NOT NULL DEFAULT TRUE,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ── email_rate_limit_log ────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.email_rate_limit_log (
+  id         UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id    UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  sent_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- Additive safety migrations for existing live DBs.
@@ -317,6 +326,7 @@ CREATE INDEX IF NOT EXISTS idx_chats_participants     ON public.chats USING GIN 
 CREATE INDEX IF NOT EXISTS idx_chats_unread_state     ON public.chats USING GIN (unread_state);
 CREATE INDEX IF NOT EXISTS idx_sellers_is_approved    ON public.sellers (is_approved);
 CREATE INDEX IF NOT EXISTS idx_password_reset_log_email_created_at ON public.password_reset_log (email, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_email_rate_limit_log_user_sent_at ON public.email_rate_limit_log (user_id, sent_at);
 
 -- =============================================================================
 -- ROW-LEVEL SECURITY (RLS)
@@ -334,6 +344,7 @@ ALTER TABLE public.reviews               ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.supermarket_reviews   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reports               ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.password_reset_log    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.email_rate_limit_log  ENABLE ROW LEVEL SECURITY;
 
 -- ── Admin helper (SECURITY DEFINER avoids infinite recursion when policies
 --    on other tables query the admins table, which itself has policies) ────────
@@ -366,7 +377,9 @@ CREATE POLICY "sellers_own_update" ON public.sellers
 CREATE POLICY "sellers_admin_all"  ON public.sellers FOR ALL USING (public.is_admin());
 
 -- ── customers policies ────────────────────────────────────────────────────────
-CREATE POLICY "customers_authenticated_read" ON public.customers FOR SELECT USING (auth.uid() IS NOT NULL);
+DROP POLICY IF EXISTS "customers_authenticated_read" ON public.customers;
+CREATE POLICY "customers_own_read" ON public.customers
+  FOR SELECT USING (auth.uid() = id OR public.is_admin());
 CREATE POLICY "customers_own_insert" ON public.customers FOR INSERT WITH CHECK (auth.uid() = id);
 CREATE POLICY "customers_own_update" ON public.customers FOR UPDATE
   USING (auth.uid() = id)
@@ -525,10 +538,20 @@ CREATE POLICY "password_reset_log_service_role_all" ON public.password_reset_log
   USING (true)
   WITH CHECK (true);
 
+CREATE POLICY "email_rate_limit_service_only" ON public.email_rate_limit_log USING (false);
+
 -- =============================================================================
 -- RPC HELPER FUNCTIONS
 -- These are called by non-blocking-updates.tsx for special field operations.
 -- =============================================================================
+
+CREATE OR REPLACE FUNCTION public.decrement_product_quantity(product_id UUID)
+RETURNS INT AS $$
+  UPDATE public.products
+  SET quantity = GREATEST(0, quantity - 1)
+  WHERE id = product_id AND quantity > 0
+  RETURNING quantity;
+$$ LANGUAGE sql;
 
 -- ── safe_increment: atomically add delta to an integer column ─────────────────
 CREATE OR REPLACE FUNCTION public.safe_increment(
@@ -908,6 +931,13 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+
+-- One-time backfill for existing sellers missing auth role metadata.
+UPDATE auth.users
+SET raw_user_meta_data = raw_user_meta_data || '{"role": "seller"}'
+WHERE id IN (SELECT id FROM public.sellers)
+  AND (raw_user_meta_data->>'role' IS NULL
+       OR raw_user_meta_data->>'role' != 'seller');
 
 -- =============================================================================
 -- STORAGE

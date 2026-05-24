@@ -44,6 +44,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Database error' }, { status: 500 });
     }
 
+    // Ensure auth metadata reflects seller role so redirects work correctly
+    const { error: roleUpdateError } = await serviceClient.auth.admin.updateUserById(
+      user.id,
+      { user_metadata: { ...user.user_metadata, role: 'seller' } }
+    );
+    if (roleUpdateError) {
+      console.error('[register-seller] Failed to update auth role:', roleUpdateError);
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Seller registration error:', error);

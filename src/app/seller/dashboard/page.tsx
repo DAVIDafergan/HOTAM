@@ -710,6 +710,22 @@ function SellerDashboardContent() {
     if (!user) return;
     if (!confirm('למחוק את המוצר לצמיתות?')) return;
 
+    // Check for active orders before deleting
+    const { count: activeOrders } = await supabase
+      .from('orders')
+      .select('id', { count: 'exact', head: true })
+      .eq('product_id', productId)
+      .in('status', ['pending_payment', 'paid']);
+
+    if (activeOrders && activeOrders > 0) {
+      toast({
+        variant: 'destructive',
+        title: 'לא ניתן למחוק',
+        description: `יש ${activeOrders} הזמנות פעילות על מוצר זה. סגור אותן קודם.`,
+      });
+      return;
+    }
+
     const { error } = await supabase
       .from('products')
       .delete()

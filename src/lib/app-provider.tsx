@@ -285,21 +285,21 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
             }
           }
 
-          const currentUser = session.user;
-          const currentRole = currentUser.user_metadata?.role;
+          // Auto-fix: if role is missing from metadata, check DB and patch it
+          const currentRole = session.user.user_metadata?.role;
           if (!currentRole) {
             try {
               const { count: sellerCount } = await client
                 .from('sellers')
                 .select('id', { count: 'exact', head: true })
-                .eq('id', currentUser.id);
+                .eq('id', session.user.id);
               if (sellerCount && sellerCount > 0) {
                 await client.auth.updateUser({ data: { role: 'seller' } });
                 const { data: { user: patchedUser } } = await client.auth.getUser();
                 if (patchedUser) setUser(toAppUser(patchedUser));
               }
             } catch (err) {
-              console.error('[auth] role patch error:', err);
+              console.error('[auth] role auto-patch error:', err);
             }
           }
         })();

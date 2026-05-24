@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     const token = authHeader?.replace('Bearer ', '');
     const uploadContext = req.headers.get('x-upload-context');
     const isOnboarding = uploadContext === 'onboarding';
-    const { fileName, contentType, fileSize, keyPrefix = 'products' } = await req.json();
+    const { fileName, contentType, fileSize, keyPrefix } = await req.json();
 
     if (!isOnboarding) {
       if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -35,6 +35,10 @@ export async function POST(req: NextRequest) {
       const { data: { user }, error } = await serviceClient.auth.getUser(token);
       if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     } else {
+      // Onboarding uploads are unauthenticated but must go to a sandboxed prefix
+      if (keyPrefix && keyPrefix !== 'onboarding') {
+        return NextResponse.json({ error: 'Invalid upload context' }, { status: 403 });
+      }
       const ONBOARDING_MAX_PRESIGN = 2 * 1024 * 1024;
       if (fileSize && fileSize > ONBOARDING_MAX_PRESIGN) {
         return NextResponse.json({ error: 'Onboarding upload must be under 2MB' }, { status: 413 });
@@ -65,7 +69,8 @@ export async function POST(req: NextRequest) {
     });
 
     const sanitized = (fileName || 'file').replace(/[^a-zA-Z0-9._-]/g, '_');
-    const key = `${keyPrefix}/${Date.now()}_${Math.random().toString(36).slice(2, 10)}_${sanitized}`;
+    const resolvedPrefix = !token ? 'onboarding' : (keyPrefix || 'products');
+    const key = `${resolvedPrefix}/${Date.now()}_${Math.random().toString(36).slice(2, 10)}_${sanitized}`;
 
     const presignedUrl = await getSignedUrl(
       s3,

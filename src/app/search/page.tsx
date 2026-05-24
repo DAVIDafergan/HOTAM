@@ -398,7 +398,6 @@ function SearchContent() {
     let cancelled = false;
 
     if (!selectedCity) {
-      setNearbyCityDistanceMap({});
       setNearbyDistanceMap({});
       return () => {
         cancelled = true;

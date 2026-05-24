@@ -405,15 +405,50 @@ export default function SellerOnboarding() {
         toast({ title: 'ההרשמה הסתיימה', description: 'הפרופיל שלך הועבר לאישור מנהל.' });
         router.push('/seller/dashboard');
       } else {
-        // No immediate session — register-seller will be called on first sign-in
-        // via reconcileSellerAccount in app-provider. Just inform the user.
-        console.info('[seller-onboarding] signup has no immediate session', { userId });
-        await registerSellerWithSession(userId, 'signup-no-session', formData.email);
+        // No immediate session after signup.
+        // registerSellerWithSession requires an active session token — calling it
+        // here would fail with 401. Instead, rely on reconcileSellerAccount in
+        // app-provider (triggered on SIGNED_IN) plus the pendingSellerProfile
+        // already saved to localStorage above to register the seller row.
+        console.info('[seller-onboarding] signup has no immediate session — relying on reconcile', { userId });
         setLoading(false);
         toast({
-          title: 'ההרשמה הסתיימה',
-          description: 'הפרופיל שלך הועבר לאישור מנהל.',
+          title: 'ממשיכים...',
+          description: 'מתחבר לחשבון שלך.',
         });
+        // Sign in immediately so reconcileSellerAccount fires and registers the seller row.
+        const { data: signInData, error: signInError } = await db.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+        if (signInError || !signInData.session) {
+          toast({
+            title: 'ההרשמה הסתיימה',
+            description: 'הפרופיל שלך הועבר לאישור מנהל. התחבר כדי להמשיך.',
+          });
+          router.push('/login');
+          return;
+        }
+        // Now we have a session — register the seller row directly.
+        const token = signInData.session.access_token;
+        const response = await fetch('/api/register-seller', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer ' + token,
+          },
+          body: JSON.stringify({
+            id: signInData.session.user.id,
+            email: formData.email,
+            recovery_source: 'signup-signin-recovery',
+            ...profilePayload,
+          }),
+        });
+        if (!response.ok) {
+          const body = await response.json().catch(() => ({}));
+          console.error('[seller-onboarding] register-seller failed after signin', body);
+        }
+        toast({ title: 'ההרשמה הסתיימה', description: 'הפרופיל שלך הועבר לאישור מנהל.' });
         router.push('/seller/dashboard');
       }
     } catch (error: any) {

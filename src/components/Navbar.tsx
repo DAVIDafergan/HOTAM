@@ -85,7 +85,7 @@ export function Navbar() {
   const { data: adminData } = useDoc<any>(adminRef);
   const isSuperAdmin = !!adminData;
   
-  const displayName = profile?.first_name?.trim() || user?.email?.split('@')[0] || 'משתמש';
+  const displayName = profile?.first_name?.trim() || user?.displayName || user?.email?.split('@')[0] || 'משתמש';
   const dashboardLink = isSuperAdmin ? '/admin' : (isSeller ? '/seller/dashboard' : '/customer/dashboard');
 
   const greeting = useMemo(() => {

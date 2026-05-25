@@ -64,7 +64,7 @@ import { cn } from '@/lib/utils';
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const { user, isUserLoading, profile } = useApp();
+  const { user, isUserLoading, profile, isProfileLoading } = useApp();
   const db = useSupabaseClient();
   const auth = useAuth();
   const router = useRouter();
@@ -79,9 +79,9 @@ export function Navbar() {
   const isSeller = profile?.role === 'seller' || user?.role === 'seller';
 
   const adminRef = useMemoStable(() => {
-    if (!user?.uid) return null;
+    if (!user?.uid || user?.role !== 'admin') return null;
     return doc(db, 'admins', user.uid);
-  }, [db, user?.uid]);
+  }, [db, user?.uid, user?.role]);
   const { data: adminData } = useDoc<any>(adminRef);
   const isSuperAdmin = !!adminData;
   
@@ -89,29 +89,31 @@ export function Navbar() {
   const dashboardLink = isSuperAdmin ? '/admin' : (isSeller ? '/seller/dashboard' : '/customer/dashboard');
 
   const greeting = useMemo(() => {
+    if (!mounted) return '';
     const hour = new Date().getHours();
     if (hour >= 5 && hour < 12) return 'בוקר טוב';
     if (hour >= 12 && hour < 18) return 'צהריים טובים';
     if (hour >= 18 && hour < 22) return 'ערב טוב';
     return 'לילה טוב';
-  }, []);
+  }, [mounted]);
 
   const greetingIcon = useMemo(() => {
+    if (!mounted) return null;
     const hour = new Date().getHours();
     if (hour >= 5 && hour < 12) return <Sunrise className="w-3 h-3" />;
     if (hour >= 12 && hour < 18) return <Sun className="w-3 h-3" />;
     if (hour >= 18 && hour < 22) return <Sunset className="w-3 h-3" />;
     return <Moon className="w-3 h-3" />;
-  }, []);
+  }, [mounted]);
 
   const unreadChatsQuery = useMemoStable(() => {
-    if (!user || !mounted) return null;
+    if (!user || !mounted || isProfileLoading) return null;
     return query(
       collection(db, 'chats'), 
       where('participants', 'array-contains', user.uid),
       where(`unread_${user.uid}`, '==', true)
     );
-  }, [db, user?.uid, mounted]);
+  }, [db, user?.uid, mounted, isProfileLoading]);
   const { data: unreadChats } = useCollection<any>(unreadChatsQuery);
   const unreadCount = (unreadChats || []).length;
   const hasUnreadMessages = unreadCount > 0;
@@ -131,13 +133,13 @@ export function Navbar() {
   const adminNotificationCount = (pendingSellers?.length || 0) + (reportsCount || 0);
 
   const sellerOrdersQuery = useMemoStable(() => {
-    if (!isSeller || !user || !mounted) return null;
+    if (!isSeller || !user || !mounted || isProfileLoading) return null;
     return query(
       collection(db, 'orders'),
       where('seller_id', '==', user.uid),
       where('is_seen_by_seller', '==', false)
     );
-  }, [db, isSeller, user?.uid, mounted]);
+  }, [db, isSeller, user?.uid, mounted, isProfileLoading]);
   const { data: sellerOrders } = useCollection<any>(sellerOrdersQuery);
 
   const activeUnreadOrders = (sellerOrders || []).filter(o => o.status === 'paid' || o.status === 'torah_request');
@@ -179,7 +181,7 @@ export function Navbar() {
   );
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-[100] p-4 md:p-5" role="navigation">
+    <nav className="fixed top-0 left-0 right-0 z-[100] p-4 md:p-5 pt-[max(1rem,env(safe-area-inset-top))]" role="navigation">
       <div className="container mx-auto max-w-7xl">
         <div className="bg-white/78 backdrop-blur-xl border border-white/35 ring-1 ring-primary/5 shadow-premium-lg rounded-full px-5 sm:px-7 h-[4.5rem] flex items-center justify-between relative overflow-hidden">
           
@@ -216,7 +218,7 @@ export function Navbar() {
                       )}
                     </Button>
                   </SheetTrigger>
-                  <SheetContent side="right" className="w-[88vw] max-w-[320px] p-0 border-none bg-white/95 backdrop-blur-2xl h-full shadow-2xl animate-in slide-in-from-right duration-500 overflow-hidden rounded-l-[2.5rem]">
+                  <SheetContent side="right" className="w-[88vw] max-w-[320px] p-0 border-none bg-white/95 backdrop-blur-2xl h-full shadow-2xl animate-in slide-in-from-right duration-300 overflow-hidden rounded-l-[2.5rem]">
                     <SheetHeader className="sr-only">
                       <SheetTitle>תפריט ניווט</SheetTitle>
                       <SheetDescription>גישה מהירה לאיזור אישי, חיפוש ויצירת קשר</SheetDescription>
@@ -307,7 +309,17 @@ export function Navbar() {
           </div>
 
           <div className="flex-1 flex items-center justify-end z-10 gap-2 sm:gap-4">
-            {!isUserLoading && user && mounted && (
+            {isUserLoading && (
+              <div className="flex items-center gap-2">
+                <div className="h-11 w-11 rounded-full bg-primary/8 animate-pulse" />
+                <div className="hidden sm:flex flex-col gap-1">
+                  <div className="h-2.5 w-20 rounded-full bg-primary/8 animate-pulse" />
+                  <div className="h-2 w-14 rounded-full bg-primary/6 animate-pulse" />
+                </div>
+              </div>
+            )}
+
+            {!isUserLoading && user && (
               <div className="flex items-center gap-2">
                 {isSuperAdmin && (
                   <DropdownMenu dir="rtl">
@@ -554,7 +566,7 @@ export function Navbar() {
               </div>
             )}
 
-            {!isUserLoading && !user && mounted && (
+            {!isUserLoading && !user && (
               <Button asChild className="bg-primary text-white hover:bg-primary/95 px-7 h-10 rounded-full shadow-premium text-xs font-bold gap-2 border border-white/30">
                 <Link href="/login"> <LogIn className="w-3.5 h-3.5" /> התחברות</Link>
               </Button>
@@ -571,7 +583,7 @@ function NavLink({ href, icon, label }: { href: string, icon: any, label: string
   return (
     <Link 
       href={href} 
-      className="text-[13px] font-bold text-primary/65 hover:text-primary transition-all flex items-center gap-1.5 group relative py-1.5"
+      className="text-[13px] font-bold text-primary/65 hover:text-primary transition-all flex items-center gap-1.5 group relative py-1.5 min-h-[44px]"
     >
       <span className="opacity-0 group-hover:opacity-100 transition-opacity text-accent" aria-hidden="true">{icon}</span>
       {label}

@@ -472,7 +472,7 @@ export default function CustomerDashboard() {
             <div className="flex-1 text-right">
               <p className="text-white/50 text-[10px] font-black uppercase tracking-[0.3em] mb-1">אזור אישי</p>
               <h1 className="text-3xl md:text-4xl font-headline font-black text-white tracking-tight leading-tight">
-                שלום, {customer?.first_name || 'לקוח'} {customer?.last_name || ''}
+                שלום, {customer?.first_name || (user?._raw?.user_metadata?.first_name as string | undefined) || 'לקוח'} {customer?.last_name || (user?._raw?.user_metadata?.last_name as string | undefined) || ''}
               </h1>
                   <p className="text-white/80 text-sm font-medium mt-1">{user?.email}</p>
               <div className="flex items-center gap-4 mt-4">

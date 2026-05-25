@@ -36,6 +36,7 @@ function toAppUser(u: SupabaseUser): AppUser {
     displayName:
       u.user_metadata?.full_name ??
       u.user_metadata?.name ??
+      u.user_metadata?.first_name ??
       (u.email ? u.email.split('@')[0] : null),
     photoURL: u.user_metadata?.avatar_url ?? null,
     emailVerified: u.email_confirmed_at != null,

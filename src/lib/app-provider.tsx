@@ -45,6 +45,28 @@ function toAppUser(u: SupabaseUser): AppUser {
   };
 }
 
+async function resolveAppUser(u: SupabaseUser, accessToken?: string | null): Promise<AppUser> {
+  const baseUser = toAppUser(u);
+  if (!accessToken) return baseUser;
+
+  try {
+    const response = await fetch('/api/auth/session-role', {
+      headers: { Authorization: 'Bearer ' + accessToken },
+    });
+    if (!response.ok) return baseUser;
+
+    const payload = await response.json().catch(() => null) as { role?: AppUser['role'] } | null;
+    const resolvedRole = payload?.role;
+    if (resolvedRole === 'customer' || resolvedRole === 'seller' || resolvedRole === 'admin') {
+      return { ...baseUser, role: resolvedRole };
+    }
+  } catch (err) {
+    console.error('[auth] role resolution error:', err);
+  }
+
+  return baseUser;
+}
+
 // ─── Auth proxy ───────────────────────────────────────────────────────────────
 
 export interface AuthProxy {
@@ -93,15 +115,17 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
   // ── Auth state listener ────────────────────────────────────────────────────
   useEffect(() => {
     // Hydrate from existing session immediately
-    client.auth.getUser().then(({ data: { user: freshUser } }) => {
-      setUser(freshUser ? toAppUser(freshUser) : null);
+    void Promise.all([client.auth.getUser(), client.auth.getSession()]).then(async ([userResult, sessionResult]) => {
+      const freshUser = userResult.data.user;
+      const accessToken = sessionResult.data.session?.access_token;
+      setUser(freshUser ? await resolveAppUser(freshUser, accessToken) : null);
       setIsUserLoading(false);
     });
 
     const { data: { subscription } } = client.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
         const { data: { user: freshUser } } = await client.auth.getUser();
-        setUser(freshUser ? toAppUser(freshUser) : null);
+        setUser(freshUser ? await resolveAppUser(freshUser, session.access_token) : null);
       } else {
         setUser(null);
       }
@@ -369,7 +393,8 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
           // full sign-out/sign-in cycle.
           try {
             const { data: { user: refreshedUser } } = await client.auth.getUser();
-            if (refreshedUser) setUser(toAppUser(refreshedUser));
+            const { data: { session: refreshedSession } } = await client.auth.getSession();
+            if (refreshedUser) setUser(await resolveAppUser(refreshedUser, refreshedSession?.access_token));
           } catch (err) {
             console.error('[auth] user refresh error:', err);
           }

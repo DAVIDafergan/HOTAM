@@ -130,11 +130,11 @@ function LoginContent() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      <main className="flex-1 flex items-center justify-center p-3 sm:p-4 pt-16 sm:pt-24 pb-6 sm:pb-10">
+      <main className="flex-1 flex items-start justify-center p-3 sm:p-4 pt-[calc(7.5rem+env(safe-area-inset-top))] sm:items-center sm:pt-24 pb-6 sm:pb-10">
         <Card className="w-full max-w-3xl shadow-premium border-none rounded-3xl md:rounded-[2.25rem] overflow-hidden bg-white">
           <div className="grid md:grid-cols-5 md:min-h-[410px]">
             {/* Left/Info Side — top on mobile, left panel on desktop */}
-            <div className="order-1 md:col-span-2 bg-primary text-white px-5 py-4 sm:p-7 md:p-9 flex flex-col justify-center text-right relative overflow-hidden">
+            <div className="hidden md:flex md:col-span-2 bg-primary text-white px-5 py-4 sm:p-7 md:p-9 flex-col justify-center text-right relative overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl hidden md:block" />
               <div className="relative z-10 space-y-3 md:space-y-5 text-center sm:text-right">
                 <div className="space-y-2 md:space-y-3">
@@ -162,6 +162,10 @@ function LoginContent() {
 
             {/* Right/Form Side */}
             <CardContent className="order-2 md:col-span-3 p-4 sm:p-6 md:p-8 space-y-5 text-right flex flex-col justify-center">
+              <div className="md:hidden rounded-[2rem] bg-gradient-to-br from-primary via-primary to-primary/90 px-5 py-6 text-center text-white shadow-premium">
+                <p className="text-[10px] font-black uppercase tracking-[0.35em] text-white/55">HOTAM</p>
+                <h1 className="mt-2 text-2xl font-headline font-black tracking-tight">ברוכים הבאים לחותם</h1>
+              </div>
               <div className="space-y-1.5">
                 <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-primary">כניסה למערכת</h2>
                 <p className="text-muted-foreground text-xs sm:text-sm font-black">הזינו את הפרטים כדי להמשיך</p>

@@ -198,7 +198,7 @@ export default function RegisterPage() {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
-        <main className="flex-1 flex items-center justify-center p-4">
+        <main className="flex-1 flex items-start justify-center p-4 pt-[calc(7.5rem+env(safe-area-inset-top))] md:items-center md:pt-24">
           <Card className="w-full max-w-md shadow-premium border-none rounded-[2.5rem] overflow-hidden bg-white">
             <CardContent className="p-10 text-center space-y-6">
               <div className="w-20 h-20 bg-primary/5 rounded-full flex items-center justify-center mx-auto">
@@ -236,11 +236,11 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      <main className="flex-1 flex items-center justify-center p-3 sm:p-4 pt-16 sm:pt-24 pb-6 sm:pb-10">
+      <main className="flex-1 flex items-start justify-center p-3 sm:p-4 pt-[calc(7.5rem+env(safe-area-inset-top))] sm:items-center sm:pt-24 pb-6 sm:pb-10">
         <Card className="w-full max-w-4xl shadow-premium border-none rounded-[2.5rem] overflow-hidden bg-white">
           <div className="grid md:grid-cols-5 md:min-h-[500px]">
             {/* Left/Info Side */}
-            <div className="order-2 md:order-1 md:col-span-2 bg-primary text-white p-5 sm:p-8 md:p-10 flex flex-col justify-center text-right relative overflow-hidden">
+            <div className="hidden md:flex md:order-1 md:col-span-2 bg-primary text-white p-5 sm:p-8 md:p-10 flex-col justify-center text-right relative overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl" />
               <div className="relative z-10 space-y-6">
                 <div className="space-y-4">
@@ -264,6 +264,10 @@ export default function RegisterPage() {
 
             {/* Right/Form Side */}
             <CardContent className="order-1 md:order-2 md:col-span-3 p-5 sm:p-7 md:p-10 space-y-5 text-right flex flex-col justify-center">
+              <div className="md:hidden rounded-[2rem] bg-gradient-to-br from-primary via-primary to-primary/90 px-5 py-6 text-center text-white shadow-premium">
+                <p className="text-[10px] font-black uppercase tracking-[0.35em] text-white/55">HOTAM</p>
+                <h1 className="mt-2 text-2xl font-headline font-black tracking-tight">ברוכים הבאים לחותם</h1>
+              </div>
               <div className="space-y-1">
                 <h2 className="text-2xl md:text-3xl font-black text-primary">יצירת חשבון חדש</h2>
                 <p className="text-muted-foreground text-sm font-black">הצטרפו לקהילת חותם עוד היום</p>

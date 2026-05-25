@@ -195,7 +195,7 @@ export function HeroAnimation() {
   };
 
   return (
-    <section className="relative min-h-screen w-full flex items-start justify-center overflow-hidden bg-[#FDFCF0] pt-20 pb-14 md:pt-32 md:pb-20">
+    <section className="relative min-h-screen w-full flex items-start justify-center overflow-hidden bg-[#FDFCF0] pt-[calc(7.75rem+env(safe-area-inset-top))] pb-14 md:pt-32 md:pb-20">
       <div className="absolute inset-0 z-0">
         {heroImg?.imageUrl && (
           <Image 

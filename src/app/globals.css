@@ -43,6 +43,9 @@
     -webkit-font-smoothing: antialiased;
     -webkit-tap-highlight-color: transparent;
   }
+  input, textarea, select {
+    font-size: max(16px, 1rem); /* prevents auto-zoom on iOS */
+  }
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline leading-tight;
     text-wrap: balance;

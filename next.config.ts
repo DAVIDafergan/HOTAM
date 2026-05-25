@@ -29,6 +29,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   experimental: {
+    scrollRestoration: true,
     serverActions: {
       bodySizeLimit: '10mb',
     },

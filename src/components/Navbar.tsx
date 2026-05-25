@@ -252,6 +252,9 @@ export function Navbar() {
                         <MobileNavLink href="/" icon={<Home className="w-5 h-5" />} label="דף הבית" onClick={() => setIsOpen(false)} active={pathname === '/'} />
                         <MobileNavLink href="/search?view=all" icon={<ShoppingBag className="w-5 h-5" />} label="כל המוצרים" onClick={() => setIsOpen(false)} active={pathname === '/search'} />
                         <MobileNavLink href="/contact" icon={<PhoneCall className="w-5 h-5" />} label="צור קשר" onClick={() => setIsOpen(false)} active={pathname === '/contact'} />
+                        {isSuperAdmin && (
+                          <MobileNavLink href="/admin" icon={<LayoutDashboard className="w-5 h-5" />} label="ניהול" onClick={() => setIsOpen(false)} active={pathname === '/admin'} />
+                        )}
                         
                         <div className="my-3 border-t border-primary/5 relative">
                            <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-[7px] font-black text-primary/20 tracking-[0.3em] uppercase">MEMBER</span>
@@ -300,6 +303,9 @@ export function Navbar() {
                 <NavLink href="/" icon={<Home className="w-3.5 h-3.5" />} label="דף הבית" />
                 <NavLink href="/search?view=all" icon={<ShoppingBag className="w-3.5 h-3.5" />} label="כל המוצרים" />
                 <NavLink href="/contact" icon={<PhoneCall className="w-3.5 h-3.5" />} label="צור קשר" />
+                {isSuperAdmin && (
+                  <NavLink href="/admin" icon={<LayoutDashboard className="w-3.5 h-3.5" />} label="ניהול" />
+                )}
               </div>
             </div>
 

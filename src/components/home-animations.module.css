@@ -28,3 +28,10 @@
     transform: translateY(-10px);
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .animateFadeIn,
+  .animateFloating {
+    animation: none;
+  }
+}

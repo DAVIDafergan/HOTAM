@@ -3,23 +3,44 @@ import type {Metadata, Viewport} from 'next';
 import './globals.css';
 import { SupabaseClientProvider } from '@/lib/supabase-hooks';
 import { ClientWrapper } from '@/components/ClientWrapper';
-import { Frank_Ruhl_Libre, Assistant } from 'next/font/google';
+import localFont from 'next/font/local';
 import { AccessibilityButton } from '@/components/AccessibilityButton';
 
-const frank = Frank_Ruhl_Libre({
-  subsets: ['hebrew', 'latin'],
-  weight: ['400', '700', '900'],
+const frank = localFont({
+  src: [
+    {
+      path: '../../public/fonts/frank-ruhl-libre-hebrew-700-normal.woff2',
+      weight: '700',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/frank-ruhl-libre-hebrew-900-normal.woff2',
+      weight: '900',
+      style: 'normal',
+    },
+  ],
   variable: '--font-frank',
-  display: 'optional',
+  preload: false,
+  display: 'swap',
   fallback: ['serif'],
 });
 
-const assistant = Assistant({
-  subsets: ['hebrew', 'latin'],
-  weight: ['400', '500', '700', '800'],
+const assistant = localFont({
+  src: [
+    {
+      path: '../../public/fonts/assistant-hebrew-400-normal.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/assistant-hebrew-700-normal.woff2',
+      weight: '700',
+      style: 'normal',
+    },
+  ],
   variable: '--font-assistant',
-  display: 'optional',
   preload: false,
+  display: 'swap',
   fallback: ['Arial', 'sans-serif'],
 });
 
@@ -92,9 +113,33 @@ export default function RootLayout({
   return (
     <html lang="he" dir="rtl" className={`${frank.variable} ${assistant.variable}`}>
       <head>
+        <link
+          rel="preload"
+          href="/fonts/assistant-hebrew-400-normal.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preload"
+          href="/fonts/frank-ruhl-libre-hebrew-700-normal.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+              html,body{margin:0;padding:0;background:#f9f7f1;color:#0f1a33}
+              body{font-family:var(--font-assistant),Arial,sans-serif}
+              h1,h2,h3,h4,h5,h6{font-family:var(--font-frank),serif}
+              .section-shell{padding-top:5rem;padding-bottom:5rem}
+            `,
+          }}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

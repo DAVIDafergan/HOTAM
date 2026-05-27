@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from '@/components/SmartImage';
 import { Button } from '@/components/ui/button';
@@ -29,7 +29,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { CitySelect } from '@/components/CitySelect';
-import { reverseGeocodeWithGoogle } from '@/lib/google-maps';
 import { COMMON_CITY_OPTIONS, NEARBY_RADIUS_KM } from '@/lib/location-utils';
 import homeAnimations from '@/components/home-animations.module.css';
 
@@ -89,6 +88,7 @@ export function HeroAnimation() {
         setUserCoords({ lat: latitude, lng: longitude });
 
         try {
+          const { reverseGeocodeWithGoogle } = await import('@/lib/google-maps');
           const { city } = await reverseGeocodeWithGoogle(latitude, longitude);
           if (city) {
             setDetectedCity(city);
@@ -222,7 +222,7 @@ export function HeroAnimation() {
             </h1>
           </div>
           
-          <div className="w-full bg-white/78 backdrop-blur-3xl border border-white/90 rounded-[3.2rem] p-5 md:p-12 shadow-premium-lg relative ring-1 ring-primary/10">
+          <div className="w-full bg-white/78 backdrop-blur-xl border border-white/90 rounded-[3.2rem] p-5 md:p-12 shadow-premium-lg relative ring-1 ring-primary/10">
             
             {/* Step indicator */}
             <div className="flex flex-col items-center mb-4 md:mb-10 gap-4">

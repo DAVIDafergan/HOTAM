@@ -18,11 +18,24 @@ export type TopScribeCard = {
   first_name: string | null;
   last_name: string | null;
   profile_image: string | null;
+  city?: string | null;
   address: string | null;
   experience_years: number | null;
   avg_rating: number;
   review_count: number;
 };
+
+function extractCity(address: string | null | undefined): string {
+  if (!address) return '';
+  const parts = address
+    .split(',')
+    .map(part => part.trim())
+    .filter(Boolean);
+  if (parts.length > 1) {
+    return parts[parts.length - 1];
+  }
+  return address.trim();
+}
 
 export function TopScribesCards({ topScribes }: { topScribes: TopScribeCard[] }) {
   return (
@@ -30,6 +43,7 @@ export function TopScribesCards({ topScribes }: { topScribes: TopScribeCard[] })
       {topScribes.map((scribe, i) => {
         const displayName = `${scribe.first_name || ''} ${scribe.last_name || ''}`.trim();
         const avg = scribe.review_count > 0 ? Number(scribe.avg_rating).toFixed(1) : '—';
+        const cityLabel = scribe.city?.trim() || extractCity(scribe.address);
 
         return (
           <motion.div
@@ -56,7 +70,7 @@ export function TopScribesCards({ topScribes }: { topScribes: TopScribeCard[] })
                 </div>
                 <h3 className="text-[0.95rem] font-headline font-black text-primary mb-1.5 group-hover:text-accent transition-colors">{displayName}</h3>
                 <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wide mb-4 flex items-center justify-center gap-1.5">
-                  <MapPin size={10} className="text-accent" /> {scribe.address?.split(' ')[0]}
+                  <MapPin size={10} className="text-accent" /> {cityLabel || '—'}
                 </p>
                 <div className="flex items-center justify-center gap-3 border-t pt-4">
                   <div className="text-right">

@@ -275,7 +275,14 @@ export function buildCloudinaryImageUrl(
   const transformation = transformSegments.join(',');
 
   if (isCloudinaryUrl(src)) {
-    return src.replace('/image/upload/', `/image/upload/${transformation}/`);
+    // Cloudinary URLs with a version segment look like: /image/upload/v1234567/public-id
+    // We must insert transformations BEFORE the version, not after /upload/
+    // Regex: captures optional existing transforms (group 1) and the version+slash (group 2)
+    return src.replace(
+      //image/upload/((?:[a-z][a-z0-9_]*_[^/,]+,?)*/?)((vd+/)?)/,
+      (_, _existingTransforms, versionSegment) =>
+        `/image/upload/${transformation}/${versionSegment}`
+    );
   }
 
   return `https://${CLOUDINARY_HOST}/${cloudName}/image/fetch/${transformation}/${encodeCloudinaryFetchUrl(src)}`;

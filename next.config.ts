@@ -13,7 +13,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline'",
       "font-src 'self' data:",
       "img-src 'self' data: blob: https: http:",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.sumit.co.il https://maps.googleapis.com",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.sumit.co.il https://maps.googleapis.com https://*.amazonaws.com https://*.cloudfront.net",
       "frame-src 'none'",
       "object-src 'none'",
     ].join('; '),

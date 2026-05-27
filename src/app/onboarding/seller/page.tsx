@@ -31,7 +31,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { useAuth, useUser, initiateEmailSignUp, initiateSellerEmailSignUp, useSupabaseClient } from '@/lib/supabase-hooks';
 import { useToast } from '@/hooks/use-toast';
-import Image from 'next/image';
+import Image from '@/components/SmartImage';
 import Link from 'next/link';
 import { 
   Dialog, 
@@ -43,7 +43,7 @@ import {
 } from '@/components/ui/dialog';
 import { cn } from "@/lib/utils";
 import { getCityFromAddressComponents, loadGoogleMapsPlacesScript } from '@/lib/google-maps';
-import { uploadImageViaApi } from '@/lib/image-upload';
+import { cleanupImageAssetsViaApi, uploadImageViaApi } from '@/lib/image-upload';
 
 export default function SellerOnboarding() {
   const [step, setStep] = useState(1);
@@ -186,8 +186,15 @@ export default function SellerOnboarding() {
     }));
   };
 
-  const uploadImage = async (file: File): Promise<string> => {
-    return uploadImageViaApi(file, { client: db, uploadContext: 'onboarding' });
+  const uploadImage = async (
+    file: File,
+    assetKind: 'certificate' | 'writing_sample'
+  ): Promise<string> => {
+    return uploadImageViaApi(file, { client: db, uploadContext: 'onboarding', assetKind });
+  };
+
+  const cleanupImages = async (urls: string[]) => {
+    await cleanupImageAssetsViaApi(urls, { client: db, uploadContext: 'onboarding' });
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: 'cert' | 'samples') => {
@@ -200,12 +207,16 @@ export default function SellerOnboarding() {
       if (target === 'cert') {
         const firstFile = allFiles[0];
         if (!firstFile) return;
-        const uploadedUrl = await uploadImage(firstFile);
+        const previousCertificateUrl = formData.certificateUrl;
+        const uploadedUrl = await uploadImage(firstFile, 'certificate');
         updateField('certificateUrl', uploadedUrl);
+        if (previousCertificateUrl && previousCertificateUrl !== uploadedUrl) {
+          void cleanupImages([previousCertificateUrl]);
+        }
         return;
       }
 
-      const uploadedUrls = await Promise.all(allFiles.map(uploadImage));
+      const uploadedUrls = await Promise.all(allFiles.map((file) => uploadImage(file, 'writing_sample')));
       setFormData(prev => ({
         ...prev,
         writingSamples: [...prev.writingSamples, ...uploadedUrls]
@@ -218,6 +229,10 @@ export default function SellerOnboarding() {
   };
 
   const removeSample = (idx: number) => {
+    const targetUrl = formData.writingSamples[idx];
+    if (targetUrl) {
+      void cleanupImages([targetUrl]);
+    }
     setFormData(prev => ({
       ...prev,
       writingSamples: prev.writingSamples.filter((_, i) => i !== idx)
@@ -377,8 +392,6 @@ export default function SellerOnboarding() {
         formData.password,
         {
           role: 'seller',
-          first_name: formData.firstName,
-          last_name: formData.lastName,
           ...profilePayload,
         },
       );
@@ -606,8 +619,8 @@ export default function SellerOnboarding() {
                     <div className="mt-4 p-6 bg-accent/5 rounded-2xl border-2 border-dashed border-accent/20 text-center space-y-4">
                       {formData.certificateUrl ? (
                         <div className="relative w-full h-40 rounded-xl overflow-hidden border bg-white shadow-sm">
-                          <Image src={formData.certificateUrl} alt="Cert" fill className="object-contain" />
-                          <button onClick={() => updateField('certificateUrl', '')} className="absolute top-2 right-2 bg-destructive text-white rounded-full p-1 shadow-lg hover:scale-110 transition-transform"><X className="w-4 h-4" /></button>
+                          <Image src={formData.certificateUrl} alt="Cert" fill kind="certificate" sizes="(max-width: 768px) 100vw, 720px" className="object-contain" />
+                          <button onClick={() => { if (formData.certificateUrl) void cleanupImages([formData.certificateUrl]); updateField('certificateUrl', ''); }} className="absolute top-2 right-2 bg-destructive text-white rounded-full p-1 shadow-lg hover:scale-110 transition-transform"><X className="w-4 h-4" /></button>
                         </div>
                       ) : (
                         <div onClick={() => certInputRef.current?.click()} className="cursor-pointer py-10 flex flex-col items-center text-accent hover:opacity-80 transition-opacity">
@@ -688,7 +701,7 @@ export default function SellerOnboarding() {
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     {formData.writingSamples.map((img, idx) => (
                       <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden border shadow-sm group">
-                        <Image src={img} alt="Sample" fill className="object-cover" />
+                        <Image src={img} alt="Sample" fill kind="writing_sample" sizes="(max-width: 640px) 50vw, 25vw" className="object-cover" />
                         <button onClick={() => removeSample(idx)} className="absolute top-2 right-2 bg-destructive text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"><X className="w-3 h-3" /></button>
                       </div>
                     ))}

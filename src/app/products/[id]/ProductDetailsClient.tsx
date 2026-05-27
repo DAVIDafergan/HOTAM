@@ -28,7 +28,7 @@ import {
   Trash2,
   ZoomIn
 } from 'lucide-react';
-import Image from 'next/image';
+import Image from '@/components/SmartImage';
 import Link from 'next/link';
 import { useSupabaseClient, useDoc, useMemoStable, useUser, addDocumentNonBlocking } from '@/lib/supabase-hooks';
 import { doc, collection, serverTimestamp } from '@/lib/supabase-compat';
@@ -437,7 +437,7 @@ export function ProductDetailsClient({
               }}
               className="relative block aspect-square w-full rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-premium bg-white border-4 border-white text-right"
             >
-              <Image loader={unsplashLoader} src={currentImage} alt={product.product_type} fill priority className="object-cover" />
+              <Image loader={unsplashLoader} src={currentImage} alt={product.product_type} fill priority kind="product" sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
               {product.quantity <= 0 && (
                 <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center">
                   <Badge variant="destructive" className="px-8 py-3 text-sm font-black uppercase tracking-widest rounded-full shadow-2xl">אזל מהמלאי</Badge>
@@ -466,7 +466,7 @@ export function ProductDetailsClient({
                       selectedImageIdx === i ? 'border-accent scale-105' : 'border-white hover:border-accent/30'
                     )}
                   >
-                    <Image loader={unsplashLoader} src={img} alt="Thumb" fill className="object-cover" />
+                    <Image loader={unsplashLoader} src={img} alt="Thumb" fill kind="product" sizes="80px" className="object-cover" />
                   </button>
                 ))}
               </div>
@@ -612,7 +612,7 @@ export function ProductDetailsClient({
                   <div className="flex flex-col md:flex-row items-center gap-10">
                     <div className="relative w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden border-[6px] border-accent/10 shrink-0 bg-muted flex items-center justify-center shadow-xl">
                       {seller.profile_image ? (
-                        <Image src={seller.profile_image} alt="Scribe" fill className="object-cover" />
+                        <Image src={seller.profile_image} alt="Scribe" fill kind="avatar" sizes="96px" className="object-cover" />
                       ) : (
                         <UserRound className="w-12 h-12 text-primary/10" />
                       )}

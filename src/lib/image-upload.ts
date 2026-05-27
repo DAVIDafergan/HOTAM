@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { uploadImageDirect } from '@/lib/upload-image';
+import type { ImageAssetKind } from '@/lib/cloudinary-shared';
 
 const ALLOWED_IMAGE_TYPES = new Set([
   'image/jpeg',
@@ -40,8 +41,16 @@ function validateUploadFile(file: File): void {
 
 export async function uploadImageViaApi(
   file: File,
-  options?: { client?: SupabaseClient; uploadContext?: 'onboarding' }
+  options?: { client?: SupabaseClient; uploadContext?: 'onboarding'; assetKind?: ImageAssetKind }
 ): Promise<string> {
+  const result = await uploadImageAssetViaApi(file, options);
+  return result.url;
+}
+
+export async function uploadImageAssetViaApi(
+  file: File,
+  options?: { client?: SupabaseClient; uploadContext?: 'onboarding'; assetKind?: ImageAssetKind }
+) {
   validateUploadFile(file);
   const contentType = getImageMimeType(file);
   if (!contentType) throw new Error('סוג קובץ לא נתמך.');
@@ -56,5 +65,31 @@ export async function uploadImageViaApi(
 
   const keyPrefix = options?.uploadContext === 'onboarding' ? 'onboarding' : 'products';
 
-  return uploadImageDirect(file, { authToken, keyPrefix, contentType });
+  return uploadImageDirect(file, { authToken, keyPrefix, contentType, assetKind: options?.assetKind });
+}
+
+export async function cleanupImageAssetsViaApi(
+  urls: string[],
+  options?: { client?: SupabaseClient; uploadContext?: 'onboarding' }
+) {
+  const filteredUrls = [...new Set(urls.filter(Boolean))];
+  if (filteredUrls.length === 0) return;
+
+  let authToken: string | undefined;
+  if (options?.client) {
+    const { data: { session } } = await options.client.auth.getSession();
+    if (session?.access_token) {
+      authToken = session.access_token;
+    }
+  }
+
+  await fetch('/api/image-assets', {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(authToken ? { Authorization: 'Bearer ' + authToken } : {}),
+      'x-upload-context': options?.uploadContext === 'onboarding' ? 'onboarding' : 'authenticated',
+    },
+    body: JSON.stringify({ urls: filteredUrls }),
+  }).catch(() => undefined);
 }

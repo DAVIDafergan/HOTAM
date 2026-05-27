@@ -3,6 +3,7 @@
 import * as React from "react"
 import * as AvatarPrimitive from "@radix-ui/react-avatar"
 
+import { getOptimizedImageSrc } from "@/lib/cloudinary-shared"
 import { cn } from "@/lib/utils"
 
 const Avatar = React.forwardRef<
@@ -28,6 +29,8 @@ const AvatarImage = React.forwardRef<
     ref={ref}
     className={cn("aspect-square h-full w-full", className)}
     {...props}
+    src={typeof props.src === "string" ? getOptimizedImageSrc(props.src, 'avatar', 160) : props.src}
+    loading={props.loading || "lazy"}
   />
 ))
 AvatarImage.displayName = AvatarPrimitive.Image.displayName

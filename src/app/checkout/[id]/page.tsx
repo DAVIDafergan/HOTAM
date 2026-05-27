@@ -20,7 +20,7 @@ import {
 import { useParams, useRouter } from 'next/navigation';
 import { useUser, useSupabaseClient, useDoc, useMemoStable } from '@/lib/supabase-hooks';
 import { doc, serverTimestamp } from '@/lib/supabase-compat';
-import Image from 'next/image';
+import Image from '@/components/SmartImage';
 import { useToast } from '@/hooks/use-toast';
 import unsplashLoader from '@/lib/unsplashLoader';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';

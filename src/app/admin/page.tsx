@@ -59,7 +59,7 @@ import {
   useMemoStable
 } from '@/lib/supabase-hooks';
 import { collection, query, doc, orderBy, where, limit } from '@/lib/supabase-compat';
-import Image from 'next/image';
+import Image from '@/components/SmartImage';
 import { 
   Dialog, 
   DialogContent, 
@@ -1117,7 +1117,7 @@ function SalesCards({ orders, sellers, onLinkToTab, page, setPage }: any) {
                    <p className="text-[9px] font-black text-primary bg-primary/5 px-2 py-0.5 rounded-full w-fit font-mono flex items-center gap-1.5"><Hash className="w-3 h-3" /> {o.id}</p>
                    <div className="flex gap-4 items-center pt-1">
                     <div className="relative w-14 h-14 rounded-xl overflow-hidden border bg-muted shrink-0 shadow-inner">
-                      <Image src={o.product_image} alt="P" fill className="object-cover" />
+                      <Image src={o.product_image} alt="P" fill kind="product" sizes="96px" className="object-cover" />
                     </div>
                     <div className="text-right flex-1 min-w-0">
                       <p className="font-black text-primary truncate text-sm">{o.product_name}</p>

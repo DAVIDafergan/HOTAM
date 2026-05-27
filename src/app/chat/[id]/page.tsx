@@ -18,7 +18,7 @@ import { useUser } from '@/lib/supabase-hooks';
 import { supabase } from '@/lib/supabase';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import Image from 'next/image';
+import Image from '@/components/SmartImage';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { analyzeChatMessage, CHAT_BLOCK_ERROR_MESSAGE } from '@/lib/chat-guard';
@@ -479,7 +479,7 @@ function ChatContent() {
                         <div className="flex gap-3 items-center">
                           {msg.product_image && (
                             <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 border border-white/10">
-                              <Image src={msg.product_image} alt="Product" fill className="object-cover" />
+                              <Image src={msg.product_image} alt="Product" fill kind="product" sizes="160px" className="object-cover" />
                             </div>
                           )}
                           <div className="space-y-0.5 text-right">

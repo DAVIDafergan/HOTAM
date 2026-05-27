@@ -26,9 +26,8 @@ export async function DELETE(req: NextRequest) {
     const token = req.headers.get('Authorization')?.replace('Bearer ', '');
     const authUser = await getAuthenticatedUser(token);
     const body = await req.json().catch(() => null);
-    const urls = Array.isArray(body?.urls)
-      ? [...new Set(body.urls.filter((value: unknown): value is string => typeof value === 'string' && value.trim().length > 0))]
-      : [];
+    const urlValues: unknown[] = Array.isArray(body?.urls) ? body.urls : [];
+    const urls: string[] = [...new Set(urlValues.filter((value: unknown): value is string => typeof value === 'string' && value.trim().length > 0))];
 
     if (urls.length === 0) {
       return NextResponse.json({ deleted: 0 });

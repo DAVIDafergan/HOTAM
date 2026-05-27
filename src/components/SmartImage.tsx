@@ -1,6 +1,6 @@
 'use client';
 
-import NextImage, { type ImageProps, type ImageLoader } from 'next/image';
+import NextImage, { type ImageLoader, type ImageLoaderProps, type ImageProps } from 'next/image';
 import { type ImageAssetKind, getImageBlurDataUrl, getImageSizes, isUnsplashUrl, smartImageLoader } from '@/lib/cloudinary-shared';
 import unsplashLoader from '@/lib/unsplashLoader';
 
@@ -30,7 +30,7 @@ export default function SmartImage({
       ? undefined
       : isUnsplashUrl(stringSrc)
         ? loader || unsplashLoader
-        : (loaderFnParams => smartImageLoader({ ...loaderFnParams, kind }));
+        : ((loaderFnParams: ImageLoaderProps) => smartImageLoader({ ...loaderFnParams, kind }));
 
   return (
     <NextImage

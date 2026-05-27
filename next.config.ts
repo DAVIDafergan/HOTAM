@@ -11,11 +11,11 @@ const securityHeaders = [
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com https://app.sumit.co.il https://code.jquery.com",
       "style-src 'self' 'unsafe-inline'",
       "font-src 'self' data:",
       "img-src 'self' data: blob: https: http:",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.sumit.co.il https://maps.googleapis.com https://*.amazonaws.com https://*.cloudfront.net",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.sumit.co.il https://app.sumit.co.il https://ng.payme.io https://maps.googleapis.com https://maps.gstatic.com https://*.amazonaws.com https://*.cloudfront.net",
       "frame-src 'none'",
       "object-src 'none'",
     ].join('; '),

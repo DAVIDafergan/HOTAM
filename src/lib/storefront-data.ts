@@ -196,5 +196,10 @@ export async function getPublicSellerPageData(id: string) {
 }
 
 function getPublicSupabaseClient() {
+  if (!publicSupabaseClient) {
+    console.error(
+      '[storefront] CRITICAL: Supabase client is null — NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY is missing!',
+    );
+  }
   return publicSupabaseClient;
 }

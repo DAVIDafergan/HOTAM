@@ -9,6 +9,68 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 /** Utility type to add an 'id' field to a given type T. */
 type WithId<T> = T & { id: string };
 
+const SAFE_CLIENT_FIELDS: Record<string, string> = {
+  sellers: [
+    'id',
+    'email',
+    'first_name',
+    'last_name',
+    'city',
+    'address',
+    'phone',
+    'notes',
+    'age',
+    'profile_image',
+    'is_approved',
+    'created_at',
+    'favorite_product_ids',
+    'script_types',
+    'script_level',
+    'experience_years',
+    'writing_samples',
+    'torah_study_frequency',
+    'mikveh_frequency',
+    'has_scribe_certificate',
+    'certificate_url',
+    'marital_status',
+    'notification_email',
+    'notification_sms',
+    'notification_voice',
+  ].join(', '),
+  customers: [
+    'id',
+    'first_name',
+    'last_name',
+    'phone',
+    'address',
+    'favorite_product_ids',
+    'created_at',
+    'notif_msg_email',
+    'notif_status_email',
+  ].join(', '),
+  products: [
+    'id',
+    'product_type',
+    'sub_type',
+    'script_type',
+    'script_level',
+    'description',
+    'price',
+    'images',
+    'quantity',
+    'delivery_type',
+    'delivery_area',
+    'delivery_fee',
+    'delivery_time',
+    'pickup_address',
+    'seller_id',
+    'seller_city',
+    'parchment_size',
+    'proofreading_level',
+    'created_at',
+  ].join(', '),
+};
+
 export interface UseDocResult<T> {
   data: WithId<T> | null;
   isLoading: boolean;
@@ -47,9 +109,10 @@ export function useDoc<T = any>(
 
     const fetchData = async () => {
       try {
+        const fields = SAFE_CLIENT_FIELDS[docRefRef.current!.table] || '*';
         const { data: row, error: qError } = await docRefRef.current!.client
           .from(docRefRef.current!.table)
-          .select('*')
+          .select(fields)
           .eq('id', docRefRef.current!.id)
           .maybeSingle();
 
@@ -57,7 +120,7 @@ export function useDoc<T = any>(
 
         if (qError) throw qError;
 
-        setData(row ? ({ ...transformRow(row), id: String(row.id) } as WithId<T>) : null);
+        setData(row ? ({ ...transformRow(row as any), id: String((row as any).id) } as WithId<T>) : null);
         setError(null);
         setIsLoading(false);
         setIsLoaded(true);

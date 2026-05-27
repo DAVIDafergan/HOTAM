@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 export async function POST(req: Request) {
   try {
+    const ip = getClientIp(req);
+    if (!checkRateLimit(ip, { key: 'delete-account', maxRequests: 3, windowMs: 60_000 })) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    }
+
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     const authHeader = req.headers.get('Authorization');
     const token = authHeader?.replace('Bearer ', '');

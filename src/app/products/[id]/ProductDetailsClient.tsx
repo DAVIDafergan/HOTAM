@@ -55,6 +55,38 @@ const MAX_IMAGE_ZOOM_LEVEL = 4;
 const IMAGE_ZOOM_STEP = 0.25;
 const IMAGE_WHEEL_ZOOM_DELTA = 0.2;
 const VAT_MULTIPLIER = 1.18;
+const PRODUCT_FALLBACK_FIELDS = [
+  'id',
+  'product_type',
+  'sub_type',
+  'script_type',
+  'script_level',
+  'description',
+  'price',
+  'images',
+  'quantity',
+  'delivery_type',
+  'delivery_area',
+  'delivery_fee',
+  'delivery_time',
+  'pickup_address',
+  'seller_id',
+  'seller_city',
+  'parchment_size',
+  'proofreading_level',
+].join(', ');
+const REVIEW_FALLBACK_FIELDS = [
+  'id',
+  'product_id',
+  'buyer_id',
+  'buyer_name',
+  'user_name',
+  'rating',
+  'comment',
+  'is_anonymous',
+  'created_at',
+  'profiles(full_name, avatar_url)',
+].join(', ');
 // Base horizontal/vertical pan allowance in pixels (multiplied by zoom level).
 const BASE_IMAGE_PAN_LIMIT_PX = 220;
 
@@ -82,6 +114,7 @@ export function ProductDetailsClient({
 
   const [product, setProduct] = useState<any>(initialProduct);
   const [seller, setSeller] = useState<any>(initialSeller);
+  const [isLoadingFallback, setIsLoadingFallback] = useState(!initialProduct && !!productId);
   const isProductLoading = false;
   const isSellerLoading = false;
 
@@ -144,6 +177,8 @@ export function ProductDetailsClient({
   };
 
   useEffect(() => {
+    let isActive = true;
+
     setSelectedImageIdx(0);
     setIsImageDialogOpen(false);
     setImageZoomLevel(MIN_IMAGE_ZOOM_LEVEL);
@@ -152,6 +187,63 @@ export function ProductDetailsClient({
     setProduct(initialProduct);
     setSeller(initialSeller);
     setReviews(initialReviews);
+
+    const shouldFetchProductFallback = !initialProduct && !!productId;
+    const shouldFetchReviewsFallback = !!productId && initialReviews.length === 0;
+
+    setIsLoadingFallback(shouldFetchProductFallback);
+
+    if (shouldFetchProductFallback) {
+      supabase
+        .from('products')
+        .select(PRODUCT_FALLBACK_FIELDS)
+        .eq('id', productId)
+        .maybeSingle()
+        .then(({ data, error }) => {
+          if (!isActive) return;
+          setIsLoadingFallback(false);
+          if (error) {
+            console.error('[product] fallback fetch error:', error.message);
+            return;
+          }
+          if (data) {
+            setProduct(data);
+          }
+        });
+    }
+
+    if (shouldFetchReviewsFallback) {
+      supabase
+        .from('reviews')
+        .select(REVIEW_FALLBACK_FIELDS)
+        .eq('product_id', productId)
+        .then(({ data, error }) => {
+          if (!isActive) return;
+          if (error) {
+            console.error('[reviews] fallback fetch error:', error.message);
+            return;
+          }
+          if (data && data.length > 0) {
+            const normalized = data.map((review: any) => {
+              const profile = Array.isArray(review?.profiles) ? review.profiles[0] : review?.profiles;
+              return {
+                ...review,
+                buyer_name: profile?.full_name || review?.buyer_name || 'משתמש',
+                reviewer_image: profile?.avatar_url || null,
+              };
+            });
+            setReviews(normalized);
+          }
+        });
+    }
+
+    if (!shouldFetchProductFallback) {
+      setIsLoadingFallback(false);
+    }
+
+    return () => {
+      isActive = false;
+    };
   }, [initialProduct, initialSeller, initialReviews, productId]);
 
   const handleToggleFavorite = async () => {
@@ -327,7 +419,7 @@ export function ProductDetailsClient({
     }
   };
 
-  if (isProductLoading && !product) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-12 h-12 animate-spin text-primary" /></div>;
+  if ((isProductLoading || isLoadingFallback) && !product) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-12 h-12 animate-spin text-primary" /></div>;
   if (!product) return <div className="min-h-screen flex items-center justify-center">המוצר לא נמצא</div>;
 
   const rawImages = Array.isArray(product.images) ? product.images : [];

@@ -47,20 +47,20 @@ export async function POST(req: Request) {
       }
       uid = body.targetUserId;
       role = body.targetRole;
+    }
 
-      if (!role) {
-        const [{ data: seller }, { data: customer }, { data: admin }] = await Promise.all([
-          serviceClient.from('sellers').select('id').eq('id', uid).maybeSingle(),
-          serviceClient.from('customers').select('id').eq('id', uid).maybeSingle(),
-          serviceClient.from('admins').select('id').eq('id', uid).maybeSingle(),
-        ]);
-        role = seller ? 'seller' : admin ? 'admin' : customer ? 'customer' : 'customer';
-      }
+    // תיקון באג: אם ה-role עדיין לא מוגדר (עבור המשתמש עצמו או אם אדמין לא שלח רול)
+    // מבררים את התפקיד האמיתי מול מסד הנתונים כדי למנוע מחיקה שגויה
+    if (!role) {
+      const [{ data: seller }, { data: customer }, { data: admin }] = await Promise.all([
+        serviceClient.from('sellers').select('id').eq('id', uid).maybeSingle(),
+        serviceClient.from('customers').select('id').eq('id', uid).maybeSingle(),
+        serviceClient.from('admins').select('id').eq('id', uid).maybeSingle(),
+      ]);
+      role = seller ? 'seller' : admin ? 'admin' : 'customer';
     }
 
     // Delete all products uploaded by the seller.
-    // Even if this fails we still proceed to delete the auth user so the account
-    // is fully removed; any orphaned rows can be cleaned up by a DB admin.
     if (role === 'seller') {
       const { error: productsError } = await serviceClient
         .from('products')
@@ -102,9 +102,15 @@ export async function POST(req: Request) {
       }
     }
 
-    // Finally, delete the auth user (this cascades via DB trigger if set up)
+    // Finally, delete the auth user
     const { error: deleteError } = await serviceClient.auth.admin.deleteUser(uid);
     if (deleteError) {
+      // תיקון שגיאת 500: אם המשתמש כבר לא קיים ב-Auth (שגיאת 404), נתייחס לזה כהצלחה
+      if ((deleteError as any).status === 404 || (deleteError as any).code === 'user_not_found') {
+        console.info(`[delete-account] User ${uid} was already missing from auth. Proceeding as success.`);
+        return NextResponse.json({ success: true, note: 'User already deleted' });
+      }
+      
       console.error('[delete-account] auth delete error:', deleteError);
       return NextResponse.json({ error: 'Failed to delete account' }, { status: 500 });
     }

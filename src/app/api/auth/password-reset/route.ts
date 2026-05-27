@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 function normalizeEmail(value: unknown): string {
   return typeof value === 'string' ? value.trim().toLowerCase() : '';
@@ -44,6 +45,11 @@ function getResetEmailTemplate(actionLink: string) {
 export async function POST(req: NextRequest) {
   let normalizedEmail = '';
   try {
+    const ip = getClientIp(req);
+    if (!checkRateLimit(ip, { key: 'password-reset', maxRequests: 3, windowMs: 15 * 60_000 })) {
+      return NextResponse.json({ ok: true });
+    }
+
     const { email } = await req.json();
     normalizedEmail = normalizeEmail(email);
 

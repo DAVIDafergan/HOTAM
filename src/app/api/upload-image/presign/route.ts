@@ -3,6 +3,7 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { createClient } from '@supabase/supabase-js';
 import { buildPublicImageUrl } from '@/lib/s3-upload';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 const ALLOWED_TYPES = new Set([
   'image/jpeg',
@@ -19,6 +20,11 @@ export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = getClientIp(req);
+    if (!checkRateLimit(ip, { key: 'upload:presign', maxRequests: 20, windowMs: 60_000 })) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    }
+
     const authHeader = req.headers.get('Authorization');
     const token = authHeader?.replace('Bearer ', '');
     const uploadContext = req.headers.get('x-upload-context');

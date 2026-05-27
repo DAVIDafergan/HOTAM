@@ -118,7 +118,7 @@ function SearchContent() {
   const [visibleCount, setVisibleCount] = useState(PRODUCTS_PAGE_SIZE);
 
   const productsQuery = useMemoStable(() => {
-    return query(collection(db, 'products'), where('quantity', '>', 0), limit(200));
+    return query(collection(db, 'products'), where('quantity', '>', 0), limit(50));
   }, [db]);
 
   const { data: allProducts, isLoading } = useCollection<any>(productsQuery);

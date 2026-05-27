@@ -71,7 +71,6 @@ const PRODUCT_FALLBACK_FIELDS = [
   'delivery_time',
   'pickup_address',
   'seller_id',
-  'seller_city',
   'parchment_size',
   'proofreading_level',
 ].join(', ');

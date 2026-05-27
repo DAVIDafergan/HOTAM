@@ -64,7 +64,6 @@ const SAFE_CLIENT_FIELDS: Record<string, string> = {
     'delivery_time',
     'pickup_address',
     'seller_id',
-    'seller_city',
     'parchment_size',
     'proofreading_level',
     'created_at',

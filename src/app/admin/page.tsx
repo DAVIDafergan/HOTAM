@@ -55,6 +55,7 @@ import {
   useUser, 
   useSupabaseClient, 
   useCollection, 
+  useCollectionCount,
   useDoc, 
   useMemoStable
 } from '@/lib/supabase-hooks';
@@ -104,6 +105,15 @@ export default function AdminDashboard() {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [deletingCustomerId, setDeletingCustomerId] = useState<string | null>(null);
   const [customerAuthCreatedAt, setCustomerAuthCreatedAt] = useState<Record<string, string>>({});
+  const [pendingSellers, setPendingSellers] = useState<any[]>([]);
+  const [activeSellers, setActiveSellers] = useState<any[]>([]);
+  const [customersData, setCustomersData] = useState<any[]>([]);
+  const [sellerDirectory, setSellerDirectory] = useState<any[]>([]);
+  const [pendingSellersTotal, setPendingSellersTotal] = useState(0);
+  const [activeSellersTotal, setActiveSellersTotal] = useState(0);
+  const [customersTotal, setCustomersTotal] = useState(0);
+  const [isSellersLoading, setIsSellersLoading] = useState(false);
+  const [isCustomersLoading, setIsCustomersLoading] = useState(false);
 
   const adminRef = useMemoStable(() => {
     if (!user) return null;
@@ -121,21 +131,137 @@ export default function AdminDashboard() {
 
   const canLoadData = !!user && !isUserLoading && isAdminCheckLoaded && !!adminData;
 
-  const sellersQuery = useMemoStable(() => {
-    if (!canLoadData) return null;
-    return query(collection(db, 'sellers'));
-  }, [db, canLoadData]);
-  const { data: allSellers, isLoading: isSellersLoading } = useCollection<any>(sellersQuery);
+  const sellersSearchTerm = searchTerm.trim();
 
-  const customersQuery = useMemoStable(() => {
-    if (!canLoadData) return null;
-    return query(collection(db, 'customers'));
-  }, [db, canLoadData]);
-  const { data: allCustomers } = useCollection<any>(customersQuery);
+  const sellersQuery = useMemoStable(() => ({
+    canLoadData,
+    pendingPage,
+    activePage,
+    sellersSearchTerm,
+  }), [canLoadData, pendingPage, activePage, sellersSearchTerm]);
 
   useEffect(() => {
-    if (!canLoadData || !allCustomers?.length) return;
-    const missingCreatedAtIds = allCustomers
+    if (!sellersQuery.canLoadData) {
+      setPendingSellers([]);
+      setActiveSellers([]);
+      setPendingSellersTotal(0);
+      setActiveSellersTotal(0);
+      setIsSellersLoading(false);
+      return;
+    }
+
+    const pendingFrom = (sellersQuery.pendingPage - 1) * ITEMS_PER_PAGE;
+    const activeFrom = (sellersQuery.activePage - 1) * ITEMS_PER_PAGE;
+    const pendingTo = pendingFrom + ITEMS_PER_PAGE - 1;
+    const activeTo = activeFrom + ITEMS_PER_PAGE - 1;
+    const hasSearch = sellersQuery.sellersSearchTerm.length > 0;
+    const searchPattern = `%${sellersQuery.sellersSearchTerm.replace(/[%_]/g, '').replace(/,/g, '')}%`;
+    const isUuidSearch = /^[0-9a-fA-F-]{32,36}$/.test(sellersQuery.sellersSearchTerm);
+    const buildSearchFilter = () => ([
+      `first_name.ilike.${searchPattern}`,
+      `last_name.ilike.${searchPattern}`,
+      `email.ilike.${searchPattern}`,
+      ...(isUuidSearch ? [`id.eq.${sellersQuery.sellersSearchTerm}`] : []),
+    ].join(','));
+
+    let cancelled = false;
+    setIsSellersLoading(true);
+
+    (async () => {
+      const fetchSellerPage = async (isApproved: boolean, from: number, to: number) => {
+        let queryBuilder = db
+          .from('sellers')
+          .select('*', { count: 'exact' })
+          .eq('is_approved', isApproved)
+          .order('created_at', { ascending: false })
+          .range(from, to);
+
+        if (hasSearch) {
+          queryBuilder = queryBuilder.or(buildSearchFilter());
+        }
+
+        return queryBuilder;
+      };
+
+      const [pendingRes, activeRes] = await Promise.all([
+        fetchSellerPage(false, pendingFrom, pendingTo),
+        fetchSellerPage(true, activeFrom, activeTo),
+      ]);
+
+      if (cancelled) return;
+      if (!pendingRes.error) {
+        setPendingSellers((pendingRes.data || []).map((s: any) => ({ ...s, id: String(s.id) })));
+        setPendingSellersTotal(pendingRes.count || 0);
+      }
+      if (!activeRes.error) {
+        setActiveSellers((activeRes.data || []).map((s: any) => ({ ...s, id: String(s.id) })));
+        setActiveSellersTotal(activeRes.count || 0);
+      }
+      setIsSellersLoading(false);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [db, sellersQuery]);
+
+  const customersQuery = useMemoStable(() => ({
+    canLoadData,
+    customersPage,
+    sellersSearchTerm,
+  }), [canLoadData, customersPage, sellersSearchTerm]);
+
+  useEffect(() => {
+    if (!customersQuery.canLoadData) {
+      setCustomersData([]);
+      setCustomersTotal(0);
+      setIsCustomersLoading(false);
+      return;
+    }
+
+    const from = (customersQuery.customersPage - 1) * ITEMS_PER_PAGE;
+    const to = from + ITEMS_PER_PAGE - 1;
+    const hasSearch = customersQuery.sellersSearchTerm.length > 0;
+    const searchPattern = `%${customersQuery.sellersSearchTerm.replace(/[%_]/g, '').replace(/,/g, '')}%`;
+    const isUuidSearch = /^[0-9a-fA-F-]{32,36}$/.test(customersQuery.sellersSearchTerm);
+    const searchFilter = [
+      `first_name.ilike.${searchPattern}`,
+      `last_name.ilike.${searchPattern}`,
+      `email.ilike.${searchPattern}`,
+      ...(isUuidSearch ? [`id.eq.${customersQuery.sellersSearchTerm}`] : []),
+    ].join(',');
+
+    let cancelled = false;
+    setIsCustomersLoading(true);
+
+    (async () => {
+      let queryBuilder = db
+        .from('customers')
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+      if (hasSearch) {
+        queryBuilder = queryBuilder.or(searchFilter);
+      }
+
+      const { data, error, count } = await queryBuilder;
+      if (cancelled) return;
+      if (!error) {
+        setCustomersData((data || []).map((c: any) => ({ ...c, id: String(c.id) })));
+        setCustomersTotal(count || 0);
+      }
+      setIsCustomersLoading(false);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [db, customersQuery]);
+
+  useEffect(() => {
+    if (!canLoadData || !customersData?.length) return;
+    const missingCreatedAtIds = customersData
       .filter((customer: any) => !customer?.created_at && typeof customer?.id === 'string')
       .map((customer: any) => customer.id);
     if (missingCreatedAtIds.length === 0) return;
@@ -165,9 +291,19 @@ export default function AdminDashboard() {
     return () => {
       cancelled = true;
     };
-  }, [allCustomers, canLoadData, db]);
+  }, [customersData, canLoadData, db]);
 
-  const sellerIds = useMemo(() => new Set((allSellers || []).map((s: any) => s.id)), [allSellers]);
+  const activeSellersCountQuery = useMemoStable(() => {
+    if (!canLoadData) return null;
+    return query(collection(db, 'sellers'), where('is_approved', '==', true));
+  }, [db, canLoadData]);
+  const { count: activeSellersCount } = useCollectionCount(activeSellersCountQuery);
+
+  const allCustomersCountQuery = useMemoStable(() => {
+    if (!canLoadData) return null;
+    return query(collection(db, 'customers'));
+  }, [db, canLoadData]);
+  const { count: allCustomersCount } = useCollectionCount(allCustomersCountQuery);
 
   const ordersQuery = useMemoStable(() => {
     if (!canLoadData) return null;
@@ -186,47 +322,28 @@ export default function AdminDashboard() {
   const { data: allReports } = useCollection<any>(reportsQuery);
 
   const stats = useMemo(() => {
-    const s = allSellers || [];
-    const c = (allCustomers || []).filter((x: any) => !sellerIds.has(x.id));
+    const s = activeSellers;
+    const c = customersData;
     const o = visibleOrders.filter((x: any) => x.status === 'completed');
     const totalVolume = o.reduce((acc: number, x: any) => acc + Number(x.amount || 0), 0);
     
     return {
-      totalScribes: s.filter(x => x.is_approved).length,
-      totalCustomers: c.length,
+      totalScribes: activeSellersCount || s.filter(x => x.is_approved).length,
+      totalCustomers: allCustomersCount || c.length,
       productsSold: o.length,
       totalVolume: totalVolume,
       siteEarnings: totalVolume * 0.20,
     };
-  }, [allSellers, allCustomers, sellerIds, visibleOrders]);
+  }, [activeSellers, customersData, visibleOrders, activeSellersCount, allCustomersCount]);
 
   // Filtering Logic
-  const filteredSellersPending = useMemo(() => {
-    if (!allSellers) return [];
-    return allSellers.filter(s => s.is_approved !== true && (
-      `${s.first_name || ''} ${s.last_name || ''}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (s.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (s.id || '').toLowerCase().includes(searchTerm.toLowerCase())
-    ));
-  }, [allSellers, searchTerm]);
+  const filteredSellersPending = useMemo(() => pendingSellers, [pendingSellers]);
 
-  const filteredSellersActive = useMemo(() => {
-    if (!allSellers) return [];
-    return allSellers.filter(s => s.is_approved && (
-      `${s.first_name || ''} ${s.last_name || ''}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (s.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (s.id || '').toLowerCase().includes(searchTerm.toLowerCase())
-    ));
-  }, [allSellers, searchTerm]);
+  const filteredSellersActive = useMemo(() => activeSellers, [activeSellers]);
 
   const filteredCustomers = useMemo(() => {
-    if (!allCustomers) return [];
-    return allCustomers
-      .filter(c => !sellerIds.has(c.id) && (
-        `${c.first_name || ''} ${c.last_name || ''}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (c.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (c.id || '').toLowerCase().includes(searchTerm.toLowerCase())
-      ))
+    if (!customersData) return [];
+    return customersData
       .sort((a, b) => {
         const aCreatedAt = a.created_at || customerAuthCreatedAt[a.id];
         const bCreatedAt = b.created_at || customerAuthCreatedAt[b.id];
@@ -234,7 +351,53 @@ export default function AdminDashboard() {
         const bTime = bCreatedAt ? new Date(bCreatedAt).getTime() : 0;
         return bTime - aTime;
       });
-  }, [allCustomers, sellerIds, searchTerm, customerAuthCreatedAt]);
+  }, [customersData, customerAuthCreatedAt]);
+
+  useEffect(() => {
+    if (!canLoadData || !visibleOrders?.length) {
+      setSellerDirectory([]);
+      return;
+    }
+
+    const sellerIds = Array.from(
+      new Set(
+        visibleOrders
+          .map((order: any) => order?.seller_id)
+          .filter((id: any): id is string => typeof id === 'string' && id.length > 0)
+      )
+    );
+
+    if (sellerIds.length === 0) {
+      setSellerDirectory([]);
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      const chunks: string[][] = [];
+      for (let i = 0; i < sellerIds.length; i += 100) {
+        chunks.push(sellerIds.slice(i, i + 100));
+      }
+
+      const results = await Promise.all(
+        chunks.map(async (chunk) => {
+          const { data } = await db
+            .from('sellers')
+            .select('id, first_name, last_name')
+            .in('id', chunk);
+          return (data || []).map((seller: any) => ({ ...seller, id: String(seller.id) }));
+        })
+      );
+
+      if (!cancelled) {
+        setSellerDirectory(results.flat());
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [canLoadData, db, visibleOrders]);
 
   const filteredOrders = useMemo(() => {
     return visibleOrders.filter(o => {
@@ -445,8 +608,16 @@ export default function AdminDashboard() {
     { id: 'reports', label: 'דיווחים', icon: <Flag className="w-4 h-4" /> },
   ] as const;
 
-  const exportSellersToExcel = () => {
-    const sellers = allSellers || [];
+  const exportSellersToExcel = async () => {
+    const { data, error } = await db
+      .from('sellers')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) {
+      toast({ variant: 'destructive', title: 'ייצוא הסופרים נכשל', description: error.message });
+      return;
+    }
+    const sellers = data || [];
     if (sellers.length === 0) {
       toast({ variant: 'destructive', title: 'אין נתונים לייצוא' });
       return;
@@ -640,6 +811,7 @@ export default function AdminDashboard() {
               onDelete={deleteScribe} 
               isLoading={isSellersLoading} 
               orders={visibleOrders} 
+              totalCount={pendingSellersTotal}
               page={pendingPage}
               setPage={setPendingPage}
             />
@@ -652,6 +824,7 @@ export default function AdminDashboard() {
               onDelete={deleteScribe} 
               isLoading={isSellersLoading} 
               orders={visibleOrders} 
+              totalCount={activeSellersTotal}
               page={activePage}
               setPage={setActivePage}
             />
@@ -661,8 +834,10 @@ export default function AdminDashboard() {
             <CustomerTable 
               customers={filteredCustomers} 
               orders={visibleOrders}
+              isLoading={isCustomersLoading}
               onDelete={deleteCustomer}
               deletingCustomerId={deletingCustomerId}
+              totalCount={customersTotal}
               page={customersPage}
               setPage={setCustomersPage}
               customerAuthCreatedAt={customerAuthCreatedAt}
@@ -678,7 +853,7 @@ export default function AdminDashboard() {
               </div>
               <SalesCards 
                 orders={filteredOrders} 
-                sellers={allSellers} 
+                sellers={sellerDirectory} 
                 onLinkToTab={handleTabLink}
                 page={salesPage}
                 setPage={setSalesPage}
@@ -689,7 +864,7 @@ export default function AdminDashboard() {
           <TabsContent value="torah">
              <TorahRequestsTable 
                orders={torahOrders} 
-               sellers={allSellers} 
+               sellers={sellerDirectory} 
                page={torahPage} 
                setPage={setTorahPage} 
              />
@@ -698,7 +873,7 @@ export default function AdminDashboard() {
           <TabsContent value="reports">
             <ReportsTable 
               reports={filteredReports} 
-              sellers={allSellers}
+              sellers={sellerDirectory}
               onDelete={deleteReport} 
               onLinkToTab={handleTabLink}
               page={reportsPage} 
@@ -727,11 +902,11 @@ function StatCard({ label, value, icon, color, highlight = false }: any) {
   );
 }
 
-function ScribeTable({ scribes, onApprove, onDelete, isLoading, orders, page, setPage }: any) {
+function ScribeTable({ scribes, onApprove, onDelete, isLoading, orders, totalCount, page, setPage }: any) {
   const db = useSupabaseClient();
   const logoImg = PlaceHolderImages.find(img => img.id === 'site-logo')?.imageUrl || 'https://picsum.photos/seed/hotam-logo/400/400';
 
-  const paginatedData = scribes.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  const paginatedData = scribes;
 
   if (isLoading) return <div className="flex justify-center p-24"><Loader2 className="w-10 h-10 animate-spin text-primary/30" /></div>;
   if (!scribes || scribes.length === 0) return (
@@ -817,13 +992,13 @@ function ScribeTable({ scribes, onApprove, onDelete, isLoading, orders, page, se
           </TableBody>
         </Table>
       </Card>
-      <Pagination current={page} total={scribes.length} onChange={setPage} />
+      <Pagination current={page} total={totalCount ?? scribes.length} onChange={setPage} />
     </div>
   );
 }
 
-function CustomerTable({ customers, orders, onDelete, deletingCustomerId, page, setPage, customerAuthCreatedAt }: any) {
-  const paginatedData = customers.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+function CustomerTable({ customers, orders, isLoading, onDelete, deletingCustomerId, totalCount, page, setPage, customerAuthCreatedAt }: any) {
+  const paginatedData = customers;
   const resolveCreatedAt = (customer: any) => customer?.created_at || customerAuthCreatedAt?.[customer?.id] || null;
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
   const customerStats = useMemo(() => {
@@ -854,6 +1029,7 @@ function CustomerTable({ customers, orders, onDelete, deletingCustomerId, page, 
     };
   }, [customers, customerStats]);
 
+  if (isLoading) return <div className="flex justify-center p-24"><Loader2 className="w-10 h-10 animate-spin text-primary/30" /></div>;
   if (!customers || customers.length === 0) {
     return (
       <Card className="p-10 md:p-24 text-center bg-white rounded-[2.5rem] md:rounded-[3rem] shadow-premium text-muted-foreground border-2 border-dashed border-muted italic">
@@ -868,7 +1044,7 @@ function CustomerTable({ customers, orders, onDelete, deletingCustomerId, page, 
         <Card className="border-none shadow-premium rounded-[2rem] bg-white">
           <CardContent className="p-4 text-right space-y-1">
             <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">לקוחות מוצגים</p>
-            <p className="text-2xl font-black text-primary">{customers.length}</p>
+            <p className="text-2xl font-black text-primary">{totalCount ?? customers.length}</p>
           </CardContent>
         </Card>
         <Card className="border-none shadow-premium rounded-[2rem] bg-white">
@@ -998,7 +1174,7 @@ function CustomerTable({ customers, orders, onDelete, deletingCustomerId, page, 
           })}
         </div>
       </Card>
-      <Pagination current={page} total={customers.length} onChange={setPage} />
+      <Pagination current={page} total={totalCount ?? customers.length} onChange={setPage} />
 
       {selectedCustomer && (
         <CustomerDetailsDialog

@@ -120,7 +120,7 @@ export function useDoc<T = any>(
 
         if (qError) throw qError;
 
-        setData(row ? ({ ...transformRow(row), id: String(row.id) } as WithId<T>) : null);
+        setData(row ? ({ ...transformRow(row as any), id: String((row as any).id) } as WithId<T>) : null);
         setError(null);
         setIsLoading(false);
         setIsLoaded(true);

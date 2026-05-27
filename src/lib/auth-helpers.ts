@@ -25,33 +25,6 @@ export interface SignUpMetadata {
   [key: string]: any;
 }
 
-async function ensureEmailNotRegistered(auth: AuthLike, email: string): Promise<void> {
-  const client = getClient(auth);
-  const normalizedEmail = email.trim().toLowerCase();
-
-  const [customerResult, sellerResult, adminResult] = await Promise.all([
-    client.from('customers').select('id', { count: 'exact', head: true }).eq('email', normalizedEmail),
-    client.from('sellers').select('id', { count: 'exact', head: true }).eq('email', normalizedEmail),
-    client.from('admins').select('id', { count: 'exact', head: true }).eq('email', normalizedEmail),
-  ]);
-
-  if (customerResult.error || sellerResult.error || adminResult.error) {
-    const error = customerResult.error ?? sellerResult.error ?? adminResult.error;
-    throw new Error(error?.message ?? 'Failed to validate email availability');
-  }
-
-  const emailExists =
-    (customerResult.count ?? 0) > 0 ||
-    (sellerResult.count ?? 0) > 0 ||
-    (adminResult.count ?? 0) > 0;
-
-  if (emailExists) {
-    const mappedError: any = new Error('User already exists');
-    mappedError.code = 'auth/email-already-in-use';
-    throw mappedError;
-  }
-}
-
 /** Initiate email/password sign-up. */
 export function initiateEmailSignUp(
   auth: AuthLike,
@@ -62,27 +35,25 @@ export function initiateEmailSignUp(
   const normalizedEmail = email.trim().toLowerCase();
   const baseOrigin = getBaseOrigin();
 
-  return ensureEmailNotRegistered(auth, normalizedEmail).then(() =>
-    getClient(auth).auth.signUp({
-      email: normalizedEmail,
-      password,
-      options: {
-        ...(metadata ? { data: metadata } : {}),
-        ...(baseOrigin ? { emailRedirectTo: `${baseOrigin}/login` } : {}),
-      },
-    }).then(({ data, error }) => {
-      if (error) {
-        const mappedError: any = new Error(error.message);
-        if (error.message.toLowerCase().includes('already registered')) {
-          mappedError.code = 'auth/email-already-in-use';
-        } else {
-          mappedError.code = 'auth/unknown';
-        }
-        throw mappedError;
+  return getClient(auth).auth.signUp({
+    email: normalizedEmail,
+    password,
+    options: {
+      ...(metadata ? { data: metadata } : {}),
+      ...(baseOrigin ? { emailRedirectTo: `${baseOrigin}/login` } : {}),
+    },
+  }).then(({ data, error }) => {
+    if (error) {
+      const mappedError: any = new Error(error.message);
+      if (error.message.toLowerCase().includes('already registered') || error.status === 422) {
+        mappedError.code = 'auth/email-already-in-use';
+      } else {
+        mappedError.code = 'auth/unknown';
       }
-      return data;
-    }),
-  );
+      throw mappedError;
+    }
+    return data;
+  });
 }
 
 /** Sign up a seller — no email confirmation required; session is immediate. */
@@ -93,29 +64,25 @@ export function initiateSellerEmailSignUp(
   metadata?: SignUpMetadata,
 ) {
   const normalizedEmail = email.trim().toLowerCase();
-  return ensureEmailNotRegistered(auth, normalizedEmail).then(() =>
-    getClient(auth).auth.signUp({
-      email: normalizedEmail,
-      password,
-      options: {
-        ...(metadata ? { data: metadata } : {}),
-        // No emailRedirectTo — Supabase will issue a session immediately
-        // when email confirmation is disabled at the project level, or
-        // the caller handles the unconfirmed state explicitly.
-      },
-    }).then(({ data, error }) => {
-      if (error) {
-        const mappedError: any = new Error(error.message);
-        if (error.message.toLowerCase().includes('already registered')) {
-          mappedError.code = 'auth/email-already-in-use';
-        } else {
-          mappedError.code = 'auth/unknown';
-        }
-        throw mappedError;
+  
+  return getClient(auth).auth.signUp({
+    email: normalizedEmail,
+    password,
+    options: {
+      ...(metadata ? { data: metadata } : {}),
+    },
+  }).then(({ data, error }) => {
+    if (error) {
+      const mappedError: any = new Error(error.message);
+      if (error.message.toLowerCase().includes('already registered') || error.status === 422) {
+        mappedError.code = 'auth/email-already-in-use';
+      } else {
+        mappedError.code = 'auth/unknown';
       }
-      return data;
-    }),
-  );
+      throw mappedError;
+    }
+    return data;
+  });
 }
 
 /** Initiate email/password sign-in. */

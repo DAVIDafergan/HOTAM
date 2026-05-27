@@ -10,8 +10,8 @@ const securityHeaders = [
     value: [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "font-src 'self' https://fonts.gstatic.com",
+      "style-src 'self' 'unsafe-inline'",
+      "font-src 'self' data:",
       "img-src 'self' data: blob: https: http:",
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.sumit.co.il https://maps.googleapis.com",
       "frame-src 'none'",
@@ -33,6 +33,7 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: '10mb',
     },
+    optimizePackageImports: ['lucide-react'],
   },
   images: {
     unoptimized: false,

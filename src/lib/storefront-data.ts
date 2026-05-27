@@ -88,19 +88,19 @@ const normalizeReviewWithProfile = (review: any) => {
 };
 
 /** Fetch a public product by id for product page rendering and metadata. */
-export const getPublicProductById = cache(async (id: string) => {
+export const getPublicProductById = cache(async (id: string): Promise<any | null> => {
   try {
     const client = getPublicSupabaseClient();
     if (!client) return null;
 
     const { data, error } = await client
       .from('products')
-      .select(PUBLIC_PRODUCT_FIELDS)
+      .select(PUBLIC_PRODUCT_FIELDS as any)
       .eq('id', id)
       .maybeSingle();
 
     if (error || !data) return null;
-    return data;
+    return data as any;
   } catch (error) {
     console.error('[storefront] product fetch error:', error);
     return null;
@@ -108,19 +108,19 @@ export const getPublicProductById = cache(async (id: string) => {
 });
 
 /** Fetch a public seller profile by id for storefront rendering. */
-export const getPublicSellerById = cache(async (id: string) => {
+export const getPublicSellerById = cache(async (id: string): Promise<any | null> => {
   try {
     const client = getPublicSupabaseClient();
     if (!client) return null;
 
     const { data, error } = await client
       .from('sellers')
-      .select(PUBLIC_SELLER_FIELDS)
+      .select(PUBLIC_SELLER_FIELDS as any)
       .eq('id', id)
       .maybeSingle();
 
     if (error || !data) return null;
-    return data;
+    return data as any;
   } catch (error) {
     console.error('[storefront] seller fetch error:', error);
     return null;
@@ -128,18 +128,18 @@ export const getPublicSellerById = cache(async (id: string) => {
 });
 
 /** Fetch all public products that belong to a seller for storefront rendering. */
-export const getPublicSellerProducts = cache(async (sellerId: string) => {
+export const getPublicSellerProducts = cache(async (sellerId: string): Promise<any[]> => {
   try {
     const client = getPublicSupabaseClient();
     if (!client) return [];
 
     const { data, error } = await client
       .from('products')
-      .select(PUBLIC_PRODUCT_FIELDS)
+      .select(PUBLIC_PRODUCT_FIELDS as any)
       .eq('seller_id', sellerId);
 
     if (error || !data) return [];
-    return data;
+    return (data ?? []) as any[];
   } catch (error) {
     console.error('[storefront] seller products fetch error:', error);
     return [];
@@ -147,14 +147,14 @@ export const getPublicSellerProducts = cache(async (sellerId: string) => {
 });
 
 /** Fetch normalized public reviews for a product page. */
-export const getPublicProductReviews = cache(async (productId: string) => {
+export const getPublicProductReviews = cache(async (productId: string): Promise<any[]> => {
   try {
     const client = getPublicSupabaseClient();
     if (!client) return [];
 
     const { data, error } = await client
       .from('reviews')
-      .select(PUBLIC_PRODUCT_REVIEW_FIELDS)
+      .select(PUBLIC_PRODUCT_REVIEW_FIELDS as any)
       .eq('product_id', productId);
 
     if (error || !data) return [];
@@ -166,14 +166,14 @@ export const getPublicProductReviews = cache(async (productId: string) => {
 });
 
 /** Fetch normalized public reviews for a seller profile page. */
-export const getPublicSellerReviews = cache(async (sellerId: string) => {
+export const getPublicSellerReviews = cache(async (sellerId: string): Promise<any[]> => {
   try {
     const client = getPublicSupabaseClient();
     if (!client) return [];
 
     const { data, error } = await client
       .from('supermarket_reviews')
-      .select(PUBLIC_SELLER_REVIEW_FIELDS)
+      .select(PUBLIC_SELLER_REVIEW_FIELDS as any)
       .eq('supermarket_id', sellerId);
 
     if (error || !data) return [];

@@ -14,14 +14,12 @@ import { HeroAnimation } from '@/components/HeroAnimation';
 
 const WorkFlow = dynamic(() => import('@/components/WorkFlow').then(mod => mod.WorkFlow), {
   loading: () => <section aria-hidden="true" className="min-h-[680px] w-full bg-primary" />,
-  ssr: false,
 });
 
 const HomeDeferredSections = dynamic(
   () => import('@/components/HomeDeferredSections').then(mod => mod.HomeDeferredSections),
   {
     loading: () => <section aria-hidden="true" className="min-h-[900px] w-full bg-[#F8F9FA]" />,
-    ssr: false,
   }
 );
 

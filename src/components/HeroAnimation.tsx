@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+import Image from '@/components/SmartImage';
 import { Button } from '@/components/ui/button';
 import { 
   Search, 
@@ -204,6 +204,8 @@ export function HeroAnimation() {
             alt="Hebrew Script" 
             fill 
             priority
+            kind="hero"
+            sizes="100vw"
             className="object-cover opacity-10 pointer-events-none"
           />
         )}

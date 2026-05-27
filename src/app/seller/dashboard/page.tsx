@@ -64,7 +64,7 @@ import {
   IdCard,
   ExternalLink
 } from 'lucide-react';
-import Image from 'next/image';
+import Image from '@/components/SmartImage';
 import { 
   useUser, 
   useSupabaseClient, 
@@ -79,7 +79,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
-import { uploadImageViaApi } from '@/lib/image-upload';
+import { cleanupImageAssetsViaApi, uploadImageViaApi } from '@/lib/image-upload';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -536,8 +536,15 @@ function SellerDashboardContent() {
     setTimeout(() => { setIsVerifying(null); toast({ title: "ההזמנה סומנה כמאומתת." }); }, 1000);
   };
 
-  const uploadImage = async (file: File): Promise<string> => {
-    return uploadImageViaApi(file, { client: db });
+  const uploadImage = async (
+    file: File,
+    assetKind: 'product' | 'avatar' | 'certificate' | 'writing_sample'
+  ): Promise<string> => {
+    return uploadImageViaApi(file, { client: db, assetKind });
+  };
+
+  const cleanupImages = async (urls: string[]) => {
+    await cleanupImageAssetsViaApi(urls, { client: db });
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: 'product' | 'profile') => {
@@ -556,7 +563,7 @@ function SellerDashboardContent() {
       }
 
       try {
-        const uploadedUrls = await Promise.all(filesToUpload.map(uploadImage));
+        const uploadedUrls = await Promise.all(filesToUpload.map((file) => uploadImage(file, 'product')));
         setFormImages(prev => [...prev, ...uploadedUrls]);
 
         if (allFiles.length > remainingSlots) {
@@ -579,11 +586,15 @@ function SellerDashboardContent() {
     }
 
     try {
-      const uploadedUrl = await uploadImage(firstFile);
+      const previousProfileImage = profileData.profile_image;
+      const uploadedUrl = await uploadImage(firstFile, 'avatar');
       setProfileData(prev => ({ ...prev, profile_image: uploadedUrl }));
       if (sellerRef) {
         updateDocumentNonBlocking(sellerRef, { profile_image: uploadedUrl });
         toast({ title: 'תמונת הפרופיל עודכנה', description: 'התמונה נשמרה בהצלחה.' });
+      }
+      if (previousProfileImage && previousProfileImage !== uploadedUrl) {
+        void cleanupImages([previousProfileImage]);
       }
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'העלאת תמונת הפרופיל נכשלה.';
@@ -597,9 +608,13 @@ function SellerDashboardContent() {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const uploadedUrl = await uploadImage(file);
+      const previousCertificateUrl = profileData.certificate_url;
+      const uploadedUrl = await uploadImage(file, 'certificate');
       setProfileData(prev => ({ ...prev, certificate_url: uploadedUrl }));
       toast({ title: 'התעודה הועלתה', description: 'צילום התעודה נשמר בהצלחה.' });
+      if (previousCertificateUrl && previousCertificateUrl !== uploadedUrl) {
+        void cleanupImages([previousCertificateUrl]);
+      }
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'העלאת התעודה נכשלה.';
       toast({ variant: 'destructive', title: 'שגיאת העלאה', description: message });
@@ -622,7 +637,7 @@ function SellerDashboardContent() {
     }
 
     try {
-      const uploadedUrls = await Promise.all(filesToUpload.map(uploadImage));
+      const uploadedUrls = await Promise.all(filesToUpload.map((file) => uploadImage(file, 'writing_sample')));
       setProfileData(prev => ({ ...prev, writing_samples: [...prev.writing_samples, ...uploadedUrls] }));
       if (allFiles.length > remainingSlots) {
         toast({ title: 'חלק מהקבצים לא הועלו', description: 'ניתן להעלות עד 8 דוגמאות כתיבה.' });
@@ -827,7 +842,11 @@ function SellerDashboardContent() {
       return;
     }
 
+    const deletedProduct = productsData.find((item) => item.id === productId);
     setProductsData((prev) => prev.filter((item) => item.id !== productId));
+    if (deletedProduct?.images?.length) {
+      void cleanupImages(deletedProduct.images);
+    }
     toast({ title: 'המוצר נמחק בהצלחה' });
   };
 
@@ -856,7 +875,7 @@ function SellerDashboardContent() {
           <div className="flex items-center gap-4 text-right">
             <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white/10 flex items-center justify-center shrink-0 border border-white/20 overflow-hidden">
               {profileData.profile_image
-                ? <Image src={profileData.profile_image} alt="profile" width={64} height={64} className="rounded-2xl object-cover w-full h-full" />
+                ? <Image src={profileData.profile_image} alt="profile" width={64} height={64} kind="avatar" sizes="64px" className="rounded-2xl object-cover w-full h-full" />
                 : <UserRound className="w-8 h-8 text-white/70" />}
             </div>
             <div>
@@ -1120,7 +1139,7 @@ function SellerDashboardContent() {
                    <div className="space-y-8">
                       <div className="flex flex-col items-center gap-4">
                         <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-accent/20 bg-muted flex items-center justify-center">
-                          {profileData.profile_image ? <Image src={profileData.profile_image} alt="profile" fill className="object-cover" /> : <UserRound className="w-12 h-12 text-primary/10" />}
+                          {profileData.profile_image ? <Image src={profileData.profile_image} alt="profile" fill kind="avatar" sizes="128px" className="object-cover" /> : <UserRound className="w-12 h-12 text-primary/10" />}
                           <button onClick={() => document.getElementById('profile-img-up')?.click()} className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center text-white"><Camera className="w-6 h-6" /></button>
                         </div>
                         <input id="profile-img-up" type="file" onChange={(e) => handleImageUpload(e, 'profile')} className="hidden" accept="image/*" />
@@ -1204,8 +1223,8 @@ function SellerDashboardContent() {
                             <div className="mt-4 p-6 bg-accent/5 rounded-2xl border-2 border-dashed border-accent/20 text-center space-y-4">
                               {profileData.certificate_url ? (
                                 <div className="relative w-full h-40 rounded-xl overflow-hidden border bg-white shadow-sm">
-                                  <Image src={profileData.certificate_url} alt="Cert" fill className="object-contain" />
-                                  <button onClick={() => setProfileData({...profileData, certificate_url: ''})} className="absolute top-2 right-2 bg-destructive text-white rounded-full p-1 shadow-lg hover:scale-110 transition-transform"><X className="w-4 h-4" /></button>
+                                  <Image src={profileData.certificate_url} alt="Cert" fill kind="certificate" sizes="(max-width: 768px) 100vw, 720px" className="object-contain" />
+                                  <button onClick={() => { void cleanupImages(profileData.certificate_url ? [profileData.certificate_url] : []); setProfileData({...profileData, certificate_url: ''}); }} className="absolute top-2 right-2 bg-destructive text-white rounded-full p-1 shadow-lg hover:scale-110 transition-transform"><X className="w-4 h-4" /></button>
                                 </div>
                               ) : (
                                 <div onClick={() => certInputRef.current?.click()} className="cursor-pointer py-10 flex flex-col items-center text-accent hover:opacity-80 transition-opacity">
@@ -1295,8 +1314,8 @@ function SellerDashboardContent() {
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                             {profileData.writing_samples.map((img, idx) => (
                               <div key={`${img}-${idx}`} className="relative aspect-square rounded-2xl overflow-hidden border shadow-sm group">
-                                <Image src={img} alt="Sample" fill className="object-cover" />
-                                <button onClick={() => setProfileData({...profileData, writing_samples: profileData.writing_samples.filter((_, i) => i !== idx)})} className="absolute top-2 right-2 bg-destructive text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"><X className="w-3 h-3" /></button>
+                                <Image src={img} alt="Sample" fill kind="writing_sample" sizes="(max-width: 640px) 50vw, 25vw" className="object-cover" />
+                                <button onClick={() => { const targetUrl = profileData.writing_samples[idx]; void cleanupImages(targetUrl ? [targetUrl] : []); setProfileData({...profileData, writing_samples: profileData.writing_samples.filter((_, i) => i !== idx)}); }} className="absolute top-2 right-2 bg-destructive text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"><X className="w-3 h-3" /></button>
                               </div>
                             ))}
                             {profileData.writing_samples.length < 8 && (
@@ -1749,9 +1768,9 @@ function SellerDashboardContent() {
                        <div className="grid grid-cols-3 gap-3">
                          {formImages.map((img, i) => (
                            <div key={i} className="relative aspect-square rounded-2xl overflow-hidden border-2 border-white shadow-premium group">
-                             <Image src={img} alt="preview" fill className="object-cover" />
+                             <Image src={img} alt="preview" fill kind="product" sizes="(max-width: 640px) 33vw, 20vw" className="object-cover" />
                              <button 
-                               onClick={() => setFormImages(formImages.filter((_, idx) => idx !== i))} 
+                               onClick={() => { const targetUrl = formImages[i]; void cleanupImages(targetUrl ? [targetUrl] : []); setFormImages(formImages.filter((_, idx) => idx !== i)); }} 
                                className="absolute inset-0 bg-destructive/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white"
                              >
                                <Trash2 className="w-6 h-6" />

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { diagnoseMezuzah } from '@/ai/flows/mezuzah-diagnosis';
 import { Upload, Loader2, CheckCircle2, AlertCircle, Camera } from 'lucide-react';
-import Image from 'next/image';
+import Image from '@/components/SmartImage';
 
 const MAX_DIAGNOSIS_FILE_SIZE = 10 * 1024 * 1024;
 const SUPPORTED_DIAGNOSIS_IMAGE_TYPES = new Set([

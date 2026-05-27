@@ -2,11 +2,18 @@
  * Client-side utility for uploading images directly to S3 via presigned URLs.
  * Bypasses the Vercel 4.5 MB request body limit by uploading directly from the browser.
  */
+import type { ImageAssetKind, ImageAssetRecord } from '@/lib/cloudinary-shared';
+
+export type UploadedImageAsset = {
+  url: string;
+  metadata: Partial<ImageAssetRecord> | null;
+};
+
 export async function uploadImageDirect(
   file: File,
-  options: { authToken?: string; keyPrefix?: string; contentType?: string } = {}
-): Promise<string> {
-  const { authToken, keyPrefix = 'products', contentType = file.type } = options;
+  options: { authToken?: string; keyPrefix?: string; contentType?: string; assetKind?: ImageAssetKind } = {}
+): Promise<UploadedImageAsset> {
+  const { authToken, keyPrefix = 'products', contentType = file.type, assetKind } = options;
 
   const presignRes = await fetch('/api/upload-image/presign', {
     method: 'POST',
@@ -28,7 +35,7 @@ export async function uploadImageDirect(
     throw new Error((err as { error?: string })?.error || 'Failed to get upload URL');
   }
 
-  const { presignedUrl, publicUrl } = await presignRes.json();
+  const { presignedUrl, publicUrl, key } = await presignRes.json();
 
   const uploadRes = await fetch(presignedUrl, {
     method: 'PUT',
@@ -38,5 +45,33 @@ export async function uploadImageDirect(
 
   if (!uploadRes.ok) throw new Error('העלאת התמונה נכשלה.');
 
-  return publicUrl;
+  try {
+    const completeRes = await fetch('/api/upload-image/complete', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(authToken ? { Authorization: 'Bearer ' + authToken } : {}),
+        'x-upload-context': keyPrefix === 'onboarding' ? 'onboarding' : 'authenticated',
+      },
+      body: JSON.stringify({
+        publicUrl,
+        key,
+        fileName: file.name,
+        contentType,
+        assetKind,
+      }),
+    });
+
+    if (!completeRes.ok) {
+      return { url: publicUrl, metadata: null };
+    }
+
+    const result = await completeRes.json();
+    return {
+      url: result?.url || publicUrl,
+      metadata: result?.metadata || null,
+    };
+  } catch {
+    return { url: publicUrl, metadata: null };
+  }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { Heart, ChevronLeft, MapPin } from 'lucide-react';
-import Image from 'next/image';
+import Image from '@/components/SmartImage';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
@@ -72,6 +72,8 @@ export function ProductCard({ product, distanceKm }: { product: any; distanceKm?
             src={mainImage} 
             alt={displayTitle} 
             fill 
+            kind="product"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="object-cover transition-transform duration-1000 group-hover:scale-110" 
           />
           <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/50 to-transparent" />

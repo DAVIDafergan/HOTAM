@@ -28,6 +28,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- =============================================================================
 
 DROP TABLE IF EXISTS public.messages              CASCADE;
+DROP TABLE IF EXISTS public.image_assets          CASCADE;
 DROP TABLE IF EXISTS public.profiles              CASCADE;
 DROP TABLE IF EXISTS public.supermarket_reviews   CASCADE;
 DROP TABLE IF EXISTS public.reviews               CASCADE;
@@ -1017,6 +1018,43 @@ SET raw_user_meta_data = raw_user_meta_data || '{"role": "seller"}'
 WHERE id IN (SELECT id FROM public.sellers)
   AND (raw_user_meta_data->>'role' IS NULL
        OR raw_user_meta_data->>'role' != 'seller');
+
+-- =============================================================================
+-- HYBRID IMAGE ASSETS
+-- Keeps original S3 backups and Cloudinary delivery metadata side-by-side so
+-- existing URL columns can continue working during gradual migration.
+-- =============================================================================
+
+CREATE TABLE public.image_assets (
+  id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  owner_id            UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  source_key          TEXT,
+  source_url          TEXT NOT NULL UNIQUE,
+  delivery_url        TEXT NOT NULL,
+  original_s3_url     TEXT NOT NULL,
+  cloudinary_secure_url TEXT,
+  cloudinary_public_id  TEXT,
+  width               INTEGER,
+  height              INTEGER,
+  blur_data_url       TEXT,
+  kind                TEXT NOT NULL CHECK (kind IN ('product', 'avatar', 'article', 'certificate', 'hero', 'writing_sample', 'generic')),
+  upload_context      TEXT NOT NULL DEFAULT 'authenticated' CHECK (upload_context IN ('authenticated', 'onboarding')),
+  migration_status    TEXT NOT NULL DEFAULT 'pending' CHECK (migration_status IN ('pending', 'migrated', 'failed', 'deleted')),
+  created_at          TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now()),
+  updated_at          TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now())
+);
+
+CREATE INDEX image_assets_owner_idx ON public.image_assets(owner_id);
+CREATE INDEX image_assets_public_id_idx ON public.image_assets(cloudinary_public_id);
+CREATE INDEX image_assets_status_idx ON public.image_assets(migration_status);
+
+ALTER TABLE public.image_assets ENABLE ROW LEVEL SECURITY;
+
+-- Only service-role/server workflows should access this table directly.
+CREATE POLICY "image_assets_no_client_access" ON public.image_assets
+  FOR ALL TO authenticated, anon
+  USING (false)
+  WITH CHECK (false);
 
 -- =============================================================================
 -- STORAGE

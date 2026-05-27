@@ -31,7 +31,7 @@ import {
   Trash2,
   ZoomIn
 } from 'lucide-react';
-import Image from 'next/image';
+import Image from '@/components/SmartImage';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSupabaseClient, useUser } from '@/lib/supabase-hooks';
@@ -408,7 +408,7 @@ export default function SellerProfile({
                 <div className="absolute inset-0 rounded-full border-4 border-accent/10" />
                 <div className="w-full h-full rounded-full border-[6px] border-white shadow-xl overflow-hidden relative bg-muted flex items-center justify-center">
                   {seller.profile_image ? (
-                    <Image src={seller.profile_image} alt={`${seller.first_name} ${seller.last_name}`} fill className="object-cover" />
+                    <Image src={seller.profile_image} alt={`${seller.first_name} ${seller.last_name}`} fill kind="avatar" sizes="(max-width: 768px) 160px, 192px" className="object-cover" />
                   ) : (
                     <UserRound className="w-16 h-16 text-primary/20" />
                   )}

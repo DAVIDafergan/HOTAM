@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
+import Image from '@/components/SmartImage';
 import { Navbar } from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -145,7 +145,7 @@ export default function Home() {
                            <div className="absolute inset-0 rounded-full border-4 border-accent/10 group-hover:scale-110 transition-transform duration-500" />
                            <div className="w-full h-full rounded-full border-4 border-white shadow-lg overflow-hidden relative bg-muted flex items-center justify-center">
                              {scribe.profile_image ? (
-                                <Image src={scribe.profile_image} alt={scribe.first_name} fill className="object-cover" />
+                                <Image src={scribe.profile_image} alt={scribe.first_name} fill kind="avatar" sizes="64px" className="object-cover" />
                               ) : (
                                 <UserRound className="w-7 h-7 text-primary/10" />
                               )}

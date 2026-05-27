@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { startSumitSession, SumitApiError, FALLBACK_SUMIT_API_BASE_URL } from '../sumit';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 function getSiteBaseUrl(req: Request) {
   const proto = req.headers.get('x-forwarded-proto');
@@ -12,6 +13,11 @@ function getSiteBaseUrl(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    const ip = getClientIp(req);
+    if (!checkRateLimit(ip, { key: 'payments:create-session', maxRequests: 5, windowMs: 60_000 })) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    }
+
     const authHeader = req.headers.get('Authorization');
     const token = authHeader?.replace('Bearer ', '');
     if (!token) {

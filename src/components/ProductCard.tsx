@@ -7,26 +7,22 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { useUser, useSupabaseClient, useDoc, useMemoStable, setDocumentNonBlocking } from '@/lib/supabase-hooks';
+import { useApp, useSupabaseClient, setDocumentNonBlocking } from '@/lib/supabase-hooks';
 import { doc, arrayUnion, arrayRemove } from '@/lib/supabase-compat';
 import { useToast } from '@/hooks/use-toast';
 import unsplashLoader from '@/lib/unsplashLoader';
 import { cn } from '@/lib/utils';
 
 export function ProductCard({ product, distanceKm }: { product: any; distanceKm?: number }) {
-  const { user } = useUser();
+  const { user, profile } = useApp();
   const db = useSupabaseClient();
   const router = useRouter();
   const { toast } = useToast();
-  
-  const customerRef = useMemoStable(() => user ? doc(db, 'customers', user.uid) : null, [db, user?.uid]);
-  const sellerOwnRef = useMemoStable(() => user ? doc(db, 'sellers', user.uid) : null, [db, user?.uid]);
-  
-  const { data: customerData } = useDoc<any>(customerRef);
-  const { data: sellerOwnData } = useDoc<any>(sellerOwnRef);
 
-  const profileData = customerData || sellerOwnData;
-  const profileRef = customerData ? customerRef : (sellerOwnData ? sellerOwnRef : null);
+  const profileRef = user && profile?.role
+    ? doc(db, profile.role === 'seller' ? 'sellers' : 'customers', user.uid)
+    : null;
+  const profileData = profile;
   const isFavorite = profileData?.favorite_product_ids?.includes(product.id);
 
   const logoImg = PlaceHolderImages.find(img => img.id === 'site-logo')?.imageUrl || 'https://picsum.photos/seed/hotam-logo/400/400';

@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendEmail } from '@/lib/send-email';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = getClientIp(req);
+    if (!checkRateLimit(ip, { key: 'send-email', maxRequests: 5, windowMs: 60_000 })) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    }
+
     const authHeader = req.headers.get('Authorization');
     const token = authHeader?.replace('Bearer ', '');
     if (!token) {

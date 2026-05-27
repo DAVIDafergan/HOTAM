@@ -30,7 +30,7 @@ import {
 } from 'lucide-react';
 import Image from '@/components/SmartImage';
 import Link from 'next/link';
-import { useSupabaseClient, useDoc, useMemoStable, useUser, addDocumentNonBlocking } from '@/lib/supabase-hooks';
+import { useSupabaseClient, useApp, addDocumentNonBlocking } from '@/lib/supabase-hooks';
 import { doc, collection, serverTimestamp } from '@/lib/supabase-compat';
 import { supabase } from '@/lib/supabase';
 import { useRouter, usePathname } from 'next/navigation';
@@ -69,7 +69,7 @@ export function ProductDetailsClient({
   initialSeller?: any | null;
   initialReviews?: any[];
 }) {
-  const { user } = useUser();
+  const { user, profile } = useApp();
   const db = useSupabaseClient();
   const router = useRouter();
   const pathname = usePathname();
@@ -80,31 +80,16 @@ export function ProductDetailsClient({
 
   const logoImg = PlaceHolderImages.find(img => img.id === 'site-logo')?.imageUrl || 'https://picsum.photos/seed/hotam-logo/400/400';
 
-  const productRef = useMemoStable(() => {
-    if (!productId) return null;
-    return doc(db, 'products', productId);
-  }, [db, productId]);
+  const [product, setProduct] = useState<any>(initialProduct);
+  const [seller, setSeller] = useState<any>(initialSeller);
+  const isProductLoading = false;
+  const isSellerLoading = false;
 
-  const { data: liveProduct, isLoading: isProductLoading } = useDoc<any>(productRef);
-  const product = liveProduct ?? initialProduct;
-
-  const customerRef = useMemoStable(() => user ? doc(db, 'customers', user.uid) : null, [db, user?.uid]);
-  const sellerOwnRef = useMemoStable(() => user ? doc(db, 'sellers', user.uid) : null, [db, user?.uid]);
-  
-  const { data: customerData } = useDoc<any>(customerRef);
-  const { data: sellerOwnData } = useDoc<any>(sellerOwnRef);
-
-  const profileData = customerData || sellerOwnData;
-  const profileRef = customerData ? customerRef : (sellerOwnData ? sellerOwnRef : null);
+  const profileRef = user && profile?.role
+    ? doc(db, profile.role === 'seller' ? 'sellers' : 'customers', user.uid)
+    : null;
+  const profileData = profile;
   const isFavorite = profileData?.favorite_product_ids?.includes(productId);
-
-  const sellerRef = useMemoStable(() => {
-    if (!product?.seller_id) return null;
-    return doc(db, 'sellers', product.seller_id);
-  }, [db, product?.seller_id]);
-
-  const { data: realtimeSeller, isLoading: isSellerLoading } = useDoc<any>(sellerRef);
-  const seller = realtimeSeller ?? initialSeller;
 
   const [reviews, setReviews] = useState<any[]>(initialReviews);
 
@@ -164,28 +149,10 @@ export function ProductDetailsClient({
     setImageZoomLevel(MIN_IMAGE_ZOOM_LEVEL);
     setImagePan({ x: 0, y: 0 });
     dragOriginRef.current = null;
+    setProduct(initialProduct);
+    setSeller(initialSeller);
     setReviews(initialReviews);
-    if (!productId) return;
-    supabase
-      .from('reviews')
-      .select('*, profiles(full_name, avatar_url)')
-      .eq('product_id', productId)
-      .then(({ data, error }) => {
-        if (error) console.error('[reviews] fetch error:', error.message);
-        else {
-          const normalized = (data ?? []).map((review: any) => {
-            const profile = Array.isArray(review?.profiles) ? review.profiles[0] : review?.profiles;
-            const fullName = profile?.full_name;
-            return {
-              ...review,
-              buyer_name: fullName || review?.buyer_name || 'משתמש',
-              reviewer_image: profile?.avatar_url || null,
-            };
-          });
-          setReviews(normalized);
-        }
-      });
-  }, [initialReviews, productId]);
+  }, [initialProduct, initialSeller, initialReviews, productId]);
 
   const handleToggleFavorite = async () => {
     if (!user || !profileRef || isProcessingFavorite) {

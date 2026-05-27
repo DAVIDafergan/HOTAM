@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { markOrderAsPaidAndNotify } from '../process-order-payment';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 const SUMIT_CHARGE_URL = 'https://api.sumit.co.il/billing/payments/charge/';
 const PAYMENT_PROVIDER = 'sumit';
@@ -44,25 +45,16 @@ type ChargeRequestBody = {
 };
 
 function buildItemsFromCartData(cartData: ChargeCartData, price: number): SumitChargeItem[] {
-  if (Array.isArray(cartData?.items) && cartData.items.length > 0) {
-    return (cartData.items as CartItem[]).map((item) => ({
-      Item: {
-        Name: item?.Name || item?.Description || FALLBACK_ITEM_DESCRIPTION,
-      },
-      Quantity: Number(item?.Quantity ?? 1),
-      UnitPrice: Number(item?.UnitPrice ?? item?.UnitAmount ?? price),
-    }));
-  }
+  const itemName =
+    cartData?.productName ||
+    (Array.isArray(cartData?.items) && cartData.items[0]?.Name) ||
+    FALLBACK_ITEM_DESCRIPTION;
 
-  return [
-    {
-      Item: {
-        Name: cartData?.productName || FALLBACK_ITEM_DESCRIPTION,
-      },
-      Quantity: 1,
-      UnitPrice: price,
-    },
-  ];
+  return [{
+    Item: { Name: itemName },
+    Quantity: 1,
+    UnitPrice: price,
+  }];
 }
 
 function getSumitCredentials() {
@@ -139,6 +131,11 @@ function isSuccessfulCharge(payload: any) {
 
 export async function POST(req: Request) {
   try {
+    const ip = getClientIp(req);
+    if (!checkRateLimit(ip, { key: 'payments:charge', maxRequests: 5, windowMs: 60_000 })) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    }
+
     const authHeader = req.headers.get('Authorization');
     const bearerToken = authHeader?.replace('Bearer ', '');
     if (!bearerToken) {
@@ -235,10 +232,10 @@ export async function POST(req: Request) {
     const data = parseJsonResponse(rawText);
 
     if (!response.ok || !isSuccessfulCharge(data)) {
+      console.error('[charge] Sumit error details:', data);
       return NextResponse.json(
         {
-          error: getErrorMessage(data) || 'SUMIT charge failed',
-          details: data,
+          error: getErrorMessage(data) || 'החיוב נכשל. אנא נסה שוב.',
         },
         { status: response.ok ? 400 : response.status }
       );

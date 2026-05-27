@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 
 export async function POST(req: Request) {
   try {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     const authHeader = req.headers.get('Authorization');
     const token = authHeader?.replace('Bearer ', '');
 
@@ -45,6 +46,15 @@ export async function POST(req: Request) {
       if (!canAdminDeleteUsers) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
+
+      if (body.targetRole === 'admin') {
+        return NextResponse.json({ error: 'Cannot delete admin accounts via this endpoint' }, { status: 403 });
+      }
+
+      if (!uuidRegex.test(body.targetUserId)) {
+        return NextResponse.json({ error: 'Invalid targetUserId' }, { status: 400 });
+      }
+
       uid = body.targetUserId;
       role = body.targetRole;
     }

@@ -20,7 +20,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { amount, productName, buyerName, buyerEmail, buyerPhone, orderId } = await req.json();
+    const { productName, buyerName, buyerEmail, buyerPhone, orderId } = await req.json();
+
+    if (!orderId) {
+      return NextResponse.json({ error: 'Missing orderId' }, { status: 400 });
+    }
 
     const PAYME_SELLER_ID = process.env.PAYME_SELLER_ID;
     if (!PAYME_SELLER_ID) {
@@ -28,6 +32,27 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Payment service not configured' }, { status: 500 });
     }
     
+    const { data: orderRow, error: orderError } = await serviceClient
+      .from('orders')
+      .select('amount, status, buyer_id')
+      .eq('id', orderId)
+      .single();
+
+    if (orderError || !orderRow) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
+    if (orderRow.buyer_id && orderRow.buyer_id !== user.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    if (orderRow.status !== 'pending_payment') {
+      return NextResponse.json({ error: 'Order already processed' }, { status: 400 });
+    }
+
+    const amount = Number(orderRow.amount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return NextResponse.json({ error: 'Invalid order amount' }, { status: 400 });
+    }
+
     // Using PayMe NG API endpoint
     const response = await fetch('https://ng.payme.io/api/generate-sale', {
       method: 'POST',
@@ -49,11 +74,11 @@ export async function POST(req: Request) {
 
     const data = await response.json();
     
-    if (data.status === 'success' || data.sale_url) {
+    if (response.ok && (data.status === 'success' || data.sale_url)) {
       return NextResponse.json({ url: data.sale_url });
     } else {
       console.error('PayMe error details:', data);
-      return NextResponse.json({ error: data.msg || 'Payment generation failed' }, { status: 400 });
+      return NextResponse.json({ error: 'יצירת התשלום נכשלה. אנא נסה שוב.' }, { status: response.ok ? 400 : response.status });
     }
   } catch (error) {
     console.error('Internal API Error:', error);

@@ -156,8 +156,8 @@ export function Navbar() {
   };
 
   const Logo = ({ className = "" }: { className?: string }) => (
-    <Link href="/" className={`flex items-center gap-2 group ${className}`} onClick={() => setIsOpen(false)} aria-label="חותם - דף הבית">
-      <div className="flex items-baseline gap-1">
+    <Link href="/" className={`flex items-center gap-2 group whitespace-nowrap ${className}`} onClick={() => setIsOpen(false)} aria-label="חותם - דף הבית">
+      <div className="flex items-center gap-1 min-w-0">
         <svg 
           width="24" 
           height="24" 
@@ -167,7 +167,7 @@ export function Navbar() {
           strokeWidth="1.5" 
           strokeLinecap="round" 
           strokeLinejoin="round" 
-          className="text-primary group-hover:rotate-6 transition-transform"
+          className="text-primary group-hover:rotate-6 transition-transform w-6 h-6 shrink-0"
           aria-hidden="true"
         >
           <path d="m12 19 7-7 3 3-7 7-3-3z" />
@@ -175,7 +175,7 @@ export function Navbar() {
           <path d="m2 2l5 5" />
           <path d="m11 11l1 1" />
         </svg>
-        <span className="text-lg sm:text-xl font-headline font-black text-primary leading-none tracking-tighter uppercase">HOTAM</span>
+        <span className="text-xl font-headline font-black text-primary leading-none tracking-tighter uppercase whitespace-nowrap shrink-0">HOTAM</span>
       </div>
     </Link>
   );

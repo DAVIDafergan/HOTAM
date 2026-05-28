@@ -157,7 +157,7 @@ export function Navbar() {
 
   const Logo = ({ className = "" }: { className?: string }) => (
     <Link href="/" className={`flex items-center gap-2 group whitespace-nowrap ${className}`} onClick={() => setIsOpen(false)} aria-label="חותם - דף הבית">
-      <div className="flex items-center gap-1 min-w-0">
+      <div className="flex items-center gap-1.5 shrink-0">
         <svg 
           width="24" 
           height="24" 
@@ -167,7 +167,8 @@ export function Navbar() {
           strokeWidth="1.5" 
           strokeLinecap="round" 
           strokeLinejoin="round" 
-          className="text-primary group-hover:rotate-6 transition-transform w-6 h-6 shrink-0"
+          className="text-primary group-hover:rotate-6 transition-transform w-6 h-6 shrink-0 aspect-square"
+          preserveAspectRatio="xMidYMid meet"
           aria-hidden="true"
         >
           <path d="m12 19 7-7 3 3-7 7-3-3z" />
@@ -315,7 +316,7 @@ export function Navbar() {
           </div>
 
           <div className="flex-1 flex items-center justify-end z-10 gap-2 sm:gap-4">
-            {isUserLoading && (
+            {isUserLoading && !user && (
               <div className="flex items-center gap-2">
                 <div className="h-11 w-11 rounded-full bg-primary/8 animate-pulse" />
                 <div className="hidden sm:flex flex-col gap-1">
@@ -325,7 +326,7 @@ export function Navbar() {
               </div>
             )}
 
-            {!isUserLoading && user && (
+            {user && (
               <div className="flex items-center gap-2">
                 {isSuperAdmin && (
                   <DropdownMenu dir="rtl">
@@ -572,7 +573,7 @@ export function Navbar() {
               </div>
             )}
 
-            {!isUserLoading && !user && (
+            {!user && (
               <Button asChild className="bg-primary text-white hover:bg-primary/95 px-7 h-10 rounded-full shadow-premium text-xs font-bold gap-2 border border-white/30">
                 <Link href="/login"> <LogIn className="w-3.5 h-3.5" /> התחברות</Link>
               </Button>

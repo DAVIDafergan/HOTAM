@@ -115,18 +115,67 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
 
   // ── Auth state listener ────────────────────────────────────────────────────
   useEffect(() => {
-    // Hydrate from existing session immediately
-    void Promise.all([client.auth.getUser(), client.auth.getSession()]).then(async ([userResult, sessionResult]) => {
-      const freshUser = userResult.data.user;
-      const accessToken = sessionResult.data.session?.access_token;
-      setUser(freshUser ? await resolveAppUser(freshUser, accessToken) : null);
-      setIsUserLoading(false);
-    });
+    let isCancelled = false;
+
+    const setResolvedUserNonBlocking = (sourceUser: SupabaseUser, accessToken?: string | null) => {
+      setUser(toAppUser(sourceUser));
+      void resolveAppUser(sourceUser, accessToken)
+        .then((resolvedUser) => {
+          if (isCancelled) return;
+          setUser((current) => (current?.uid === resolvedUser.uid ? resolvedUser : current));
+        })
+        .catch((err) => {
+          if (!isCancelled) {
+            console.error('[auth] deferred role resolution error:', err);
+          }
+        });
+    };
+
+    // Hydrate from existing session immediately without waiting for role API
+    void client.auth.getSession()
+      .then(({ data }) => {
+        if (isCancelled) return;
+        const session = data.session;
+        const sessionUser = session?.user ?? null;
+        if (!sessionUser) {
+          setUser(null);
+          setIsUserLoading(false);
+          return;
+        }
+
+        setResolvedUserNonBlocking(sessionUser, session?.access_token);
+        setIsUserLoading(false);
+
+        void client.auth.getUser()
+          .then(({ data: freshUserData }) => {
+            if (isCancelled || !freshUserData.user) return;
+            setResolvedUserNonBlocking(freshUserData.user, session?.access_token);
+          })
+          .catch((err) => {
+            if (!isCancelled) {
+              console.error('[auth] session hydration user refresh error:', err);
+            }
+          });
+      })
+      .catch((err) => {
+        if (isCancelled) return;
+        setUserError(err instanceof Error ? err : new Error('Unable to initialize auth session'));
+        setIsUserLoading(false);
+      });
 
     const { data: { subscription } } = client.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
-        const { data: { user: freshUser } } = await client.auth.getUser();
-        setUser(freshUser ? await resolveAppUser(freshUser, session.access_token) : null);
+        setResolvedUserNonBlocking(session.user, session.access_token);
+        void client.auth.getUser()
+          .then(({ data: freshUserData }) => {
+            if (isCancelled || !freshUserData.user) return;
+            setResolvedUserNonBlocking(freshUserData.user, session.access_token);
+          })
+          .catch((err) => {
+            if (!isCancelled) {
+              console.error('[auth] auth-state user refresh error:', err);
+            }
+          });
       } else {
         setUser(null);
       }
@@ -316,7 +365,10 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isCancelled = true;
+      subscription.unsubscribe();
+    };
   }, [client]);
 
   // ── Profile fetching (role-based) ─────────────────────────────────────────

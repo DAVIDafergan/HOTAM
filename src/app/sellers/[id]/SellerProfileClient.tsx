@@ -167,7 +167,7 @@ export default function SellerProfile({
     seller?.city ||
     (typeof seller?.address === 'string' && seller.address.includes(',')
       ? seller.address.split(',').pop()?.trim()
-      : seller?.address) ||
+      : '') ||
     '';
   const currentUserSellerReview = useMemo(
     () => (user ? (reviews || []).find((rev: any) => rev?.buyer_id === user.uid) : null),

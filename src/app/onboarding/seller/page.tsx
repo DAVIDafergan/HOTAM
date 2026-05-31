@@ -430,6 +430,7 @@ export default function SellerOnboarding() {
           description: 'מתחבר לחשבון שלך.',
         });
         // Sign in immediately so reconcileSellerAccount fires and registers the seller row.
+        await new Promise(resolve => setTimeout(resolve, 800));
         const { data: signInData, error: signInError } = await db.auth.signInWithPassword({
           email: formData.email,
           password: formData.password,

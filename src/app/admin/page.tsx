@@ -114,6 +114,7 @@ export default function AdminDashboard() {
   const [customersTotal, setCustomersTotal] = useState(0);
   const [isSellersLoading, setIsSellersLoading] = useState(false);
   const [isCustomersLoading, setIsCustomersLoading] = useState(false);
+  const [refreshTick, setRefreshTick] = useState(0);
 
   const adminRef = useMemoStable(() => {
     if (!user) return null;
@@ -138,7 +139,8 @@ export default function AdminDashboard() {
     pendingPage,
     activePage,
     sellersSearchTerm,
-  }), [canLoadData, pendingPage, activePage, sellersSearchTerm]);
+    refreshTick,
+  }), [canLoadData, pendingPage, activePage, sellersSearchTerm, refreshTick]);
 
   useEffect(() => {
     if (!sellersQuery.canLoadData) {
@@ -209,7 +211,8 @@ export default function AdminDashboard() {
     canLoadData,
     customersPage,
     sellersSearchTerm,
-  }), [canLoadData, customersPage, sellersSearchTerm]);
+    refreshTick,
+  }), [canLoadData, customersPage, sellersSearchTerm, refreshTick]);
 
   useEffect(() => {
     if (!customersQuery.canLoadData) {
@@ -292,6 +295,20 @@ export default function AdminDashboard() {
       cancelled = true;
     };
   }, [customersData, canLoadData, db]);
+
+  useEffect(() => {
+    if (!canLoadData) return;
+    const channel = db
+      .channel('admin-realtime-users')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'sellers' }, () => {
+        setRefreshTick(t => t + 1);
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'customers' }, () => {
+        setRefreshTick(t => t + 1);
+      })
+      .subscribe();
+    return () => { db.removeChannel(channel); };
+  }, [db, canLoadData]);
 
   const activeSellersCountQuery = useMemoStable(() => {
     if (!canLoadData) return null;

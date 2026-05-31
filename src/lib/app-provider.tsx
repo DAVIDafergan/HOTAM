@@ -310,6 +310,9 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
             if (customerCount > 0 && roleFromMetadata === 'seller') {
               console.warn('[auth] seller registered as customer — forcing recovery');
               await registerSeller(buildSellerPayloadFromMetadata(), 'misfire-recovery');
+              const { data: { user: refreshedUser } } = await client.auth.getUser();
+              const { data: { session: refreshedSession } } = await client.auth.getSession();
+              if (refreshedUser) setUser(await resolveAppUser(refreshedUser, refreshedSession?.access_token));
             }
             return;
           }
@@ -325,6 +328,9 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
               if (!pendingEmail || (normalizedUserEmail && pendingEmail === normalizedUserEmail)) {
                 const { _pending_email: _ignoredPendingEmail, ...pendingPayload } = parsed;
                 await registerSeller({ ...metadataPayload, ...pendingPayload }, 'local-cache-recovery');
+                const { data: { user: refreshedUser } } = await client.auth.getUser();
+                const { data: { session: refreshedSession } } = await client.auth.getSession();
+                if (refreshedUser) setUser(await resolveAppUser(refreshedUser, refreshedSession?.access_token));
                 window.localStorage.removeItem('pendingSellerProfile');
                 return;
               }
@@ -336,6 +342,9 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
           }
 
           await registerSeller(metadataPayload, 'metadata-recovery');
+          const { data: { user: refreshedUser } } = await client.auth.getUser();
+          const { data: { session: refreshedSession } } = await client.auth.getSession();
+          if (refreshedUser) setUser(await resolveAppUser(refreshedUser, refreshedSession?.access_token));
         };
 
         void (async () => {

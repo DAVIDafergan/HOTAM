@@ -873,7 +873,7 @@ function SearchContent() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: shouldReduceMotion ? 0 : Math.min(i, 6) * 0.04, duration: shouldReduceMotion ? 0.1 : 0.25 }}
                   >
-                    <ProductCard product={p} distanceKm={includeNearbyCities && selectedCity ? nearbyDistanceMap[p.id] : undefined} />
+                    <ProductCard product={p} distanceKm={includeNearbyCities && selectedCity ? nearbyDistanceMap[p.id] : undefined} priority={i === 0} />
                   </motion.div>
                 ))}
                 

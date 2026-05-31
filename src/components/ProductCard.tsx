@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import unsplashLoader from '@/lib/unsplashLoader';
 import { cn } from '@/lib/utils';
 
-export function ProductCard({ product, distanceKm }: { product: any; distanceKm?: number }) {
+export function ProductCard({ product, distanceKm, priority }: { product: any; distanceKm?: number; priority?: boolean }) {
   const { user, profile } = useApp();
   const db = useSupabaseClient();
   const router = useRouter();
@@ -69,6 +69,7 @@ export function ProductCard({ product, distanceKm }: { product: any; distanceKm?
             alt={displayTitle} 
             fill 
             kind="product"
+            priority={priority}
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="object-cover transition-transform duration-1000 group-hover:scale-110" 
           />

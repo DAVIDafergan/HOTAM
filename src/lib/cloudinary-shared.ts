@@ -101,7 +101,6 @@ function buildTransformSegments({
     background ? `b_${background}` : '',
     `q_${quality || DEFAULT_CLOUDINARY_QUALITY}`,
     'f_auto',
-    'dpr_auto',
     effect || '',
   ].filter(Boolean);
 }
@@ -158,6 +157,7 @@ function getTransformConfig(kind: ImageAssetKind, width?: number, quality?: numb
         aspectRatio: '1:1',
         width: resolvedWidth,
         quality: resolvedQuality || 'auto:eco',
+        effect: 'fl_progressive',
       };
     default:
       return {

@@ -114,6 +114,14 @@ export async function POST(req: Request) {
       console.info('[register-seller] auth role updated', { source: recoverySource, userId: user.id });
     }
 
+    const { error: confirmError } = await serviceClient.auth.admin.updateUserById(
+      user.id,
+      { email_confirm: true }
+    );
+    if (confirmError) {
+      console.error('[register-seller] Failed to confirm seller email:', confirmError);
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Seller registration error:', error);

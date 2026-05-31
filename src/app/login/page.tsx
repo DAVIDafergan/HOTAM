@@ -45,7 +45,7 @@ function LoginContent() {
   // Route by role stored in user_metadata — no DB lookups needed.
   useEffect(() => {
     if (user && !isUserLoading) {
-      if (!user.emailVerified) {
+      if (!user.emailVerified && user.role !== 'seller') {
         return;
       }
       // Validate redirect to prevent open redirect vulnerability (only allow relative paths)

@@ -212,6 +212,22 @@ export function isUnsplashUrl(src?: string | null) {
   return Boolean(src && src.includes('images.unsplash.com'));
 }
 
+export function isS3Url(src?: string | null) {
+  if (!src) return false;
+
+  try {
+    const { hostname } = new URL(src);
+    return (
+      hostname === 'amazonaws.com' ||
+      hostname.endsWith('.amazonaws.com') ||
+      hostname === 'cloudfront.net' ||
+      hostname.endsWith('.cloudfront.net')
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function isRemoteImageUrl(src?: string | null) {
   return Boolean(src && /^https?:\/\//.test(src));
 }
@@ -283,6 +299,12 @@ export function buildCloudinaryImageUrl(
       (_, _existingTransforms, versionSegment) =>
         `/image/upload/${transformation}/${versionSegment}`
     );
+  }
+
+  // Don't wrap fresh S3 uploads in Cloudinary Fetch — they aren't cached yet
+  // and will fail. Return the S3 URL directly; Cloudinary processes it in background.
+  if (isS3Url(src)) {
+    return src;
   }
 
   return `https://${CLOUDINARY_HOST}/${cloudName}/image/fetch/${transformation}/${encodeCloudinaryFetchUrl(src)}`;

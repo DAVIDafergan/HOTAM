@@ -48,64 +48,92 @@ export async function POST(req: NextRequest) {
     }
 
     const kind = inferImageKind(assetKind, key.split('/')[0], isOnboarding ? 'certificate' : 'product');
+    const uploadContextValue = isOnboarding ? 'onboarding' : 'authenticated';
+    const ownerId = user?.id || null;
 
-    let metadata: Partial<ImageAssetRecord> = {
+    const pendingMetadata: Partial<ImageAssetRecord> = {
       source_key: key,
       source_url: publicUrl,
       original_s3_url: publicUrl,
       delivery_url: publicUrl,
       kind,
-      upload_context: isOnboarding ? 'onboarding' : 'authenticated',
-      owner_id: user?.id || null,
+      upload_context: uploadContextValue,
+      owner_id: ownerId,
       migration_status: 'pending',
     };
 
-    if (isCloudinaryServerConfigured()) {
-      try {
-        const cloudinaryAsset = await uploadRemoteImageToCloudinary({
-          sourceUrl: publicUrl,
-          sourceKey: key,
-          kind,
-          ownerId: user?.id || null,
-          uploadContext: isOnboarding ? 'onboarding' : 'authenticated',
-        });
-
-        metadata = {
-          ...metadata,
-          ...cloudinaryAsset,
-          delivery_url: cloudinaryAsset.cloudinary_secure_url || publicUrl,
-        };
-      } catch (error) {
-        if (!(error instanceof Error && 'code' in error && error.code === CLOUDINARY_CONFIG_ERROR)) {
-          console.error('[upload-image-complete] Cloudinary sync failed', error);
-        }
-        metadata = {
-          ...metadata,
-          migration_status: 'failed',
-        };
-      }
-    }
-
     const persisted = await persistImageAsset({
-      ownerId: user?.id || null,
+      ownerId,
       sourceKey: key,
       sourceUrl: publicUrl,
       originalS3Url: publicUrl,
-      deliveryUrl: metadata.delivery_url || publicUrl,
-      cloudinarySecureUrl: metadata.cloudinary_secure_url || null,
-      cloudinaryPublicId: metadata.cloudinary_public_id || null,
-      blurDataUrl: metadata.blur_data_url || null,
-      width: metadata.width ?? null,
-      height: metadata.height ?? null,
+      deliveryUrl: publicUrl,
+      cloudinarySecureUrl: null,
+      cloudinaryPublicId: null,
+      blurDataUrl: null,
+      width: null,
+      height: null,
       kind,
-      uploadContext: isOnboarding ? 'onboarding' : 'authenticated',
-      migrationStatus: (metadata.migration_status || 'pending') as 'pending' | 'migrated' | 'failed' | 'deleted',
+      uploadContext: uploadContextValue,
+      migrationStatus: 'pending',
     });
 
-    return NextResponse.json({
-      url: metadata.delivery_url || publicUrl,
-      metadata: persisted || metadata,
+    const response = NextResponse.json({
+      url: publicUrl,
+      metadata: persisted || pendingMetadata,
     });
+
+    if (isCloudinaryServerConfigured()) {
+      void (async () => {
+        try {
+          const cloudinaryAsset = await uploadRemoteImageToCloudinary({
+            sourceUrl: publicUrl,
+            sourceKey: key,
+            kind,
+            ownerId,
+            uploadContext: uploadContextValue,
+          });
+
+          await persistImageAsset({
+            ownerId,
+            sourceKey: key,
+            sourceUrl: publicUrl,
+            originalS3Url: publicUrl,
+            deliveryUrl: cloudinaryAsset.cloudinary_secure_url || publicUrl,
+            cloudinarySecureUrl: cloudinaryAsset.cloudinary_secure_url || null,
+            cloudinaryPublicId: cloudinaryAsset.cloudinary_public_id || null,
+            blurDataUrl: cloudinaryAsset.blur_data_url || null,
+            width: cloudinaryAsset.width ?? null,
+            height: cloudinaryAsset.height ?? null,
+            kind,
+            uploadContext: uploadContextValue,
+            migrationStatus: 'migrated',
+          });
+        } catch (error) {
+          if (!(error instanceof Error && 'code' in error && error.code === CLOUDINARY_CONFIG_ERROR)) {
+            console.error('[upload-image-complete] Cloudinary async failed', error);
+          }
+
+          await persistImageAsset({
+            ownerId,
+            sourceKey: key,
+            sourceUrl: publicUrl,
+            originalS3Url: publicUrl,
+            deliveryUrl: publicUrl,
+            cloudinarySecureUrl: null,
+            cloudinaryPublicId: null,
+            blurDataUrl: null,
+            width: null,
+            height: null,
+            kind,
+            uploadContext: uploadContextValue,
+            migrationStatus: 'failed',
+          });
+        }
+      })();
+    }
+
+    return response;
   } catch (error) {
     if (error instanceof Error && error.message === 'UNAUTHORIZED') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

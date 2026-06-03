@@ -12,23 +12,121 @@ export async function POST(req: Request) {
     const authHeader = req.headers.get('Authorization');
     const token = authHeader?.replace('Bearer ', '');
 
-    if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const serviceClient = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
       { auth: { persistSession: false } },
     );
 
+    // Read body once — used by both code paths below.
+    const body = await req.json();
+
+    // ── New seller signup (no session yet) ─────────────────────────────────────
+    // When there is no Authorization header, the client is a brand-new seller who
+    // does not have an account yet.  We create the user via the Admin API with
+    // email_confirm=true so that the seller can sign in immediately without having
+    // to click a confirmation link.  This does NOT affect the project-wide Email
+    // Confirmation setting that governs customer registrations.
+    if (!token) {
+      const { email, password, ...sellerFields } = body;
+
+      if (!email || !password) {
+        return NextResponse.json({ error: 'Missing email or password' }, { status: 400 });
+      }
+
+      const normalizedEmail = String(email).trim().toLowerCase();
+
+      // Strip server-only fields so the client cannot forge them.
+      const {
+        is_approved: _ia,
+        welcome_email_sent: _wes,
+        is_email_verified: _iev,
+        recovery_source: _rs,
+        id: _id,
+        ...safeFields
+      } = sellerFields;
+
+      const { data: createData, error: createError } =
+        await serviceClient.auth.admin.createUser({
+          email: normalizedEmail,
+          password,
+          email_confirm: true,
+          user_metadata: { role: 'seller', ...safeFields },
+        });
+
+      if (createError) {
+        const msg = createError.message?.toLowerCase() ?? '';
+        const isAlreadyExists =
+          msg.includes('already registered') ||
+          msg.includes('user already exists') ||
+          (createError as any).status === 422;
+        if (isAlreadyExists) {
+          return NextResponse.json({ error: 'email-already-in-use' }, { status: 409 });
+        }
+        console.error('[register-seller] createUser failed', createError);
+        return NextResponse.json(
+          { error: 'Registration failed', message: createError.message },
+          { status: 500 },
+        );
+      }
+
+      const newUser = createData.user;
+      console.info('[register-seller] auth user created', { userId: newUser.id });
+
+      // Upsert the full seller profile.  The DB trigger already created a minimal
+      // row; this call enriches it with all onboarding form data.
+      const { error: dbError } = await serviceClient
+        .from('sellers')
+        .upsert(
+          {
+            ...safeFields,
+            id: newUser.id,
+            email: newUser.email,
+            is_approved: false,
+            is_email_verified: true,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'id' },
+        );
+
+      if (dbError) {
+        // Rollback: delete the auth user to leave no orphan behind.
+        // The sellers row is removed automatically via ON DELETE CASCADE.
+        console.error('[register-seller] DB upsert failed — rolling back auth user', dbError);
+        await serviceClient.auth.admin.deleteUser(newUser.id).catch((delErr) => {
+          console.error('[register-seller] rollback deleteUser failed', delErr);
+        });
+        return NextResponse.json(
+          { error: 'Database error', message: dbError.message },
+          { status: 500 },
+        );
+      }
+
+      // Remove any customers row the DB trigger may have created (shouldn't
+      // happen when role='seller' is in metadata, but guard just in case).
+      await serviceClient.from('customers').delete().eq('id', newUser.id)
+        .then(({ error }) => {
+          if (error) console.warn('[register-seller] customers cleanup error (non-critical)', error);
+        });
+
+      // Ensure role metadata is explicitly seller (trigger should set it, but
+      // be explicit to avoid any reconcile overhead on first sign-in).
+      await serviceClient.auth.admin
+        .updateUserById(newUser.id, { user_metadata: { role: 'seller' } })
+        .catch((err) => console.error('[register-seller] role update failed (non-critical)', err));
+
+      console.info('[register-seller] new seller registered', { userId: newUser.id });
+      return NextResponse.json({ success: true });
+    }
+
+    // ── Authenticated path: existing user update / reconcile ──────────────────
     const { data: { user }, error: authError } = await serviceClient.auth.getUser(token);
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const sellerData = await req.json();
+    const sellerData = body;
     const recoverySource = typeof sellerData?.recovery_source === 'string'
       ? sellerData.recovery_source
       : 'unknown';

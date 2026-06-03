@@ -107,6 +107,9 @@ export async function startSumitSession(input: StartSessionInput) {
     `/api/payments/webhook?orderId=${encodeURIComponent(input.orderId)}`,
     input.siteBaseUrl
   ).toString();
+  // IMPORTANT: Sumit must be configured in their dashboard to send the webhook
+  // secret in the header 'x-sumit-secret'. Do NOT append ?secret=... to this
+  // URL — secrets in URLs are logged by proxies.
   const items =
     input.items && input.items.length > 0
       ? input.items

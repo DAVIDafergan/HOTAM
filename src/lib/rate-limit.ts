@@ -11,6 +11,16 @@ declare global {
 const rateLimitMap = globalThis.__hotamRateLimitMap ?? new Map<string, RateLimitEntry>();
 globalThis.__hotamRateLimitMap = rateLimitMap;
 
+// Purge expired entries to prevent memory leak.
+// Called on every rate-limit check so no separate timer is needed.
+function purgeExpired(now: number) {
+  for (const [key, entry] of rateLimitMap.entries()) {
+    if (now > entry.resetAt) {
+      rateLimitMap.delete(key);
+    }
+  }
+}
+
 export function getClientIp(req: Request): string {
   const xForwardedFor = req.headers.get('x-forwarded-for');
   if (xForwardedFor) {
@@ -33,6 +43,10 @@ export function checkRateLimit(
   const windowMs = options?.windowMs ?? 60_000;
   const key = options?.key ?? 'default';
   const id = `${key}:${ip}`;
+
+  // Clean up stale entries on every call (cheap: O(n) over expired keys only).
+  purgeExpired(now);
+
   const record = rateLimitMap.get(id);
 
   if (!record || now > record.resetAt) {

@@ -45,7 +45,8 @@ export async function POST(req: NextRequest) {
       const recipientIsRegistered = (sellerCount ?? 0) > 0 || (customerCount ?? 0) > 0;
       if (!recipientIsRegistered) {
         console.warn('[send-email] blocked unregistered recipient', { from: authUser.id, to: normalizedTo });
-        return NextResponse.json({ error: 'Recipient not found in system' }, { status: 403 });
+        // Return generic 403 — do NOT reveal whether the address exists in the system.
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     }
 

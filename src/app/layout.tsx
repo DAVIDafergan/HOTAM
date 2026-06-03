@@ -3,7 +3,7 @@ import type {Metadata, Viewport} from 'next';
 import './globals.css';
 import { SupabaseClientProvider } from '@/lib/supabase-hooks';
 import { ClientWrapper } from '@/components/ClientWrapper';
-import { Analytics } from '@vercel/analytics/react';
+import { Analytics } from '@vercel/analytics/next';
 import localFont from 'next/font/local';
 import { AccessibilityButton } from '@/components/AccessibilityButton';
 

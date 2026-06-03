@@ -29,7 +29,7 @@ import {
   Info
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useAuth, useUser, initiateEmailSignUp, initiateSellerEmailSignUp, useSupabaseClient } from '@/lib/supabase-hooks';
+import { useAuth, useUser, useSupabaseClient } from '@/lib/supabase-hooks';
 import { useToast } from '@/hooks/use-toast';
 import Image from '@/components/SmartImage';
 import Link from 'next/link';
@@ -360,120 +360,58 @@ export default function SellerOnboarding() {
       }
 
       console.info('[seller-onboarding] signup start', { email: formData.email.trim().toLowerCase() });
-      // Sign up with role='seller' and profile metadata so the DB trigger can
-      // persist onboarding data immediately even before email confirmation.
-      // Persist the full seller profile so reconcileSellerAccount can recover it
-      // after the user clicks the confirmation link and signs in.
-      const {
-        first_name: _pendingFirstName,
-        last_name: _pendingLastName,
-        bank_account_number: _pendingBankAccountNumber,
-        has_scribe_certificate: _pendingHasScribeCertificate,
-        certificate_url: _pendingCertificateUrl,
-        ...pendingSellerProfilePayload
-      } = profilePayload;
-      try {
-        window.localStorage.setItem(
-          'pendingSellerProfile',
-          JSON.stringify({
-            _pending_email: formData.email.trim().toLowerCase(),
-            id: '',
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            ...pendingSellerProfilePayload,
-          }),
-        );
-      } catch (_storageErr) {
-        // localStorage unavailable — recovery will fall back to metadata only
-      }
-      const signUpData = await initiateSellerEmailSignUp(
-        auth,
-        formData.email,
-        formData.password,
-        {
-          role: 'seller',
+
+      // Create the seller via Admin API (email_confirm=true) so they can sign in immediately.
+      const registerResponse = await fetch('/api/register-seller', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email.trim().toLowerCase(),
+          password: formData.password,
           ...profilePayload,
-        },
-      );
+        }),
+      });
 
-      const userId: string | undefined =
-        (signUpData as any)?.user?.id ?? (signUpData as any)?.session?.user?.id;
+      if (!registerResponse.ok) {
+        const registerBody = await registerResponse.json().catch(() => ({}));
+        if (registerBody.error === 'email-already-in-use' || registerResponse.status === 409) {
+          toast({
+            variant: 'destructive',
+            title: 'האימייל כבר קיים במערכת',
+            description: 'אם שכחת סיסמה, בצע איפוס סיסמה והתחבר. אם זה חשבון לקוח קיים, התחבר עם אותו מייל ואז השלם הרשמה כסופר.',
+          });
+          setLoading(false);
+          return;
+        }
+        console.error('[seller-onboarding] register-seller failed', registerBody);
+        throw new Error(`register-seller failed (${registerResponse.status})`);
+      }
 
-      if (!userId) {
-        // Should not happen, but guard anyway.
+      // User is now created and email-confirmed server-side — sign them in.
+      const { data: signInData, error: signInError } = await db.auth.signInWithPassword({
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password,
+      });
+
+      if (signInError || !signInData.session) {
+        console.error('[seller-onboarding] signInWithPassword failed after registration', signInError);
         toast({
-          variant: 'destructive',
-          title: 'שגיאת הרשמה',
-          description: 'לא ניתן היה לאמת את החשבון.',
+          title: 'ההרשמה הסתיימה',
+          description: 'הפרופיל שלך הועבר לאישור מנהל. התחבר כדי להמשיך.',
         });
-        setLoading(false);
+        router.push('/login');
         return;
       }
 
-      if ((signUpData as any)?.session) {
-        // Session is immediately available (email confirmation disabled).
-        console.info('[seller-onboarding] signup session available', { userId });
-        await registerSellerWithSession(userId, 'signup-session-available', formData.email);
-
-        toast({ title: 'ההרשמה הסתיימה', description: 'הפרופיל שלך הועבר לאישור מנהל.' });
-        router.push('/seller/dashboard');
-      } else {
-        // No immediate session after signup.
-        // registerSellerWithSession requires an active session token — calling it
-        // here would fail with 401. Instead, rely on reconcileSellerAccount in
-        // app-provider (triggered on SIGNED_IN) plus the pendingSellerProfile
-        // already saved to localStorage above to register the seller row.
-        console.info('[seller-onboarding] signup has no immediate session — relying on reconcile', { userId });
-        setLoading(false);
-        toast({
-          title: 'ממשיכים...',
-          description: 'מתחבר לחשבון שלך.',
-        });
-        // Sign in immediately so reconcileSellerAccount fires and registers the seller row.
-        await new Promise(resolve => setTimeout(resolve, 800));
-        const { data: signInData, error: signInError } = await db.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password,
-        });
-        if (signInError || !signInData.session) {
-          toast({
-            title: 'ההרשמה הסתיימה',
-            description: 'הפרופיל שלך הועבר לאישור מנהל. התחבר כדי להמשיך.',
-          });
-          router.push('/login');
-          return;
-        }
-        // Now we have a session — register the seller row directly.
-        const token = signInData.session.access_token;
-        const response = await fetch('/api/register-seller', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: 'Bearer ' + token,
-          },
-          body: JSON.stringify({
-            id: signInData.session.user.id,
-            email: formData.email,
-            recovery_source: 'signup-signin-recovery',
-            ...profilePayload,
-          }),
-        });
-        if (!response.ok) {
-          const body = await response.json().catch(() => ({}));
-          console.error('[seller-onboarding] register-seller failed after signin', body);
-        }
-        toast({ title: 'ההרשמה הסתיימה', description: 'הפרופיל שלך הועבר לאישור מנהל.' });
-        router.push('/seller/dashboard');
-      }
+      toast({ title: 'ההרשמה הסתיימה', description: 'הפרופיל שלך הועבר לאישור מנהל.' });
+      router.push('/seller/dashboard');
     } catch (error: any) {
       setLoading(false);
+      console.error('[seller-onboarding] unexpected error', error);
       toast({
         variant: 'destructive',
         title: 'שגיאת הרשמה',
-        description:
-          error.code === 'auth/email-already-in-use'
-            ? 'האימייל כבר קיים במערכת. אם שכחת סיסמה, בצע איפוס סיסמה והתחבר. אם זה חשבון לקוח קיים, התחבר עם אותו מייל ואז השלם הרשמה כסופר.'
-            : 'חלה שגיאה בתהליך ההרשמה.',
+        description: 'חלה שגיאה בתהליך ההרשמה.',
       });
     }
   };

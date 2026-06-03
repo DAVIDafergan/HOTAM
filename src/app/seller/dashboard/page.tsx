@@ -867,6 +867,26 @@ function SellerDashboardContent() {
     return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>;
   }
 
+  // Show a waiting screen for sellers pending admin approval.
+  // Do NOT redirect — they are legitimate sellers, just not yet approved.
+  if (seller && seller.is_approved === false) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-8 text-center">
+        <Navbar />
+        <div className="mt-20 max-w-md">
+          <div className="text-4xl mb-4">⏳</div>
+          <h1 className="text-2xl font-black mb-2">הפרופיל שלך ממתין לאישור</h1>
+          <p className="text-muted-foreground">
+            קיבלנו את פרטיך והם נמצאים בבדיקה. נשלח אליך אימייל ברגע שהפרופיל יאושר.
+          </p>
+          <p className="text-sm text-muted-foreground mt-4">
+            לשאלות: <a href="mailto:support@hotam.shop" className="underline">support@hotam.shop</a>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col w-full gap-6 md:gap-8">
       {/* ── Welcome Banner ────────────────────────────────────────────── */}

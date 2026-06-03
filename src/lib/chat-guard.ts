@@ -77,7 +77,6 @@ const CONTACT_PHRASES = [
 
 const NAME_SHARING_PHRASES = [
   'קוראים לי',
-  'השם שלי',
   'שמי',
   'תחפש אותי',
   'חפש אותי',
@@ -143,6 +142,15 @@ export function analyzeChatMessage(text: string): ChatGuardResult {
   }
 
   if (NAME_SHARING_PHRASES.some((phrase) => normalized.includes(phrase))) {
+    return { blocked: true, reason: 'מסירת שם מזהה לצורך יצירת קשר חיצוני נחסמה' };
+  }
+
+  // 'השם שלי' alone is too broad — only block when combined with contact-seeking context.
+  const hasNamePhrase = normalized.includes('השם שלי');
+  const hasContactContext = ['תחפש', 'חפש', 'תמצא', 'תחפשי', 'תמצאי', 'גוגל', 'facebook', 'instagram'].some(
+    (ctx) => normalized.includes(ctx)
+  );
+  if (hasNamePhrase && hasContactContext) {
     return { blocked: true, reason: 'מסירת שם מזהה לצורך יצירת קשר חיצוני נחסמה' };
   }
 

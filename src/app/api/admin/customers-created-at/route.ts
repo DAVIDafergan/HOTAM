@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+// TECH-DEBT: This endpoint pages through all auth.users to find created_at.
+// Long-term fix: store created_at in the customers/sellers tables at signup time
+// (via DB trigger or register-seller API), then query it directly.
+// For now, cap MAX_PAGES lower to protect against timeout on large user bases.
 const PAGE_SIZE = 200;
-const MAX_PAGES = 50;
+const MAX_PAGES = 20; // Reduced from 50 — covers ~4,000 users before timeout risk.
 
 export async function POST(req: Request) {
   try {

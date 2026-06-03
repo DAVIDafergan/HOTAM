@@ -54,8 +54,9 @@ async function handleWebhook(req: Request) {
 
   const providedSecret =
     req.headers.get('x-sumit-secret') ||
-    req.headers.get('x-webhook-secret') ||
-    new URL(req.url).searchParams.get('secret');
+    req.headers.get('x-webhook-secret');
+  // NOTE: secret must NOT be accepted via URL query param — URLs are logged
+  // by proxies and Vercel, which would expose the secret in plain text.
 
   if (providedSecret !== webhookSecret) {
     console.warn('[webhook] Invalid secret, rejecting request');

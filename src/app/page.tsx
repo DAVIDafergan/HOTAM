@@ -13,13 +13,13 @@ import {
 import { HeroAnimation } from '@/components/HeroAnimation';
 
 const WorkFlow = dynamic(() => import('@/components/WorkFlow').then(mod => mod.WorkFlow), {
-  loading: () => <section aria-hidden="true" className="min-h-[680px] w-full bg-primary" />,
+  loading: () => <section aria-hidden="true" className="min-h-[680px] w-full bg-gradient-to-b from-primary/10 via-primary/5 to-primary/0 animate-pulse" />,
 });
 
 const HomeDeferredSections = dynamic(
   () => import('@/components/HomeDeferredSections').then(mod => mod.HomeDeferredSections),
   {
-    loading: () => <section aria-hidden="true" className="min-h-[900px] w-full bg-[#F8F9FA]" />,
+    loading: () => <section aria-hidden="true" className="min-h-[900px] w-full bg-gradient-to-b from-[#F8F9FA] via-[#F8F9FA]/80 to-[#F8F9FA]/0 animate-pulse" />,
   }
 );
 

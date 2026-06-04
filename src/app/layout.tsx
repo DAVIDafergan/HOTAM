@@ -21,7 +21,7 @@ const frank = localFont({
     },
   ],
   variable: '--font-frank',
-  preload: false,
+  preload: true,
   display: 'swap',
   fallback: ['serif'],
 });
@@ -40,7 +40,7 @@ const assistant = localFont({
     },
   ],
   variable: '--font-assistant',
-  preload: false,
+  preload: true,
   display: 'swap',
   fallback: ['Arial', 'sans-serif'],
 });
@@ -135,7 +135,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               html,body{margin:0;padding:0;background:#f9f7f1;color:#0f1a33}
-              body{font-family:var(--font-assistant),Arial,sans-serif}
+              body{font-family:var(--font-assistant),Arial,sans-serif;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
               h1,h2,h3,h4,h5,h6{font-family:var(--font-frank),serif}
               .section-shell{padding-top:5rem;padding-bottom:5rem}
             `,

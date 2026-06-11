@@ -189,16 +189,41 @@ export async function POST(req: Request) {
     }
     console.info('[register-seller] seller upserted', { source: recoverySource, userId: user.id });
 
-    // Remove any erroneous customers row for this user (e.g. created by the DB
-    // trigger when role metadata was missing at signup time).
+    // ⚠️ CRITICAL FIX: Remove any erroneous customers row for this user
+    // This can happen if:
+    // 1. User was initially registered as customer
+    // 2. User later converted to seller
+    // 3. The trigger created a customer row on initial auth signup
+    // If we don't clean this up, the user will be classified as 'customer' on next
+    // login because the session-role endpoint checks customers after sellers.
     const { error: custDeleteError } = await serviceClient
       .from('customers')
       .delete()
       .eq('id', user.id);
+
     if (custDeleteError) {
-      console.error('[register-seller] Failed to clean up customers row:', custDeleteError);
+      console.error('[register-seller] CRITICAL: Failed to clean up erroneous customer row', {
+        userId: user.id,
+        email: user.email,
+        error: custDeleteError,
+      });
+
+      // Log for monitoring/alerting - this needs manual review
+      // The user's role resolution will be broken on next login
+      return NextResponse.json(
+        {
+          error: 'Account setup incomplete',
+          message: 'Could not fully update your seller account. Please contact support.',
+          code: 'SELLER_CLEANUP_FAILED'
+        },
+        { status: 500 },
+      );
     } else {
-      console.info('[register-seller] customers cleanup completed', { source: recoverySource, userId: user.id });
+      console.info('[register-seller] customers cleanup completed', {
+        source: recoverySource,
+        userId: user.id,
+        email: user.email
+      });
     }
 
     // Ensure auth metadata reflects seller role so redirects work correctly

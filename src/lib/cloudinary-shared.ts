@@ -301,12 +301,6 @@ export function buildCloudinaryImageUrl(
     );
   }
 
-  // Don't wrap fresh S3 uploads in Cloudinary Fetch — they aren't cached yet
-  // and will fail. Return the S3 URL directly; Cloudinary processes it in background.
-  if (isS3Url(src)) {
-    return src;
-  }
-
   return `https://${CLOUDINARY_HOST}/${cloudName}/image/fetch/${transformation}/${encodeCloudinaryFetchUrl(src)}`;
 }
 

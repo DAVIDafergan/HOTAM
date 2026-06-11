@@ -10,7 +10,6 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useApp, useSupabaseClient, setDocumentNonBlocking } from '@/lib/supabase-hooks';
 import { doc, arrayUnion, arrayRemove } from '@/lib/supabase-compat';
 import { useToast } from '@/hooks/use-toast';
-import unsplashLoader from '@/lib/unsplashLoader';
 import { cn } from '@/lib/utils';
 
 export function ProductCard({ product, distanceKm, priority }: { product: any; distanceKm?: number; priority?: boolean }) {
@@ -64,7 +63,6 @@ export function ProductCard({ product, distanceKm, priority }: { product: any; d
       <Card className="group relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-primary/5 bg-white shadow-[0_16px_42px_rgba(15,23,42,0.08)] transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_25px_60px_rgba(15,23,42,0.14)] active:scale-[0.995] md:active:scale-100">
         <div className="relative h-48 overflow-hidden bg-primary/5 sm:h-52">
           <Image 
-            loader={unsplashLoader} 
             src={mainImage} 
             alt={displayTitle} 
             fill 

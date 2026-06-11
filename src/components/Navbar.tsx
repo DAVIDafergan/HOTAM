@@ -184,7 +184,7 @@ export function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-[100] p-4 md:p-5 pt-[max(1rem,env(safe-area-inset-top))]" role="navigation">
       <div className="container mx-auto max-w-7xl">
-        <div className="bg-white/78 backdrop-blur-xl border border-white/35 ring-1 ring-primary/5 shadow-premium-lg rounded-full px-5 sm:px-7 h-[4.5rem] flex items-center justify-between relative overflow-hidden">
+        <div className="bg-white/78 backdrop-blur-xl border border-white/35 ring-1 ring-primary/5 shadow-premium-lg rounded-full px-5 sm:px-7 h-[4.5rem] flex items-center justify-between relative">
           
           <div className="flex-1 flex items-center justify-start z-10 gap-2">
             {mounted && pathname !== '/' && (
@@ -310,8 +310,10 @@ export function Navbar() {
               </div>
             </div>
 
-            <div className="md:hidden absolute left-1/2 -translate-x-1/2">
-              <Logo />
+            <div className="md:hidden absolute left-1/2 -translate-x-1/2 pointer-events-none">
+              <div className="pointer-events-auto">
+                <Logo />
+              </div>
             </div>
           </div>
 

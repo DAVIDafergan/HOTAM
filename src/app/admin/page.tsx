@@ -343,13 +343,19 @@ export default function AdminDashboard() {
     const c = customersData;
     const o = visibleOrders.filter((x: any) => x.status === 'completed');
     const totalVolume = o.reduce((acc: number, x: any) => acc + Number(x.amount || 0), 0);
+    const siteEarnings = o.reduce((acc: number, x: any) => {
+      const amount = Number(x.amount || 0);
+      const type = x.product_name || '';
+      const rate = type === 'מגילה' ? 0.05 : type === 'ספר תורה' ? 0.12 : 0.20;
+      return acc + amount * rate;
+    }, 0);
     
     return {
       totalScribes: activeSellersCount || s.filter(x => x.is_approved).length,
       totalCustomers: allCustomersCount || c.length,
       productsSold: o.length,
       totalVolume: totalVolume,
-      siteEarnings: totalVolume * 0.20,
+      siteEarnings,
     };
   }, [activeSellers, customersData, visibleOrders, activeSellersCount, allCustomersCount]);
 
@@ -759,7 +765,7 @@ export default function AdminDashboard() {
 
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-12">
           <StatCard label="מחזור עסקאות" value={`₪${stats.totalVolume.toLocaleString()}`} icon={<TrendingUp />} color="bg-primary" />
-          <StatCard label="רווח אתר (20%)" value={`₪${stats.siteEarnings.toLocaleString()}`} icon={<Banknote />} color="bg-emerald-50 text-emerald-600" highlight />
+          <StatCard label="רווח אתר" value={`₪${stats.siteEarnings.toLocaleString()}`} icon={<Banknote />} color="bg-emerald-50 text-emerald-600" highlight />
           <StatCard label="סופרים פעילים" value={stats.totalScribes} icon={<Users />} color="bg-accent" />
           <StatCard label="לקוחות רשומים" value={stats.totalCustomers} icon={<UserRound />} color="bg-blue-500" />
           <StatCard label="מוצרים שנמכרו" value={stats.productsSold} icon={<ShoppingBag />} color="bg-orange-500" />

@@ -167,7 +167,8 @@ export function Navbar() {
           strokeWidth="1.5" 
           strokeLinecap="round" 
           strokeLinejoin="round" 
-          className="text-primary group-hover:rotate-6 transition-transform w-6 h-6 shrink-0 aspect-square"
+          className="text-primary group-hover:rotate-6 transition-transform shrink-0"
+          style={{ width: '24px', height: '24px', minWidth: '24px', minHeight: '24px' }}
           preserveAspectRatio="xMidYMid meet"
           aria-hidden="true"
         >
@@ -310,7 +311,7 @@ export function Navbar() {
               </div>
             </div>
 
-            <div className="md:hidden absolute left-1/2 -translate-x-1/2 pointer-events-none z-20">
+            <div className="md:hidden absolute inset-x-0 top-0 h-full flex items-center justify-center pointer-events-none z-20">
               <div className="pointer-events-auto">
                 <Logo />
               </div>

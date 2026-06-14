@@ -1629,10 +1629,10 @@ function SellerDashboardContent() {
                         <div className="flex justify-between items-center px-1">
                           <div className="flex items-center gap-1.5 text-muted-foreground">
                              <Info className="w-3.5 h-3.5" />
-                             <span className="text-[10px] font-bold">עמלת אתר (20%): ₪{formPrice !== '' ? (Number(formPrice) * 0.2).toFixed(0) : '---'}</span>
+                             <span className="text-[10px] font-bold">עמלת אתר ({formType === 'מגילה' ? '5' : formType === 'ספר תורה' ? '12' : '20'}%): ₪{formPrice !== '' ? (Number(formPrice) * (formType === 'מגילה' ? 0.05 : formType === 'ספר תורה' ? 0.12 : 0.20)).toFixed(0) : '---'}</span>
                           </div>
                           <div className="bg-emerald-600 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase">
-                            הרווח שלך: ₪{formPrice !== '' ? (Number(formPrice) * 0.8).toFixed(0) : '---'}
+                            הרווח שלך: ₪{formPrice !== '' ? (Number(formPrice) * (formType === 'מגילה' ? 0.95 : formType === 'ספר תורה' ? 0.88 : 0.80)).toFixed(0) : '---'}
                           </div>
                         </div>
                         <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mt-1">

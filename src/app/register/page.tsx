@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ShieldCheck, Loader2, Heart, Mail, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, Loader2, Heart, Mail, CheckCircle2, ShoppingBag, PenTool, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/dialog';
 
 export default function RegisterPage() {
+  const [selectedRole, setSelectedRole] = useState<'customer' | 'seller' | null>(null);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -193,6 +194,66 @@ export default function RegisterPage() {
     }
   };
 
+  // ── Role selection screen ───────────────────────────────────────────────────
+  if (!selectedRole) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Navbar />
+        <main className="flex-1 flex items-start justify-center p-4 pt-[calc(7.5rem+env(safe-area-inset-top))] md:items-center md:pt-24">
+          <div className="w-full max-w-2xl space-y-6 text-right" dir="rtl">
+            <div className="text-center space-y-2">
+              <h1 className="text-3xl font-black text-primary">הצטרפות לחותם</h1>
+              <p className="text-muted-foreground font-bold text-sm">בחר את סוג החשבון שברצונך לפתוח</p>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <button
+                onClick={() => setSelectedRole('customer')}
+                className="group relative flex flex-col items-center gap-4 p-8 bg-white rounded-[2rem] shadow-premium border-2 border-transparent hover:border-primary/30 transition-all text-center cursor-pointer"
+              >
+                <div className="w-16 h-16 bg-primary/5 rounded-full flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                  <ShoppingBag className="w-8 h-8 text-primary" />
+                </div>
+                <div className="space-y-1">
+                  <h2 className="text-xl font-black text-primary">לקוח</h2>
+                  <p className="text-muted-foreground text-sm font-bold leading-relaxed">
+                    רוצה לרכוש מזוזות, תפילין, ספרי תורה וכלי קודש מסופרים מוסמכים
+                  </p>
+                </div>
+                <div className="mt-auto w-full bg-primary/5 hover:bg-primary/10 text-primary font-black text-sm py-3 px-6 rounded-full group-hover:bg-primary group-hover:text-white transition-all">
+                  הרשמה כלקוח
+                </div>
+              </button>
+
+              <button
+                onClick={() => router.push('/onboarding/seller')}
+                className="group relative flex flex-col items-center gap-4 p-8 bg-white rounded-[2rem] shadow-premium border-2 border-transparent hover:border-accent/40 transition-all text-center cursor-pointer"
+              >
+                <div className="w-16 h-16 bg-accent/5 rounded-full flex items-center justify-center group-hover:bg-accent/10 transition-colors">
+                  <PenTool className="w-8 h-8 text-accent" />
+                </div>
+                <div className="space-y-1">
+                  <h2 className="text-xl font-black text-accent">סופר סת&quot;ם</h2>
+                  <p className="text-muted-foreground text-sm font-bold leading-relaxed">
+                    סופר מוסמך שרוצה למכור את יצירותיו ישירות ללקוחות דרך הפלטפורמה
+                  </p>
+                </div>
+                <div className="mt-auto w-full bg-accent/5 hover:bg-accent/10 text-accent font-black text-sm py-3 px-6 rounded-full group-hover:bg-accent group-hover:text-white transition-all">
+                  הרשמה כסופר
+                </div>
+              </button>
+            </div>
+            <p className="text-center text-sm text-muted-foreground font-bold">
+              כבר יש לך חשבון?{' '}
+              <Link href="/login" className="text-primary font-black hover:underline">
+                התחברות
+              </Link>
+            </p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   // ── Email-sent confirmation screen ──────────────────────────────────────────
   if (emailSent) {
     return (
@@ -269,7 +330,7 @@ export default function RegisterPage() {
                 <h1 className="mt-2 text-2xl font-headline font-black tracking-tight">ברוכים הבאים לחותם</h1>
               </div>
               <div className="space-y-1">
-                <h2 className="text-2xl md:text-3xl font-black text-primary">יצירת חשבון חדש</h2>
+                <h2 className="text-2xl md:text-3xl font-black text-primary">הרשמה כלקוח</h2>
                 <p className="text-muted-foreground text-sm font-black">הצטרפו לקהילת חותם עוד היום</p>
               </div>
 
@@ -388,8 +449,8 @@ export default function RegisterPage() {
                     התחברות
                   </Link>
                 </p>
-                <Button asChild variant="outline" className="w-full h-11 rounded-xl border-accent/40 text-accent hover:bg-accent/10 font-black">
-                  <Link href="/onboarding/seller">רוצים למכור? הצטרפו כסופר</Link>
+                <Button variant="ghost" onClick={() => setSelectedRole(null)} className="w-full h-11 rounded-xl font-black text-muted-foreground hover:text-primary gap-2">
+                  <ArrowRight className="w-4 h-4" /> חזרה לבחירת סוג חשבון
                 </Button>
               </div>
             </CardContent>

@@ -310,7 +310,7 @@ export function Navbar() {
               </div>
             </div>
 
-            <div className="md:hidden absolute left-1/2 -translate-x-1/2 pointer-events-none">
+            <div className="md:hidden absolute left-1/2 -translate-x-1/2 pointer-events-none z-20">
               <div className="pointer-events-auto">
                 <Logo />
               </div>
@@ -576,8 +576,11 @@ export function Navbar() {
             )}
 
             {!user && (
-              <Button asChild className="bg-primary text-white hover:bg-primary/95 px-7 h-10 rounded-full shadow-premium text-xs font-bold gap-2 border border-white/30">
-                <Link href="/login"> <LogIn className="w-3.5 h-3.5" /> התחברות</Link>
+              <Button asChild className="bg-primary text-white hover:bg-primary/95 h-9 w-9 p-0 md:h-10 md:w-auto md:px-7 rounded-full shadow-premium text-xs font-bold gap-2 border border-white/30 shrink-0">
+                <Link href="/login" aria-label="התחברות">
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span className="hidden md:inline">התחברות</span>
+                </Link>
               </Button>
             )}
           </div>

@@ -28,21 +28,32 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // 1. הגנה ראשונה: בדיקת המטא-דאטה קודם כל!
+    const metadataRole = typeof user.user_metadata?.role === 'string' 
+      ? user.user_metadata.role 
+      : null;
+
+    // אם המטא-דאטה מוגדרת כסופר או אדמין, נחזיר את זה מיד ולא נסתמך על הטבלאות שיש בהן כפילות
+    if (metadataRole && ['admin', 'seller'].includes(metadataRole)) {
+      return NextResponse.json({ role: metadataRole });
+    }
+
+    // 2. fallback: בדיקת הטבלאות במידה ואין תפקיד מוגדר במטא-דאטה
     const [{ data: adminRow }, { data: sellerRow }, { data: customerRow }] = await Promise.all([
       serviceClient.from('admins').select('id').eq('id', user.id).maybeSingle(),
       serviceClient.from('sellers').select('id').eq('id', user.id).maybeSingle(),
       serviceClient.from('customers').select('id').eq('id', user.id).maybeSingle(),
     ]);
 
-    const metadataRole = typeof user.user_metadata?.role === 'string' ? user.user_metadata.role : null;
+    // סדר עדיפויות מוגן: אדמין -> סופר -> לקוח
     const role: ResolvedRole = adminRow
       ? 'admin'
       : sellerRow
         ? 'seller'
         : customerRow
           ? 'customer'
-          : metadataRole === 'admin' || metadataRole === 'seller' || metadataRole === 'customer'
-            ? metadataRole
+          : metadataRole === 'customer'
+            ? 'customer'
             : null;
 
     return NextResponse.json({ role });

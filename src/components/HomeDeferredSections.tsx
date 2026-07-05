@@ -8,6 +8,7 @@ import { TorahExpertBanner } from '@/components/TorahExpertBanner';
 import homeAnimations from '@/components/home-animations.module.css';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { TopScribesCards, type TopScribeCard } from '@/components/TopScribesCards';
+import { ScrollFadeIn } from '@/components/ScrollFadeIn';
 
 const TOP_SCRIBES_LIMIT = 5;
 const TOP_SCRIBES_SECTION_TITLE = `${TOP_SCRIBES_LIMIT} סופרים מובילים`;
@@ -49,7 +50,7 @@ export async function HomeDeferredSections() {
       {topScribes.length > 0 && (
         <section className="section-shell bg-[#F8F9FA]" aria-labelledby="top-scribes-heading">
           <div className="container mx-auto px-4 md:px-5">
-            <div className="text-center mb-14 md:mb-24 space-y-6">
+            <ScrollFadeIn className="text-center mb-14 md:mb-24 space-y-6">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-accent/10 rounded-full text-accent font-black text-[10px] uppercase tracking-widest">
                 <Trophy className="w-3.5 h-3.5" /> נבחרת הסופרים
               </div>
@@ -57,7 +58,7 @@ export async function HomeDeferredSections() {
                 {TOP_SCRIBES_SECTION_TITLE}
               </h2>
               <div className="w-16 h-1 rounded-full bg-accent mx-auto" />
-            </div>
+            </ScrollFadeIn>
 
             <TopScribesCards topScribes={topScribes} />
           </div>
@@ -71,7 +72,7 @@ export async function HomeDeferredSections() {
           <div className="absolute top-0 left-0 w-full h-full opacity-[0.03] pointer-events-none">
             <svg width="100%" height="100%"><pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M 60 0 L 0 0 0 60" fill="none" stroke="white" strokeWidth="1"/></pattern><rect width="100%" height="100%" fill="url(#grid)" /></svg>
           </div>
-          <div className="container mx-auto px-4 md:px-5 text-center relative z-10 space-y-10">
+          <ScrollFadeIn className="container mx-auto px-4 md:px-5 text-center relative z-10 space-y-10">
             <div className={`inline-block p-5 bg-accent/20 rounded-full text-accent mb-2 ${homeAnimations.animateFloating}`}>
               <PenTool className="w-10 h-10" />
             </div>
@@ -86,7 +87,7 @@ export async function HomeDeferredSections() {
                 <Link href="/onboarding/seller">הצטרף כסופר למערכת</Link>
               </Button>
             </div>
-          </div>
+          </ScrollFadeIn>
         </section>
       )}
     </>

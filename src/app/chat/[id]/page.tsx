@@ -428,17 +428,22 @@ function ChatContent() {
       <main className="flex-1 flex flex-col max-w-3xl mx-auto w-full pt-20 sm:pt-24 pb-2 px-2 sm:px-4 overflow-hidden relative" role="main">
         <Card className="flex-1 flex flex-col shadow-premium border-none rounded-[2rem] sm:rounded-[3rem] overflow-hidden bg-white relative">
           
-          <CardHeader className="border-b p-4 flex flex-row items-center justify-between bg-primary text-white shrink-0">
+          <CardHeader className="border-b p-4 flex flex-row items-center justify-between bg-primary text-white shrink-0 backdrop-blur-md">
             <div className="flex items-center gap-3">
-              <Avatar className="h-10 w-10 border-2 border-white/20 shadow-sm">
-                <AvatarImage src={otherUserData?.profile_image} />
-                <AvatarFallback><User className="w-5 h-5 text-primary/20" /></AvatarFallback>
-              </Avatar>
+              <div className="relative shrink-0">
+                <Avatar className="h-11 w-11 border-2 border-white/20 shadow-sm">
+                  <AvatarImage src={otherUserData?.profile_image} />
+                  <AvatarFallback><User className="w-5 h-5 text-primary/20" /></AvatarFallback>
+                </Avatar>
+                {isOtherUserPresent && (
+                  <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-400 border-2 border-primary" aria-hidden="true" />
+                )}
+              </div>
               <div className="text-right">
-                <CardTitle className="text-base font-headline font-black tracking-tight">{displayName}</CardTitle>
+                <CardTitle className="text-base font-headline font-black tracking-tight leading-tight">{displayName}</CardTitle>
                 <div className="flex items-center gap-1.5 opacity-70">
                   <span className="text-[9px] font-bold uppercase tracking-widest">
-                    {otherSellerData ? 'מוכר מוסמך' : 'לקוח'}
+                    {isOtherUserPresent ? 'מחובר/ת כעת' : (otherSellerData ? 'מוכר מוסמך' : 'לקוח')}
                   </span>
                   {otherSellerData?.is_approved && <ShieldCheck className="w-3 h-3 text-accent" aria-label="מאומת" />}
                 </div>
@@ -464,11 +469,11 @@ function ChatContent() {
               const timeString = new Date(msg.timestamp).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
               
               return (
-                <div key={msg.id} className={`flex ${isMine ? 'justify-start' : 'justify-end'} animate-in fade-in slide-in-from-bottom-1`}>
-                  <div className={`max-w-[85%] p-3.5 sm:p-4 rounded-2xl text-base shadow-sm transition-all ${
-                    isMine 
-                      ? 'bg-primary text-white rounded-tr-none' 
-                      : 'bg-white text-primary border border-slate-100 rounded-tl-none'
+                <div key={msg.id} className={`flex ${isMine ? 'justify-start' : 'justify-end'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
+                  <div className={`max-w-[85%] sm:max-w-[70%] p-3.5 sm:p-4 rounded-[1.35rem] text-base shadow-[0_2px_10px_rgba(15,23,42,0.06)] transition-all ${
+                    isMine
+                      ? 'bg-primary text-white rounded-tr-md'
+                      : 'bg-white text-primary border border-slate-100 rounded-tl-md'
                   }`}>
                     {msg.is_payment_request ? (
                       <div className="space-y-3 min-w-[220px]">
@@ -491,7 +496,7 @@ function ChatContent() {
                           variant="outline"
                           asChild
                           className={cn(
-                            "w-full h-9 rounded-xl text-[10px] font-black",
+                            "w-full h-9 rounded-xl text-[10px] font-black transition-all duration-200",
                             isMine
                               ? "bg-white/10 border-white/20 text-white hover:bg-white/20"
                               : "bg-primary/5 border-primary/20 text-primary hover:bg-primary/10"
@@ -503,18 +508,25 @@ function ChatContent() {
                     ) : (
                       <p className="leading-relaxed font-medium text-right whitespace-pre-wrap">{msg.text}</p>
                     )}
-                    <p className={`text-[8px] mt-1.5 opacity-40 font-bold text-right`}>{timeString}</p>
-                    {isMine && (
-                      <p className={`text-[9px] font-black text-right leading-none -mt-0.5 ${msg.is_read ? 'text-blue-400 opacity-100' : 'text-white/40'}`}>
-                        {msg.is_read ? '✓✓' : '✓'}
-                      </p>
-                    )}
+                    <div className="flex items-center justify-end gap-1 mt-1.5">
+                      <p className="text-[8px] opacity-40 font-bold">{timeString}</p>
+                      {isMine && (
+                        <p className={`text-[9px] font-black leading-none ${msg.is_read ? 'text-blue-300 opacity-100' : 'text-white/40'}`}>
+                          {msg.is_read ? '✓✓' : '✓'}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
             })}
             {messages.length === 0 && !isMessagesLoading && (
-               <div className="text-center py-20 text-muted-foreground/30 italic text-xs">תחילת התכתבות עם {displayName}...</div>
+               <div className="flex flex-col items-center justify-center gap-3 py-20 text-center animate-in fade-in duration-500">
+                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/5">
+                   <Send className="h-5 w-5 text-primary/25" />
+                 </div>
+                 <p className="text-muted-foreground/40 italic text-xs">תחילת התכתבות עם {displayName}...</p>
+               </div>
             )}
           </CardContent>
 
@@ -527,16 +539,16 @@ function ChatContent() {
             )}
             
             <div className="flex gap-2 items-end">
-              <Button 
+              <Button
                 onClick={handleSendMessage}
-                size="icon" 
+                size="icon"
                 disabled={!newMessage.trim()}
-                className="rounded-full h-12 w-12 bg-primary hover:bg-primary/90 shrink-0 shadow-lg transition-transform active:scale-95"
+                className="rounded-full h-12 w-12 bg-primary hover:bg-primary/90 shrink-0 shadow-lg transition-all duration-200 hover:scale-105 active:scale-90 disabled:opacity-40 disabled:hover:scale-100"
                 aria-label="שלח הודעה"
               >
-                <Send className="w-5 h-5" />
+                <Send className="w-5 h-5 -translate-x-px" />
               </Button>
-              <textarea 
+              <textarea
                 value={newMessage}
                 onChange={(e) => {
                   setNewMessage(e.target.value);
@@ -544,7 +556,7 @@ function ChatContent() {
                 }}
                 placeholder="כתוב הודעה..."
                 rows={1}
-                className="flex-1 rounded-2xl bg-slate-100 border-none text-right py-3.5 px-4 text-base font-medium focus:ring-2 focus:ring-primary/10 resize-none max-h-32 transition-all overflow-hidden"
+                className="flex-1 rounded-2xl bg-slate-100 border border-transparent text-right py-3.5 px-4 text-base font-medium focus:ring-2 focus:ring-primary/15 focus:border-primary/10 focus:bg-white resize-none max-h-32 transition-all duration-200 overflow-hidden"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -627,19 +639,19 @@ function ChatContent() {
 
 function PaymentProductItem({ product, onSelect, highlight = false }: any) {
   return (
-    <button 
+    <button
       onClick={() => onSelect(product)}
-      className={`flex items-center gap-4 p-3 rounded-2xl border transition-all text-right group ${highlight ? 'border-accent bg-accent/5' : 'border-slate-100 hover:border-accent hover:bg-accent/5'}`}
+      className={`flex items-center gap-4 p-3 rounded-2xl border transition-all duration-200 text-right group active:scale-[0.98] ${highlight ? 'border-accent bg-accent/5' : 'border-slate-100 hover:border-accent hover:bg-accent/5'}`}
     >
       <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 border bg-muted">
-        {product.images?.[0] && <Image src={product.images[0]} alt={product.product_type} fill className="object-cover" />}
+        {product.images?.[0] && <Image src={product.images[0]} alt={product.product_type} fill sizes="56px" className="object-cover transition-transform duration-300 group-hover:scale-110" />}
       </div>
       <div className="flex-1 space-y-0.5">
         <h4 className="font-bold text-sm text-primary group-hover:text-accent transition-colors">{product.product_type}</h4>
         <p className="text-[10px] text-muted-foreground font-medium">{product.script_type}</p>
         <p className="text-sm font-black text-primary">₪{product.price}</p>
       </div>
-      <Plus className="w-5 h-5 text-accent opacity-0 group-hover:opacity-100 transition-all" />
+      <Plus className="w-5 h-5 text-accent opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:rotate-90" />
     </button>
   );
 }

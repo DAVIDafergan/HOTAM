@@ -89,12 +89,12 @@ export function ProductCard({ product, distanceKm, priority }: { product: any; d
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/5 text-primary transition-all duration-300 group-hover:bg-primary group-hover:text-white group-hover:scale-105">
                 <ChevronLeft className="h-4 w-4 transition-transform duration-300 group-hover:-translate-x-0.5" />
               </div>
-              <div className="space-y-1 text-right">
-                <h3 className="font-headline text-base font-black leading-snug text-primary sm:text-lg">
+              <div className="min-w-0 flex-1 space-y-1 text-right">
+                <h3 className="font-headline text-base font-black leading-snug text-primary line-clamp-2 sm:text-lg">
                   {displayTitle}
                   {product.sub_type && product.product_type !== 'מוצרי יודאיקה שונים' ? ` · ${product.sub_type}` : ''}
                 </h3>
-                <p className="text-[11px] font-medium leading-relaxed text-primary/50 sm:text-xs">
+                <p className="text-[11px] font-medium leading-relaxed text-primary/50 line-clamp-1 sm:text-xs">
                   {product.script_type || 'כתב מהודר'} {product.proofreading_level ? `• הגהה ${product.proofreading_level}` : ''}
                 </p>
               </div>

@@ -1261,17 +1261,18 @@ function SellerDashboardContent() {
 
                    <div className="md:col-span-2 space-y-10">
                       <div className="space-y-8">
+                        <h3 className="text-lg font-black text-primary flex items-center gap-2"><UserRound className="w-5 h-5 text-accent" /> פרטים אישיים</h3>
                         <div className="grid md:grid-cols-2 gap-4">
-                          <div className="space-y-2"><Label>שם פרטי *</Label><Input value={profileData.first_name} onChange={e => setProfileData({...profileData, first_name: e.target.value})} className="text-slate-900 rounded-xl h-11" /></div>
-                          <div className="space-y-2"><Label>שם משפחה *</Label><Input value={profileData.last_name} onChange={e => setProfileData({...profileData, last_name: e.target.value})} className="text-slate-900 rounded-xl h-11" /></div>
+                          <div className="space-y-2"><Label>שם פרטי *</Label><Input value={profileData.first_name} onChange={e => setProfileData({...profileData, first_name: e.target.value})} className="text-slate-900 rounded-xl h-12" /></div>
+                          <div className="space-y-2"><Label>שם משפחה *</Label><Input value={profileData.last_name} onChange={e => setProfileData({...profileData, last_name: e.target.value})} className="text-slate-900 rounded-xl h-12" /></div>
                         </div>
                         <div className="grid md:grid-cols-2 gap-4">
-                          <div className="space-y-2"><Label>טלפון *</Label><Input type="tel" inputMode="tel" autoComplete="tel" value={profileData.phone} onChange={e => setProfileData({...profileData, phone: e.target.value})} className="text-slate-900 rounded-xl h-11" dir="ltr" /></div>
-                          <div className="space-y-2"><Label>גיל *</Label><Input type="number" min={0} value={profileData.age === '' ? '' : String(profileData.age)} onChange={e => setProfileData({...profileData, age: e.target.value === '' ? '' : Number(e.target.value)})} className="text-slate-900 rounded-xl h-11" /></div>
+                          <div className="space-y-2"><Label>טלפון *</Label><Input type="tel" inputMode="tel" autoComplete="tel" value={profileData.phone} onChange={e => setProfileData({...profileData, phone: e.target.value})} className="text-slate-900 rounded-xl h-12" dir="ltr" /></div>
+                          <div className="space-y-2"><Label>גיל *</Label><Input type="number" min={0} value={profileData.age === '' ? '' : String(profileData.age)} onChange={e => setProfileData({...profileData, age: e.target.value === '' ? '' : Number(e.target.value)})} className="text-slate-900 rounded-xl h-12" /></div>
                         </div>
                         <div className="grid md:grid-cols-2 gap-4">
-                          <div className="space-y-2"><Label>עיר *</Label><Input ref={sellerCityInputRef} value={profileData.city} onChange={e => setProfileData({...profileData, city: e.target.value})} className="text-slate-900 rounded-xl h-11" /></div>
-                          <div className="space-y-2"><Label>כתובת *</Label><Input ref={sellerAddressInputRef} value={profileData.address} onChange={e => setProfileData({...profileData, address: e.target.value})} className="text-slate-900 rounded-xl h-11" /></div>
+                          <div className="space-y-2"><Label>עיר *</Label><Input ref={sellerCityInputRef} value={profileData.city} onChange={e => setProfileData({...profileData, city: e.target.value})} className="text-slate-900 rounded-xl h-12" /></div>
+                          <div className="space-y-2"><Label>כתובת *</Label><Input ref={sellerAddressInputRef} value={profileData.address} onChange={e => setProfileData({...profileData, address: e.target.value})} className="text-slate-900 rounded-xl h-12" /></div>
                         </div>
                       </div>
 
@@ -1280,9 +1281,23 @@ function SellerDashboardContent() {
                         <div className="space-y-4 text-right">
                           <Label className="font-bold block mb-2">הסמכת סופר סת''ם *</Label>
                           <RadioGroup value={profileData.has_scribe_certificate} onValueChange={v => setProfileData({...profileData, has_scribe_certificate: v})} className="grid gap-2">
-                            <div className="flex items-center space-x-reverse space-x-3 p-4 border rounded-2xl cursor-pointer" onClick={() => setProfileData({...profileData, has_scribe_certificate: 'valid'})}><RadioGroupItem value="valid" id="settings-v1" /><Label htmlFor="settings-v1" className="flex-1 cursor-pointer font-bold">תעודה בתוקף</Label></div>
-                            <div className="flex items-center space-x-reverse space-x-3 p-4 border rounded-2xl cursor-pointer" onClick={() => setProfileData({...profileData, has_scribe_certificate: 'expired'})}><RadioGroupItem value="expired" id="settings-v2" /><Label htmlFor="settings-v2" className="flex-1 cursor-pointer font-bold">הייתה תעודה בעבר</Label></div>
-                            <div className="flex items-center space-x-reverse space-x-3 p-4 border rounded-2xl cursor-pointer" onClick={() => setProfileData({...profileData, has_scribe_certificate: 'none'})}><RadioGroupItem value="none" id="settings-v3" /><Label htmlFor="settings-v3" className="flex-1 cursor-pointer font-bold">ללא תעודה</Label></div>
+                            {[
+                              { value: 'valid', id: 'settings-v1', label: 'תעודה בתוקף' },
+                              { value: 'expired', id: 'settings-v2', label: 'הייתה תעודה בעבר' },
+                              { value: 'none', id: 'settings-v3', label: 'ללא תעודה' },
+                            ].map((opt) => (
+                              <div
+                                key={opt.id}
+                                className={cn(
+                                  "flex min-h-[56px] items-center space-x-reverse space-x-3 p-4 border rounded-2xl transition-all duration-200 cursor-pointer hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98]",
+                                  profileData.has_scribe_certificate === opt.value ? 'border-primary bg-primary/5 ring-2 ring-primary/5' : 'border-input/60'
+                                )}
+                                onClick={() => setProfileData({...profileData, has_scribe_certificate: opt.value})}
+                              >
+                                <RadioGroupItem value={opt.value} id={opt.id} />
+                                <Label htmlFor={opt.id} className="flex-1 cursor-pointer font-bold">{opt.label}</Label>
+                              </div>
+                            ))}
                           </RadioGroup>
                           {(profileData.has_scribe_certificate === 'valid' || profileData.has_scribe_certificate === 'expired') && (
                             <div className="mt-4 p-6 bg-accent/5 rounded-2xl border-2 border-dashed border-accent/20 text-center space-y-4">
@@ -1318,19 +1333,47 @@ function SellerDashboardContent() {
                           <div className="space-y-4">
                             <Label className="font-bold">לימוד תורה קבוע *</Label>
                             <RadioGroup value={profileData.torah_study_frequency} onValueChange={v => setProfileData({...profileData, torah_study_frequency: v})} className="flex flex-col gap-2">
-                              <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => setProfileData({...profileData, torah_study_frequency: 'fixed'})}><RadioGroupItem value="fixed" id="settings-t1" /><Label htmlFor="settings-t1" className="text-xs cursor-pointer">קובע עיתים</Label></div>
-                              <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => setProfileData({...profileData, torah_study_frequency: 'half-day'})}><RadioGroupItem value="half-day" id="settings-t2" /><Label htmlFor="settings-t2" className="text-xs cursor-pointer">אברך חצי יום</Label></div>
-                              <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => setProfileData({...profileData, torah_study_frequency: 'full-day'})}><RadioGroupItem value="full-day" id="settings-t3" /><Label htmlFor="settings-t3" className="text-xs cursor-pointer">אברך יום שלם</Label></div>
+                              {[
+                                { value: 'fixed', id: 'settings-t1', label: 'קובע עיתים' },
+                                { value: 'half-day', id: 'settings-t2', label: 'אברך חצי יום' },
+                                { value: 'full-day', id: 'settings-t3', label: 'אברך יום שלם' },
+                              ].map((opt) => (
+                                <div
+                                  key={opt.id}
+                                  className={cn(
+                                    "flex min-h-[48px] items-center space-x-reverse space-x-3 rounded-xl border p-3 transition-all duration-200 cursor-pointer hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98]",
+                                    profileData.torah_study_frequency === opt.value ? 'border-primary bg-primary/5 ring-2 ring-primary/5' : 'border-input/60 bg-white'
+                                  )}
+                                  onClick={() => setProfileData({...profileData, torah_study_frequency: opt.value})}
+                                >
+                                  <RadioGroupItem value={opt.value} id={opt.id} />
+                                  <Label htmlFor={opt.id} className="flex-1 text-xs cursor-pointer">{opt.label}</Label>
+                                </div>
+                              ))}
                             </RadioGroup>
                           </div>
 
                           <div className="space-y-4">
                             <Label className="font-bold">מנהג טבילה *</Label>
                             <RadioGroup value={profileData.mikveh_frequency} onValueChange={v => setProfileData({...profileData, mikveh_frequency: v})} className="flex flex-col gap-2">
-                              <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => setProfileData({...profileData, mikveh_frequency: 'ezra'})}><RadioGroupItem value="ezra" id="settings-m1" /><Label htmlFor="settings-m1" className="text-xs cursor-pointer">טבילת עזרא</Label></div>
-                              <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => setProfileData({...profileData, mikveh_frequency: 'before'})}><RadioGroupItem value="before" id="settings-m2" /><Label htmlFor="settings-m2" className="text-xs cursor-pointer">לפני כתיבה</Label></div>
-                              <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => setProfileData({...profileData, mikveh_frequency: 'daily'})}><RadioGroupItem value="daily" id="settings-m3" /><Label htmlFor="settings-m3" className="text-xs cursor-pointer">כל יום</Label></div>
-                              <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => setProfileData({...profileData, mikveh_frequency: 'never'})}><RadioGroupItem value="never" id="settings-m4" /><Label htmlFor="settings-m4" className="text-xs cursor-pointer">לא טובל בכלל</Label></div>
+                              {[
+                                { value: 'ezra', id: 'settings-m1', label: 'טבילת עזרא' },
+                                { value: 'before', id: 'settings-m2', label: 'לפני כתיבה' },
+                                { value: 'daily', id: 'settings-m3', label: 'כל יום' },
+                                { value: 'never', id: 'settings-m4', label: 'לא טובל בכלל' },
+                              ].map((opt) => (
+                                <div
+                                  key={opt.id}
+                                  className={cn(
+                                    "flex min-h-[48px] items-center space-x-reverse space-x-3 rounded-xl border p-3 transition-all duration-200 cursor-pointer hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98]",
+                                    profileData.mikveh_frequency === opt.value ? 'border-primary bg-primary/5 ring-2 ring-primary/5' : 'border-input/60 bg-white'
+                                  )}
+                                  onClick={() => setProfileData({...profileData, mikveh_frequency: opt.value})}
+                                >
+                                  <RadioGroupItem value={opt.value} id={opt.id} />
+                                  <Label htmlFor={opt.id} className="flex-1 text-xs cursor-pointer">{opt.label}</Label>
+                                </div>
+                              ))}
                             </RadioGroup>
                           </div>
                         </div>
@@ -1349,9 +1392,16 @@ function SellerDashboardContent() {
                             <Label className="font-bold">רמת הידור ממוצעת *</Label>
                             <RadioGroup value={profileData.script_level} onValueChange={v => setProfileData({...profileData, script_level: v})} className="grid grid-cols-2 gap-2 mt-2">
                               {SIGNUP_SCRIPT_LEVELS.map((level) => (
-                                <div key={level} className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => setProfileData({...profileData, script_level: level})}>
+                                <div
+                                  key={level}
+                                  className={cn(
+                                    "flex min-h-[48px] items-center space-x-reverse space-x-2 rounded-xl border p-3 transition-all duration-200 cursor-pointer hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98]",
+                                    profileData.script_level === level ? 'border-primary bg-primary/5 ring-2 ring-primary/5' : 'border-input/60 bg-white'
+                                  )}
+                                  onClick={() => setProfileData({...profileData, script_level: level})}
+                                >
                                   <RadioGroupItem value={level} id={`settings-level-${level}`} />
-                                  <Label htmlFor={`settings-level-${level}`} className="text-xs cursor-pointer">{level}</Label>
+                                  <Label htmlFor={`settings-level-${level}`} className="flex-1 text-xs cursor-pointer">{level}</Label>
                                 </div>
                               ))}
                             </RadioGroup>
@@ -1361,22 +1411,33 @@ function SellerDashboardContent() {
                         <div className="space-y-4">
                           <Label className="font-bold">סוגי כתב שהנך כותב (בחר את כולם) *</Label>
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                            {SIGNUP_SCRIPT_TYPES.map(type => (
-                              <div key={type} className={cn("flex items-center space-x-reverse space-x-2 p-3 border rounded-xl transition-all cursor-pointer", profileData.script_types.includes(type) ? 'bg-primary/5 border-primary' : 'bg-white')}>
-                                <Checkbox
-                                  id={`settings-script-${type}`}
-                                  checked={profileData.script_types.includes(type)}
-                                  onCheckedChange={() => {
-                                    const exists = profileData.script_types.includes(type);
-                                    const updated = exists
-                                      ? profileData.script_types.filter(t => t !== type)
-                                      : [...profileData.script_types, type];
-                                    setProfileData({...profileData, script_types: updated});
-                                  }}
-                                />
-                                <Label htmlFor={`settings-script-${type}`} className="cursor-pointer text-xs font-bold">{type}</Label>
-                              </div>
-                            ))}
+                            {SIGNUP_SCRIPT_TYPES.map(type => {
+                              const toggleThisType = () => {
+                                const exists = profileData.script_types.includes(type);
+                                const updated = exists
+                                  ? profileData.script_types.filter(t => t !== type)
+                                  : [...profileData.script_types, type];
+                                setProfileData({...profileData, script_types: updated});
+                              };
+                              return (
+                                <div
+                                  key={type}
+                                  className={cn(
+                                    "flex min-h-[48px] items-center space-x-reverse space-x-2 p-3 border rounded-xl transition-all duration-200 cursor-pointer hover:border-primary/40 active:scale-[0.98]",
+                                    profileData.script_types.includes(type) ? 'bg-primary/5 border-primary ring-2 ring-primary/5' : 'bg-white border-input/60 hover:bg-primary/5'
+                                  )}
+                                  onClick={toggleThisType}
+                                >
+                                  <Checkbox
+                                    id={`settings-script-${type}`}
+                                    checked={profileData.script_types.includes(type)}
+                                    onCheckedChange={toggleThisType}
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                  <Label htmlFor={`settings-script-${type}`} className="flex-1 cursor-pointer text-xs font-bold" onClick={(e) => e.stopPropagation()}>{type}</Label>
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
 
@@ -1942,8 +2003,8 @@ function SellerDashboardContent() {
 
 function QuickStat({ label, value, icon, color, highlight = false }: any) {
   return (
-    <Card className={cn("border-none shadow-premium rounded-[2rem] p-4 bg-white flex flex-col items-center justify-center text-center transition-all", highlight ? "ring-2 ring-primary/20" : "")}>
-      <div className={cn("p-3 rounded-2xl shadow-sm mb-2", color)}>{icon}</div>
+    <Card className={cn("group border-none shadow-premium rounded-[2rem] p-4 bg-white flex flex-col items-center justify-center text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-xl", highlight ? "ring-2 ring-primary/20" : "")}>
+      <div className={cn("p-3 rounded-2xl shadow-sm mb-2 transition-transform duration-300 group-hover:scale-110", color)}>{icon}</div>
       <p className="text-[8px] text-muted-foreground font-black uppercase tracking-widest">{label}</p>
       <p className="text-lg font-black text-primary tabular-nums">{value}</p>
     </Card>

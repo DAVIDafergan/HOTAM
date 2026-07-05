@@ -11,6 +11,7 @@ import {
   Users,
 } from 'lucide-react';
 import { HeroAnimation } from '@/components/HeroAnimation';
+import { ScrollFadeIn } from '@/components/ScrollFadeIn';
 
 const WorkFlow = dynamic(() => import('@/components/WorkFlow').then(mod => mod.WorkFlow), {
   loading: () => <section aria-hidden="true" className="min-h-[680px] w-full bg-gradient-to-b from-primary/10 via-primary/5 to-primary/0 animate-pulse" />,
@@ -38,7 +39,7 @@ export default function Home() {
         <section className="section-shell section-surface relative overflow-hidden" aria-labelledby="about-heading">
           <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none" />
           <div className="container mx-auto px-4 md:px-5 relative z-10">
-            <div className="max-w-4xl mx-auto text-center space-y-10 mb-16 md:mb-28">
+            <ScrollFadeIn className="max-w-4xl mx-auto text-center space-y-10 mb-16 md:mb-28">
               <h2 id="about-heading" className="text-[2.35rem] md:text-[3.3rem] font-headline font-black text-primary tracking-tight">
                 חותם – מלאכת שמיים ושקיפות מלאה
               </h2>
@@ -46,27 +47,33 @@ export default function Home() {
               <p className="text-lg md:text-[1.35rem] text-primary/70 leading-relaxed font-medium mx-auto max-w-3xl">
                 פלטפורמת חותם נולדה מתוך חזון לחבר בין עולם הסת''ם העתיק לבין הטכנולוגיה המודרנית, תוך שמירה על קדושה וכשרות ללא פשרות. אנו מאפשרים לכם לרכוש כלי קודש ישירות מסופרי סת''ם יראי שמיים, ללא פערי תיווך ובשקיפות מלאה על זהות הכותב, רמת ההידור והנהגת הקדושה שלו.
               </p>
-            </div>
+            </ScrollFadeIn>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10">
-              <AboutCard
-                icon={<HandHeart className="w-8 h-8" />}
-                title="קנייה ישירה מהסופר"
-                desc="חיבור ישיר ואישי המבטל את פערי התיווך ומבטיח תגמול הוגן לסופר ומחיר אטרקטיבי ללקוח."
-              />
-              <AboutCard
-                icon={<ShieldCheck className="w-8 h-8" />}
-                title="אימות והסמכה קפדנית"
-                desc="כל סופר באתר עובר תהליך אימות מסמכים, תעודות ורקע מקצועי כדי להבטיח את כשרות המוצר."
-              />
-              <AboutCard
-                icon={<Users className="w-8 h-8" />}
-                title="שקיפות ללא פשרות"
-                desc="מידע מלא על הנהגת הסופר, תדירות הטבילה, סדר יום של לימוד תורה ודוגמאות כתיבה חיות."
-              />
+              <ScrollFadeIn delay={0}>
+                <AboutCard
+                  icon={<HandHeart className="w-8 h-8" />}
+                  title="קנייה ישירה מהסופר"
+                  desc="חיבור ישיר ואישי המבטל את פערי התיווך ומבטיח תגמול הוגן לסופר ומחיר אטרקטיבי ללקוח."
+                />
+              </ScrollFadeIn>
+              <ScrollFadeIn delay={0.12}>
+                <AboutCard
+                  icon={<ShieldCheck className="w-8 h-8" />}
+                  title="אימות והסמכה קפדנית"
+                  desc="כל סופר באתר עובר תהליך אימות מסמכים, תעודות ורקע מקצועי כדי להבטיח את כשרות המוצר."
+                />
+              </ScrollFadeIn>
+              <ScrollFadeIn delay={0.24}>
+                <AboutCard
+                  icon={<Users className="w-8 h-8" />}
+                  title="שקיפות ללא פשרות"
+                  desc="מידע מלא על הנהגת הסופר, תדירות הטבילה, סדר יום של לימוד תורה ודוגמאות כתיבה חיות."
+                />
+              </ScrollFadeIn>
             </div>
 
-            <div className="mt-16 md:mt-28 text-center">
+            <ScrollFadeIn className="mt-16 md:mt-28 text-center">
               <div className="flex flex-col items-center gap-3">
                 <Button size="lg" asChild className="rounded-full gap-3 font-black text-white bg-primary hover:bg-primary/90 hover:scale-105 active:scale-95 focus:ring-4 focus:ring-primary/30 transition-all duration-300 px-12 h-16 shadow-xl">
                   <Link href="/search?view=all">
@@ -76,7 +83,7 @@ export default function Home() {
                   </Link>
                 </Button>
               </div>
-            </div>
+            </ScrollFadeIn>
           </div>
         </section>
 

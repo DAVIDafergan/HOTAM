@@ -155,32 +155,35 @@ export function Navbar() {
     router.refresh();
   };
 
-  const Logo = ({ className = "" }: { className?: string }) => (
-    <Link href="/" className={`flex items-center gap-2 group whitespace-nowrap ${className}`} onClick={() => setIsOpen(false)} aria-label="חותם - דף הבית">
-      <div className="flex items-center gap-1.5 shrink-0">
-        <svg 
-          width="24" 
-          height="24" 
-          viewBox="0 0 24 24" 
-          fill="none" 
-          stroke="currentColor" 
-          strokeWidth="1.5" 
-          strokeLinecap="round" 
-          strokeLinejoin="round" 
-          className="text-primary group-hover:rotate-6 transition-transform shrink-0"
-          style={{ width: '24px', height: '24px', minWidth: '24px', minHeight: '24px' }}
-          preserveAspectRatio="xMidYMid meet"
-          aria-hidden="true"
-        >
-          <path d="m12 19 7-7 3 3-7 7-3-3z" />
-          <path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
-          <path d="m2 2l5 5" />
-          <path d="m11 11l1 1" />
-        </svg>
-        <span className="text-xl font-headline font-black text-primary leading-none tracking-tighter uppercase whitespace-nowrap shrink-0">HOTAM</span>
-      </div>
-    </Link>
-  );
+  const Logo = ({ className = "", compact = false }: { className?: string; compact?: boolean }) => {
+    const iconSize = compact ? 20 : 24;
+    return (
+      <Link href="/" className={`flex items-center gap-2 group whitespace-nowrap transition-transform duration-200 active:scale-95 ${className}`} onClick={() => setIsOpen(false)} aria-label="חותם - דף הבית">
+        <div className={`flex items-center shrink-0 ${compact ? 'gap-1' : 'gap-1.5'}`}>
+          <svg
+            width={iconSize}
+            height={iconSize}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="text-primary group-hover:rotate-6 transition-transform duration-300 shrink-0"
+            style={{ width: `${iconSize}px`, height: `${iconSize}px`, minWidth: `${iconSize}px`, minHeight: `${iconSize}px` }}
+            preserveAspectRatio="xMidYMid meet"
+            aria-hidden="true"
+          >
+            <path d="m12 19 7-7 3 3-7 7-3-3z" />
+            <path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
+            <path d="m2 2l5 5" />
+            <path d="m11 11l1 1" />
+          </svg>
+          <span className={`font-headline font-black text-primary leading-none tracking-tighter uppercase whitespace-nowrap shrink-0 ${compact ? 'text-lg' : 'text-xl'}`}>HOTAM</span>
+        </div>
+      </Link>
+    );
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-[100] p-4 md:p-5 pt-[max(1rem,env(safe-area-inset-top))]" role="navigation">
@@ -311,9 +314,9 @@ export function Navbar() {
               </div>
             </div>
 
-            <div className="md:hidden absolute inset-x-0 top-0 h-full flex items-center justify-center pointer-events-none z-20">
+            <div className="md:hidden absolute inset-x-0 top-0 h-full flex items-center justify-center pointer-events-none z-0">
               <div className="pointer-events-auto">
-                <Logo />
+                <Logo compact />
               </div>
             </div>
           </div>
@@ -577,9 +580,9 @@ export function Navbar() {
             )}
 
             {!user && (
-              <Button asChild className="bg-primary text-white hover:bg-primary/95 h-9 w-9 p-0 md:h-10 md:w-auto md:px-7 rounded-full shadow-premium text-xs font-bold gap-2 border border-white/30 shrink-0">
+              <Button asChild className="bg-primary text-white hover:bg-primary/95 h-10 w-10 p-0 md:h-10 md:w-auto md:px-7 rounded-full shadow-premium text-xs font-bold gap-2 border border-white/30 shrink-0 transition-transform duration-200 hover:scale-105 active:scale-95">
                 <Link href="/login" aria-label="התחברות">
-                  <LogIn className="w-3.5 h-3.5" />
+                  <LogIn className="w-4 h-4 md:w-3.5 md:h-3.5" />
                   <span className="hidden md:inline">התחברות</span>
                 </Link>
               </Button>

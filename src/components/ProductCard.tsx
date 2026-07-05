@@ -72,22 +72,22 @@ export function ProductCard({ product, distanceKm, priority }: { product: any; d
             className="object-cover transition-transform duration-1000 group-hover:scale-110" 
           />
           <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/50 to-transparent" />
-          <button 
-            onClick={handleToggleFavorite} 
+          <button
+            onClick={handleToggleFavorite}
             className={cn(
-              "absolute left-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full transition-all touch-manipulation",
+              "absolute left-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full transition-all duration-200 touch-manipulation hover:scale-110 active:scale-90",
               isFavorite ? 'bg-white text-primary shadow-lg' : 'bg-white/70 backdrop-blur-md text-primary/40 hover:bg-white shadow-sm'
             )}
             aria-label={isFavorite ? 'הסר ממועדפים' : 'הוסף למועדפים'}
           >
-            <Heart className={cn("h-4 w-4", isFavorite ? 'fill-current' : '')} />
+            <Heart className={cn("h-4 w-4 transition-transform duration-200", isFavorite ? 'fill-current' : '')} />
           </button>
         </div>
         <CardContent className="flex flex-1 flex-col space-y-3 p-4 text-right sm:p-5">
           <div className="space-y-2.5">
             <div className="flex items-start justify-between gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/5 text-primary transition-all group-hover:bg-primary/10">
-                <ChevronLeft className="h-4 w-4" />
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/5 text-primary transition-all duration-300 group-hover:bg-primary group-hover:text-white group-hover:scale-105">
+                <ChevronLeft className="h-4 w-4 transition-transform duration-300 group-hover:-translate-x-0.5" />
               </div>
               <div className="space-y-1 text-right">
                 <h3 className="font-headline text-base font-black leading-snug text-primary sm:text-lg">
@@ -109,18 +109,12 @@ export function ProductCard({ product, distanceKm, priority }: { product: any; d
             )}
           </div>
 
-          <div className="mt-auto flex items-end justify-between border-t border-primary/5 pt-3.5">
-            <div className="text-left">
-              <p className="text-[10px] font-medium tracking-[0.15em] text-primary/30">כולל מע״מ</p>
-              <p className="text-[13px] font-medium text-primary/45 sm:text-sm">₪{finalPrice}</p>
+          <div className="mt-auto border-t border-primary/5 pt-3.5">
+            <div className="flex items-end justify-end gap-1 text-primary">
+              <span className="text-[1.8rem] font-black tracking-tight sm:text-3xl">{finalPrice}</span>
+              <span className="pb-1 text-base font-black text-primary/70 sm:text-lg">₪</span>
             </div>
-            <div className="text-right">
-              <div className="flex items-end justify-end gap-1 text-primary">
-                <span className="text-[1.8rem] font-black tracking-tight sm:text-3xl">{product.price}</span>
-                <span className="pb-1 text-base font-black text-primary/70 sm:text-lg">₪</span>
-              </div>
-              <p className="text-[10px] font-medium text-primary/35">לפני מע״מ</p>
-            </div>
+            <p className="text-[10px] font-medium text-primary/35">המחירים כוללים מע״מ</p>
           </div>
         </CardContent>
       </Card>

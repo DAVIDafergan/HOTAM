@@ -572,7 +572,10 @@ export default function SellerProfile({
                               <p className="font-black text-primary text-sm md:text-base tracking-tight group-hover:text-accent transition-colors leading-tight line-clamp-1">
                                {p.product_type}{p.sub_type ? ` + ${p.sub_type}` : ''}
                               </p>
-                              <p className="text-lg font-black text-accent">₪{p.price}</p>
+                              <div className="space-y-0.5">
+                                <p className="text-lg font-black text-accent">₪{(Number(p.price) * 1.18).toFixed(0)}</p>
+                                <p className="text-[9px] font-medium text-primary/35">המחירים כוללים מע"מ</p>
+                              </div>
                                <Button variant="link" size="sm" asChild className="p-0 h-auto mt-1 text-[9px] font-black uppercase tracking-widest">
                                  <Link href={`/products/${p.id}`} prefetch={true}>לפרטים מלאים ←</Link>
                                </Button>

@@ -70,33 +70,23 @@ export async function uploadImageDirect(
   await putFileWithProgress(presignedUrl, file, contentType, onProgress);
   onProgress?.(100);
 
-  try {
-    const completeRes = await fetch('/api/upload-image/complete', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(authToken ? { Authorization: 'Bearer ' + authToken } : {}),
-        'x-upload-context': keyPrefix === 'onboarding' ? 'onboarding' : 'authenticated',
-      },
-      body: JSON.stringify({
-        publicUrl,
-        key,
-        fileName: file.name,
-        contentType,
-        assetKind,
-      }),
-    });
+  // The file is already live at `publicUrl` — resolve now so the UI can render it immediately.
+  // The Cloudinary migration/metadata persistence is a background nicety and must not block that.
+  void fetch('/api/upload-image/complete', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(authToken ? { Authorization: 'Bearer ' + authToken } : {}),
+      'x-upload-context': keyPrefix === 'onboarding' ? 'onboarding' : 'authenticated',
+    },
+    body: JSON.stringify({
+      publicUrl,
+      key,
+      fileName: file.name,
+      contentType,
+      assetKind,
+    }),
+  }).catch(() => undefined);
 
-    if (!completeRes.ok) {
-      return { url: publicUrl, metadata: null };
-    }
-
-    const result = await completeRes.json();
-    return {
-      url: result?.url || publicUrl,
-      metadata: result?.metadata || null,
-    };
-  } catch {
-    return { url: publicUrl, metadata: null };
-  }
+  return { url: publicUrl, metadata: null };
 }

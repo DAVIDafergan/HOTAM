@@ -911,13 +911,13 @@ export default function AdminDashboard() {
 
 function StatCard({ label, value, icon, color, highlight = false }: any) {
   return (
-    <Card className={`border-none shadow-premium rounded-[2rem] overflow-hidden bg-white transition-all hover:translate-y-[-4px] ${highlight ? 'ring-2 ring-emerald-500/20' : ''}`}>
+    <Card className={`group border-none shadow-premium rounded-[2rem] overflow-hidden bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${highlight ? 'ring-2 ring-emerald-500/20' : ''}`}>
       <CardContent className="p-5 flex items-center justify-between">
         <div className="text-right">
           <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1">{label}</p>
           <p className="text-2xl font-black text-primary tabular-nums">{value}</p>
         </div>
-        <div className={`p-3 rounded-2xl shadow-lg text-white ${color}`}>
+        <div className={`p-3 rounded-2xl shadow-lg text-white transition-transform duration-300 group-hover:scale-110 ${color}`}>
           {icon}
         </div>
       </CardContent>

@@ -476,8 +476,8 @@ export function ProductDetailsClient({
         {/* Mobile Header Actions */}
         <div className="mb-8 mt-4 flex justify-end md:hidden">
           <div className="flex gap-2">
-            <Button variant="outline" size="icon" onClick={handleShare} className="rounded-full bg-white shadow-sm"><Share2 className="w-4 h-4" /></Button>
-            <Button variant="outline" size="icon" onClick={handleToggleFavorite} className={cn("rounded-full bg-white shadow-sm transition-all", isFavorite ? 'bg-accent text-primary' : '')}><Heart className={cn("w-4 h-4", isFavorite ? 'fill-current' : '')} /></Button>
+            <Button variant="outline" size="icon" onClick={handleShare} className="rounded-full bg-white shadow-sm transition-all duration-200 hover:scale-110 hover:shadow-md active:scale-90"><Share2 className="w-4 h-4" /></Button>
+            <Button variant="outline" size="icon" onClick={handleToggleFavorite} className={cn("rounded-full bg-white shadow-sm transition-all duration-200 hover:scale-110 hover:shadow-md active:scale-90", isFavorite ? 'bg-accent text-primary' : '')}><Heart className={cn("w-4 h-4 transition-transform duration-200", isFavorite ? 'fill-current' : '')} /></Button>
           </div>
         </div>
 
@@ -493,9 +493,9 @@ export function ProductDetailsClient({
                 dragOriginRef.current = null;
                 setIsImageDialogOpen(true);
               }}
-              className="relative block aspect-square w-full rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-premium bg-white border-4 border-white text-right"
+              className="group relative block aspect-square w-full rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-premium bg-white border-4 border-white text-right transition-shadow duration-300 hover:shadow-2xl"
             >
-              <Image loader={unsplashLoader} src={currentImage} alt={product.product_type} fill priority kind="product" sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
+              <Image loader={unsplashLoader} src={currentImage} alt={product.product_type} fill priority kind="product" sizes="(max-width: 768px) 100vw, 50vw" className="object-cover transition-transform duration-700 group-hover:scale-105" />
               {product.quantity <= 0 && (
                 <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center">
                   <Badge variant="destructive" className="px-8 py-3 text-sm font-black uppercase tracking-widest rounded-full shadow-2xl">אזל מהמלאי</Badge>
@@ -516,12 +516,12 @@ export function ProductDetailsClient({
             {images.length > 1 && (
               <div className="flex gap-3 overflow-x-auto py-2 no-scrollbar px-1">
                 {images.map((img: string, i: number) => (
-                  <button 
-                    key={i} 
-                    onClick={() => setSelectedImageIdx(i)} 
+                  <button
+                    key={i}
+                    onClick={() => setSelectedImageIdx(i)}
                     className={cn(
-                      "relative w-20 h-20 rounded-2xl overflow-hidden border-4 transition-all shrink-0 shadow-sm",
-                      selectedImageIdx === i ? 'border-accent scale-105' : 'border-white hover:border-accent/30'
+                      "relative w-20 h-20 rounded-2xl overflow-hidden border-4 transition-all duration-200 shrink-0 shadow-sm",
+                      selectedImageIdx === i ? 'border-accent scale-105 shadow-md' : 'border-white hover:border-accent/30 hover:scale-105'
                     )}
                   >
                     <Image loader={unsplashLoader} src={img} alt="Thumb" fill kind="product" sizes="80px" className="object-cover" />
@@ -560,7 +560,7 @@ export function ProductDetailsClient({
                       <span className="text-accent text-2xl md:text-3xl font-black">₪</span>
                     </div>
                     <p className="text-xs font-black text-primary/60 uppercase tracking-[0.15em] mt-1 whitespace-nowrap">
-                      {hasDelivery ? 'כולל מע"מ ומשלוח' : 'כולל מע"מ'}
+                      {hasDelivery ? 'המחירים כוללים מע"מ ומשלוח' : 'המחירים כוללים מע"מ'}
                     </p>
                   </div>
 

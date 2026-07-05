@@ -571,11 +571,11 @@ export default function SellerOnboarding() {
                   </div>
                   
                   <RadioGroup value={formData.businessType} onValueChange={(v) => updateField('businessType', v)} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className={cn("flex items-center space-x-reverse space-x-2 p-3 border rounded-xl bg-white transition-all cursor-pointer", formData.businessType === 'osek_patur' ? 'border-primary ring-2 ring-primary/5' : '')} onClick={() => updateField('businessType', 'osek_patur')}>
+                    <div className={cn("flex min-h-[48px] items-center space-x-reverse space-x-2 p-3 border rounded-xl bg-white transition-all duration-200 cursor-pointer hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98]", formData.businessType === 'osek_patur' ? 'border-primary ring-2 ring-primary/5' : 'border-input/60')} onClick={() => updateField('businessType', 'osek_patur')}>
                       <RadioGroupItem value="osek_patur" id="bp1" />
                       <Label htmlFor="bp1" className="text-xs font-bold cursor-pointer">עוסק פטור</Label>
                     </div>
-                    <div className={cn("flex items-center space-x-reverse space-x-2 p-3 border rounded-xl bg-white transition-all cursor-pointer", formData.businessType === 'business' ? 'border-primary ring-2 ring-primary/5' : '')} onClick={() => updateField('businessType', 'business')}>
+                    <div className={cn("flex min-h-[48px] items-center space-x-reverse space-x-2 p-3 border rounded-xl bg-white transition-all duration-200 cursor-pointer hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98]", formData.businessType === 'business' ? 'border-primary ring-2 ring-primary/5' : 'border-input/60')} onClick={() => updateField('businessType', 'business')}>
                       <RadioGroupItem value="business" id="bp2" />
                       <Label htmlFor="bp2" className="text-xs font-bold cursor-pointer">עוסק מורשה / חברה</Label>
                     </div>
@@ -668,9 +668,23 @@ export default function SellerOnboarding() {
                 <div className="space-y-4 text-right">
                   <Label className="font-bold block mb-2">הסמכת סופר סת''ם *</Label>
                   <RadioGroup value={formData.hasScribeCertificate} onValueChange={(v) => updateField('hasScribeCertificate', v)} className="grid gap-2">
-                    <div className="flex items-center space-x-reverse space-x-3 p-4 border rounded-2xl cursor-pointer" onClick={() => updateField('hasScribeCertificate', 'valid')}><RadioGroupItem value="valid" id="v1" /><Label htmlFor="v1" className="flex-1 cursor-pointer font-bold">תעודה בתוקף</Label></div>
-                    <div className="flex items-center space-x-reverse space-x-3 p-4 border rounded-2xl cursor-pointer" onClick={() => updateField('hasScribeCertificate', 'expired')}><RadioGroupItem value="expired" id="v2" /><Label htmlFor="v2" className="flex-1 cursor-pointer font-bold">הייתה תעודה בעבר</Label></div>
-                    <div className="flex items-center space-x-reverse space-x-3 p-4 border rounded-2xl cursor-pointer" onClick={() => updateField('hasScribeCertificate', 'none')}><RadioGroupItem value="none" id="v3" /><Label htmlFor="v3" className="flex-1 cursor-pointer font-bold">ללא תעודה</Label></div>
+                    {[
+                      { value: 'valid', id: 'v1', label: 'תעודה בתוקף' },
+                      { value: 'expired', id: 'v2', label: 'הייתה תעודה בעבר' },
+                      { value: 'none', id: 'v3', label: 'ללא תעודה' },
+                    ].map((opt) => (
+                      <div
+                        key={opt.id}
+                        className={cn(
+                          "flex min-h-[56px] items-center space-x-reverse space-x-3 p-4 border rounded-2xl transition-all duration-200 cursor-pointer hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98]",
+                          formData.hasScribeCertificate === opt.value ? 'border-primary bg-primary/5 ring-2 ring-primary/5' : 'border-input/60'
+                        )}
+                        onClick={() => updateField('hasScribeCertificate', opt.value)}
+                      >
+                        <RadioGroupItem value={opt.value} id={opt.id} />
+                        <Label htmlFor={opt.id} className="flex-1 cursor-pointer font-bold">{opt.label}</Label>
+                      </div>
+                    ))}
                   </RadioGroup>
 
                   {(formData.hasScribeCertificate === 'valid' || formData.hasScribeCertificate === 'expired') && (
@@ -707,19 +721,47 @@ export default function SellerOnboarding() {
                   <div className="space-y-4">
                     <Label className="font-bold">לימוד תורה קבוע *</Label>
                     <RadioGroup value={formData.torahStudyFrequency} onValueChange={(v) => updateField('torahStudyFrequency', v)} className="flex flex-col gap-2">
-                      <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => updateField('torahStudyFrequency', 'fixed')}><RadioGroupItem value="fixed" id="t1" /><Label htmlFor="t1" className="text-xs cursor-pointer">קובע עיתים</Label></div>
-                      <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => updateField('torahStudyFrequency', 'half-day')}><RadioGroupItem value="half-day" id="t2" /><Label htmlFor="t2" className="text-xs cursor-pointer">אברך חצי יום</Label></div>
-                      <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => updateField('torahStudyFrequency', 'full-day')}><RadioGroupItem value="full-day" id="t3" /><Label htmlFor="t3" className="text-xs cursor-pointer">אברך יום שלם</Label></div>
+                      {[
+                        { value: 'fixed', id: 't1', label: 'קובע עיתים' },
+                        { value: 'half-day', id: 't2', label: 'אברך חצי יום' },
+                        { value: 'full-day', id: 't3', label: 'אברך יום שלם' },
+                      ].map((opt) => (
+                        <div
+                          key={opt.id}
+                          className={cn(
+                            "flex min-h-[48px] items-center space-x-reverse space-x-3 rounded-xl border p-3 transition-all duration-200 cursor-pointer hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98]",
+                            formData.torahStudyFrequency === opt.value ? 'border-primary bg-primary/5 ring-2 ring-primary/5' : 'border-input/60 bg-white'
+                          )}
+                          onClick={() => updateField('torahStudyFrequency', opt.value)}
+                        >
+                          <RadioGroupItem value={opt.value} id={opt.id} />
+                          <Label htmlFor={opt.id} className="flex-1 text-xs cursor-pointer">{opt.label}</Label>
+                        </div>
+                      ))}
                     </RadioGroup>
                   </div>
 
                   <div className="space-y-4">
                     <Label className="font-bold">מנהג טבילה *</Label>
                     <RadioGroup value={formData.mikvehFrequency} onValueChange={(v) => updateField('mikvehFrequency', v)} className="flex flex-col gap-2">
-                      <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => updateField('mikvehFrequency', 'ezra')}><RadioGroupItem value="ezra" id="m1" /><Label htmlFor="m1" className="text-xs cursor-pointer">טבילת עזרא</Label></div>
-                      <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => updateField('mikvehFrequency', 'before')}><RadioGroupItem value="before" id="m2" /><Label htmlFor="m2" className="text-xs cursor-pointer">לפני כתיבה</Label></div>
-                      <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => updateField('mikvehFrequency', 'daily')}><RadioGroupItem value="daily" id="m3" /><Label htmlFor="m3" className="text-xs cursor-pointer">כל יום</Label></div>
-                      <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => updateField('mikvehFrequency', 'never')}><RadioGroupItem value="never" id="m4" /><Label htmlFor="m4" className="text-xs cursor-pointer">לא טובל בכלל</Label></div>
+                      {[
+                        { value: 'ezra', id: 'm1', label: 'טבילת עזרא' },
+                        { value: 'before', id: 'm2', label: 'לפני כתיבה' },
+                        { value: 'daily', id: 'm3', label: 'כל יום' },
+                        { value: 'never', id: 'm4', label: 'לא טובל בכלל' },
+                      ].map((opt) => (
+                        <div
+                          key={opt.id}
+                          className={cn(
+                            "flex min-h-[48px] items-center space-x-reverse space-x-3 rounded-xl border p-3 transition-all duration-200 cursor-pointer hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98]",
+                            formData.mikvehFrequency === opt.value ? 'border-primary bg-primary/5 ring-2 ring-primary/5' : 'border-input/60 bg-white'
+                          )}
+                          onClick={() => updateField('mikvehFrequency', opt.value)}
+                        >
+                          <RadioGroupItem value={opt.value} id={opt.id} />
+                          <Label htmlFor={opt.id} className="flex-1 text-xs cursor-pointer">{opt.label}</Label>
+                        </div>
+                      ))}
                     </RadioGroup>
                   </div>
                 </div>
@@ -741,9 +783,23 @@ export default function SellerOnboarding() {
                   <div className="space-y-2">
                     <Label className="font-bold">רמת הידור ממוצעת *</Label>
                     <RadioGroup value={formData.scriptLevel} onValueChange={(v) => updateField('scriptLevel', v)} className="grid grid-cols-2 gap-2 mt-2">
-                      <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => updateField('scriptLevel', 'כשר')}><RadioGroupItem value="כשר" id="ls" /><Label htmlFor="ls" className="text-xs cursor-pointer">כשר</Label></div>
-                      <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => updateField('scriptLevel', 'מהודר')}><RadioGroupItem value="מהודר" id="lm" /><Label htmlFor="lm" className="text-xs font-black text-accent cursor-pointer">מהודר</Label></div>
-                      <div className="flex items-center space-x-reverse space-x-2 cursor-pointer" onClick={() => updateField('scriptLevel', 'מהודר מאד')}><RadioGroupItem value="מהודר מאד" id="lx" /><Label htmlFor="lx" className="text-xs font-black text-primary cursor-pointer">מהודר מאד</Label></div>
+                      {[
+                        { value: 'כשר', id: 'ls', label: 'כשר', labelClass: '' },
+                        { value: 'מהודר', id: 'lm', label: 'מהודר', labelClass: 'font-black text-accent' },
+                        { value: 'מהודר מאד', id: 'lx', label: 'מהודר מאד', labelClass: 'font-black text-primary' },
+                      ].map((opt) => (
+                        <div
+                          key={opt.id}
+                          className={cn(
+                            "flex min-h-[48px] items-center space-x-reverse space-x-2 rounded-xl border p-3 transition-all duration-200 cursor-pointer hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98]",
+                            formData.scriptLevel === opt.value ? 'border-primary bg-primary/5 ring-2 ring-primary/5' : 'border-input/60 bg-white'
+                          )}
+                          onClick={() => updateField('scriptLevel', opt.value)}
+                        >
+                          <RadioGroupItem value={opt.value} id={opt.id} />
+                          <Label htmlFor={opt.id} className={cn("flex-1 text-xs cursor-pointer", opt.labelClass)}>{opt.label}</Label>
+                        </div>
+                      ))}
                     </RadioGroup>
                   </div>
                 </div>
@@ -752,9 +808,16 @@ export default function SellerOnboarding() {
                   <Label className="font-bold">סוגי כתב שהנך כותב (בחר את כולם) *</Label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {['ספרדי', 'בית יוסף', 'האר"י', 'אדמו"ר הזקן'].map(type => (
-                      <div key={type} className={cn("flex items-center space-x-reverse space-x-2 p-3 border rounded-xl transition-all cursor-pointer", formData.scriptTypes.includes(type) ? 'bg-primary/5 border-primary' : 'bg-white')}>
-                        <Checkbox id={type} checked={formData.scriptTypes.includes(type)} onCheckedChange={() => toggleScriptType(type)} />
-                        <Label htmlFor={type} className="cursor-pointer text-xs font-bold">{type}</Label>
+                      <div
+                        key={type}
+                        className={cn(
+                          "flex min-h-[48px] items-center space-x-reverse space-x-2 p-3 border rounded-xl transition-all duration-200 cursor-pointer hover:border-primary/40 active:scale-[0.98]",
+                          formData.scriptTypes.includes(type) ? 'bg-primary/5 border-primary ring-2 ring-primary/5' : 'bg-white border-input/60 hover:bg-primary/5'
+                        )}
+                        onClick={() => toggleScriptType(type)}
+                      >
+                        <Checkbox id={type} checked={formData.scriptTypes.includes(type)} onCheckedChange={() => toggleScriptType(type)} onClick={(e) => e.stopPropagation()} />
+                        <Label htmlFor={type} className="flex-1 cursor-pointer text-xs font-bold">{type}</Label>
                       </div>
                     ))}
                   </div>

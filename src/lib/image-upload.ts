@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { uploadImageDirect } from '@/lib/upload-image';
+import { compressImageFile } from '@/lib/image-compression';
 import type { ImageAssetKind } from '@/lib/cloudinary-shared';
 
 const ALLOWED_IMAGE_TYPES = new Set([
@@ -41,7 +42,12 @@ function validateUploadFile(file: File): void {
 
 export async function uploadImageViaApi(
   file: File,
-  options?: { client?: SupabaseClient; uploadContext?: 'onboarding'; assetKind?: ImageAssetKind }
+  options?: {
+    client?: SupabaseClient;
+    uploadContext?: 'onboarding';
+    assetKind?: ImageAssetKind;
+    onProgress?: (percent: number) => void;
+  }
 ): Promise<string> {
   const result = await uploadImageAssetViaApi(file, options);
   return result.url;
@@ -49,11 +55,20 @@ export async function uploadImageViaApi(
 
 export async function uploadImageAssetViaApi(
   file: File,
-  options?: { client?: SupabaseClient; uploadContext?: 'onboarding'; assetKind?: ImageAssetKind }
+  options?: {
+    client?: SupabaseClient;
+    uploadContext?: 'onboarding';
+    assetKind?: ImageAssetKind;
+    onProgress?: (percent: number) => void;
+  }
 ) {
   validateUploadFile(file);
-  const contentType = getImageMimeType(file);
-  if (!contentType) throw new Error('סוג קובץ לא נתמך.');
+  const originalContentType = getImageMimeType(file);
+  if (!originalContentType) throw new Error('סוג קובץ לא נתמך.');
+
+  // Compress on the client before it ever leaves the device — cuts upload time and storage costs.
+  const uploadFile = await compressImageFile(file);
+  const contentType = getImageMimeType(uploadFile) || originalContentType;
 
   let authToken: string | undefined;
   if (options?.client) {
@@ -65,7 +80,13 @@ export async function uploadImageAssetViaApi(
 
   const keyPrefix = options?.uploadContext === 'onboarding' ? 'onboarding' : 'products';
 
-  return uploadImageDirect(file, { authToken, keyPrefix, contentType, assetKind: options?.assetKind });
+  return uploadImageDirect(uploadFile, {
+    authToken,
+    keyPrefix,
+    contentType,
+    assetKind: options?.assetKind,
+    onProgress: options?.onProgress,
+  });
 }
 
 export async function cleanupImageAssetsViaApi(

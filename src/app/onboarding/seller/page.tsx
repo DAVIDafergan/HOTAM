@@ -11,6 +11,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
 import { 
   User, 
   Shield, 
@@ -44,6 +45,56 @@ import {
 import { cn } from "@/lib/utils";
 import { getCityFromAddressComponents, loadGoogleMapsPlacesScript } from '@/lib/google-maps';
 import { cleanupImageAssetsViaApi, uploadImageViaApi } from '@/lib/image-upload';
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function validateOnboardingField(
+  field: string,
+  value: string,
+  context?: { isExistingCustomer?: boolean }
+): string | undefined {
+  switch (field) {
+    case 'firstName':
+      return value.trim().length < 2 ? 'שם פרטי חייב לכלול לפחות 2 תווים' : undefined;
+    case 'lastName':
+      return value.trim().length < 2 ? 'שם משפחה חייב לכלול לפחות 2 תווים' : undefined;
+    case 'businessId':
+      return value.trim().length < 2 ? 'יש להזין מספר עוסק / ח.פ תקין' : undefined;
+    case 'businessName':
+      return value.trim().length < 2 ? 'יש להזין שם עסק' : undefined;
+    case 'bankName':
+      return !value.trim() ? 'יש להזין שם בנק' : undefined;
+    case 'bankBranch':
+      return !/^\d{2,4}$/.test(value.trim()) ? 'מספר סניף אינו תקין' : undefined;
+    case 'bankAccountNumber':
+      return value.trim().length < 4 ? 'מספר חשבון אינו תקין' : undefined;
+    case 'email':
+      return !EMAIL_REGEX.test(value.trim()) ? 'כתובת אימייל אינה תקינה' : undefined;
+    case 'password':
+      return !context?.isExistingCustomer && value.length < 6 ? 'הסיסמה חייבת לכלול לפחות 6 תווים' : undefined;
+    case 'phone':
+      return !/^0\d{8,9}$/.test(value.replace(/[\s-]/g, '')) ? 'מספר טלפון אינו תקין (למשל 0501234567)' : undefined;
+    case 'age': {
+      const n = Number(value);
+      return (!value || Number.isNaN(n) || n < 16 || n > 120) ? 'יש להזין גיל תקין (16–120)' : undefined;
+    }
+    case 'city':
+      return !value.trim() ? 'יש להזין עיר' : undefined;
+    case 'address':
+      return !value.trim() ? 'יש להזין כתובת' : undefined;
+    default:
+      return undefined;
+  }
+}
+
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return (
+    <p className="flex items-center gap-1 text-[11px] font-bold text-destructive">
+      <AlertCircle className="w-3 h-3 shrink-0" />{message}
+    </p>
+  );
+}
 
 export default function SellerOnboarding() {
   const [step, setStep] = useState(1);
@@ -97,6 +148,27 @@ export default function SellerOnboarding() {
 
   const updateField = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string | undefined>>({});
+  const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
+
+  const updateFieldWithValidation = (field: string, value: any) => {
+    updateField(field, value);
+    if (touchedFields[field]) {
+      setFieldErrors(prev => ({
+        ...prev,
+        [field]: validateOnboardingField(field, String(value ?? ''), { isExistingCustomer }),
+      }));
+    }
+  };
+
+  const handleFieldBlur = (field: string) => {
+    setTouchedFields(prev => ({ ...prev, [field]: true }));
+    setFieldErrors(prev => ({
+      ...prev,
+      [field]: validateOnboardingField(field, String((formData as any)[field] ?? ''), { isExistingCustomer }),
+    }));
   };
 
   // Pre-fill email when an existing customer opens the form
@@ -186,11 +258,17 @@ export default function SellerOnboarding() {
     }));
   };
 
+  const [uploadProgress, setUploadProgress] = useState<{ cert: number | null; samples: number | null }>({
+    cert: null,
+    samples: null,
+  });
+
   const uploadImage = async (
     file: File,
-    assetKind: 'certificate' | 'writing_sample'
+    assetKind: 'certificate' | 'writing_sample',
+    onProgress?: (percent: number) => void
   ): Promise<string> => {
-    return uploadImageViaApi(file, { client: db, uploadContext: 'onboarding', assetKind });
+    return uploadImageViaApi(file, { client: db, uploadContext: 'onboarding', assetKind, onProgress });
   };
 
   const cleanupImages = async (urls: string[]) => {
@@ -208,7 +286,10 @@ export default function SellerOnboarding() {
         const firstFile = allFiles[0];
         if (!firstFile) return;
         const previousCertificateUrl = formData.certificateUrl;
-        const uploadedUrl = await uploadImage(firstFile, 'certificate');
+        setUploadProgress(prev => ({ ...prev, cert: 0 }));
+        const uploadedUrl = await uploadImage(firstFile, 'certificate', (percent) => {
+          setUploadProgress(prev => ({ ...prev, cert: percent }));
+        });
         updateField('certificateUrl', uploadedUrl);
         if (previousCertificateUrl && previousCertificateUrl !== uploadedUrl) {
           void cleanupImages([previousCertificateUrl]);
@@ -216,7 +297,13 @@ export default function SellerOnboarding() {
         return;
       }
 
-      const uploadedUrls = await Promise.all(allFiles.map((file) => uploadImage(file, 'writing_sample')));
+      const fileProgresses = new Array(allFiles.length).fill(0);
+      setUploadProgress(prev => ({ ...prev, samples: 0 }));
+      const uploadedUrls = await Promise.all(allFiles.map((file, idx) => uploadImage(file, 'writing_sample', (percent) => {
+        fileProgresses[idx] = percent;
+        const average = Math.round(fileProgresses.reduce((sum, p) => sum + p, 0) / fileProgresses.length);
+        setUploadProgress(prev => ({ ...prev, samples: average }));
+      })));
       setFormData(prev => ({
         ...prev,
         writingSamples: [...prev.writingSamples, ...uploadedUrls]
@@ -225,6 +312,8 @@ export default function SellerOnboarding() {
       const message = error instanceof Error ? error.message : 'העלאת התמונה נכשלה.';
       console.error('Onboarding image upload error:', error);
       toast({ variant: 'destructive', title: 'שגיאת העלאה', description: message });
+    } finally {
+      setUploadProgress({ cert: null, samples: null });
     }
   };
 
@@ -241,21 +330,20 @@ export default function SellerOnboarding() {
 
   const validateStep = () => {
     if (step === 1) {
-      if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.city || !formData.address || !formData.age) {
-        toast({ variant: "destructive", title: "פרטים חסרים", description: "כל השדות האישיים הם חובה." });
-        return false;
-      }
-      // Password is only required for new registrations (not existing logged-in customers)
-      if (!isExistingCustomer && (!formData.password || formData.password.length < 6)) {
-        toast({ variant: "destructive", title: "סיסמה חלשה", description: "לפחות 6 תווים." });
-        return false;
-      }
-      if (!formData.businessId || !formData.businessName) {
-        toast({ variant: "destructive", title: "פרטי עסק חסרים", description: "חובה להזין מספר עוסק ושם עסק רשום." });
-        return false;
-      }
-      if (!formData.bankName || !formData.bankBranch || !formData.bankAccountNumber) {
-        toast({ variant: "destructive", title: "פרטי בנק חסרים", description: "חובה להזין פרטי חשבון בנק לקבלת תשלומים." });
+      const stepFields = [
+        'firstName', 'lastName', 'businessId', 'businessName',
+        'bankName', 'bankBranch', 'bankAccountNumber',
+        'email', 'phone', 'age', 'city', 'address',
+        ...(!isExistingCustomer ? ['password'] : []),
+      ];
+      const nextErrors: Record<string, string | undefined> = {};
+      stepFields.forEach((field) => {
+        nextErrors[field] = validateOnboardingField(field, String((formData as any)[field] ?? ''), { isExistingCustomer });
+      });
+      setFieldErrors(prev => ({ ...prev, ...nextErrors }));
+      setTouchedFields(prev => ({ ...prev, ...Object.fromEntries(stepFields.map((field) => [field, true])) }));
+      if (Object.values(nextErrors).some(Boolean)) {
+        toast({ variant: "destructive", title: "פרטים חסרים או שגויים", description: "אנא תקן/י את השדות המסומנים באדום." });
         return false;
       }
     }
@@ -441,8 +529,16 @@ export default function SellerOnboarding() {
             {step === 1 && (
               <div className="grid gap-6">
                 <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2"><Label>שם פרטי *</Label><Input value={formData.firstName} onChange={(e) => updateField('firstName', e.target.value)} required className="text-slate-900 rounded-xl" /></div>
-                  <div className="space-y-2"><Label>שם משפחה *</Label><Input value={formData.lastName} onChange={(e) => updateField('lastName', e.target.value)} required className="text-slate-900 rounded-xl" /></div>
+                  <div className="space-y-2">
+                    <Label>שם פרטי *</Label>
+                    <Input value={formData.firstName} onChange={(e) => updateFieldWithValidation('firstName', e.target.value)} onBlur={() => handleFieldBlur('firstName')} autoComplete="given-name" required className={cn("text-slate-900 rounded-xl h-12", fieldErrors.firstName && "border-destructive")} />
+                    <FieldError message={fieldErrors.firstName} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>שם משפחה *</Label>
+                    <Input value={formData.lastName} onChange={(e) => updateFieldWithValidation('lastName', e.target.value)} onBlur={() => handleFieldBlur('lastName')} autoComplete="family-name" required className={cn("text-slate-900 rounded-xl h-12", fieldErrors.lastName && "border-destructive")} />
+                    <FieldError message={fieldErrors.lastName} />
+                  </div>
                 </div>
 
                 <div className="space-y-4 p-6 bg-primary/5 rounded-2xl border border-primary/10">
@@ -488,11 +584,13 @@ export default function SellerOnboarding() {
                   <div className="grid md:grid-cols-2 gap-4 pt-2">
                     <div className="space-y-2">
                       <Label className="text-xs font-bold">מספר עוסק / ח.פ *</Label>
-                      <Input value={formData.businessId} onChange={(e) => updateField('businessId', e.target.value)} placeholder="מספר זיהוי עסק..." className="text-slate-900 rounded-xl h-11" />
+                      <Input value={formData.businessId} onChange={(e) => updateFieldWithValidation('businessId', e.target.value)} onBlur={() => handleFieldBlur('businessId')} placeholder="מספר זיהוי עסק..." inputMode="numeric" className={cn("text-slate-900 rounded-xl h-12", fieldErrors.businessId && "border-destructive")} />
+                      <FieldError message={fieldErrors.businessId} />
                     </div>
                     <div className="space-y-2">
                       <Label className="text-xs font-bold">שם העסק הרשום *</Label>
-                      <Input value={formData.businessName} onChange={(e) => updateField('businessName', e.target.value)} placeholder="שם העסק..." className="text-slate-900 rounded-xl h-11" />
+                      <Input value={formData.businessName} onChange={(e) => updateFieldWithValidation('businessName', e.target.value)} onBlur={() => handleFieldBlur('businessName')} placeholder="שם העסק..." className={cn("text-slate-900 rounded-xl h-12", fieldErrors.businessName && "border-destructive")} />
+                      <FieldError message={fieldErrors.businessName} />
                     </div>
                   </div>
                 </div>
@@ -504,15 +602,18 @@ export default function SellerOnboarding() {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label className="text-[10px] font-bold">שם הבנק</Label>
-                      <Input value={formData.bankName} onChange={(e) => updateField('bankName', e.target.value)} placeholder="למשל: לאומי" className="text-slate-900 rounded-xl h-11" />
+                      <Input value={formData.bankName} onChange={(e) => updateFieldWithValidation('bankName', e.target.value)} onBlur={() => handleFieldBlur('bankName')} placeholder="למשל: לאומי" className={cn("text-slate-900 rounded-xl h-12", fieldErrors.bankName && "border-destructive")} />
+                      <FieldError message={fieldErrors.bankName} />
                     </div>
                     <div className="space-y-2">
                       <Label className="text-[10px] font-bold">מספר סניף</Label>
-                      <Input value={formData.bankBranch} onChange={(e) => updateField('bankBranch', e.target.value)} placeholder="3 ספרות" className="text-slate-900 rounded-xl h-11" />
+                      <Input value={formData.bankBranch} onChange={(e) => updateFieldWithValidation('bankBranch', e.target.value)} onBlur={() => handleFieldBlur('bankBranch')} placeholder="3 ספרות" inputMode="numeric" className={cn("text-slate-900 rounded-xl h-12", fieldErrors.bankBranch && "border-destructive")} />
+                      <FieldError message={fieldErrors.bankBranch} />
                     </div>
                     <div className="space-y-2">
                       <Label className="text-[10px] font-bold">מספר חשבון</Label>
-                      <Input value={formData.bankAccountNumber} onChange={(e) => updateField('bankAccountNumber', e.target.value)} placeholder="מספר חשבון" className="text-slate-900 rounded-xl h-11" />
+                      <Input value={formData.bankAccountNumber} onChange={(e) => updateFieldWithValidation('bankAccountNumber', e.target.value)} onBlur={() => handleFieldBlur('bankAccountNumber')} placeholder="מספר חשבון" inputMode="numeric" className={cn("text-slate-900 rounded-xl h-12", fieldErrors.bankAccountNumber && "border-destructive")} />
+                      <FieldError message={fieldErrors.bankAccountNumber} />
                     </div>
                   </div>
                 </div>
@@ -520,26 +621,44 @@ export default function SellerOnboarding() {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>אימייל *</Label>
-                    <Input type="email" value={formData.email} onChange={(e) => updateField('email', e.target.value)} readOnly={isExistingCustomer} required className={cn("text-slate-900 rounded-xl h-11", isExistingCustomer && "bg-muted/50")} />
+                    <Input type="email" inputMode="email" autoComplete="email" value={formData.email} onChange={(e) => updateFieldWithValidation('email', e.target.value)} onBlur={() => handleFieldBlur('email')} readOnly={isExistingCustomer} required className={cn("text-slate-900 rounded-xl h-12", isExistingCustomer && "bg-muted/50", fieldErrors.email && "border-destructive")} />
+                    <FieldError message={fieldErrors.email} />
                   </div>
                   {!isExistingCustomer && (
                     <div className="space-y-2">
                       <Label>סיסמה (לפחות 6 תווים) *</Label>
                       <div className="relative">
-                        <Input type={showPassword ? "text" : "password"} value={formData.password} onChange={(e) => updateField('password', e.target.value)} required className="text-slate-900 rounded-xl h-11" />
-                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button>
+                        <Input type={showPassword ? "text" : "password"} autoComplete="new-password" value={formData.password} onChange={(e) => updateFieldWithValidation('password', e.target.value)} onBlur={() => handleFieldBlur('password')} required className={cn("text-slate-900 rounded-xl h-12", fieldErrors.password && "border-destructive")} />
+                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground p-1">{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button>
                       </div>
+                      <FieldError message={fieldErrors.password} />
                     </div>
                   )}
                 </div>
-                
+
                 <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2"><Label>טלפון *</Label><Input value={formData.phone} onChange={(e) => updateField('phone', e.target.value)} required className="text-slate-900 rounded-xl h-11" /></div>
-                  <div className="space-y-2"><Label>גיל *</Label><Input type="number" value={formData.age} onChange={(e) => updateField('age', e.target.value)} required className="text-slate-900 rounded-xl h-11" /></div>
+                  <div className="space-y-2">
+                    <Label>טלפון *</Label>
+                    <Input type="tel" inputMode="tel" autoComplete="tel" value={formData.phone} onChange={(e) => updateFieldWithValidation('phone', e.target.value)} onBlur={() => handleFieldBlur('phone')} placeholder="05X-XXXXXXX" required className={cn("text-slate-900 rounded-xl h-12", fieldErrors.phone && "border-destructive")} />
+                    <FieldError message={fieldErrors.phone} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>גיל *</Label>
+                    <Input type="number" inputMode="numeric" value={formData.age} onChange={(e) => updateFieldWithValidation('age', e.target.value)} onBlur={() => handleFieldBlur('age')} required className={cn("text-slate-900 rounded-xl h-12", fieldErrors.age && "border-destructive")} />
+                    <FieldError message={fieldErrors.age} />
+                  </div>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2"><Label>עיר *</Label><Input ref={cityInputRef} value={formData.city} onChange={(e) => updateField('city', e.target.value)} required className="text-slate-900 rounded-xl h-11" /></div>
-                  <div className="space-y-2"><Label>כתובת *</Label><Input ref={addressInputRef} value={formData.address} onChange={(e) => updateField('address', e.target.value)} required className="text-slate-900 rounded-xl h-11" /></div>
+                  <div className="space-y-2">
+                    <Label>עיר *</Label>
+                    <Input ref={cityInputRef} value={formData.city} onChange={(e) => updateFieldWithValidation('city', e.target.value)} onBlur={() => handleFieldBlur('city')} required className={cn("text-slate-900 rounded-xl h-12", fieldErrors.city && "border-destructive")} />
+                    <FieldError message={fieldErrors.city} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>כתובת *</Label>
+                    <Input ref={addressInputRef} value={formData.address} onChange={(e) => updateFieldWithValidation('address', e.target.value)} onBlur={() => handleFieldBlur('address')} required className={cn("text-slate-900 rounded-xl h-12", fieldErrors.address && "border-destructive")} />
+                    <FieldError message={fieldErrors.address} />
+                  </div>
                 </div>
               </div>
             )}
@@ -556,7 +675,16 @@ export default function SellerOnboarding() {
 
                   {(formData.hasScribeCertificate === 'valid' || formData.hasScribeCertificate === 'expired') && (
                     <div className="mt-4 p-6 bg-accent/5 rounded-2xl border-2 border-dashed border-accent/20 text-center space-y-4">
-                      {formData.certificateUrl ? (
+                      {uploadProgress.cert !== null ? (
+                        <div className="relative w-full h-40 rounded-xl overflow-hidden border bg-white shadow-sm">
+                          <Skeleton className="absolute inset-0" />
+                          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-8">
+                            <Loader2 className="w-6 h-6 text-accent animate-spin" />
+                            <Progress value={uploadProgress.cert} className="h-1.5 w-full max-w-[180px]" />
+                            <span className="text-[10px] font-black text-primary/50 uppercase tracking-widest">מעלה תעודה... {uploadProgress.cert}%</span>
+                          </div>
+                        </div>
+                      ) : formData.certificateUrl ? (
                         <div className="relative w-full h-40 rounded-xl overflow-hidden border bg-white shadow-sm">
                           <Image src={formData.certificateUrl} alt="Cert" fill kind="certificate" sizes="(max-width: 768px) 100vw, 720px" className="object-contain" />
                           <button onClick={() => { if (formData.certificateUrl) void cleanupImages([formData.certificateUrl]); updateField('certificateUrl', ''); }} className="absolute top-2 right-2 bg-destructive text-white rounded-full p-1 shadow-lg hover:scale-110 transition-transform"><X className="w-4 h-4" /></button>
@@ -644,7 +772,17 @@ export default function SellerOnboarding() {
                         <button onClick={() => removeSample(idx)} className="absolute top-2 right-2 bg-destructive text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"><X className="w-3 h-3" /></button>
                       </div>
                     ))}
-                    {formData.writingSamples.length < 8 && (
+                    {uploadProgress.samples !== null && (
+                      <div className="relative aspect-square rounded-2xl overflow-hidden border">
+                        <Skeleton className="absolute inset-0" />
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-3">
+                          <Loader2 className="w-5 h-5 text-accent animate-spin" />
+                          <Progress value={uploadProgress.samples} className="h-1 w-full" />
+                          <span className="text-[9px] font-black text-primary/50">{uploadProgress.samples}%</span>
+                        </div>
+                      </div>
+                    )}
+                    {formData.writingSamples.length < 8 && uploadProgress.samples === null && (
                       <button onClick={() => samplesInputRef.current?.click()} className="aspect-square border-2 border-dashed border-primary/10 rounded-2xl flex flex-col items-center justify-center text-primary/30 hover:bg-primary/5 transition-all">
                         <ImageIcon className="w-6 h-6 mb-1" />
                         <span className="text-[9px] font-black uppercase">הוסף דוגמה</span>

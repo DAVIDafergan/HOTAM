@@ -9,11 +9,41 @@ export type UploadedImageAsset = {
   metadata: Partial<ImageAssetRecord> | null;
 };
 
+function putFileWithProgress(
+  url: string,
+  file: File,
+  contentType: string,
+  onProgress?: (percent: number) => void
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('PUT', url, true);
+    xhr.setRequestHeader('Content-Type', contentType);
+    xhr.upload.onprogress = (event) => {
+      if (onProgress && event.lengthComputable) {
+        onProgress(Math.round((event.loaded / event.total) * 100));
+      }
+    };
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) resolve();
+      else reject(new Error('העלאת התמונה נכשלה.'));
+    };
+    xhr.onerror = () => reject(new Error('העלאת התמונה נכשלה.'));
+    xhr.send(file);
+  });
+}
+
 export async function uploadImageDirect(
   file: File,
-  options: { authToken?: string; keyPrefix?: string; contentType?: string; assetKind?: ImageAssetKind } = {}
+  options: {
+    authToken?: string;
+    keyPrefix?: string;
+    contentType?: string;
+    assetKind?: ImageAssetKind;
+    onProgress?: (percent: number) => void;
+  } = {}
 ): Promise<UploadedImageAsset> {
-  const { authToken, keyPrefix = 'products', contentType = file.type, assetKind } = options;
+  const { authToken, keyPrefix = 'products', contentType = file.type, assetKind, onProgress } = options;
 
   const presignRes = await fetch('/api/upload-image/presign', {
     method: 'POST',
@@ -37,13 +67,8 @@ export async function uploadImageDirect(
 
   const { presignedUrl, publicUrl, key } = await presignRes.json();
 
-  const uploadRes = await fetch(presignedUrl, {
-    method: 'PUT',
-    headers: { 'Content-Type': contentType },
-    body: file,
-  });
-
-  if (!uploadRes.ok) throw new Error('העלאת התמונה נכשלה.');
+  await putFileWithProgress(presignedUrl, file, contentType, onProgress);
+  onProgress?.(100);
 
   try {
     const completeRes = await fetch('/api/upload-image/complete', {

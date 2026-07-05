@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { diagnoseMezuzah } from '@/ai/flows/mezuzah-diagnosis';
 import { Upload, Loader2, CheckCircle2, AlertCircle, Camera } from 'lucide-react';
 import Image from '@/components/SmartImage';
+import { compressImageFile } from '@/lib/image-compression';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const MAX_DIAGNOSIS_FILE_SIZE = 10 * 1024 * 1024;
 const SUPPORTED_DIAGNOSIS_IMAGE_TYPES = new Set([
@@ -24,33 +26,42 @@ export default function DiagnosisPage() {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
   const [result, setResult] = useState<string | null>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     e.target.value = '';
-    if (selectedFile) {
-      if (!SUPPORTED_DIAGNOSIS_IMAGE_TYPES.has(selectedFile.type)) {
-        setFile(null);
-        setPreview(null);
-        setResult('סוג הקובץ אינו נתמך. נא להעלות JPG/PNG/WEBP/GIF/AVIF/HEIC.');
-        return;
-      }
+    if (!selectedFile) return;
 
-      if (selectedFile.size <= 0 || selectedFile.size > MAX_DIAGNOSIS_FILE_SIZE) {
-        setFile(null);
-        setPreview(null);
-        setResult('גודל הקובץ אינו תקין. ניתן להעלות עד 10MB.');
-        return;
-      }
+    if (!SUPPORTED_DIAGNOSIS_IMAGE_TYPES.has(selectedFile.type)) {
+      setFile(null);
+      setPreview(null);
+      setResult('סוג הקובץ אינו נתמך. נא להעלות JPG/PNG/WEBP/GIF/AVIF/HEIC.');
+      return;
+    }
 
-      setFile(selectedFile);
-      setResult(null);
+    if (selectedFile.size <= 0 || selectedFile.size > MAX_DIAGNOSIS_FILE_SIZE) {
+      setFile(null);
+      setPreview(null);
+      setResult('גודל הקובץ אינו תקין. ניתן להעלות עד 10MB.');
+      return;
+    }
+
+    setResult(null);
+    setIsCompressing(true);
+    try {
+      // Shrink the photo client-side first — cuts upload time and keeps the base64 payload well under limits.
+      const compressedFile = await compressImageFile(selectedFile);
+      setFile(compressedFile);
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result as string);
+        setIsCompressing(false);
       };
-      reader.readAsDataURL(selectedFile);
+      reader.readAsDataURL(compressedFile);
+    } catch {
+      setIsCompressing(false);
     }
   };
 
@@ -87,12 +98,20 @@ export default function DiagnosisPage() {
                 <CardDescription className="text-center">וודא שהצילום מואר וברור</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col items-center justify-center p-8">
-                {preview ? (
+                {isCompressing ? (
+                  <div className="relative w-full aspect-[4/3] rounded-lg overflow-hidden border mb-4">
+                    <Skeleton className="absolute inset-0" />
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+                      <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                      <p className="text-xs font-bold text-primary/60">מעבד תמונה...</p>
+                    </div>
+                  </div>
+                ) : preview ? (
                   <div className="relative w-full aspect-[4/3] rounded-lg overflow-hidden border mb-4">
                     <Image src={preview} alt="Preview" fill className="object-cover" />
                   </div>
                 ) : (
-                  <div 
+                  <div
                     onClick={() => document.getElementById('image-upload')?.click()}
                     className="w-full aspect-[4/3] bg-muted flex flex-col items-center justify-center rounded-lg mb-4 text-muted-foreground cursor-pointer hover:bg-muted/80 transition-colors"
                   >

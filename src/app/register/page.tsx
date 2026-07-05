@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ShieldCheck, Loader2, Heart, Mail, CheckCircle2, ShoppingBag, PenTool, ArrowRight } from 'lucide-react';
+import { ShieldCheck, Loader2, Heart, Mail, CheckCircle2, ShoppingBag, PenTool, ArrowRight, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
@@ -19,6 +19,7 @@ import {
   resendEmailConfirmation,
 } from '@/lib/supabase-hooks';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 import { 
   Dialog, 
   DialogContent, 
@@ -28,6 +29,26 @@ import {
   DialogFooter
 } from '@/components/ui/dialog';
 
+type RegisterField = 'firstName' | 'lastName' | 'email' | 'password';
+type RegisterErrors = Partial<Record<RegisterField, string>>;
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function validateRegisterField(name: RegisterField, value: string): string | undefined {
+  switch (name) {
+    case 'firstName':
+      return value.trim().length < 2 ? 'שם פרטי חייב לכלול לפחות 2 תווים' : undefined;
+    case 'lastName':
+      return value.trim().length < 2 ? 'שם משפחה חייב לכלול לפחות 2 תווים' : undefined;
+    case 'email':
+      return !EMAIL_REGEX.test(value.trim()) ? 'כתובת אימייל אינה תקינה' : undefined;
+    case 'password':
+      return value.length < 6 ? 'הסיסמה חייבת לכלול לפחות 6 תווים' : undefined;
+    default:
+      return undefined;
+  }
+}
+
 export default function RegisterPage() {
   const [selectedRole, setSelectedRole] = useState<'customer' | 'seller' | null>(null);
   const [firstName, setFirstName] = useState('');
@@ -35,6 +56,21 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<RegisterErrors>({});
+  const [touchedFields, setTouchedFields] = useState<Partial<Record<RegisterField, boolean>>>({});
+
+  const values: Record<RegisterField, string> = { firstName, lastName, email, password };
+
+  const handleFieldBlur = (name: RegisterField) => {
+    setTouchedFields(prev => ({ ...prev, [name]: true }));
+    setFieldErrors(prev => ({ ...prev, [name]: validateRegisterField(name, values[name]) }));
+  };
+
+  const handleFieldChange = (name: RegisterField, value: string) => {
+    if (touchedFields[name]) {
+      setFieldErrors(prev => ({ ...prev, [name]: validateRegisterField(name, value) }));
+    }
+  };
   const [emailSent, setEmailSent] = useState(false);
   const [isResendingVerification, setIsResendingVerification] = useState(false);
   
@@ -62,7 +98,17 @@ export default function RegisterPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!firstName || !lastName || !email || !password) return;
+
+    const nextErrors: RegisterErrors = {
+      firstName: validateRegisterField('firstName', firstName),
+      lastName: validateRegisterField('lastName', lastName),
+      email: validateRegisterField('email', email),
+      password: validateRegisterField('password', password),
+    };
+    setFieldErrors(nextErrors);
+    setTouchedFields({ firstName: true, lastName: true, email: true, password: true });
+    if (Object.values(nextErrors).some(Boolean)) return;
+
     if (!termsAccepted) {
       toast({
         variant: "destructive",
@@ -354,39 +400,58 @@ export default function RegisterPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <Label htmlFor="firstName" className="font-black text-[10px] uppercase text-primary/60 tracking-wider">שם פרטי</Label>
-                      <Input 
-                        id="firstName" 
-                        placeholder="ישראל" 
+                      <Input
+                        id="firstName"
+                        placeholder="ישראל"
+                        autoComplete="given-name"
                         value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        className="rounded-xl h-11 text-right border-muted-foreground/20 focus:ring-primary/10 font-bold"
-                        required 
+                        onChange={(e) => { setFirstName(e.target.value); handleFieldChange('firstName', e.target.value); }}
+                        onBlur={() => handleFieldBlur('firstName')}
+                        aria-invalid={!!fieldErrors.firstName}
+                        className={cn("rounded-xl h-12 text-right border-muted-foreground/20 focus:ring-primary/10 font-bold", fieldErrors.firstName && "border-destructive focus-visible:ring-destructive/30")}
+                        required
                       />
+                      {fieldErrors.firstName && (
+                        <p className="flex items-center gap-1 text-[11px] font-bold text-destructive"><AlertCircle className="w-3 h-3 shrink-0" />{fieldErrors.firstName}</p>
+                      )}
                     </div>
                     <div className="space-y-1.5">
                       <Label htmlFor="lastName" className="font-black text-[10px] uppercase text-primary/60 tracking-wider">שם משפחה</Label>
-                      <Input 
-                        id="lastName" 
-                        placeholder="ישראלי" 
+                      <Input
+                        id="lastName"
+                        placeholder="ישראלי"
+                        autoComplete="family-name"
                         value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        className="rounded-xl h-11 text-right border-muted-foreground/20 focus:ring-primary/10 font-bold"
-                        required 
+                        onChange={(e) => { setLastName(e.target.value); handleFieldChange('lastName', e.target.value); }}
+                        onBlur={() => handleFieldBlur('lastName')}
+                        aria-invalid={!!fieldErrors.lastName}
+                        className={cn("rounded-xl h-12 text-right border-muted-foreground/20 focus:ring-primary/10 font-bold", fieldErrors.lastName && "border-destructive focus-visible:ring-destructive/30")}
+                        required
                       />
+                      {fieldErrors.lastName && (
+                        <p className="flex items-center gap-1 text-[11px] font-bold text-destructive"><AlertCircle className="w-3 h-3 shrink-0" />{fieldErrors.lastName}</p>
+                      )}
                     </div>
                   </div>
-                  
+
                   <div className="space-y-1.5">
                     <Label htmlFor="email" className="font-black text-[10px] uppercase text-primary/60 tracking-wider">דואר אלקטרוני</Label>
-                    <Input 
-                      id="email" 
-                      type="email" 
-                      placeholder="name@example.com" 
+                    <Input
+                      id="email"
+                      type="email"
+                      inputMode="email"
+                      autoComplete="email"
+                      placeholder="name@example.com"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="rounded-xl h-11 text-right border-muted-foreground/20 focus:ring-primary/10 font-bold"
-                      required 
+                      onChange={(e) => { setEmail(e.target.value); handleFieldChange('email', e.target.value); }}
+                      onBlur={() => handleFieldBlur('email')}
+                      aria-invalid={!!fieldErrors.email}
+                      className={cn("rounded-xl h-12 text-right border-muted-foreground/20 focus:ring-primary/10 font-bold", fieldErrors.email && "border-destructive focus-visible:ring-destructive/30")}
+                      required
                     />
+                    {fieldErrors.email && (
+                      <p className="flex items-center gap-1 text-[11px] font-bold text-destructive"><AlertCircle className="w-3 h-3 shrink-0" />{fieldErrors.email}</p>
+                    )}
                   </div>
 
                   <div className="space-y-1.5">
@@ -403,15 +468,21 @@ export default function RegisterPage() {
                       </button>
                       <Label htmlFor="password" className="font-black text-[10px] uppercase text-primary/60 tracking-wider">סיסמה</Label>
                     </div>
-                    <Input 
-                      id="password" 
-                      type="password" 
+                    <Input
+                      id="password"
+                      type="password"
+                      autoComplete="new-password"
                       placeholder="לפחות 6 תווים"
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="rounded-xl h-11 text-right border-muted-foreground/20 focus:ring-primary/10 font-bold" 
-                      required 
+                      onChange={(e) => { setPassword(e.target.value); handleFieldChange('password', e.target.value); }}
+                      onBlur={() => handleFieldBlur('password')}
+                      aria-invalid={!!fieldErrors.password}
+                      className={cn("rounded-xl h-12 text-right border-muted-foreground/20 focus:ring-primary/10 font-bold", fieldErrors.password && "border-destructive focus-visible:ring-destructive/30")}
+                      required
                     />
+                    {fieldErrors.password && (
+                      <p className="flex items-center gap-1 text-[11px] font-bold text-destructive"><AlertCircle className="w-3 h-3 shrink-0" />{fieldErrors.password}</p>
+                    )}
                   </div>
 
                   <div className="flex items-start gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10">

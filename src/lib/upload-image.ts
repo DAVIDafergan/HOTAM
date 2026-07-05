@@ -9,6 +9,12 @@ export type UploadedImageAsset = {
   metadata: Partial<ImageAssetRecord> | null;
 };
 
+// Every network step below gets its own hard timeout so a stalled connection or an
+// unresponsive endpoint can never leave the calling promise pending forever — it always
+// settles (resolves or rejects) within a bounded time, letting the UI's finally block reset.
+const PRESIGN_TIMEOUT_MS = 20_000;
+const UPLOAD_TIMEOUT_MS = 60_000;
+
 function putFileWithProgress(
   url: string,
   file: File,
@@ -18,6 +24,7 @@ function putFileWithProgress(
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('PUT', url, true);
+    xhr.timeout = UPLOAD_TIMEOUT_MS;
     xhr.setRequestHeader('Content-Type', contentType);
     xhr.upload.onprogress = (event) => {
       if (onProgress && event.lengthComputable) {
@@ -28,7 +35,8 @@ function putFileWithProgress(
       if (xhr.status >= 200 && xhr.status < 300) resolve();
       else reject(new Error('העלאת התמונה נכשלה.'));
     };
-    xhr.onerror = () => reject(new Error('העלאת התמונה נכשלה.'));
+    xhr.onerror = () => reject(new Error('העלאת התמונה נכשלה. בדוק/י את החיבור לאינטרנט.'));
+    xhr.ontimeout = () => reject(new Error('העלאת התמונה ארכה זמן רב מדי. נסה/י שוב.'));
     xhr.send(file);
   });
 }
@@ -45,20 +53,34 @@ export async function uploadImageDirect(
 ): Promise<UploadedImageAsset> {
   const { authToken, keyPrefix = 'products', contentType = file.type, assetKind, onProgress } = options;
 
-  const presignRes = await fetch('/api/upload-image/presign', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-      'x-upload-context': keyPrefix === 'onboarding' ? 'onboarding' : 'authenticated',
-    },
-    body: JSON.stringify({
-      fileName: file.name,
-      contentType,
-      fileSize: file.size,
-      keyPrefix,
-    }),
-  });
+  const presignTimeoutController = new AbortController();
+  const presignTimeoutId = setTimeout(() => presignTimeoutController.abort(), PRESIGN_TIMEOUT_MS);
+
+  let presignRes: Response;
+  try {
+    presignRes = await fetch('/api/upload-image/presign', {
+      method: 'POST',
+      signal: presignTimeoutController.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+        'x-upload-context': keyPrefix === 'onboarding' ? 'onboarding' : 'authenticated',
+      },
+      body: JSON.stringify({
+        fileName: file.name,
+        contentType,
+        fileSize: file.size,
+        keyPrefix,
+      }),
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('הבקשה ארכה זמן רב מדי. בדוק/י את החיבור לאינטרנט ונסה/י שוב.');
+    }
+    throw error;
+  } finally {
+    clearTimeout(presignTimeoutId);
+  }
 
   if (!presignRes.ok) {
     const err = await presignRes.json().catch(() => ({}));

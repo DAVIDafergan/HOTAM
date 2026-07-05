@@ -3,7 +3,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
@@ -469,19 +468,19 @@ export function ProductDetailsClient({
       : 'grab';
 
   return (
-    <div className="min-h-screen bg-[#FDFCF0] pb-24 sm:pb-28 md:pb-32" dir="rtl">
+    <div className="min-h-screen bg-[#FAFAF8] pb-24 sm:pb-28 md:pb-32" dir="rtl">
       <Navbar />
-      <main className="container mx-auto px-4 py-20 md:py-28 max-w-5xl">
-        
+      <main className="container mx-auto px-4 py-20 md:py-28 max-w-6xl">
+
         {/* Mobile Header Actions */}
-        <div className="mb-8 mt-4 flex justify-end md:hidden">
+        <div className="mb-6 mt-4 flex justify-end md:hidden">
           <div className="flex gap-2">
-            <Button variant="outline" size="icon" onClick={handleShare} className="rounded-full bg-white shadow-sm transition-all duration-200 hover:scale-110 hover:shadow-md active:scale-90"><Share2 className="w-4 h-4" /></Button>
-            <Button variant="outline" size="icon" onClick={handleToggleFavorite} className={cn("rounded-full bg-white shadow-sm transition-all duration-200 hover:scale-110 hover:shadow-md active:scale-90", isFavorite ? 'bg-accent text-primary' : '')}><Heart className={cn("w-4 h-4 transition-transform duration-200", isFavorite ? 'fill-current' : '')} /></Button>
+            <Button variant="outline" size="icon" onClick={handleShare} className="rounded-full bg-white border-primary/10 shadow-sm transition-all duration-200 hover:scale-105 active:scale-90"><Share2 className="w-4 h-4" /></Button>
+            <Button variant="outline" size="icon" onClick={handleToggleFavorite} className={cn("rounded-full bg-white border-primary/10 shadow-sm transition-all duration-200 hover:scale-105 active:scale-90", isFavorite ? 'bg-primary text-white border-primary' : '')}><Heart className={cn("w-4 h-4 transition-transform duration-200", isFavorite ? 'fill-current' : '')} /></Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-start">
           {/* Product Images */}
           <div className="space-y-4">
             <button
@@ -493,35 +492,35 @@ export function ProductDetailsClient({
                 dragOriginRef.current = null;
                 setIsImageDialogOpen(true);
               }}
-              className="group relative block aspect-square w-full rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-premium bg-white border-4 border-white text-right transition-shadow duration-300 hover:shadow-2xl"
+              className="group relative block aspect-[4/5] w-full overflow-hidden rounded-[1.75rem] bg-white text-right shadow-[0_8px_40px_rgba(15,23,42,0.06)] ring-1 ring-primary/5 transition-shadow duration-500 hover:shadow-[0_16px_56px_rgba(15,23,42,0.10)]"
             >
-              <Image loader={unsplashLoader} src={currentImage} alt={product.product_type} fill priority kind="product" sizes="(max-width: 768px) 100vw, 50vw" className="object-cover transition-transform duration-700 group-hover:scale-105" />
+              <Image loader={unsplashLoader} src={currentImage} alt={product.product_type} fill priority kind="product" sizes="(max-width: 768px) 100vw, 50vw" className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]" />
               {product.quantity <= 0 && (
                 <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center">
                   <Badge variant="destructive" className="px-8 py-3 text-sm font-black uppercase tracking-widest rounded-full shadow-2xl">אזל מהמלאי</Badge>
                 </div>
               )}
-              <div className="absolute bottom-4 left-4">
-                <div className="inline-flex items-center gap-1 rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-black text-primary shadow-md backdrop-blur-sm">
+              <div className="absolute bottom-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-[10px] font-bold text-primary shadow-md backdrop-blur-sm">
                   <ZoomIn className="w-3.5 h-3.5" />
-                  <span>תצוגת זום</span>
+                  <span>הגדלה</span>
                 </div>
               </div>
               <div className="absolute top-4 right-4 hidden md:block">
-                <Badge className="bg-primary/80 backdrop-blur-md text-white border-none px-4 py-1.5 rounded-full font-black text-[10px] uppercase">
+                <Badge className="bg-white/90 backdrop-blur-md text-primary border-none px-4 py-1.5 rounded-full font-bold text-[10px] uppercase shadow-sm">
                   {product.script_level}
                 </Badge>
               </div>
             </button>
             {images.length > 1 && (
-              <div className="flex gap-3 overflow-x-auto py-2 no-scrollbar px-1">
+              <div className="flex gap-2.5 overflow-x-auto py-1 no-scrollbar px-0.5">
                 {images.map((img: string, i: number) => (
                   <button
                     key={i}
                     onClick={() => setSelectedImageIdx(i)}
                     className={cn(
-                      "relative w-20 h-20 rounded-2xl overflow-hidden border-4 transition-all duration-200 shrink-0 shadow-sm",
-                      selectedImageIdx === i ? 'border-accent scale-105 shadow-md' : 'border-white hover:border-accent/30 hover:scale-105'
+                      "relative w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden shrink-0 transition-all duration-200",
+                      selectedImageIdx === i ? 'ring-2 ring-primary ring-offset-2' : 'ring-1 ring-primary/10 opacity-70 hover:opacity-100 hover:ring-primary/30'
                     )}
                   >
                     <Image loader={unsplashLoader} src={img} alt="Thumb" fill kind="product" sizes="80px" className="object-cover" />
@@ -532,93 +531,108 @@ export function ProductDetailsClient({
           </div>
 
           {/* Product Info */}
-          <div className="text-right space-y-6 md:space-y-8">
-            <div className="space-y-3">
+          <div className="text-right space-y-8 md:sticky md:top-28">
+            <div className="space-y-4">
               <div className="flex flex-wrap gap-2 justify-start items-center">
-                <Badge variant="outline" className="border-accent/40 text-accent font-black text-xs py-1.5 px-3 rounded-full bg-accent/5 whitespace-nowrap">
+                <Badge variant="outline" className="border-accent/30 text-accent font-bold text-[11px] py-1 px-3 rounded-full bg-accent/5 whitespace-nowrap">
                   {product.script_level}
                 </Badge>
-                <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-xs py-1.5 px-3 rounded-full whitespace-nowrap">
+                <Badge variant="outline" className="border-emerald-200 bg-emerald-50/60 text-emerald-700 font-bold text-[11px] py-1 px-3 rounded-full whitespace-nowrap">
                   <CheckCircle2 className="w-3 h-3 ml-1.5" />
                   זמין במלאי ({product.quantity})
                 </Badge>
               </div>
-              <h1 className="text-3xl md:text-5xl font-headline font-black text-primary leading-[1.1] tracking-tight">
-                {product.product_type}
-                {product.sub_type && product.sub_type !== 'all' && (
-                  <span className="text-accent inline mr-2 font-black"><span className="text-primary/30 mx-1">+</span>{product.sub_type}</span>
-                )}
-              </h1>
-            </div>
-
-            {/* Price Card - Optimized for Mobile */}
-            <Card className="border-none shadow-premium rounded-[2.5rem] bg-white overflow-hidden">
-               <div className="p-6 md:p-8 flex flex-col gap-6">
-                  <div className="flex flex-col items-center md:items-start text-center md:text-right gap-1">
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-primary text-5xl md:text-6xl font-black tabular-nums tracking-tighter">{displayPrice}</span>
-                      <span className="text-accent text-2xl md:text-3xl font-black">₪</span>
-                    </div>
-                    <p className="text-xs font-black text-primary/60 uppercase tracking-[0.15em] mt-1 whitespace-nowrap">
-                      {hasDelivery ? 'המחירים כוללים מע"מ ומשלוח' : 'המחירים כוללים מע"מ'}
-                    </p>
-                  </div>
-
-                  <div className="h-px bg-primary/5 w-full" />
-
-                   <div className="grid grid-cols-2 gap-4">
-                    <section aria-labelledby="delivery-time-label" className="flex flex-col items-end gap-1.5 rounded-2xl bg-slate-50/50 p-3.5 text-right">
-                       <Clock className="w-5 h-5 text-accent" />
-                       <span id="delivery-time-label" className="text-[11px] font-black text-primary/60 uppercase tracking-wide whitespace-nowrap">זמן אספקה</span>
-                      <span className="text-sm font-black text-primary leading-none whitespace-nowrap">
-                         {product.product_type === 'ספר תורה' ? 'בתיאום אישי' : `${product.delivery_time || '3'} ימים`}
-                       </span>
-                     </section>
-                     {hasDelivery ? (
-                      <section aria-labelledby="delivery-fee-label" className="flex flex-col items-end gap-1.5 rounded-2xl bg-slate-50/50 p-3.5 text-right">
-                         <Truck className="w-5 h-5 text-accent" />
-                         <span id="delivery-fee-label" className="text-[11px] font-black text-primary/60 uppercase tracking-wide whitespace-nowrap">עלות משלוח</span>
-                        <span className="text-sm font-black text-emerald-600 leading-none whitespace-nowrap">
-                           {Number(product.delivery_fee) > 0 ? `₪${product.delivery_fee}` : 'משלוח חינם'}
-                         </span>
-                       </section>
-                     ) : (
-                      <section aria-labelledby="stock-status-label" className="flex flex-col items-end gap-1.5 rounded-2xl bg-slate-50/50 p-3.5 text-right">
-                        <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                         <span id="stock-status-label" className="text-[11px] font-black text-primary/60 uppercase tracking-wide whitespace-nowrap">זמינות</span>
-                        <span className="text-sm font-black text-emerald-600 leading-none whitespace-nowrap">{product.quantity > 0 ? 'במלאי' : 'אזל זמנית'}</span>
-                       </section>
-                     )}
-                   </div>
-               </div>
-            </Card>
-
-            <div className="space-y-4">
-              <h2 className="font-black text-sm text-primary/60 uppercase tracking-widest flex items-center justify-end gap-2 whitespace-nowrap">
-                על כלי הקודש <ScrollText className="w-4 h-4 shrink-0" />
-              </h2>
-              <div className="bg-white/60 backdrop-blur-sm p-6 rounded-[2.5rem] border-r-[6px] border-accent shadow-sm italic text-primary/80 font-medium text-lg leading-relaxed">
-                "{product.description}"
+              <div className="flex items-start justify-between gap-4">
+                <h1 className="text-4xl md:text-5xl font-headline font-black text-primary leading-[1.1] tracking-tight">
+                  {product.product_type}
+                  {product.sub_type && product.sub_type !== 'all' && (
+                    <span className="text-accent inline mr-2 font-black"><span className="text-primary/25 mx-1.5 font-normal">+</span>{product.sub_type}</span>
+                  )}
+                </h1>
+                <div className="hidden md:flex items-center gap-1.5 shrink-0 pt-1">
+                  <button
+                    onClick={handleShare}
+                    aria-label="שיתוף"
+                    className="flex h-10 w-10 items-center justify-center rounded-full text-primary/40 transition-all duration-200 hover:bg-primary/5 hover:text-primary active:scale-90"
+                  >
+                    <Share2 className="w-[18px] h-[18px]" />
+                  </button>
+                  <button
+                    onClick={handleToggleFavorite}
+                    aria-label={isFavorite ? 'הסר ממועדפים' : 'הוסף למועדפים'}
+                    className={cn(
+                      "flex h-10 w-10 items-center justify-center rounded-full transition-all duration-200 hover:bg-primary/5 active:scale-90",
+                      isFavorite ? "text-primary" : "text-primary/40 hover:text-primary"
+                    )}
+                  >
+                    <Heart className={cn("w-[18px] h-[18px] transition-transform duration-200", isFavorite && "fill-current")} />
+                  </button>
+                </div>
               </div>
             </div>
 
-            <Card className="border-none shadow-premium rounded-[2rem] bg-gradient-to-br from-white to-primary/5 overflow-hidden">
-              <div className="p-5 space-y-4 text-right">
+            {/* Price — clean, no decorative card chrome */}
+            <div className="space-y-5 border-y border-primary/8 py-6">
+              <div className="flex items-baseline justify-end gap-1.5">
+                <span className="text-primary text-5xl md:text-6xl font-black tabular-nums tracking-tighter">{displayPrice}</span>
+                <span className="text-primary/60 text-2xl md:text-3xl font-bold">₪</span>
+              </div>
+              <p className="text-xs font-bold text-primary/40 uppercase tracking-[0.15em] -mt-3">
+                {hasDelivery ? 'המחירים כוללים מע"מ ומשלוח' : 'המחירים כוללים מע"מ'}
+              </p>
+
+              <div className="grid grid-cols-2 gap-3">
+                <section aria-labelledby="delivery-time-label" className="flex flex-col items-end gap-1 rounded-2xl bg-primary/[0.03] p-4 text-right">
+                  <Clock className="w-4 h-4 text-primary/30 mb-1" />
+                  <span id="delivery-time-label" className="text-[10px] font-bold text-primary/40 uppercase tracking-wide whitespace-nowrap">זמן אספקה</span>
+                  <span className="text-sm font-black text-primary leading-none whitespace-nowrap">
+                    {product.product_type === 'ספר תורה' ? 'בתיאום אישי' : `${product.delivery_time || '3'} ימים`}
+                  </span>
+                </section>
+                {hasDelivery ? (
+                  <section aria-labelledby="delivery-fee-label" className="flex flex-col items-end gap-1 rounded-2xl bg-primary/[0.03] p-4 text-right">
+                    <Truck className="w-4 h-4 text-primary/30 mb-1" />
+                    <span id="delivery-fee-label" className="text-[10px] font-bold text-primary/40 uppercase tracking-wide whitespace-nowrap">עלות משלוח</span>
+                    <span className="text-sm font-black text-emerald-600 leading-none whitespace-nowrap">
+                      {Number(product.delivery_fee) > 0 ? `₪${product.delivery_fee}` : 'משלוח חינם'}
+                    </span>
+                  </section>
+                ) : (
+                  <section aria-labelledby="stock-status-label" className="flex flex-col items-end gap-1 rounded-2xl bg-primary/[0.03] p-4 text-right">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 mb-1" />
+                    <span id="stock-status-label" className="text-[10px] font-bold text-primary/40 uppercase tracking-wide whitespace-nowrap">זמינות</span>
+                    <span className="text-sm font-black text-emerald-600 leading-none whitespace-nowrap">{product.quantity > 0 ? 'במלאי' : 'אזל זמנית'}</span>
+                  </section>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h2 className="font-bold text-xs text-primary/40 uppercase tracking-widest flex items-center justify-end gap-2 whitespace-nowrap">
+                על כלי הקודש <ScrollText className="w-3.5 h-3.5 shrink-0" />
+              </h2>
+              <p className="text-primary/75 font-medium text-base leading-relaxed">
+                {product.description}
+              </p>
+            </div>
+
+            {(deliveryAreaText || normalizedDeliveryType === 'delivery' || normalizedDeliveryType === 'both' || normalizedDeliveryType === 'pickup') && (
+              <div className="space-y-4 rounded-[1.75rem] bg-primary/[0.025] p-5">
                 {(normalizedDeliveryType === 'delivery' || normalizedDeliveryType === 'both') && (
                   <div className="space-y-2.5">
                     <div className="flex items-center justify-end gap-2">
-                       <span className="text-[10px] font-black text-primary/70 uppercase tracking-widest">ערים זמינות למשלוח</span>
-                      <Truck className="w-4 h-4 text-accent" />
+                      <span className="text-[10px] font-bold text-primary/50 uppercase tracking-widest">ערים זמינות למשלוח</span>
+                      <Truck className="w-3.5 h-3.5 text-primary/30" />
                     </div>
                     <div className="flex flex-wrap gap-1.5 justify-end">
                       {deliveryAreaText ? (
                         deliveryAreaText.split(', ').filter(Boolean).map((city: string) => (
-                          <Badge key={city} variant="outline" className="bg-primary/5 text-primary border-primary/15 font-bold text-[11px] px-3 py-1.5 rounded-full">
-                            <MapPin className="w-3 h-3 ml-1 text-accent" />{city}
+                          <Badge key={city} variant="outline" className="bg-white text-primary/70 border-primary/10 font-medium text-[11px] px-3 py-1 rounded-full">
+                            <MapPin className="w-3 h-3 ml-1 text-primary/30" />{city}
                           </Badge>
                         ))
                       ) : (
-                        <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-100 font-bold text-[11px] px-4 py-1.5 rounded-full">
+                        <Badge variant="outline" className="bg-white text-emerald-700 border-emerald-100 font-medium text-[11px] px-3 py-1 rounded-full">
                           <CheckCircle2 className="w-3 h-3 ml-1" />כל הארץ
                         </Badge>
                       )}
@@ -626,49 +640,47 @@ export function ProductDetailsClient({
                   </div>
                 )}
                 {(normalizedDeliveryType === 'pickup' || normalizedDeliveryType === 'both') && (
-                  <div className="bg-amber-50/80 rounded-2xl px-4 py-3 border border-amber-100 space-y-1">
-                    <div className="flex items-center justify-end gap-2.5">
-                      <span className="text-sm font-bold text-amber-800">איסוף עצמי מ{sellerCity || 'עיר הסופר'}</span>
-                      <MapPin className="w-4 h-4 text-amber-600 shrink-0" />
+                  <div className={cn("space-y-1", (normalizedDeliveryType === 'both') && "pt-3 border-t border-primary/5")}>
+                    <div className="flex items-center justify-end gap-2">
+                      <span className="text-sm font-bold text-primary/80">איסוף עצמי מ{sellerCity || 'עיר הסופר'}</span>
+                      <MapPin className="w-3.5 h-3.5 text-primary/30 shrink-0" />
                     </div>
                     {pickupAddress && (
-                      <p className="text-xs text-amber-700 font-bold text-right">{pickupAddress}</p>
+                      <p className="text-xs text-primary/45 font-medium text-right">{pickupAddress}</p>
                     )}
                   </div>
                 )}
               </div>
-            </Card>
+            )}
           </div>
         </div>
 
         {/* Technical Details Tabs */}
-        <div className="mt-10 md:mt-20">
+        <div className="mt-16 md:mt-28">
           <Tabs defaultValue="specs" className="text-right">
-            <TabsList className="w-full flex bg-white/40 backdrop-blur-xl p-1.5 rounded-3xl shadow-premium h-14 md:h-16 border border-white/50 mb-8">
-             <TabsTrigger value="specs" className="flex-1 py-2.5 text-xs md:text-sm font-black rounded-2xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all whitespace-nowrap leading-none">מפרט טכני</TabsTrigger>
-             <TabsTrigger value="seller" className="flex-1 py-2.5 text-xs md:text-sm font-black rounded-2xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all whitespace-nowrap leading-none">הסופר הכותב</TabsTrigger>
-             <TabsTrigger value="reviews" className="flex-1 py-2.5 text-xs md:text-sm font-black rounded-2xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all whitespace-nowrap leading-none">ביקורות ({(reviews || []).length})</TabsTrigger>
+            <TabsList className="w-full flex bg-transparent p-0 h-auto border-b border-primary/8 rounded-none mb-10 justify-start gap-8">
+             <TabsTrigger value="specs" className="flex-none px-0 pb-4 text-sm font-bold text-primary/40 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none transition-all whitespace-nowrap">מפרט טכני</TabsTrigger>
+             <TabsTrigger value="seller" className="flex-none px-0 pb-4 text-sm font-bold text-primary/40 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none transition-all whitespace-nowrap">הסופר הכותב</TabsTrigger>
+             <TabsTrigger value="reviews" className="flex-none px-0 pb-4 text-sm font-bold text-primary/40 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none transition-all whitespace-nowrap">ביקורות ({(reviews || []).length})</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="specs" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-              <Card className="border-none shadow-premium rounded-[3rem] bg-white p-6 md:p-10">
-                <div className="grid md:grid-cols-2 gap-x-12 gap-y-2">
-                  <SpecItem label="סוג כתב ומסורת" value={product.script_type} />
-                  <SpecItem label="רמת הידור הלכתית" value={product.script_level} />
-                  <SpecItem label="גודל קלף (סנטימטר)" value={product.parchment_size || 'סטנדרט'} />
-                  <SpecItem label="רמת הגהה וביקורת" value={product.proofreading_level || 'גברא'} />
-                  <SpecItem label="מלאי זמין כעת" value={`${product.quantity} יחידות`} />
-                </div>
-              </Card>
+              <div className="grid md:grid-cols-2 gap-x-16 gap-y-1 max-w-3xl">
+                <SpecItem label="סוג כתב ומסורת" value={product.script_type} />
+                <SpecItem label="רמת הידור הלכתית" value={product.script_level} />
+                <SpecItem label="גודל קלף (סנטימטר)" value={product.parchment_size || 'סטנדרט'} />
+                <SpecItem label="רמת הגהה וביקורת" value={product.proofreading_level || 'גברא'} />
+                <SpecItem label="מלאי זמין כעת" value={`${product.quantity} יחידות`} />
+              </div>
             </TabsContent>
 
             <TabsContent value="seller" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-              <Card className="border-none shadow-premium rounded-[3rem] bg-white p-8 md:p-12">
+              <div className="max-w-3xl">
                 {isSellerLoading ? (
                   <div className="flex justify-center py-10"><Loader2 className="w-10 h-10 animate-spin text-primary/30" /></div>
                 ) : seller ? (
                   <div className="flex flex-col md:flex-row items-center gap-10">
-                    <div className="relative w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden border-[6px] border-accent/10 shrink-0 bg-muted flex items-center justify-center shadow-xl">
+                    <div className="relative w-28 h-28 md:w-32 md:h-32 rounded-full overflow-hidden shrink-0 bg-muted flex items-center justify-center ring-1 ring-primary/10">
                       {seller.profile_image ? (
                         <Image src={seller.profile_image} alt="Scribe" fill kind="avatar" sizes="96px" className="object-cover" />
                       ) : (
@@ -696,11 +708,11 @@ export function ProductDetailsClient({
                     </div>
                   </div>
                 ) : null}
-              </Card>
+              </div>
             </TabsContent>
 
             <TabsContent value="reviews" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-              <Card className="border-none shadow-premium rounded-[3rem] bg-white p-8 md:p-12">
+              <div className="max-w-3xl">
                 <div className="flex justify-between items-center mb-5">
                   <div className="flex items-center gap-2">
                     <Button
@@ -723,7 +735,7 @@ export function ProductDetailsClient({
                   <h3 className="text-sm font-black text-primary/60 uppercase tracking-widest">ביקורות לקוחות</h3>
                 </div>
 
-                <div className="mb-8 rounded-3xl border border-primary/10 bg-gradient-to-br from-white to-primary/[0.03] p-5 md:p-6 space-y-4 text-right shadow-sm">
+                <div className="mb-8 rounded-3xl border border-primary/10 bg-primary/[0.02] p-5 md:p-6 space-y-4 text-right">
                   <div className="space-y-1">
                     <h4 className="text-base font-black text-primary">פרסום ביקורת</h4>
                     <p className="text-xs font-medium text-muted-foreground">שתפו בקצרה על המוצר כדי לעזור לקונים הבאים.</p>
@@ -826,51 +838,51 @@ export function ProductDetailsClient({
                     <p className="text-lg font-bold text-muted-foreground/50 italic tracking-tight">טרם נכתבו ביקורות למוצר זה.</p>
                   </div>
                 )}
-              </Card>
+              </div>
             </TabsContent>
           </Tabs>
         </div>
       </main>
 
       {/* Floating Action Bar - Optimized for Mobile */}
-      <div className="fixed bottom-0 left-0 right-0 z-[100] bg-white/90 backdrop-blur-2xl border-t border-primary/5 h-20 sm:h-24 md:h-28 shadow-[0_-10px_40px_rgba(0,0,0,0.08)]">
-        <div className="container mx-auto px-3 sm:px-4 h-full flex items-center justify-between gap-3 md:gap-4 max-w-5xl">
-          <div className="flex-1 flex gap-2 md:gap-6">
+      <div className="fixed bottom-0 left-0 right-0 z-[100] bg-white/95 backdrop-blur-2xl border-t border-primary/8 h-20 sm:h-24 md:h-28 shadow-[0_-8px_30px_rgba(15,23,42,0.06)]">
+        <div className="container mx-auto px-3 sm:px-4 h-full flex items-center justify-between gap-3 md:gap-4 max-w-6xl">
+          <div className="flex-1 flex gap-2.5 md:gap-4">
              {product.product_type === 'ספר תורה' ? (
-               <Button 
-                onClick={handleTorahCoordination} 
-                disabled={isProcessingRequest} 
-                className="flex-1 bg-accent text-primary hover:bg-accent/90 h-14 md:h-16 rounded-2xl md:rounded-[1.5rem] font-black uppercase tracking-widest gap-3 shadow-xl transition-all hover:scale-[1.02] active:scale-95"
+               <Button
+                onClick={handleTorahCoordination}
+                disabled={isProcessingRequest}
+                className="flex-1 bg-accent text-primary hover:bg-accent/90 h-14 md:h-16 rounded-2xl font-bold gap-3 shadow-md transition-all duration-200 hover:shadow-lg active:scale-95"
                >
-                 {isProcessingRequest ? <Loader2 className="w-5 h-5 animate-spin" /> : <CalendarCheck className="w-6 h-6" />}
+                 {isProcessingRequest ? <Loader2 className="w-5 h-5 animate-spin" /> : <CalendarCheck className="w-5 h-5" />}
                  <span>תיאום ופגישה</span>
                </Button>
              ) : (
-               <Button 
-                onClick={handlePurchaseClick} 
-                disabled={product.quantity <= 0} 
-                className="flex-1 bg-primary text-white hover:bg-primary/90 h-14 md:h-16 rounded-2xl md:rounded-[1.5rem] font-black uppercase tracking-widest gap-3 shadow-xl transition-all hover:scale-[1.02] active:scale-95"
+               <Button
+                onClick={handlePurchaseClick}
+                disabled={product.quantity <= 0}
+                className="flex-1 bg-primary text-white hover:bg-primary/90 h-14 md:h-16 rounded-2xl font-bold gap-3 shadow-md transition-all duration-200 hover:shadow-lg active:scale-95"
                >
-                 <ShoppingCart className="w-6 h-6" /> 
+                 <ShoppingCart className="w-5 h-5" />
                  <span>רכישה מאובטחת</span>
                </Button>
              )}
-             <Button 
-              variant="outline" 
-              asChild 
-              className="flex-1 border-2 border-primary/10 text-primary h-14 md:h-16 rounded-2xl md:rounded-[1.5rem] font-black uppercase tracking-widest gap-3 hover:bg-primary/5 transition-all shadow-sm"
+             <Button
+              variant="outline"
+              asChild
+              className="flex-1 border-primary/15 text-primary h-14 md:h-16 rounded-2xl font-bold gap-3 hover:bg-primary/5 transition-all duration-200 shadow-none"
              >
               <Link href={`/chat/${product.seller_id}?productId=${productId}`}>
-                <MessageCircle className="w-6 h-6 text-accent" /> 
+                <MessageCircle className="w-5 h-5 text-accent" />
                 <span className="hidden sm:inline">התייעצות</span>
                 <span className="sm:hidden">צ'אט</span>
               </Link>
              </Button>
           </div>
-          <div className="hidden sm:flex flex-col items-end border-r pr-6 md:pr-10 border-muted">
-            <span className="text-[10px] font-black text-primary/30 uppercase tracking-[0.2em] mb-1">סה"כ לתשלום</span>
+          <div className="hidden sm:flex flex-col items-end border-r pr-6 md:pr-10 border-primary/8">
+            <span className="text-[10px] font-bold text-primary/35 uppercase tracking-[0.2em] mb-1">סה"כ לתשלום</span>
             <div className="flex items-center gap-1.5 text-3xl font-black text-primary tabular-nums tracking-tighter">
-              <span className="text-accent text-lg">₪</span>
+              <span className="text-primary/50 text-lg font-bold">₪</span>
               <span>{displayPrice}</span>
             </div>
           </div>

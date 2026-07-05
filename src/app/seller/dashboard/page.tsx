@@ -14,7 +14,6 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Dialog, 
   DialogContent, 
@@ -545,6 +544,13 @@ function SellerDashboardContent() {
     samples: number | null;
   }>({ product: null, profile: null, certificate: null, samples: null });
 
+  // Optimistic local previews (via URL.createObjectURL) so a picked photo renders instantly,
+  // independent of upload/network timing — matches the pattern used in the onboarding wizard.
+  const [productLocalPreviews, setProductLocalPreviews] = useState<string[]>([]);
+  const [profileLocalPreview, setProfileLocalPreview] = useState<string | null>(null);
+  const [certLocalPreview, setCertLocalPreview] = useState<string | null>(null);
+  const [samplesLocalPreviews, setSamplesLocalPreviews] = useState<string[]>([]);
+
   const uploadImage = async (
     file: File,
     assetKind: 'product' | 'avatar' | 'certificate' | 'writing_sample',
@@ -572,6 +578,9 @@ function SellerDashboardContent() {
         return;
       }
 
+      const localUrls = filesToUpload.map((file) => URL.createObjectURL(file));
+      setProductLocalPreviews(prev => [...prev, ...localUrls]);
+
       try {
         const fileProgresses = new Array(filesToUpload.length).fill(0);
         setUploadProgress(prev => ({ ...prev, product: 0 }));
@@ -592,6 +601,8 @@ function SellerDashboardContent() {
       } finally {
         e.target.value = '';
         setUploadProgress(prev => ({ ...prev, product: null }));
+        localUrls.forEach((url) => URL.revokeObjectURL(url));
+        setProductLocalPreviews(prev => prev.filter((url) => !localUrls.includes(url)));
       }
       return;
     }
@@ -601,6 +612,9 @@ function SellerDashboardContent() {
       e.target.value = '';
       return;
     }
+
+    const localUrl = URL.createObjectURL(firstFile);
+    setProfileLocalPreview(localUrl);
 
     try {
       const previousProfileImage = profileData.profile_image;
@@ -623,12 +637,16 @@ function SellerDashboardContent() {
     } finally {
       e.target.value = '';
       setUploadProgress(prev => ({ ...prev, profile: null }));
+      URL.revokeObjectURL(localUrl);
+      setProfileLocalPreview(null);
     }
   };
 
   const handleCertificateUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const localUrl = URL.createObjectURL(file);
+    setCertLocalPreview(localUrl);
     try {
       const previousCertificateUrl = profileData.certificate_url;
       setUploadProgress(prev => ({ ...prev, certificate: 0 }));
@@ -646,6 +664,8 @@ function SellerDashboardContent() {
     } finally {
       e.target.value = '';
       setUploadProgress(prev => ({ ...prev, certificate: null }));
+      URL.revokeObjectURL(localUrl);
+      setCertLocalPreview(null);
     }
   };
 
@@ -661,6 +681,9 @@ function SellerDashboardContent() {
       e.target.value = '';
       return;
     }
+
+    const localUrls = filesToUpload.map((file) => URL.createObjectURL(file));
+    setSamplesLocalPreviews(prev => [...prev, ...localUrls]);
 
     try {
       const fileProgresses = new Array(filesToUpload.length).fill(0);
@@ -680,6 +703,8 @@ function SellerDashboardContent() {
     } finally {
       e.target.value = '';
       setUploadProgress(prev => ({ ...prev, samples: null }));
+      localUrls.forEach((url) => URL.revokeObjectURL(url));
+      setSamplesLocalPreviews(prev => prev.filter((url) => !localUrls.includes(url)));
     }
   };
 
@@ -1192,19 +1217,21 @@ function SellerDashboardContent() {
                    <div className="space-y-8">
                       <div className="flex flex-col items-center gap-4">
                         <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-accent/20 bg-muted flex items-center justify-center">
-                          {uploadProgress.profile !== null ? (
-                            <>
-                              <Skeleton className="absolute inset-0 rounded-full" />
-                              <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 z-10">
-                                <Loader2 className="w-5 h-5 text-accent animate-spin" />
-                                <span className="text-[9px] font-black text-primary/60">{uploadProgress.profile}%</span>
-                              </div>
-                            </>
+                          {profileLocalPreview ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={profileLocalPreview} alt="profile" className="absolute inset-0 h-full w-full object-cover" />
+                          ) : profileData.profile_image ? (
+                            <Image src={profileData.profile_image} alt="profile" fill kind="avatar" sizes="128px" className="object-cover" />
                           ) : (
-                            <>
-                              {profileData.profile_image ? <Image src={profileData.profile_image} alt="profile" fill kind="avatar" sizes="128px" className="object-cover" /> : <UserRound className="w-12 h-12 text-primary/10" />}
-                              <button onClick={() => document.getElementById('profile-img-up')?.click()} className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center text-white"><Camera className="w-6 h-6" /></button>
-                            </>
+                            <UserRound className="w-12 h-12 text-primary/10" />
+                          )}
+                          {uploadProgress.profile !== null ? (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 z-10 bg-black/45">
+                              <Loader2 className="w-5 h-5 text-white animate-spin" />
+                              <span className="text-[9px] font-black text-white">{uploadProgress.profile}%</span>
+                            </div>
+                          ) : (
+                            <button onClick={() => document.getElementById('profile-img-up')?.click()} className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center text-white"><Camera className="w-6 h-6" /></button>
                           )}
                         </div>
                         <input id="profile-img-up" type="file" onChange={(e) => handleImageUpload(e, 'profile')} className="hidden" accept="image/*" />
@@ -1301,19 +1328,23 @@ function SellerDashboardContent() {
                           </RadioGroup>
                           {(profileData.has_scribe_certificate === 'valid' || profileData.has_scribe_certificate === 'expired') && (
                             <div className="mt-4 p-6 bg-accent/5 rounded-2xl border-2 border-dashed border-accent/20 text-center space-y-4">
-                              {uploadProgress.certificate !== null ? (
+                              {(profileData.certificate_url || certLocalPreview) ? (
                                 <div className="relative w-full h-40 rounded-xl overflow-hidden border bg-white shadow-sm">
-                                  <Skeleton className="absolute inset-0" />
-                                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-8">
-                                    <Loader2 className="w-6 h-6 text-accent animate-spin" />
-                                    <Progress value={uploadProgress.certificate} className="h-1.5 w-full max-w-[180px]" />
-                                    <span className="text-[10px] font-black text-primary/50 uppercase tracking-widest">מעלה תעודה... {uploadProgress.certificate}%</span>
-                                  </div>
-                                </div>
-                              ) : profileData.certificate_url ? (
-                                <div className="relative w-full h-40 rounded-xl overflow-hidden border bg-white shadow-sm">
-                                  <Image src={profileData.certificate_url} alt="Cert" fill kind="certificate" sizes="(max-width: 768px) 100vw, 720px" className="object-contain" />
-                                  <button onClick={() => { void cleanupImages(profileData.certificate_url ? [profileData.certificate_url] : []); setProfileData({...profileData, certificate_url: ''}); }} className="absolute top-2 right-2 bg-destructive text-white rounded-full p-1 shadow-lg hover:scale-110 transition-transform"><X className="w-4 h-4" /></button>
+                                  {profileData.certificate_url ? (
+                                    <Image src={profileData.certificate_url} alt="Cert" fill kind="certificate" sizes="(max-width: 768px) 100vw, 720px" className="object-contain" />
+                                  ) : (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img src={certLocalPreview!} alt="Cert" className="absolute inset-0 h-full w-full object-contain" />
+                                  )}
+                                  {uploadProgress.certificate !== null ? (
+                                    <div className="absolute inset-0 bg-black/45 backdrop-blur-[1px] flex flex-col items-center justify-center gap-3 px-8">
+                                      <Loader2 className="w-6 h-6 text-white animate-spin" />
+                                      <Progress value={uploadProgress.certificate} className="h-1.5 w-full max-w-[180px]" />
+                                      <span className="text-[10px] font-black text-white uppercase tracking-widest">מעלה תעודה... {uploadProgress.certificate}%</span>
+                                    </div>
+                                  ) : (
+                                    <button onClick={() => { void cleanupImages(profileData.certificate_url ? [profileData.certificate_url] : []); setProfileData({...profileData, certificate_url: ''}); }} className="absolute top-2 right-2 bg-destructive text-white rounded-full p-1 shadow-lg hover:scale-110 transition-transform"><X className="w-4 h-4" /></button>
+                                  )}
                                 </div>
                               ) : (
                                 <div onClick={() => certInputRef.current?.click()} className="cursor-pointer py-10 flex flex-col items-center text-accent hover:opacity-80 transition-opacity">
@@ -1453,17 +1484,18 @@ function SellerDashboardContent() {
                                 <button onClick={() => { const targetUrl = profileData.writing_samples[idx]; void cleanupImages(targetUrl ? [targetUrl] : []); setProfileData({...profileData, writing_samples: profileData.writing_samples.filter((_, i) => i !== idx)}); }} className="absolute top-2 right-2 bg-destructive text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"><X className="w-3 h-3" /></button>
                               </div>
                             ))}
-                            {uploadProgress.samples !== null && (
-                              <div className="relative aspect-square rounded-2xl overflow-hidden border">
-                                <Skeleton className="absolute inset-0" />
-                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-3">
-                                  <Loader2 className="w-5 h-5 text-accent animate-spin" />
-                                  <Progress value={uploadProgress.samples} className="h-1 w-full" />
-                                  <span className="text-[9px] font-black text-primary/50">{uploadProgress.samples}%</span>
+                            {samplesLocalPreviews.map((localUrl, idx) => (
+                              <div key={`local-${idx}`} className="relative aspect-square rounded-2xl overflow-hidden border">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={localUrl} alt="מעלה דוגמה" className="absolute inset-0 h-full w-full object-cover" />
+                                <div className="absolute inset-0 bg-black/45 flex flex-col items-center justify-center gap-2 px-3">
+                                  <Loader2 className="w-5 h-5 text-white animate-spin" />
+                                  <Progress value={uploadProgress.samples ?? 0} className="h-1 w-full" />
+                                  <span className="text-[9px] font-black text-white">{uploadProgress.samples ?? 0}%</span>
                                 </div>
                               </div>
-                            )}
-                            {profileData.writing_samples.length < 8 && uploadProgress.samples === null && (
+                            ))}
+                            {profileData.writing_samples.length < 8 && samplesLocalPreviews.length === 0 && (
                               <button onClick={() => writingSamplesInputRef.current?.click()} className="aspect-square border-2 border-dashed border-primary/10 rounded-2xl flex flex-col items-center justify-center text-primary/30 hover:bg-primary/5 transition-all">
                                 <ImageIcon className="w-6 h-6 mb-1" />
                                 <span className="text-[9px] font-black uppercase">הוסף דוגמה</span>
@@ -1922,17 +1954,18 @@ function SellerDashboardContent() {
                              </button>
                            </div>
                          ))}
-                         {uploadProgress.product !== null && (
-                           <div className="relative aspect-square rounded-2xl overflow-hidden border-2 border-white">
-                             <Skeleton className="absolute inset-0" />
-                             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-3">
-                               <Loader2 className="w-5 h-5 text-accent animate-spin" />
-                               <Progress value={uploadProgress.product} className="h-1 w-full" />
-                               <span className="text-[9px] font-black text-primary/50">{uploadProgress.product}%</span>
+                         {productLocalPreviews.map((localUrl, idx) => (
+                           <div key={`local-${idx}`} className="relative aspect-square rounded-2xl overflow-hidden border-2 border-white">
+                             {/* eslint-disable-next-line @next/next/no-img-element */}
+                             <img src={localUrl} alt="מעלה תמונה" className="absolute inset-0 h-full w-full object-cover" />
+                             <div className="absolute inset-0 bg-black/45 flex flex-col items-center justify-center gap-2 px-3">
+                               <Loader2 className="w-5 h-5 text-white animate-spin" />
+                               <Progress value={uploadProgress.product ?? 0} className="h-1 w-full" />
+                               <span className="text-[9px] font-black text-white">{uploadProgress.product ?? 0}%</span>
                              </div>
                            </div>
-                         )}
-                         {formImages.length < 6 && uploadProgress.product === null && (
+                         ))}
+                         {formImages.length < 6 && productLocalPreviews.length === 0 && (
                            <button
                             type="button"
                             onClick={() => document.getElementById('wizard-img-up')?.click()}

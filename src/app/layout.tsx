@@ -92,7 +92,7 @@ export default function RootLayout({
         <style
           dangerouslySetInnerHTML={{
             __html: `
-              html,body{margin:0;padding:0;background:#f9f7f1;color:#0f1a33}
+              html,body{margin:0;padding:0;background:#faf7f0;color:#0d1420}
               body{font-family:var(--font-rubik),Arial,sans-serif;font-weight:400;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
               h1,h2,h3,h4,h5,h6{font-family:var(--font-rubik),Arial,sans-serif;font-weight:700}
               .section-shell{padding-top:2.5rem;padding-bottom:2.5rem}

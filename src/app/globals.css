@@ -5,25 +5,25 @@
 
 @layer base {
   :root {
-    --background: 45 30% 97%; /* Parchment-like background */
-    --foreground: 220 40% 10%;
+    --background: 42 33% 97%;         /* קלף חמים יותר, פחות אפרפר */
+    --foreground: 222 45% 9%;         /* דיו כמעט-שחור, לא כחול-בהיר */
     --card: 0 0% 100%;
-    --card-foreground: 220 40% 10%;
+    --card-foreground: 222 45% 9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 220 40% 10%;
-    --primary: 220 60% 18%; /* Deep Royal Blue */
-    --primary-foreground: 45 30% 98%;
-    --secondary: 45 20% 90%;
-    --secondary-foreground: 220 60% 18%;
-    --muted: 45 10% 92%;
-    --muted-foreground: 220 10% 40%;
-    --accent: 38 75% 55%; /* Rich Gold */
-    --accent-foreground: 220 60% 10%;
-    --border: 220 20% 88%;
-    --input: 220 20% 88%;
-    --destructive: 0 84% 60%;
+    --popover-foreground: 222 45% 9%;
+    --primary: 222 55% 14%;           /* דיו עמוק, פחות "טכני" מהכחול הקודם */
+    --primary-foreground: 42 35% 97%;
+    --secondary: 40 28% 91%;
+    --secondary-foreground: 222 55% 14%;
+    --muted: 40 15% 93%;
+    --muted-foreground: 222 12% 38%;
+    --accent: 39 68% 48%;             /* זהב עתיק, פחות צהוב-בהיר מהקודם */
+    --accent-foreground: 222 55% 10%;
+    --border: 222 18% 87%;
+    --input: 222 18% 87%;
+    --destructive: 0 78% 56%;
     --destructive-foreground: 0 0% 98%;
-    --ring: 38 75% 55%;
+    --ring: 39 68% 48%;
     --radius: 1rem;
   }
 }

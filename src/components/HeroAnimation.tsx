@@ -217,7 +217,7 @@ export function HeroAnimation() {
       </div>
 
       <div className="container mx-auto px-4 md:px-5 relative z-20 flex flex-col items-center justify-center">
-        <div className="max-w-4xl w-full space-y-8 md:space-y-14 flex flex-col items-center text-center">
+        <div className="max-w-4xl w-full space-y-5 md:space-y-14 flex flex-col items-center text-center">
           
           <div className={`space-y-3 md:space-y-5 ${homeAnimations.animateFadeIn}`}>
             <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-headline font-black text-primary leading-[1.08] tracking-tighter">
@@ -228,7 +228,7 @@ export function HeroAnimation() {
           <div className="w-full max-w-3xl bg-white/78 backdrop-blur-xl border border-white/90 rounded-2xl sm:rounded-3xl md:rounded-[3.2rem] p-4 sm:p-6 md:p-8 lg:p-12 shadow-premium-lg relative ring-1 ring-primary/10">
             
             {/* Step indicator */}
-            <div className="flex flex-col items-center mb-4 md:mb-10 gap-4">
+            <div className="flex flex-col items-center mb-3 md:mb-10 gap-4">
               <div className="flex items-center gap-0">
                 {[
                   { n: 1, label: 'בחירת מוצר' },
@@ -265,7 +265,7 @@ export function HeroAnimation() {
 
             <AnimatePresence mode="wait">
               {step === 1 && (
-                <motion.div key="step1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6 md:space-y-10">
+                <motion.div key="step1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }} className="space-y-4 md:space-y-10">
                   <div className="flex flex-col items-center gap-4">
                     <h2 className="text-2xl md:text-[2rem] font-headline font-black text-primary">מה אתם מחפשים?</h2>
                   </div>
@@ -321,7 +321,7 @@ export function HeroAnimation() {
               )}
 
               {step === 2 && (
-                <motion.div key="step2" initial={{ opacity: 0, x: 28 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ type: "spring", stiffness: 220, damping: 22 }} className="space-y-5 md:space-y-7 text-right">
+                <motion.div key="step2" initial={{ opacity: 0, x: 28 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ type: "spring", stiffness: 300, damping: 28 }} className="space-y-4 md:space-y-7 text-right">
                   <div className="flex justify-between items-center border-b border-primary/5 pb-4">
                     <Button variant="ghost" onClick={() => setStep(1)} className="font-black text-[11px] uppercase tracking-widest h-10 px-4 rounded-xl hover:bg-primary/5 gap-1"><ChevronRight className="w-4 h-4" /> חזור</Button>
                     <div className="text-right">
@@ -332,7 +332,7 @@ export function HeroAnimation() {
 
                   <div className={cn("grid gap-4 pt-2 md:gap-6 md:pt-4", hasSubTypes ? "md:grid-cols-2" : "grid-cols-1 max-w-3xl mx-auto")}>
                     {hasSubTypes && (
-                      <div className="space-y-4 rounded-3xl bg-white/60 border border-primary/5 p-5 shadow-sm">
+                      <div className="space-y-4 rounded-3xl bg-white/60 border border-primary/5 p-4 md:p-5 shadow-sm">
                         <Label className="font-black text-[8px] sm:text-[9px] md:text-[10px] uppercase text-primary/60 mr-1 tracking-widest">תת-סוג המוצר</Label>
                         <RadioGroup value={subType} onValueChange={setSubType} className="grid grid-cols-2 gap-3">
                           {selectedProduct !== 'מזוזה' && <CustomTile value="all" label="כל הסוגים" active={subType === 'all'} />}
@@ -341,7 +341,7 @@ export function HeroAnimation() {
                       </div>
                     )}
 
-                    <div className="space-y-4 rounded-3xl bg-white/60 border border-primary/5 p-5 shadow-sm">
+                    <div className="space-y-4 rounded-3xl bg-white/60 border border-primary/5 p-4 md:p-5 shadow-sm">
                       <Label className="font-black text-[8px] sm:text-[9px] md:text-[10px] uppercase text-primary/60 mr-1 tracking-widest">סוג הכתב (מסורת)</Label>
                       <RadioGroup value={scriptType} onValueChange={setScriptType} className={cn("grid gap-2", hasSubTypes ? "grid-cols-1" : "sm:grid-cols-2")}>
                         {[
@@ -366,7 +366,7 @@ export function HeroAnimation() {
               )}
 
               {step === 3 && (
-                <motion.div key="step3" initial={{ opacity: 0, x: 28 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ type: "spring", stiffness: 220, damping: 22 }} className="space-y-5 md:space-y-7 text-right">
+                <motion.div key="step3" initial={{ opacity: 0, x: 28 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ type: "spring", stiffness: 300, damping: 28 }} className="space-y-4 md:space-y-7 text-right">
                   <div className="flex justify-between items-center border-b border-primary/5 pb-4">
                     <Button variant="ghost" onClick={() => setStep(2)} className="font-black text-[11px] uppercase tracking-widest h-10 px-4 rounded-xl hover:bg-primary/5 gap-1"><ChevronRight className="w-4 h-4" /> חזור</Button>
                     <div className="text-right">
@@ -376,7 +376,7 @@ export function HeroAnimation() {
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-4 md:gap-6 pt-2 md:pt-4">
-                    <div className="space-y-6 rounded-3xl bg-white/60 border border-primary/5 p-5 shadow-sm">
+                    <div className="space-y-6 rounded-3xl bg-white/60 border border-primary/5 p-4 md:p-5 shadow-sm">
                       <div className="space-y-4">
                         <Label className="font-black text-[8px] sm:text-[9px] md:text-[10px] uppercase text-primary/60 mr-1 tracking-widest">רמת הידור מבוקשת</Label>
                         <RadioGroup value={qualityLevel} onValueChange={setQualityLevel} className="grid grid-cols-2 gap-3">
@@ -410,7 +410,7 @@ export function HeroAnimation() {
                           <div className="space-y-4">
                             <Label className="text-[8px] sm:text-[9px] md:text-[10px] font-black uppercase text-primary/40 tracking-widest">גובה קלף (ס"מ)</Label>
                             <Select value={megillahHeight} onValueChange={setMegillahHeight}>
-                              <SelectTrigger className="h-14 rounded-2xl text-right font-bold text-sm bg-white/50 border-2 border-transparent">
+                              <SelectTrigger className="h-14 rounded-2xl text-right font-bold text-base sm:text-sm bg-white/50 border-2 border-transparent">
                                 <SelectValue placeholder="בחר גובה..." />
                               </SelectTrigger>
                               <SelectContent className="rounded-2xl shadow-2xl p-1">
@@ -441,7 +441,7 @@ export function HeroAnimation() {
                       )}
                     </div>
 
-                    <div className="space-y-6 rounded-3xl bg-white/60 border border-primary/5 p-5 shadow-sm">
+                    <div className="space-y-6 rounded-3xl bg-white/60 border border-primary/5 p-4 md:p-5 shadow-sm">
                       <div className="space-y-4 pb-5 border-b border-primary/5">
                         <Label className="font-black text-[8px] sm:text-[9px] md:text-[10px] uppercase text-primary/40 mr-1 tracking-widest">מיקום וקרבה (אופציונלי)</Label>
                         <div className="flex flex-col gap-3">
@@ -454,7 +454,7 @@ export function HeroAnimation() {
                             options={[...COMMON_CITY_OPTIONS]}
                             placeholder="בחר עיר"
                             onChange={(city) => { setSelectedCity(city); if (city) setIncludeNearbyCities(true); }}
-                            triggerClassName="h-12 md:h-14 rounded-2xl text-sm border-2 border-transparent bg-white/50 focus:border-primary/20"
+                            triggerClassName="h-12 md:h-14 rounded-2xl text-base sm:text-sm border-2 border-transparent bg-white/50 focus:border-primary/20"
                           />
                           <Label className="flex items-center justify-between rounded-2xl border-2 border-primary/5 bg-white/80 px-4 py-4 shadow-sm transition-all hover:border-primary/10">
                             <div className="space-y-1 text-right">

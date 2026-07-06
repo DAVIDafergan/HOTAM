@@ -94,7 +94,7 @@ export function CitySelect({
           type="button"
           variant="outline"
           className={cn(
-            'h-11 w-full justify-between rounded-2xl border border-primary/10 bg-white px-4 text-right font-bold text-xs hover:bg-white',
+            'h-11 w-full justify-between rounded-2xl border border-primary/10 bg-white px-4 text-right font-bold text-base sm:text-xs transition-all duration-200 hover:bg-white',
             triggerClassName,
           )}
         >
@@ -117,7 +117,7 @@ export function CitySelect({
             />
           </div>
 
-          <ScrollArea className="h-64 rounded-2xl border border-primary/5">
+          <ScrollArea className="h-56 max-h-60 rounded-2xl border border-primary/5">
             <div className="space-y-1 p-1">
               <button
                 type="button"
@@ -126,7 +126,7 @@ export function CitySelect({
                   setOpen(false);
                   setSearch('');
                 }}
-                className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-right text-sm font-bold text-primary/70 transition-colors hover:bg-primary/5"
+                className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-right text-sm font-bold text-primary/70 transition-all duration-200 hover:bg-primary/5 active:scale-[0.98]"
               >
                 <span>{placeholder}</span>
                 {!value && <Check className="h-4 w-4 text-accent" />}
@@ -144,10 +144,10 @@ export function CitySelect({
                       setOpen(false);
                       setSearch('');
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-right text-sm font-bold text-primary transition-colors hover:bg-primary/5"
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-right text-sm font-bold text-primary transition-all duration-200 hover:bg-primary/5 active:scale-[0.98]"
                   >
                     <span>{option}</span>
-                    <Check className={cn('h-4 w-4 text-accent', value === option ? 'opacity-100' : 'opacity-0')} />
+                    <Check className={cn('h-4 w-4 text-accent transition-opacity duration-200', value === option ? 'opacity-100' : 'opacity-0')} />
                   </button>
                 ))
               )}

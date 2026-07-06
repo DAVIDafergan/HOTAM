@@ -47,6 +47,7 @@ import { useSearchParams } from 'next/navigation';
 import { useSupabaseClient, useCollection, useMemoStable } from '@/lib/supabase-hooks';
 import { collection, query, where, limit } from '@/lib/supabase-compat';
 import { ProductCard, type ProductCardViewMode } from '@/components/ProductCard';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -87,8 +88,23 @@ function SearchContent() {
   const [shippingPreference, setShippingPreference] = useState<ShippingPreference>('all');
   const [sortOrder, setSortOrder] = useState('newest');
   const [viewMode, setViewMode] = useState<ProductCardViewMode>('grid');
+  const isMobile = useIsMobile();
+  const hasManualViewMode = React.useRef(false);
   const searchParams = useSearchParams();
   const db = useSupabaseClient();
+
+  // Default to list view on mobile once the viewport is known client-side, without
+  // clobbering an explicit choice the user already made via the toggle button.
+  useEffect(() => {
+    if (!hasManualViewMode.current) {
+      setViewMode(isMobile ? 'list' : 'grid');
+    }
+  }, [isMobile]);
+
+  const handleViewModeChange = useCallback((mode: ProductCardViewMode) => {
+    hasManualViewMode.current = true;
+    setViewMode(mode);
+  }, []);
   
   const isViewingAll = searchParams.get('view') === 'all';
 
@@ -839,7 +855,7 @@ function SearchContent() {
                 <div className="flex items-center rounded-full border border-primary/10 bg-white p-1 shadow-sm" role="group" aria-label="תצוגת תוצאות">
                   <button
                     type="button"
-                    onClick={() => setViewMode('grid')}
+                    onClick={() => handleViewModeChange('grid')}
                     aria-pressed={viewMode === 'grid'}
                     aria-label="תצוגת רשת"
                     className={cn(
@@ -851,7 +867,7 @@ function SearchContent() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setViewMode('list')}
+                    onClick={() => handleViewModeChange('list')}
                     aria-pressed={viewMode === 'list'}
                     aria-label="תצוגת רשימה"
                     className={cn(

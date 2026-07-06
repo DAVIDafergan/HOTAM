@@ -93,6 +93,9 @@ export function HeroAnimation() {
           if (city) {
             setDetectedCity(city);
             setSelectedCity(city);
+            // Cascade to nearby cities by default: exact-city matches show first, then
+            // remaining results fill in sorted by proximity, instead of a strict match only.
+            setIncludeNearbyCities(true);
             toast({ title: `מיקום זוהה: ${city}` });
           } else {
             setDetectedCity(null);
@@ -450,7 +453,7 @@ export function HeroAnimation() {
                             value={selectedCity}
                             options={[...COMMON_CITY_OPTIONS]}
                             placeholder="בחר עיר"
-                            onChange={setSelectedCity}
+                            onChange={(city) => { setSelectedCity(city); if (city) setIncludeNearbyCities(true); }}
                             triggerClassName="h-12 md:h-14 rounded-2xl text-sm border-2 border-transparent bg-white/50 focus:border-primary/20"
                           />
                           <Label className="flex items-center justify-between rounded-2xl border-2 border-primary/5 bg-white/80 px-4 py-4 shadow-sm transition-all hover:border-primary/10">

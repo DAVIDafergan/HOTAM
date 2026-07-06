@@ -222,7 +222,13 @@ function SearchContent() {
         ? detectedCityFromParams
         : city || null,
     );
-    setIncludeNearbyCities(searchParams.get('nearby') === 'true' || searchParams.get('nearMe') === 'true');
+    // Smart geo search: once a city is set (detection or manual), cascade to nearby cities
+    // by default so results aren't limited to an exact-city-only match with nothing else.
+    setIncludeNearbyCities(
+      searchParams.get('nearby') === 'true' ||
+      searchParams.get('nearMe') === 'true' ||
+      Boolean(city)
+    );
 
     const lat = searchParams.get('lat');
     const lng = searchParams.get('lng');
@@ -257,6 +263,9 @@ function SearchContent() {
           if (city) {
             setDetectedCity(city);
             setSelectedCity(city);
+            // Cascade to nearby cities by default so an exact-city match is shown first,
+            // then closer cities fill in the rest — rather than a strict, possibly-empty match.
+            setIncludeNearbyCities(true);
             toast({ title: "המיקום זוהה", description: `זוהית ב: ${city}` });
           } else {
             setDetectedCity(null);
@@ -633,7 +642,7 @@ function SearchContent() {
             value={selectedCity}
             options={availableCities}
             placeholder="בחר עיר לסינון"
-            onChange={setSelectedCity}
+            onChange={(city) => { setSelectedCity(city); if (city) setIncludeNearbyCities(true); }}
             layout="inline"
           />
           <Label className="flex items-center justify-between rounded-2xl border border-primary/10 bg-white px-4 py-4 transition-all cursor-pointer hover:border-primary/20">

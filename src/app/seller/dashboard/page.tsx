@@ -80,6 +80,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
+import { getCommissionRate, getSellerPayoutRate, resolveSellerNet } from '@/lib/commission';
 import { cleanupImageAssetsViaApi, uploadImageViaApi } from '@/lib/image-upload';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -204,6 +205,7 @@ function SellerDashboardContent() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const sellerCityInputRef = useRef<HTMLInputElement>(null);
   const sellerAddressInputRef = useRef<HTMLInputElement>(null);
+  const formPickupAddressInputRef = useRef<HTMLInputElement>(null);
   const certInputRef = useRef<HTMLInputElement>(null);
   const writingSamplesInputRef = useRef<HTMLInputElement>(null);
   const [editingProduct, setEditingProduct] = useState<any>(null);
@@ -400,6 +402,39 @@ function SellerDashboardContent() {
       }
     };
   }, []);
+
+  // The pickup-address field only mounts inside the (dialog-gated, conditionally rendered)
+  // product form, so re-attach whenever the dialog opens or the field becomes visible.
+  useEffect(() => {
+    if (!formPickupAddressInputRef.current) return;
+    let autocomplete: any;
+    let listener: any;
+    let cancelled = false;
+
+    loadGoogleMapsPlacesScript()
+      .then(() => {
+        if (cancelled || !formPickupAddressInputRef.current || !window.google?.maps?.places) return;
+        autocomplete = new window.google.maps.places.Autocomplete(formPickupAddressInputRef.current, {
+          types: ['address'],
+          fields: ['formatted_address'],
+          componentRestrictions: { country: 'il' },
+        });
+        listener = autocomplete.addListener('place_changed', () => {
+          const place = autocomplete.getPlace();
+          if (place?.formatted_address) {
+            setFormPickupAddress(place.formatted_address);
+          }
+        });
+      })
+      .catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+      if (listener && window.google?.maps?.event?.removeListener) {
+        window.google.maps.event.removeListener(listener);
+      }
+    };
+  }, [isDialogOpen, formDeliveryType]);
 
   const sellerDefaultPickupAddress = useMemo(() => {
     const address = profileData.address || seller?.address || '';
@@ -908,7 +943,7 @@ function SellerDashboardContent() {
     toast({ title: 'המוצר נמחק בהצלחה' });
   };
 
-  const totalNetEarnings = useMemo(() => orders.filter(o => o.status === 'completed').reduce((acc: number, o: any) => acc + (Number(o.seller_net) || 0), 0), [orders]);
+  const totalNetEarnings = useMemo(() => orders.filter(o => o.status === 'completed').reduce((acc: number, o: any) => acc + resolveSellerNet(o), 0), [orders]);
 
   const paginatedProducts = products.slice((inventoryPage - 1) * ITEMS_PER_PAGE, inventoryPage * ITEMS_PER_PAGE);
   const paginatedOrders = orders.slice((salesPage - 1) * ITEMS_PER_PAGE, salesPage * ITEMS_PER_PAGE);
@@ -1179,7 +1214,7 @@ function SellerDashboardContent() {
                                     <div className="flex items-center gap-4">
                                        <div className="text-right">
                                           <p className="text-[9px] font-black text-muted-foreground uppercase leading-none">הכנסה נטו לסופר (לאחר עמלת אתר):</p>
-                                          <p className="text-xl font-black text-emerald-600">₪{o.seller_net?.toFixed(0) || (o.amount * 0.80).toFixed(0)}</p>
+                                          <p className="text-xl font-black text-emerald-600">₪{resolveSellerNet(o).toFixed(0)}</p>
                                        </div>
                                     </div>
                                  </div>
@@ -1786,10 +1821,10 @@ function SellerDashboardContent() {
                         <div className="flex justify-between items-center px-1">
                           <div className="flex items-center gap-1.5 text-muted-foreground">
                              <Info className="w-3.5 h-3.5" />
-                             <span className="text-[10px] font-bold">עמלת אתר ({formType === 'מגילה' ? '5' : formType === 'ספר תורה' ? '12' : '20'}%): ₪{formPrice !== '' ? (Number(formPrice) * (formType === 'מגילה' ? 0.05 : formType === 'ספר תורה' ? 0.12 : 0.20)).toFixed(0) : '---'}</span>
+                             <span className="text-[10px] font-bold">עמלת אתר ({(getCommissionRate(formType) * 100).toFixed(0)}%): ₪{formPrice !== '' ? (Number(formPrice) * getCommissionRate(formType)).toFixed(0) : '---'}</span>
                           </div>
                           <div className="bg-emerald-600 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase">
-                            הרווח שלך: ₪{formPrice !== '' ? (Number(formPrice) * (formType === 'מגילה' ? 0.95 : formType === 'ספר תורה' ? 0.88 : 0.80)).toFixed(0) : '---'}
+                            הרווח שלך: ₪{formPrice !== '' ? (Number(formPrice) * getSellerPayoutRate(formType)).toFixed(0) : '---'}
                           </div>
                         </div>
                         <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mt-1">
@@ -1923,6 +1958,7 @@ function SellerDashboardContent() {
                           <div className="space-y-1">
                             <Label className="text-[9px] font-black">כתובת לאיסוף עצמי *</Label>
                             <Input
+                              ref={formPickupAddressInputRef}
                               value={formPickupAddress}
                               onChange={e => setFormPickupAddress(e.target.value)}
                               placeholder="ברירת מחדל: הכתובת שלך בפרופיל"

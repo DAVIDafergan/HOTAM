@@ -34,7 +34,9 @@ function extractCity(address: string | null | undefined): string {
   if (parts.length > 1) {
     return parts[parts.length - 1];
   }
-  return address.trim();
+  // No comma to safely separate the street/number from the city — never fall back to
+  // showing the raw (potentially full street) address, matching the seller profile page.
+  return '';
 }
 
 export function TopScribesCards({ topScribes }: { topScribes: TopScribeCard[] }) {

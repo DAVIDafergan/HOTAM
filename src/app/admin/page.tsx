@@ -76,6 +76,7 @@ import { useRouter } from 'next/navigation';
 import unsplashLoader from '@/lib/unsplashLoader';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
+import { calculateCommissionAmount, resolveSellerNet } from '@/lib/commission';
 
 const ITEMS_PER_PAGE = 15;
 
@@ -343,12 +344,7 @@ export default function AdminDashboard() {
     const c = customersData;
     const o = visibleOrders.filter((x: any) => x.status === 'completed');
     const totalVolume = o.reduce((acc: number, x: any) => acc + Number(x.amount || 0), 0);
-    const siteEarnings = o.reduce((acc: number, x: any) => {
-      const amount = Number(x.amount || 0);
-      const type = x.product_name || '';
-      const rate = type === 'מגילה' ? 0.05 : type === 'ספר תורה' ? 0.12 : 0.20;
-      return acc + amount * rate;
-    }, 0);
+    const siteEarnings = o.reduce((acc: number, x: any) => acc + calculateCommissionAmount(Number(x.amount || 0), x.product_name), 0);
     
     return {
       totalScribes: activeSellersCount || s.filter(x => x.is_approved).length,
@@ -963,7 +959,7 @@ function ScribeTable({ scribes, onApprove, onDelete, isLoading, orders, totalCou
                   const date = o.created_at?.toDate ? o.created_at.toDate() : (o.created_at ? new Date(o.created_at) : new Date());
                   return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
                 })
-                .reduce((acc: number, o: any) => acc + (Number(o.seller_net) || Number(o.amount) * 0.80), 0);
+                .reduce((acc: number, o: any) => acc + resolveSellerNet(o), 0);
               const scribeCreatedAt =
                 scribe?.created_at?.toDate?.() ??
                 (scribe?.created_at ? new Date(scribe.created_at) : null);

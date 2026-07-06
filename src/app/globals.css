@@ -106,6 +106,42 @@
     transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
   }
 
+  /* Google Places Autocomplete dropdown — restyle to match the app instead of Google's default look */
+  .pac-container {
+    font-family: var(--font-assistant), Arial, sans-serif;
+    border: 1px solid hsl(var(--border));
+    border-radius: 1rem;
+    margin-top: 6px;
+    box-shadow: 0 16px 40px -12px rgba(15, 23, 42, 0.18);
+    overflow: hidden;
+    direction: rtl;
+    z-index: 1000;
+  }
+  .pac-item {
+    padding: 0.65rem 0.9rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: hsl(var(--primary));
+    border-top-color: hsl(var(--border));
+    text-align: right;
+    cursor: pointer;
+  }
+  .pac-item:hover,
+  .pac-item-selected {
+    background-color: hsl(var(--primary) / 0.06);
+  }
+  .pac-icon {
+    display: none;
+  }
+  .pac-item-query {
+    font-size: 0.85rem;
+    color: hsl(var(--primary));
+  }
+  .pac-matched {
+    color: hsl(var(--accent));
+    font-weight: 700;
+  }
+
   /* Scrollbar hiding utilities (both class names used across the codebase) */
   .no-scrollbar::-webkit-scrollbar,
   .scrollbar-hide::-webkit-scrollbar { display: none; }

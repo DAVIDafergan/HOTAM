@@ -1253,8 +1253,7 @@ function SellerDashboardContent() {
                       <div className="flex flex-col items-center gap-4">
                         <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-accent/20 bg-muted flex items-center justify-center">
                           {profileLocalPreview ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={profileLocalPreview} alt="profile" className="absolute inset-0 h-full w-full object-cover" />
+                            <Image src={profileLocalPreview} alt="profile" fill kind="avatar" sizes="128px" className="object-cover" unoptimized />
                           ) : profileData.profile_image ? (
                             <Image src={profileData.profile_image} alt="profile" fill kind="avatar" sizes="128px" className="object-cover" />
                           ) : (
@@ -1368,8 +1367,7 @@ function SellerDashboardContent() {
                                   {profileData.certificate_url ? (
                                     <Image src={profileData.certificate_url} alt="Cert" fill kind="certificate" sizes="(max-width: 768px) 100vw, 720px" className="object-contain" />
                                   ) : (
-                                    // eslint-disable-next-line @next/next/no-img-element
-                                    <img src={certLocalPreview!} alt="Cert" className="absolute inset-0 h-full w-full object-contain" />
+                                    <Image src={certLocalPreview!} alt="Cert" fill kind="certificate" sizes="(max-width: 768px) 100vw, 720px" className="object-contain" unoptimized />
                                   )}
                                   {uploadProgress.certificate !== null ? (
                                     <div className="absolute inset-0 bg-black/45 backdrop-blur-[1px] flex flex-col items-center justify-center gap-3 px-8">
@@ -1382,13 +1380,13 @@ function SellerDashboardContent() {
                                   )}
                                 </div>
                               ) : (
-                                <div onClick={() => certInputRef.current?.click()} className="cursor-pointer py-10 flex flex-col items-center text-accent hover:opacity-80 transition-opacity">
+                                <button type="button" onClick={() => certInputRef.current?.click()} className="w-full cursor-pointer py-10 flex flex-col items-center text-accent hover:opacity-80 transition-opacity">
                                   <div className="flex gap-4 mb-2">
                                     <ImageIcon className="w-10 h-10" />
                                     <Camera className="w-10 h-10" />
                                   </div>
                                   <span className="font-black text-xs uppercase tracking-widest">לחץ להעלאת צילום התעודה</span>
-                                </div>
+                                </button>
                               )}
                               <input type="file" ref={certInputRef} onChange={handleCertificateUpload} className="hidden" accept="image/*" />
                             </div>
@@ -1521,8 +1519,7 @@ function SellerDashboardContent() {
                             ))}
                             {samplesLocalPreviews.map((localUrl, idx) => (
                               <div key={`local-${idx}`} className="relative aspect-square rounded-2xl overflow-hidden border">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={localUrl} alt="מעלה דוגמה" className="absolute inset-0 h-full w-full object-cover" />
+                                <Image src={localUrl} alt="מעלה דוגמה" fill kind="writing_sample" sizes="(max-width: 640px) 50vw, 25vw" className="object-cover" unoptimized />
                                 <div className="absolute inset-0 bg-black/45 flex flex-col items-center justify-center gap-2 px-3">
                                   <Loader2 className="w-5 h-5 text-white animate-spin" />
                                   <Progress value={uploadProgress.samples ?? 0} className="h-1 w-full" />
@@ -1992,8 +1989,7 @@ function SellerDashboardContent() {
                          ))}
                          {productLocalPreviews.map((localUrl, idx) => (
                            <div key={`local-${idx}`} className="relative aspect-square rounded-2xl overflow-hidden border-2 border-white">
-                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                             <img src={localUrl} alt="מעלה תמונה" className="absolute inset-0 h-full w-full object-cover" />
+                             <Image src={localUrl} alt="מעלה תמונה" fill kind="product" sizes="(max-width: 640px) 33vw, 20vw" className="object-cover" unoptimized />
                              <div className="absolute inset-0 bg-black/45 flex flex-col items-center justify-center gap-2 px-3">
                                <Loader2 className="w-5 h-5 text-white animate-spin" />
                                <Progress value={uploadProgress.product ?? 0} className="h-1 w-full" />

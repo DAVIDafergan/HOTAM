@@ -897,8 +897,7 @@ export default function SellerOnboarding() {
                             {formData.certificateUrl ? (
                               <Image src={formData.certificateUrl} alt="תעודת הסופר" fill priority kind="certificate" sizes="(max-width: 768px) 100vw, 720px" className="object-contain" />
                             ) : (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img src={certLocalPreview!} alt="תעודת הסופר" className="absolute inset-0 h-full w-full object-contain" />
+                              <Image src={certLocalPreview!} alt="תעודת הסופר" fill kind="certificate" sizes="(max-width: 768px) 100vw, 720px" className="object-contain" unoptimized />
                             )}
                             {uploadProgress.cert !== null ? (
                               <div className="absolute inset-0 bg-black/45 backdrop-blur-[1px] flex flex-col items-center justify-center gap-3 px-8">
@@ -911,13 +910,13 @@ export default function SellerOnboarding() {
                             )}
                           </div>
                         ) : (
-                          <div onClick={() => certInputRef.current?.click()} className="cursor-pointer py-10 flex flex-col items-center text-accent hover:opacity-80 transition-opacity">
+                          <button type="button" onClick={() => certInputRef.current?.click()} className="w-full cursor-pointer py-10 flex flex-col items-center text-accent hover:opacity-80 transition-opacity">
                             <div className="flex gap-4 mb-2">
                               <ImageIcon className="w-10 h-10" />
                               <Camera className="w-10 h-10" />
                             </div>
                             <span className="font-black text-xs uppercase tracking-widest">לחץ להעלאת צילום התעודה</span>
-                          </div>
+                          </button>
                         )}
                         <input type="file" ref={certInputRef} onChange={(e) => handleFileUpload(e, 'cert')} className="hidden" accept="image/*" />
                       </div>
@@ -938,8 +937,7 @@ export default function SellerOnboarding() {
                       ))}
                       {samplesLocalPreviews.map((localUrl, idx) => (
                         <div key={`local-${idx}`} className="relative aspect-square rounded-2xl overflow-hidden border">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={localUrl} alt="מעלה דוגמת כתיבה" className="absolute inset-0 h-full w-full object-cover" />
+                          <Image src={localUrl} alt="מעלה דוגמת כתיבה" fill kind="writing_sample" sizes="(max-width: 640px) 50vw, 25vw" className="object-cover" unoptimized />
                           <div className="absolute inset-0 bg-black/45 flex flex-col items-center justify-center gap-2 px-3">
                             <Loader2 className="w-5 h-5 text-white animate-spin" />
                             <Progress value={uploadProgress.samples ?? 0} className="h-1 w-full" />

@@ -1322,14 +1322,14 @@ function SalesCards({ orders, sellers, onLinkToTab, page, setPage }: any) {
                 </div>
 
                 <div className="space-y-2 pt-2 border-t border-muted/50">
-                  <div className="flex justify-between items-center group/btn cursor-pointer" onClick={() => onLinkToTab('customers', o.buyer_name)}>
+                  <button type="button" className="flex w-full justify-between items-center group/btn cursor-pointer" onClick={() => onLinkToTab('customers', o.buyer_name)}>
                      <div className="flex items-center gap-1.5"><UserRound className="w-3 h-3 text-accent" /><span className="text-[10px] font-bold text-primary/60 group-hover/btn:text-primary transition-colors underline decoration-primary/10">{o.buyer_name}</span></div>
                      <span className="text-[8px] font-black text-muted-foreground uppercase">קונה</span>
-                  </div>
-                  <div className="flex justify-between items-center group/btn cursor-pointer" onClick={() => onLinkToTab('active', `${seller?.first_name} ${seller?.last_name}`)}>
+                  </button>
+                  <button type="button" className="flex w-full justify-between items-center group/btn cursor-pointer" onClick={() => onLinkToTab('active', `${seller?.first_name} ${seller?.last_name}`)}>
                      <div className="flex items-center gap-1.5"><ShieldCheck className="w-3 h-3 text-primary/40" /><span className="text-[10px] font-bold text-primary/60 group-hover/btn:text-primary transition-colors underline decoration-primary/10">{seller ? `${seller.first_name} ${seller.last_name}` : 'סופר לא מזוהה'}</span></div>
                      <span className="text-[8px] font-black text-muted-foreground uppercase">מוכר</span>
-                  </div>
+                  </button>
                 </div>
 
                 <div className="pt-2 flex gap-2">

@@ -4,43 +4,15 @@ import './globals.css';
 import { SupabaseClientProvider } from '@/lib/supabase-hooks';
 import { ClientWrapper } from '@/components/ClientWrapper';
 import { Analytics } from '@vercel/analytics/next';
-import localFont from 'next/font/local';
+import { Heebo } from 'next/font/google';
 import { AccessibilityButton } from '@/components/AccessibilityButton';
 
-const frank = localFont({
-  src: [
-    {
-      path: '../../public/fonts/frank-ruhl-libre-hebrew-700-normal.woff2',
-      weight: '700',
-      style: 'normal',
-    },
-    {
-      path: '../../public/fonts/frank-ruhl-libre-hebrew-900-normal.woff2',
-      weight: '900',
-      style: 'normal',
-    },
-  ],
-  variable: '--font-frank',
-  preload: true,
-  display: 'swap',
-  fallback: ['serif'],
-});
-
-const assistant = localFont({
-  src: [
-    {
-      path: '../../public/fonts/assistant-hebrew-400-normal.woff2',
-      weight: '400',
-      style: 'normal',
-    },
-    {
-      path: '../../public/fonts/assistant-hebrew-700-normal.woff2',
-      weight: '700',
-      style: 'normal',
-    },
-  ],
-  variable: '--font-assistant',
-  preload: true,
+// Heebo is a modern, geometric Hebrew font — used site-wide for both headings and body
+// copy, distinguished only by font-weight (see tailwind.config.ts font-headline/font-body).
+const heebo = Heebo({
+  subsets: ['hebrew', 'latin'],
+  weight: ['300', '400', '500', '600', '700', '800', '900'],
+  variable: '--font-heebo',
   display: 'swap',
   fallback: ['Arial', 'sans-serif'],
 });
@@ -112,22 +84,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="he" dir="rtl" className={`${frank.variable} ${assistant.variable}`}>
+    <html lang="he" dir="rtl" className={heebo.variable}>
       <head>
-        <link
-          rel="preload"
-          href="/fonts/assistant-hebrew-400-normal.woff2"
-          as="font"
-          type="font/woff2"
-          crossOrigin="anonymous"
-        />
-        <link
-          rel="preload"
-          href="/fonts/frank-ruhl-libre-hebrew-700-normal.woff2"
-          as="font"
-          type="font/woff2"
-          crossOrigin="anonymous"
-        />
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -135,8 +93,8 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               html,body{margin:0;padding:0;background:#f9f7f1;color:#0f1a33}
-              body{font-family:var(--font-assistant),Arial,sans-serif;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
-              h1,h2,h3,h4,h5,h6{font-family:var(--font-frank),serif}
+              body{font-family:var(--font-heebo),Arial,sans-serif;font-weight:400;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+              h1,h2,h3,h4,h5,h6{font-family:var(--font-heebo),Arial,sans-serif;font-weight:700}
               .section-shell{padding-top:5rem;padding-bottom:5rem}
             `,
           }}

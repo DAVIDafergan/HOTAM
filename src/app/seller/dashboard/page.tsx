@@ -985,7 +985,7 @@ function SellerDashboardContent() {
       {/* ── Welcome Banner ────────────────────────────────────────────── */}
       <div className="rounded-[2rem] bg-gradient-to-l from-primary to-primary/80 text-white p-6 md:p-8 shadow-xl">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
-          <div className="flex items-center gap-4 text-right">
+          <div className="flex items-center gap-4 text-start">
             <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white/10 flex items-center justify-center shrink-0 border border-white/20 overflow-hidden">
               {profileData.profile_image
                 ? <Image src={profileData.profile_image} alt="profile" width={64} height={64} kind="avatar" sizes="64px" className="rounded-2xl object-cover w-full h-full" />

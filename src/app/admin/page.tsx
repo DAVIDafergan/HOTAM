@@ -732,7 +732,7 @@ export default function AdminDashboard() {
       
       <main className="container mx-auto px-4 py-32 max-w-7xl flex-1">
         <div className="flex flex-col xl:flex-row xl:items-end justify-between mb-12 gap-4 xl:gap-6">
-          <div className="text-right w-full xl:w-auto">
+          <div className="text-start w-full xl:w-auto">
              <div className="flex items-center gap-3 mb-2">
                 <div className="bg-primary/5 p-3 rounded-2xl">
                   <ShieldCheck className="w-8 h-8 text-primary" />

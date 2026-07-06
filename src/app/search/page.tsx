@@ -923,7 +923,7 @@ function SearchContent() {
                         <SearchIcon className="w-8 h-8 md:w-12 md:h-12 text-primary/10" />
                       </div>
                     </div>
-                    <div className="space-y-2 md:space-y-3 px-4">
+                    <div className="space-y-2 md:space-y-3 p-4 text-center bg-accent/10 rounded-md mx-auto max-w-md">
                       <p className="text-2xl md:text-3xl font-headline font-black text-primary tracking-tight">לא נמצאה התאמה מדויקת</p>
                        <p className="text-primary/60 max-w-sm mx-auto font-medium text-base md:text-lg leading-relaxed">נסו להסיר חלק מהמסננים או לאפס את החיפוש כדי לראות עוד אפשרויות קודש.</p>
                     </div>

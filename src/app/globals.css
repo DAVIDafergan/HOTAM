@@ -108,7 +108,7 @@
 
   /* Google Places Autocomplete dropdown — restyle to match the app instead of Google's default look */
   .pac-container {
-    font-family: var(--font-assistant), Arial, sans-serif;
+    font-family: var(--font-heebo), Arial, sans-serif;
     border: 1px solid hsl(var(--border));
     border-radius: 1rem;
     margin-top: 6px;
@@ -162,7 +162,6 @@
   }
   
   .readable-font {
-    --font-frank: var(--font-assistant) !important;
     font-weight: 500 !important;
   }
   

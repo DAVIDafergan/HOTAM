@@ -512,14 +512,14 @@ export function HeroAnimation() {
   );
 
   return (
-    <section className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#FDFCF0] pt-[calc(7.75rem+env(safe-area-inset-top))] pb-14 md:pt-32 md:pb-20">
+    <section className="relative min-h-0 md:min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#FDFCF0] pt-[calc(7.75rem+env(safe-area-inset-top))] pb-16 md:pt-32 md:pb-20">
       <div className="absolute inset-0 z-0">
         {heroImg?.imageUrl && (
-          <Image 
+          <Image
             loader={unsplashLoader}
-            src={heroImg.imageUrl} 
-            alt="Hebrew Script" 
-            fill 
+            src={heroImg.imageUrl}
+            alt="Hebrew Script"
+            fill
             priority
             kind="hero"
             sizes="100vw"
@@ -528,40 +528,45 @@ export function HeroAnimation() {
         )}
         <div className="absolute inset-0 bg-gradient-to-b from-[#FDFCF0]/10 via-[#FDFCF0]/75 to-[#FDFCF0]" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#FDFCF0]/50 via-transparent to-[#FDFCF0]/50" />
+        {/* Mobile-only: soft depth accent behind the heading/CTA, absent on desktop */}
+        <div className="absolute -top-10 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-gradient-to-b from-accent/20 to-transparent blur-3xl md:hidden" />
       </div>
 
       <div className="container mx-auto px-4 md:px-5 relative z-20 flex flex-col items-center justify-center">
-        <div className="max-w-4xl w-full space-y-5 md:space-y-14 flex flex-col items-center text-center">
-          
+        <div className="max-w-4xl w-full space-y-6 md:space-y-14 flex flex-col items-center text-center">
+
           <div className={`space-y-3 md:space-y-5 ${homeAnimations.animateFadeIn}`}>
             <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-headline font-black text-primary leading-[1.08] tracking-tighter">
               קדושה <span className="text-accent underline decoration-accent/20 underline-offset-8">בכל תג</span>
             </h1>
+            <p className="text-base font-bold text-primary/70 md:hidden">
+              מצאו את הסופר המושלם עבורכם – בכמה קליקים בלבד
+            </p>
           </div>
-          
+
           <div className="hidden md:block w-full max-w-3xl bg-white/78 backdrop-blur-xl border border-white/90 rounded-2xl sm:rounded-3xl md:rounded-[3.2rem] p-4 sm:p-6 md:p-8 lg:p-12 shadow-premium-lg relative ring-1 ring-primary/10">
             {wizardSteps}
           </div>
 
-          {/* Mobile: a single inviting pill replaces the full wizard by default */}
+          {/* Mobile: a single high-converting CTA replaces the full wizard by default */}
           <div className="w-full max-w-3xl md:hidden">
             <button
               type="button"
               onClick={() => setIsMobileSearchOpen(true)}
-              className="group flex w-full items-center gap-3 rounded-full border border-white/90 bg-white/90 backdrop-blur-xl px-5 py-4 text-right shadow-premium-lg transition-all active:scale-[0.98]"
+              className="group flex w-full items-center gap-4 rounded-full bg-primary px-5 py-5 text-right shadow-lg transition-all active:scale-[0.97]"
             >
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-white transition-transform group-active:scale-90">
-                <Search className="h-5 w-5" />
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent text-primary transition-transform group-active:scale-90">
+                <Search className="h-6 w-6" />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-base font-black text-primary">
-                  {selectedProduct ? `מחפש: ${selectedProduct}` : 'מה אתם מחפשים?'}
+                <span className="block truncate text-lg font-black text-white tracking-tight">
+                  {selectedProduct ? `המשך חיפוש: ${selectedProduct}` : 'חפש סופר סת״ם'}
                 </span>
-                <span className="block truncate text-xs font-medium text-primary/50">
-                  {selectedCity ? `לפי עיר: ${selectedCity}` : 'הקישו כדי להתחיל חיפוש מותאם אישית'}
+                <span className="block truncate text-xs font-bold text-white/70 mt-0.5">
+                  {selectedCity ? `לפי עיר: ${selectedCity}` : 'התחל חיפוש מותאם אישית'}
                 </span>
               </span>
-              <ChevronLeft className="h-5 w-5 shrink-0 text-primary/30 transition-transform group-hover:-translate-x-1" />
+              <ChevronLeft className="h-6 w-6 shrink-0 text-white/70 transition-transform group-hover:-translate-x-1" />
             </button>
           </div>
 

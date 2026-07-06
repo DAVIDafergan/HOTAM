@@ -39,12 +39,14 @@ import {
   LocateFixed,
   ArrowUpNarrowWide,
   GraduationCap,
-  CheckCircle2
+  CheckCircle2,
+  LayoutGrid,
+  Rows3
 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useSupabaseClient, useCollection, useMemoStable } from '@/lib/supabase-hooks';
 import { collection, query, where, limit } from '@/lib/supabase-compat';
-import { ProductCard } from '@/components/ProductCard';
+import { ProductCard, type ProductCardViewMode } from '@/components/ProductCard';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -84,6 +86,7 @@ function SearchContent() {
   const [showResults, setShowResults] = useState(false);
   const [shippingPreference, setShippingPreference] = useState<ShippingPreference>('all');
   const [sortOrder, setSortOrder] = useState('newest');
+  const [viewMode, setViewMode] = useState<ProductCardViewMode>('grid');
   const searchParams = useSearchParams();
   const db = useSupabaseClient();
   
@@ -832,7 +835,33 @@ function SearchContent() {
                 </div>
               </div>
 
-              <div className="mt-3 flex justify-end">
+              <div className="mt-3 flex items-center justify-between gap-2">
+                <div className="flex items-center rounded-full border border-primary/10 bg-white p-1 shadow-sm" role="group" aria-label="תצוגת תוצאות">
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('grid')}
+                    aria-pressed={viewMode === 'grid'}
+                    aria-label="תצוגת רשת"
+                    className={cn(
+                      "flex h-11 w-11 items-center justify-center rounded-full transition-all duration-200 active:scale-90",
+                      viewMode === 'grid' ? "bg-primary text-white shadow-sm" : "text-primary/40 hover:bg-primary/5 hover:text-primary"
+                    )}
+                  >
+                    <LayoutGrid className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('list')}
+                    aria-pressed={viewMode === 'list'}
+                    aria-label="תצוגת רשימה"
+                    className={cn(
+                      "flex h-11 w-11 items-center justify-center rounded-full transition-all duration-200 active:scale-90",
+                      viewMode === 'list' ? "bg-primary text-white shadow-sm" : "text-primary/40 hover:bg-primary/5 hover:text-primary"
+                    )}
+                  >
+                    <Rows3 className="h-4 w-4" />
+                  </button>
+                </div>
                 <Button variant="outline" onClick={() => setIsFilterPanelOpen(true)} className="group h-10 rounded-full border border-primary/10 bg-white px-4 text-[11px] font-black text-primary shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:bg-primary/[0.03] hover:text-primary hover:shadow-md active:scale-95">
                   <SlidersHorizontal className="ml-1.5 h-3 w-3 text-accent transition-transform duration-300 group-hover:rotate-6" />
                   <span>סינון</span>
@@ -874,7 +903,7 @@ function SearchContent() {
             {selectedProduct === 'ספר תורה' && <TorahExpertBanner />}
 
             <div className="container mx-auto px-4 pb-20 pt-6 md:pt-8">
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:gap-5 xl:grid-cols-3 xl:gap-7">
+              <div className={cn(viewMode === 'grid' ? "grid grid-cols-1 gap-3 sm:grid-cols-2 md:gap-5 xl:grid-cols-3 xl:gap-7" : "flex flex-col gap-3")}>
                 {filteredProducts.slice(0, visibleCount).map((p, i) => (
                   <motion.div
                     key={p.id}
@@ -882,7 +911,7 @@ function SearchContent() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: shouldReduceMotion ? 0 : Math.min(i, 6) * 0.04, duration: shouldReduceMotion ? 0.1 : 0.25 }}
                   >
-                    <ProductCard product={p} distanceKm={includeNearbyCities && selectedCity ? nearbyDistanceMap[p.id] : undefined} priority={i === 0} />
+                    <ProductCard product={p} distanceKm={includeNearbyCities && selectedCity ? nearbyDistanceMap[p.id] : undefined} priority={i === 0} viewMode={viewMode} />
                   </motion.div>
                 ))}
                 

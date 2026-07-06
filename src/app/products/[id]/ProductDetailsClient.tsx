@@ -543,17 +543,19 @@ export function ProductDetailsClient({
                 </Badge>
               </div>
               <div className="flex items-start justify-between gap-4">
-                <h1 className="text-4xl md:text-5xl font-headline font-black text-primary leading-[1.1] tracking-tight">
-                  {product.product_type}
+                <div className="space-y-1">
                   {product.sub_type && product.sub_type !== 'all' && (
-                    <span className="text-accent inline mr-2 font-black"><span className="text-primary/25 mx-1.5 font-normal">+</span>{product.sub_type}</span>
+                    <p className="text-sm font-bold text-muted-foreground uppercase tracking-wide">{product.product_type}</p>
                   )}
-                </h1>
+                  <h1 className="text-4xl md:text-5xl font-headline font-black text-primary leading-[1.1] tracking-tight">
+                    {product.sub_type && product.sub_type !== 'all' ? product.sub_type : product.product_type}
+                  </h1>
+                </div>
                 <div className="hidden md:flex items-center gap-1.5 shrink-0 pt-1">
                   <button
                     onClick={handleShare}
                     aria-label="שיתוף"
-                    className="flex h-10 w-10 items-center justify-center rounded-full text-primary/40 transition-all duration-200 hover:bg-primary/5 hover:text-primary active:scale-90"
+                    className="flex h-11 w-11 items-center justify-center rounded-full text-primary/40 transition-all duration-200 hover:bg-primary/5 hover:text-primary active:scale-90"
                   >
                     <Share2 className="w-[18px] h-[18px]" />
                   </button>
@@ -561,7 +563,7 @@ export function ProductDetailsClient({
                     onClick={handleToggleFavorite}
                     aria-label={isFavorite ? 'הסר ממועדפים' : 'הוסף למועדפים'}
                     className={cn(
-                      "flex h-10 w-10 items-center justify-center rounded-full transition-all duration-200 hover:bg-primary/5 active:scale-90",
+                      "flex h-11 w-11 items-center justify-center rounded-full transition-all duration-200 hover:bg-primary/5 active:scale-90",
                       isFavorite ? "text-primary" : "text-primary/40 hover:text-primary"
                     )}
                   >

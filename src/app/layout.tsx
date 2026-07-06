@@ -4,15 +4,15 @@ import './globals.css';
 import { SupabaseClientProvider } from '@/lib/supabase-hooks';
 import { ClientWrapper } from '@/components/ClientWrapper';
 import { Analytics } from '@vercel/analytics/next';
-import { Heebo } from 'next/font/google';
+import { Rubik } from 'next/font/google';
 import { AccessibilityButton } from '@/components/AccessibilityButton';
 
-// Heebo is a modern, geometric Hebrew font — used site-wide for both headings and body
-// copy, distinguished only by font-weight (see tailwind.config.ts font-headline/font-body).
-const heebo = Heebo({
+// Rubik is a bold, geometric Hebrew font with rounded terminals — used site-wide for both
+// headings and body copy, distinguished only by font-weight (see tailwind.config.ts font-headline/font-body).
+const rubik = Rubik({
   subsets: ['hebrew', 'latin'],
-  weight: ['300', '400', '500', '600', '700', '800', '900'],
-  variable: '--font-heebo',
+  weight: ['400', '500', '600', '700', '800', '900'],
+  variable: '--font-rubik',
   display: 'swap',
   fallback: ['Arial', 'sans-serif'],
 });
@@ -84,7 +84,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="he" dir="rtl" className={heebo.variable}>
+    <html lang="he" dir="rtl" className={rubik.variable}>
       <head>
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -93,8 +93,8 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               html,body{margin:0;padding:0;background:#f9f7f1;color:#0f1a33}
-              body{font-family:var(--font-heebo),Arial,sans-serif;font-weight:400;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
-              h1,h2,h3,h4,h5,h6{font-family:var(--font-heebo),Arial,sans-serif;font-weight:700}
+              body{font-family:var(--font-rubik),Arial,sans-serif;font-weight:400;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+              h1,h2,h3,h4,h5,h6{font-family:var(--font-rubik),Arial,sans-serif;font-weight:700}
               .section-shell{padding-top:2.5rem;padding-bottom:2.5rem}
             `,
           }}

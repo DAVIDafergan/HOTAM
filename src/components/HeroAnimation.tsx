@@ -560,7 +560,7 @@ export function HeroAnimation() {
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-lg font-black text-white tracking-tight">
-                  {selectedProduct ? `המשך חיפוש: ${selectedProduct}` : 'חפש סופר סת״ם'}
+                  {selectedProduct ? `המשך חיפוש: ${selectedProduct}` : 'חפש מוצרי יודאיקה וסת״ם'}
                 </span>
                 <span className="block truncate text-xs font-bold text-white/70 mt-0.5">
                   {selectedCity ? `לפי עיר: ${selectedCity}` : 'התחל חיפוש מותאם אישית'}

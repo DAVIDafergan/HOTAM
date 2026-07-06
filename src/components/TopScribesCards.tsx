@@ -41,7 +41,7 @@ function extractCity(address: string | null | undefined): string {
 
 export function TopScribesCards({ topScribes }: { topScribes: TopScribeCard[] }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 md:gap-7">
+    <div className="flex flex-row gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 -mx-4 px-4 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 sm:gap-6 md:gap-7 sm:overflow-visible sm:snap-none sm:mx-0 sm:px-0 sm:pb-0">
       {topScribes.map((scribe, i) => {
         const displayName = `${scribe.first_name || ''} ${scribe.last_name || ''}`.trim();
         const avg = scribe.review_count > 0 ? Number(scribe.avg_rating).toFixed(1) : '—';
@@ -54,6 +54,7 @@ export function TopScribesCards({ topScribes }: { topScribes: TopScribeCard[] })
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: i * 0.06 }}
+            className="w-[78%] shrink-0 snap-center sm:w-auto"
           >
             <Link href={`/sellers/${scribe.id}`}>
               <Card className="group overflow-hidden border border-primary/5 shadow-premium rounded-[2.15rem] bg-white hover:-translate-y-1 transition-all duration-300 text-center p-5">

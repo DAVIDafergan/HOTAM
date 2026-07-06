@@ -37,9 +37,9 @@ export default function Home() {
         <WorkFlow />
 
         <section className="section-shell section-surface relative overflow-hidden" aria-labelledby="about-heading">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none" />
+          <div className="absolute top-0 right-0 w-40 h-40 md:w-64 md:h-64 bg-accent/5 rounded-full -mr-20 -mt-20 md:-mr-32 md:-mt-32 blur-3xl pointer-events-none" />
           <div className="container mx-auto px-4 md:px-5 relative z-10">
-            <ScrollFadeIn className="max-w-4xl mx-auto text-center space-y-10 mb-16 md:mb-28">
+            <ScrollFadeIn className="max-w-4xl mx-auto text-center space-y-5 md:space-y-10 mb-8 md:mb-28">
               <h2 id="about-heading" className="text-[2.35rem] md:text-[3.3rem] font-headline font-black text-primary tracking-tight">
                 חותם – מלאכת שמיים ושקיפות מלאה
               </h2>
@@ -49,7 +49,7 @@ export default function Home() {
               </p>
             </ScrollFadeIn>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-10">
               <ScrollFadeIn delay={0}>
                 <AboutCard
                   icon={<HandHeart className="w-8 h-8" />}
@@ -73,7 +73,7 @@ export default function Home() {
               </ScrollFadeIn>
             </div>
 
-            <ScrollFadeIn className="mt-16 md:mt-28 text-center">
+            <ScrollFadeIn className="mt-8 md:mt-28 text-center">
               <div className="flex flex-col items-center gap-3">
                 <Button size="lg" asChild className="rounded-full gap-3 font-black text-white bg-primary hover:bg-primary/90 hover:scale-105 active:scale-95 focus:ring-4 focus:ring-primary/30 transition-all duration-300 px-12 h-16 shadow-xl">
                   <Link href="/search?view=all">
@@ -124,8 +124,8 @@ export default function Home() {
 
 function AboutCard({ icon, title, desc }: { icon: ReactNode, title: string, desc: string }) {
   return (
-    <div className="p-8 md:p-12 rounded-[2.9rem] bg-white/95 backdrop-blur-sm shadow-premium border border-primary/10 hover:border-accent/25 transition-all duration-500 hover:-translate-y-1.5 group text-right">
-      <div className="w-16 h-16 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-accent group-hover:text-primary transition-all mb-8">
+    <div className="p-6 md:p-12 rounded-[2.9rem] bg-white/95 backdrop-blur-sm shadow-premium border border-primary/10 hover:border-accent/25 transition-all duration-500 hover:-translate-y-1.5 group text-right">
+      <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-accent group-hover:text-primary transition-all mb-4 md:mb-8">
         {icon}
       </div>
       <h3 className="text-[1.45rem] font-headline font-black text-primary mb-4">{title}</h3>

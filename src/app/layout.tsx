@@ -95,7 +95,7 @@ export default function RootLayout({
               html,body{margin:0;padding:0;background:#f9f7f1;color:#0f1a33}
               body{font-family:var(--font-heebo),Arial,sans-serif;font-weight:400;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
               h1,h2,h3,h4,h5,h6{font-family:var(--font-heebo),Arial,sans-serif;font-weight:700}
-              .section-shell{padding-top:5rem;padding-bottom:5rem}
+              .section-shell{padding-top:2.5rem;padding-bottom:2.5rem}
             `,
           }}
         />

@@ -93,7 +93,7 @@
   }
 
   .section-shell {
-    @apply py-20 md:py-32;
+    @apply py-10 md:py-32;
   }
 
   .section-surface {

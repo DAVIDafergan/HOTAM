@@ -20,7 +20,7 @@ const steps = [
     animation: {
       icon: (
         <div className="relative">
-          <ShieldCheck className="w-12 h-12 text-accent" />
+          <ShieldCheck className="w-9 h-9 md:w-12 md:h-12 text-accent" />
           <motion.div 
             initial={{ opacity: 0, scale: 0 }}
             whileInView={{ opacity: 1, scale: 1 }}
@@ -45,7 +45,7 @@ const steps = [
             animate={{ rotate: [-2, 2, -2], y: [0, -1.5, 0] }}
             transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
           >
-            <PenTool className="w-12 h-12 text-accent" />
+            <PenTool className="w-9 h-9 md:w-12 md:h-12 text-accent" />
           </motion.div>
         </div>
       )
@@ -63,7 +63,7 @@ const steps = [
             animate={{ x: [0, 2, 0, -2, 0], y: [0, -1, 0], scale: [1, 1.02, 1] }}
             transition={{ repeat: Infinity, duration: 6.5, ease: "easeInOut" }}
           >
-            <Search className="w-12 h-12 text-accent" />
+            <Search className="w-9 h-9 md:w-12 md:h-12 text-accent" />
           </motion.div>
         </div>
       )
@@ -77,7 +77,7 @@ const steps = [
     animation: {
       icon: (
         <div className="relative">
-          <UserCheck className="w-12 h-12 text-accent" />
+          <UserCheck className="w-9 h-9 md:w-12 md:h-12 text-accent" />
         </div>
       )
     }
@@ -86,14 +86,14 @@ const steps = [
 
 export function WorkFlow() {
   return (
-    <section className="py-32 md:py-36 bg-primary text-white overflow-hidden relative" dir="rtl">
+    <section className="py-10 md:py-36 bg-primary text-white overflow-hidden relative" dir="rtl">
       {/* Background patterns */}
       <div className="absolute inset-0 opacity-5 pointer-events-none">
         <svg width="100%" height="100%"><pattern id="wf-grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="1"/></pattern><rect width="100%" height="100%" fill="url(#wf-grid)" /></svg>
       </div>
 
       <div className="container mx-auto px-4 md:px-5 relative z-10">
-        <div className="text-center mb-24 md:mb-28 space-y-6">
+        <div className="text-center mb-8 md:mb-28 space-y-4 md:space-y-6">
           <motion.h2 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -111,9 +111,9 @@ export function WorkFlow() {
         </div>
 
         <div className="relative">
-          {/* Timeline Line - Desktop */}
+          {/* Timeline Line - Desktop only; mobile steps swipe horizontally instead */}
           <div className="hidden md:block absolute top-1/2 left-0 right-0 h-0.5 bg-white/10 -translate-y-1/2">
-            <motion.div 
+            <motion.div
               initial={{ width: "0%" }}
               whileInView={{ width: "100%" }}
               viewport={{ once: true }}
@@ -122,18 +122,7 @@ export function WorkFlow() {
             />
           </div>
 
-          {/* Timeline Line - Mobile */}
-          <div className="md:hidden absolute top-0 bottom-0 right-8 w-0.5 bg-white/10">
-            <motion.div 
-              initial={{ height: "0%" }}
-              whileInView={{ height: "100%" }}
-              viewport={{ once: true }}
-              transition={{ duration: 2, ease: "easeInOut" }}
-              className="w-full bg-accent shadow-[0_0_10px_rgba(212,175,55,0.5)]"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-14 md:gap-6 relative">
+          <div className="flex flex-row gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 -mx-4 px-4 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible md:snap-none md:mx-0 md:px-0 md:pb-0 relative">
             {steps.map((step, index) => (
               <motion.div
                 key={step.id}
@@ -142,18 +131,18 @@ export function WorkFlow() {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.15, duration: 0.45, ease: 'easeOut' }}
                 whileHover={{ y: -4 }}
-                className="flex flex-col items-center md:items-center text-center md:text-center space-y-8 relative"
+                className="flex shrink-0 w-[72%] snap-center flex-col items-center text-center space-y-4 md:w-auto md:space-y-8 relative"
               >
                 {/* Icon Container */}
                 <div className="relative">
-                  <motion.div 
+                  <motion.div
                     whileHover={{ scale: 1.05 }}
                     transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-                    className="w-20 h-20 bg-white/10 backdrop-blur-2xl border border-white/20 rounded-full flex items-center justify-center shadow-premium relative z-10"
+                    className="w-16 h-16 md:w-20 md:h-20 bg-white/10 backdrop-blur-2xl border border-white/20 rounded-full flex items-center justify-center shadow-premium relative z-10"
                   >
                     {step.animation.icon}
                   </motion.div>
-                  
+
                   {/* Step Number Badge */}
                   <div className="absolute -top-2 -right-2 w-8 h-8 bg-accent text-primary rounded-full flex items-center justify-center font-black text-xs shadow-lg z-20">
                     {step.id}
@@ -161,9 +150,9 @@ export function WorkFlow() {
                 </div>
 
                 {/* Text Content */}
-                <div className="space-y-4 px-4">
-                  <h3 className="text-[1.45rem] font-headline font-black text-accent">{step.title}</h3>
-                  <p className="text-base text-white/75 leading-relaxed font-medium max-w-[240px] mx-auto">
+                <div className="space-y-2 md:space-y-4 px-4">
+                  <h3 className="text-lg md:text-[1.45rem] font-headline font-black text-accent">{step.title}</h3>
+                  <p className="text-sm md:text-base text-white/75 leading-relaxed font-medium max-w-[240px] mx-auto">
                     {step.desc}
                   </p>
                 </div>

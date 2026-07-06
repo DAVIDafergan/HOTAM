@@ -9,6 +9,7 @@ import homeAnimations from '@/components/home-animations.module.css';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { TopScribesCards, type TopScribeCard } from '@/components/TopScribesCards';
 import { ScrollFadeIn } from '@/components/ScrollFadeIn';
+import { MotionTap } from '@/components/MotionTap';
 
 const TOP_SCRIBES_LIMIT = 5;
 const TOP_SCRIBES_SECTION_TITLE = `${TOP_SCRIBES_LIMIT} סופרים מובילים`;
@@ -83,9 +84,11 @@ export async function HomeDeferredSections() {
               </p>
             </div>
             <div className="flex justify-center pt-4">
-              <Button size="lg" asChild className="bg-accent text-primary hover:bg-accent/90 px-12 rounded-full font-black uppercase tracking-widest h-16 shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95">
-                <Link href="/onboarding/seller">הצטרף כסופר למערכת</Link>
-              </Button>
+              <MotionTap className="inline-block">
+                <Button size="lg" asChild className="bg-accent text-primary hover:bg-accent/90 px-12 rounded-full font-black uppercase tracking-widest h-16 shadow-2xl transition-all duration-300">
+                  <Link href="/onboarding/seller">הצטרף כסופר למערכת</Link>
+                </Button>
+              </MotionTap>
             </div>
           </ScrollFadeIn>
         </section>

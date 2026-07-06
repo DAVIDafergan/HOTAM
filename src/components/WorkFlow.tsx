@@ -2,14 +2,25 @@
 "use client";
 
 import React from 'react';
-import { motion } from 'framer-motion';
-import { 
-  ShieldCheck, 
-  PenTool, 
-  Search, 
+import { motion, useReducedMotion } from 'framer-motion';
+import {
+  ShieldCheck,
+  PenTool,
+  Search,
   UserCheck,
   Check
 } from 'lucide-react';
+import { EASE } from '@/lib/motion';
+
+const stepContainerVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.12 } },
+};
+
+const stepItemVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: EASE } },
+};
 
 const steps = [
   {
@@ -85,6 +96,8 @@ const steps = [
 ];
 
 export function WorkFlow() {
+  const shouldReduceMotion = useReducedMotion();
+
   return (
     <section className="py-10 md:py-36 bg-primary text-white overflow-hidden relative" dir="rtl">
       {/* Background patterns */}
@@ -122,14 +135,17 @@ export function WorkFlow() {
             />
           </div>
 
-          <div className="flex flex-row gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 -mx-4 px-4 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible md:snap-none md:mx-0 md:px-0 md:pb-0 relative">
-            {steps.map((step, index) => (
+          <motion.div
+            variants={shouldReduceMotion ? undefined : stepContainerVariants}
+            initial={shouldReduceMotion ? undefined : "hidden"}
+            whileInView={shouldReduceMotion ? undefined : "visible"}
+            viewport={{ once: true, amount: 0.2 }}
+            className="flex flex-row gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 -mx-4 px-4 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible md:snap-none md:mx-0 md:px-0 md:pb-0 relative"
+          >
+            {steps.map((step) => (
               <motion.div
                 key={step.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.15, duration: 0.45, ease: 'easeOut' }}
+                variants={shouldReduceMotion ? undefined : stepItemVariants}
                 whileHover={{ y: -4 }}
                 className="flex shrink-0 w-[72%] snap-center flex-col items-center text-center space-y-4 md:w-auto md:space-y-8 relative"
               >
@@ -158,7 +174,7 @@ export function WorkFlow() {
                 </div>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

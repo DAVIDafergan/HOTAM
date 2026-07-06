@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { HeroAnimation } from '@/components/HeroAnimation';
 import { ScrollFadeIn } from '@/components/ScrollFadeIn';
+import { StaggerGrid, StaggerItem } from '@/components/StaggerGrid';
+import { MotionTap } from '@/components/MotionTap';
 
 const WorkFlow = dynamic(() => import('@/components/WorkFlow').then(mod => mod.WorkFlow), {
   loading: () => <section aria-hidden="true" className="min-h-[680px] w-full bg-gradient-to-b from-primary/10 via-primary/5 to-primary/0 animate-pulse" />,
@@ -49,39 +51,41 @@ export default function Home() {
               </p>
             </ScrollFadeIn>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-10">
-              <ScrollFadeIn delay={0}>
+            <StaggerGrid className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-10">
+              <StaggerItem>
                 <AboutCard
                   icon={<HandHeart className="w-8 h-8" />}
                   title="קנייה ישירה מהסופר"
                   desc="חיבור ישיר ואישי המבטל את פערי התיווך ומבטיח תגמול הוגן לסופר ומחיר אטרקטיבי ללקוח."
                 />
-              </ScrollFadeIn>
-              <ScrollFadeIn delay={0.12}>
+              </StaggerItem>
+              <StaggerItem>
                 <AboutCard
                   icon={<ShieldCheck className="w-8 h-8" />}
                   title="אימות והסמכה קפדנית"
                   desc="כל סופר באתר עובר תהליך אימות מסמכים, תעודות ורקע מקצועי כדי להבטיח את כשרות המוצר."
                 />
-              </ScrollFadeIn>
-              <ScrollFadeIn delay={0.24}>
+              </StaggerItem>
+              <StaggerItem>
                 <AboutCard
                   icon={<Users className="w-8 h-8" />}
                   title="שקיפות ללא פשרות"
                   desc="מידע מלא על הנהגת הסופר, תדירות הטבילה, סדר יום של לימוד תורה ודוגמאות כתיבה חיות."
                 />
-              </ScrollFadeIn>
-            </div>
+              </StaggerItem>
+            </StaggerGrid>
 
             <ScrollFadeIn className="mt-8 md:mt-28 text-center">
               <div className="flex flex-col items-center gap-3">
-                <Button size="lg" asChild className="rounded-full gap-3 font-black text-white bg-primary hover:bg-primary/90 hover:scale-105 active:scale-95 focus:ring-4 focus:ring-primary/30 transition-all duration-300 px-12 h-16 shadow-xl">
-                  <Link href="/search?view=all">
-                    <Search className="w-5 h-5" />
-                    צפה בכל המוצרים באתר
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                  </Link>
-                </Button>
+                <MotionTap className="inline-block">
+                  <Button size="lg" asChild className="rounded-full gap-3 font-black text-white bg-primary hover:bg-primary/90 focus:ring-4 focus:ring-primary/30 transition-all duration-300 px-12 h-16 shadow-xl">
+                    <Link href="/search?view=all">
+                      <Search className="w-5 h-5" />
+                      צפה בכל המוצרים באתר
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                    </Link>
+                  </Button>
+                </MotionTap>
               </div>
             </ScrollFadeIn>
           </div>

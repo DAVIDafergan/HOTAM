@@ -21,7 +21,8 @@ import {
 } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import unsplashLoader from '@/lib/unsplashLoader';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { EASE } from '@/lib/motion';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -31,15 +32,29 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { CitySelect } from '@/components/CitySelect';
 import { COMMON_CITY_OPTIONS, NEARBY_RADIUS_KM } from '@/lib/location-utils';
-import homeAnimations from '@/components/home-animations.module.css';
 
 type ProductType = 'מזוזה' | 'תפילין' | 'מגילה' | 'ספר תורה' | 'מוצרי יודאיקה שונים' | '';
 type ShippingPreference = 'all' | 'shipping' | 'pickup';
+
+// Hero content sits above the fold, so it fades in immediately on mount (not scroll-triggered)
+// with a small stagger between the heading and the CTA — never all at once.
+const heroContainerVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.08 } },
+};
+
+const heroItemVariants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE } },
+};
+
+const MotionButton = motion(Button);
 
 export function HeroAnimation() {
   const router = useRouter();
   const { toast } = useToast();
   const heroImg = PlaceHolderImages.find(img => img.id === 'hero-bg');
+  const shouldReduceMotion = useReducedMotion();
 
   // Wizard States
   const [step, setStep] = useState(1);
@@ -154,7 +169,7 @@ export function HeroAnimation() {
     return [];
   };
   const hasSubTypes = getSubTypesForProduct(selectedProduct).length > 0;
-  const finalSearchButtonClass = "w-full max-w-3xl bg-accent text-primary hover:bg-accent/92 rounded-full px-12 md:px-20 h-[4.4rem] font-black text-base md:text-lg uppercase tracking-[0.16em] md:tracking-[0.2em] shadow-premium-lg gap-4 hover:scale-[1.02] focus:ring-4 focus:ring-accent/30 transition-all duration-500 group active:scale-95";
+  const finalSearchButtonClass = "w-full max-w-3xl bg-accent text-primary hover:bg-accent/92 rounded-full px-12 md:px-20 h-[4.4rem] font-black text-base md:text-lg uppercase tracking-[0.16em] md:tracking-[0.2em] shadow-premium-lg gap-4 focus:ring-4 focus:ring-accent/30 transition-all duration-500 group";
 
   const handleFinalSearch = () => {
     const params = new URLSearchParams();
@@ -529,9 +544,14 @@ export function HeroAnimation() {
             </div>
 
             <div className="flex justify-center pt-4 md:pt-8">
-               <Button onClick={handleFinalSearch} className={finalSearchButtonClass}>
+               <MotionButton
+                 onClick={handleFinalSearch}
+                 className={finalSearchButtonClass}
+                 whileHover={shouldReduceMotion ? undefined : { scale: 1.02 }}
+                 whileTap={shouldReduceMotion ? undefined : { scale: 0.96 }}
+               >
                  <Search className="w-6 h-6 group-hover:rotate-12 transition-transform" /> הצג כלי קודש מתאימים
-               </Button>
+               </MotionButton>
              </div>
           </motion.div>
         )}
@@ -561,42 +581,51 @@ export function HeroAnimation() {
       </div>
 
       <div className="container mx-auto px-4 md:px-5 relative z-20 flex flex-col items-center justify-center">
-        <div className="max-w-4xl w-full space-y-6 md:space-y-14 flex flex-col items-center text-center">
+        <motion.div
+          variants={shouldReduceMotion ? undefined : heroContainerVariants}
+          initial={shouldReduceMotion ? undefined : "hidden"}
+          animate={shouldReduceMotion ? undefined : "visible"}
+          className="max-w-4xl w-full space-y-6 md:space-y-14 flex flex-col items-center text-center"
+        >
 
-          <div className={`space-y-3 md:space-y-5 ${homeAnimations.animateFadeIn}`}>
+          <motion.div variants={shouldReduceMotion ? undefined : heroItemVariants} className="space-y-3 md:space-y-5">
             <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-headline font-black text-primary leading-[1.08] tracking-tighter">
               קדושה <span className="text-accent underline decoration-accent/20 underline-offset-8">בכל תג</span>
             </h1>
             <p className="text-base font-bold text-primary/70 md:hidden">
               מצאו את הסופר המושלם עבורכם – בכמה קליקים בלבד
             </p>
-          </div>
+          </motion.div>
 
-          <div className="hidden md:block w-full max-w-3xl bg-white/78 backdrop-blur-xl border border-white/90 rounded-2xl sm:rounded-3xl md:rounded-[3.2rem] p-4 sm:p-6 md:p-8 lg:p-12 shadow-premium-lg relative ring-1 ring-primary/10">
-            {wizardSteps}
-          </div>
+          <motion.div variants={shouldReduceMotion ? undefined : heroItemVariants} className="w-full flex flex-col items-center gap-6 md:gap-14">
+            <div className="hidden md:block w-full max-w-3xl bg-white/78 backdrop-blur-xl border border-white/90 rounded-2xl sm:rounded-3xl md:rounded-[3.2rem] p-4 sm:p-6 md:p-8 lg:p-12 shadow-premium-lg relative ring-1 ring-primary/10">
+              {wizardSteps}
+            </div>
 
-          {/* Mobile: a single high-converting CTA replaces the full wizard by default */}
-          <div className="w-full max-w-3xl md:hidden">
-            <button
-              type="button"
-              onClick={() => setIsMobileSearchOpen(true)}
-              className="group flex w-full items-center gap-4 rounded-full bg-primary px-5 py-5 text-right shadow-lg transition-all active:scale-[0.97]"
-            >
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent text-primary transition-transform group-active:scale-90">
-                <Search className="h-6 w-6" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-lg font-black text-white tracking-tight">
-                  {selectedProduct ? `המשך חיפוש: ${selectedProduct}` : 'חפש מוצרי יודאיקה וסת״ם'}
+            {/* Mobile: a single high-converting CTA replaces the full wizard by default */}
+            <div className="w-full max-w-3xl md:hidden">
+              <motion.button
+                type="button"
+                onClick={() => setIsMobileSearchOpen(true)}
+                whileHover={shouldReduceMotion ? undefined : { scale: 1.02 }}
+                whileTap={shouldReduceMotion ? undefined : { scale: 0.96 }}
+                className="group flex w-full items-center gap-4 rounded-full bg-primary px-5 py-5 text-right shadow-lg"
+              >
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent text-primary transition-transform group-active:scale-90">
+                  <Search className="h-6 w-6" />
                 </span>
-                <span className="block truncate text-xs font-bold text-white/70 mt-0.5">
-                  {selectedCity ? `לפי עיר: ${selectedCity}` : 'התחל חיפוש מותאם אישית'}
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-lg font-black text-white tracking-tight">
+                    {selectedProduct ? `המשך חיפוש: ${selectedProduct}` : 'חפש מוצרי יודאיקה וסת״ם'}
+                  </span>
+                  <span className="block truncate text-xs font-bold text-white/70 mt-0.5">
+                    {selectedCity ? `לפי עיר: ${selectedCity}` : 'התחל חיפוש מותאם אישית'}
+                  </span>
                 </span>
-              </span>
-              <ChevronLeft className="h-6 w-6 shrink-0 text-white/70 transition-transform group-hover:-translate-x-1" />
-            </button>
-          </div>
+                <ChevronLeft className="h-6 w-6 shrink-0 text-white/70 transition-transform group-hover:-translate-x-1" />
+              </motion.button>
+            </div>
+          </motion.div>
 
           <Sheet open={isMobileSearchOpen} onOpenChange={setIsMobileSearchOpen}>
             <SheetContent
@@ -612,7 +641,7 @@ export function HeroAnimation() {
               </div>
             </SheetContent>
           </Sheet>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

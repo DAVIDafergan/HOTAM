@@ -909,7 +909,7 @@ export function ProductDetailsClient({
           </DialogHeader>
           <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
             <Label className="text-[10px] font-black text-white/70">רמת זום</Label>
-            <Button type="button" size="sm" variant="outline" className="h-8 px-3 text-xs" onClick={() => updateImageZoom(imageZoomLevel - IMAGE_ZOOM_STEP)}>−</Button>
+            <Button type="button" size="sm" variant="outline" className="h-10 px-4 text-xs" onClick={() => updateImageZoom(imageZoomLevel - IMAGE_ZOOM_STEP)}>−</Button>
             <input
               type="range"
               min={MIN_IMAGE_ZOOM_LEVEL}
@@ -920,12 +920,12 @@ export function ProductDetailsClient({
               className="w-36 accent-accent"
               aria-label="רמת זום"
             />
-            <Button type="button" size="sm" variant="outline" className="h-8 px-3 text-xs" onClick={() => updateImageZoom(imageZoomLevel + IMAGE_ZOOM_STEP)}>+</Button>
+            <Button type="button" size="sm" variant="outline" className="h-10 px-4 text-xs" onClick={() => updateImageZoom(imageZoomLevel + IMAGE_ZOOM_STEP)}>+</Button>
             <Button
               type="button"
               size="sm"
               variant="ghost"
-              className="h-8 px-3 text-xs text-white hover:text-white hover:bg-white/10"
+              className="h-10 px-4 text-xs text-white hover:text-white hover:bg-white/10"
               onClick={() => {
                 setImageZoomLevel(MIN_IMAGE_ZOOM_LEVEL);
                 setImagePan({ x: 0, y: 0 });

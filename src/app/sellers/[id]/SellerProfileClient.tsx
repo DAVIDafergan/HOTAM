@@ -770,7 +770,7 @@ export default function SellerProfile({
           </DialogHeader>
           <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
             <Label className="text-[10px] font-black text-white/70">רמת זום</Label>
-            <Button type="button" size="sm" variant="outline" className="h-8 px-3 text-xs" onClick={() => updateSampleZoom(sampleZoomLevel - SAMPLE_ZOOM_STEP)}>−</Button>
+            <Button type="button" size="sm" variant="outline" className="h-10 px-4 text-xs" onClick={() => updateSampleZoom(sampleZoomLevel - SAMPLE_ZOOM_STEP)}>−</Button>
             <input
               type="range"
               min={MIN_SAMPLE_ZOOM_LEVEL}
@@ -781,12 +781,12 @@ export default function SellerProfile({
               className="w-36 accent-accent"
               aria-label="רמת זום דוגמת כתיבה"
             />
-            <Button type="button" size="sm" variant="outline" className="h-8 px-3 text-xs" onClick={() => updateSampleZoom(sampleZoomLevel + SAMPLE_ZOOM_STEP)}>+</Button>
+            <Button type="button" size="sm" variant="outline" className="h-10 px-4 text-xs" onClick={() => updateSampleZoom(sampleZoomLevel + SAMPLE_ZOOM_STEP)}>+</Button>
             <Button
               type="button"
               size="sm"
               variant="ghost"
-              className="h-8 px-3 text-xs text-white hover:bg-white/10 hover:text-white"
+              className="h-10 px-4 text-xs text-white hover:bg-white/10 hover:text-white"
               onClick={() => {
                 setSampleZoomLevel(MIN_SAMPLE_ZOOM_LEVEL);
                 setSamplePan({ x: 0, y: 0 });

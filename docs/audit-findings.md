@@ -52,4 +52,19 @@ Zero matches for `// TODO`, `// FIXME`, or `console.log(` in `src/app` or `src/c
 
 ---
 
-*This document is a point-in-time snapshot from the Stage 0 audit. It is not kept in sync automatically — re-run the greps above if you need a fresh read after further changes.*
+## 8. Site-wide layout weakness sweep (follow-up session)
+
+Static grep pass (touch-target sizes, spacing) plus live 375px checks on `/login`, `/register`, `/contact`, `/reset-password`, `/terms`, `/search` (loading state only — Supabase unreachable in this sandbox, same limitation noted in section 5).
+
+**Fixed:**
+- **Navbar back button had no visible affordance.** The mobile back-chevron (`ChevronRight` button, shown whenever `pathname !== '/'`) only had `hover:bg-primary/5` with no default background/border, while the adjacent hamburger-menu button right next to it has a solid `bg-white/55 border border-white/45 shadow-premium` pill. Side-by-side, the back button looked like a bare decorative icon floating next to a "real" button. Gave it the same visible background/border treatment so both controls read as equally tappable.
+- **Sub-44px touch targets on image-zoom controls.** The `−`/`+`/reset zoom buttons in the product-image lightbox (`ProductDetailsClient.tsx`) and the writing-sample lightbox (`SellerProfileClient.tsx`) were `h-8` (32px). Both dialogs have ample horizontal room (`flex flex-wrap gap-2`), so bumped to `h-10 px-4` (40px) — still compact, closer to the 44px guideline.
+- **Admin delete/action icon buttons** (`admin/page.tsx`, 3 instances) were `h-8 w-8`; bumped to `h-10 w-10`.
+
+**Checked, no issues found:** `/login`, `/register`, `/contact`, `/reset-password`, `/terms` at 375px — all have consistent spacing, readable line-height, and adequate touch targets already (most controls use the shared `Button`/`Input` components, which default to `h-11`/`h-12`).
+
+**Explicitly out of scope for this pass** (flagging rather than silently skipping): the admin/seller/customer dashboards were not re-reviewed beyond the touch-target grep above — they're internal, desktop-oriented tools and were already covered for horizontal-overflow in the prior session's audit (section on mobile overflow). A dedicated pass there would need real Supabase data to be meaningful, which this sandbox can't reach. `/search` and `/products/[id]` also couldn't be visually verified with real content for the same reason — only their loading states render.
+
+---
+
+*This document is a point-in-time snapshot. It is not kept in sync automatically — re-run the greps above if you need a fresh read after further changes.*

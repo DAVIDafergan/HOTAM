@@ -1002,7 +1002,7 @@ function ScribeTable({ scribes, onApprove, onDelete, isLoading, orders, totalCou
                       ) : (
                         <Badge className="bg-emerald-50 text-emerald-700 border-none px-4 py-1 text-[8px] font-black uppercase tracking-widest">סופר פעיל ומאומת</Badge>
                       )}
-                      <Button variant="ghost" size="icon" onClick={() => onDelete(scribe.id)} className="h-8 w-8 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive"><Trash2 className="w-3.5 h-3.5" /></Button>
+                      <Button variant="ghost" size="icon" onClick={() => onDelete(scribe.id)} className="h-10 w-10 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive"><Trash2 className="w-3.5 h-3.5" /></Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -1441,7 +1441,7 @@ function ReportsTable({ reports, sellers, onDelete, onLinkToTab, page, setPage }
                   </TableCell>
                   <TableCell className="text-[10px] font-bold text-destructive max-w-xs truncate">{r.reason}</TableCell>
                   <TableCell className="px-8 text-left">
-                    <Button variant="ghost" size="icon" onClick={() => onDelete(r.id)} className="h-8 w-8 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive"><Trash2 className="w-3.5 h-3.5" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => onDelete(r.id)} className="h-10 w-10 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive"><Trash2 className="w-3.5 h-3.5" /></Button>
                   </TableCell>
                 </TableRow>
               );
@@ -1466,7 +1466,7 @@ function VerifyScribeDialog({ scribe, db }: any) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon" className="h-8 w-8 rounded-full hover:bg-primary hover:text-white transition-all border-primary/5 shadow-sm">
+        <Button variant="outline" size="icon" className="h-10 w-10 rounded-full hover:bg-primary hover:text-white transition-all border-primary/5 shadow-sm">
           <Eye className="w-3.5 h-3.5" />
         </Button>
       </DialogTrigger>

@@ -196,7 +196,7 @@ export function Navbar() {
                 variant="ghost" 
                 size="icon" 
                 onClick={() => router.back()} 
-                className="rounded-full h-10 w-10 hover:bg-primary/5 text-primary transition-all active:scale-90 shrink-0"
+                className="rounded-full h-10 w-10 bg-white/55 border border-white/45 shadow-premium hover:bg-white/80 text-primary transition-all active:scale-90 shrink-0"
                 aria-label="חזור לדף הקודם"
               >
                 <ChevronRight className="w-6 h-6" />

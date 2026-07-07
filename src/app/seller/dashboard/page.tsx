@@ -38,6 +38,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Camera,
+  Lightbulb,
   Star,
   UserRound,
   Clock,
@@ -92,9 +93,67 @@ import { getCityFromAddressComponents, loadGoogleMapsPlacesScript } from '@/lib/
 
 const PRODUCT_SUBTYPES: Record<string, string[]> = {
   'מזוזה': ['קלף', 'קלף + בית'],
+  'תפילין': ['פרשיות בלבד (קלף)', 'תפילין מוכנות (כולל בתים)'],
   'מגילה': ['אסתר', 'רות', 'איכה', 'שיר השירים', 'קהלת'],
   'מוצרי יודאיקה שונים': ['פיטום הקטורת', 'אשת חיל', 'למנצח', 'ספר הפטרות']
 };
+
+// Generic, easy-to-extend map of friendly, encouraging tips shown when a seller picks a
+// specific product + sub-type combination. Keyed by `${product}:${subType}`; missing keys
+// simply render nothing (no placeholder). Not validation — purely a helpful nudge.
+type ProductTip = { icon: 'camera' | 'lightbulb' | 'sparkles'; text: string; shortText?: string };
+
+const PRODUCT_TIPS: Record<string, ProductTip[]> = {
+  'מזוזה:קלף + בית': [
+    {
+      icon: 'camera',
+      text: 'טיפ חשוב: תמונה של המזוזה מוכנה בתוך הבית מעלה משמעותית את הסיכוי לרכישה — קונים אוהבים לראות בדיוק את מה שהם מקבלים.',
+      shortText: 'זוכרים? תמונה של המזוזה בתוך הבית מעלה סיכוי לרכישה 📸',
+    },
+  ],
+  'מזוזה:קלף': [
+    {
+      icon: 'lightbulb',
+      text: 'טיפ: הרבה קונים מחפשים גם בית מתאים. אם יש לך המלצה או שיתוף פעולה עם יצרן בתים, כדאי לציין את זה בתיאור.',
+    },
+  ],
+  'תפילין:תפילין מוכנות (כולל בתים)': [
+    {
+      icon: 'camera',
+      text: 'טיפ חשוב: תמונה ברורה של הבתים מבחוץ ושל הרצועות מעלה אמון קנייה — זה הדבר הראשון שקונה תפילין בודק.',
+      shortText: 'זוכרים? תמונה ברורה של הבתים והרצועות מעלה סיכוי לרכישה 📸',
+    },
+  ],
+  'תפילין:פרשיות בלבד (קלף)': [
+    {
+      icon: 'lightbulb',
+      text: 'טיפ: ציינו בתיאור אם הפרשיות מתאימות למידת בית מסוימת, כדי לחסוך שאלות חוזרות מקונים.',
+    },
+  ],
+};
+
+const PRODUCT_TIP_ICONS = { camera: Camera, lightbulb: Lightbulb, sparkles: Sparkles } as const;
+
+function ProductTipCard({ tip, compact = false }: { tip: ProductTip; compact?: boolean }) {
+  const Icon = PRODUCT_TIP_ICONS[tip.icon];
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -6 }}
+      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+      className={cn(
+        "flex items-start gap-3 rounded-2xl border border-accent/20 bg-accent/5 text-right",
+        compact ? "p-3" : "p-4"
+      )}
+    >
+      <Icon className={cn("shrink-0 text-accent", compact ? "w-4 h-4 mt-0.5" : "w-5 h-5 mt-0.5")} />
+      <p className={cn("font-medium text-primary/70 leading-relaxed", compact ? "text-[11px]" : "text-xs")}>
+        {compact && tip.shortText ? tip.shortText : tip.text}
+      </p>
+    </motion.div>
+  );
+}
 
 const ISRAEL_CITIES = [
   'כל הארץ',
@@ -812,7 +871,7 @@ function SellerDashboardContent() {
 
   const validateProductForm = (): ProductPublishValidationIssue | null => {
     if (!formType) return { title: "חסר סוג מוצר", description: "כדי לפרסם מוצר יש לבחור סוג מוצר.", step: 1 };
-    if (formType !== 'תפילין' && !formSubType) return { title: "חסר תת-סוג", description: "כדי לפרסם מוצר יש לבחור תת-סוג או דגם.", step: 1 };
+    if (!formSubType) return { title: "חסר תת-סוג", description: "כדי לפרסם מוצר יש לבחור תת-סוג או דגם.", step: 1 };
     if (!formScript) return { title: "חסר סוג כתב", description: "כדי לפרסם מוצר יש לבחור סוג כתב.", step: 2 };
     if (!formQuality) return { title: "חסרה רמת הידור", description: "כדי לפרסם מוצר יש לבחור רמת הידור.", step: 2 };
     if (!formProofreading) return { title: "חסרה רמת הגהה", description: "כדי לפרסם מוצר יש לבחור רמת הגהה שבוצעה.", step: 2 };
@@ -857,7 +916,7 @@ function SellerDashboardContent() {
     const data = {
       seller_id: user.uid,
       product_type: formType,
-      sub_type: formType === 'תפילין' ? 'כללי' : formSubType,
+      sub_type: formSubType,
       description: formDescription,
       quantity: formQuantity,
       script_type: formScript,
@@ -1673,18 +1732,18 @@ function SellerDashboardContent() {
                         </div>
                       </div>
 
-                      {formType !== 'תפילין' && formType !== '' && (
+                      {formType !== '' && (
                         <div className="space-y-3 animate-in slide-in-from-top-2">
                           <Label className="text-[10px] font-black uppercase text-primary/40 tracking-wider">תת-סוג / דגם *</Label>
                           {PRODUCT_SUBTYPES[formType] ? (
                             <div className="grid grid-cols-2 gap-2">
                               {PRODUCT_SUBTYPES[formType].map(opt => (
-                                <button 
-                                  key={opt} 
-                                  type="button" 
-                                  onClick={() => setFormSubType(opt)} 
+                                <button
+                                  key={opt}
+                                  type="button"
+                                  onClick={() => setFormSubType(opt)}
                                   className={cn(
-                                    "px-4 py-3 rounded-xl border-2 text-xs font-black transition-all", 
+                                    "px-4 py-3 rounded-xl border-2 text-xs font-black transition-all",
                                     formSubType === opt ? "bg-primary text-white border-primary shadow-lg scale-[1.02]" : "bg-white border-primary/5 hover:border-accent/40"
                                   )}
                                 >
@@ -1693,15 +1752,21 @@ function SellerDashboardContent() {
                               ))}
                             </div>
                           ) : (
-                            <Input 
-                              value={formSubType} 
-                              onChange={e => setFormSubType(e.target.value)} 
-                              className="h-14 rounded-2xl border-2 border-primary/5 bg-slate-50/50" 
-                              placeholder="למשל: סדר פיטום הקטורת..." 
+                            <Input
+                              value={formSubType}
+                              onChange={e => setFormSubType(e.target.value)}
+                              className="h-14 rounded-2xl border-2 border-primary/5 bg-slate-50/50"
+                              placeholder="למשל: סדר פיטום הקטורת..."
                             />
                           )}
                         </div>
                       )}
+
+                      <AnimatePresence mode="wait">
+                        {(PRODUCT_TIPS[`${formType}:${formSubType}`] || []).map((tip, idx) => (
+                          <ProductTipCard key={`${formType}:${formSubType}:${idx}`} tip={tip} />
+                        ))}
+                      </AnimatePresence>
 
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black uppercase text-primary/40 tracking-wider">תיאור והערות נוספות</Label>
@@ -2010,7 +2075,15 @@ function SellerDashboardContent() {
                        </div>
                        <input id="wizard-img-up" type="file" onChange={(e) => handleImageUpload(e, 'product')} className="hidden" multiple accept="image/*" />
                     </div>
-                    
+
+                    <AnimatePresence mode="wait">
+                      {(PRODUCT_TIPS[`${formType}:${formSubType}`] || [])
+                        .filter(tip => tip.icon === 'camera')
+                        .map((tip, idx) => (
+                          <ProductTipCard key={`img-tip-${formType}:${formSubType}:${idx}`} tip={tip} compact />
+                        ))}
+                    </AnimatePresence>
+
                     <div className="p-5 bg-orange-50/50 rounded-2xl border border-orange-100 flex items-start gap-4">
                        <ShieldAlert className="w-6 h-6 text-orange-600 shrink-0" />
                        <div className="space-y-1">

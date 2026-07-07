@@ -108,7 +108,7 @@ export default function DiagnosisPage() {
                   </div>
                 ) : preview ? (
                   <div className="relative w-full aspect-[4/3] rounded-lg overflow-hidden border mb-4">
-                    <Image src={preview} alt="Preview" fill className="object-cover" />
+                    <Image src={preview} alt="Preview" fill sizes="(max-width: 768px) 100vw, 800px" className="object-cover" />
                   </div>
                 ) : (
                   <div

@@ -969,7 +969,7 @@ function ScribeTable({ scribes, onApprove, onDelete, isLoading, orders, totalCou
                   <TableCell className="py-6 px-8">
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center border border-primary/10 overflow-hidden relative">
-                        <Image loader={unsplashLoader} src={scribe.profile_image || logoImg} alt="P" fill className="object-cover" />
+                        <Image loader={unsplashLoader} src={scribe.profile_image || logoImg} alt="P" fill kind="avatar" sizes="40px" className="object-cover" />
                       </div>
                       <div className="text-right">
                         <p className="font-black text-primary text-sm leading-none mb-1 flex items-center gap-2">
@@ -1475,7 +1475,7 @@ function VerifyScribeDialog({ scribe, db }: any) {
           <DialogHeader>
             <DialogTitle className="text-xl font-headline font-black tracking-tight flex items-center gap-4 text-white">
               <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center border border-white/20 relative overflow-hidden">
-                <Image src={scribe.profile_image || 'https://picsum.photos/seed/scribe/200/200'} alt="S" fill className="object-cover" />
+                <Image src={scribe.profile_image || 'https://picsum.photos/seed/scribe/200/200'} alt="S" fill kind="avatar" sizes="48px" className="object-cover" />
               </div>
               <div>
                 <p>{scribe.first_name} {scribe.last_name}</p>
@@ -1557,7 +1557,7 @@ function VerifyScribeDialog({ scribe, db }: any) {
               <div className="space-y-4">
                  <p className="font-black text-[11px] uppercase text-primary/60 tracking-widest">תעודת סופר מועלה</p>
                  <div className="relative aspect-[1.4/1] w-full rounded-2xl overflow-hidden border shadow-inner bg-white">
-                    <Image src={scribe.certificate_url} alt="Cert" fill className="object-contain" />
+                    <Image src={scribe.certificate_url} alt="Cert" fill kind="certificate" sizes="(max-width: 768px) 100vw, 720px" className="object-contain" />
                  </div>
               </div>
             )}
@@ -1568,7 +1568,7 @@ function VerifyScribeDialog({ scribe, db }: any) {
                  <div className="grid grid-cols-2 gap-2">
                     {scribe.writing_samples.slice(0, 4).map((sample: string, idx: number) => (
                       <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border shadow-sm">
-                         <Image src={sample} alt={`Sample ${idx}`} fill className="object-cover" />
+                         <Image src={sample} alt={`Sample ${idx}`} fill kind="writing_sample" sizes="(max-width: 768px) 50vw, 360px" className="object-cover" />
                       </div>
                     ))}
                  </div>

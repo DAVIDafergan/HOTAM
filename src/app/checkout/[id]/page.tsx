@@ -623,7 +623,7 @@ export default function CheckoutPage() {
               <Card className="border-none shadow-premium rounded-[2.5rem] bg-white p-6 sticky top-32">
                 <h2 className="font-black text-primary border-b pb-3 mb-4">סיכום הזמנה</h2>
                 <div className="flex gap-4 items-center mb-6">
-                  <div className="relative w-16 h-16 rounded-xl overflow-hidden border shrink-0"><Image loader={unsplashLoader} src={product.images?.[0] || '/hotam-logo.png'} alt="product" fill className="object-cover" /></div>
+                  <div className="relative w-16 h-16 rounded-xl overflow-hidden border shrink-0"><Image loader={unsplashLoader} src={product.images?.[0] || '/hotam-logo.png'} alt="product" fill kind="product" sizes="64px" className="object-cover" /></div>
                   <div className="text-right"><p className="font-black text-sm">{product.product_type}</p><p className="text-[10px] text-muted-foreground font-bold">{product.script_type}</p></div>
                 </div>
                 <div className="space-y-3 border-t pt-4">

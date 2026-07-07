@@ -895,7 +895,7 @@ export default function SellerOnboarding() {
                         {(formData.certificateUrl || certLocalPreview) ? (
                           <div className="relative w-full h-40 rounded-xl overflow-hidden border bg-white shadow-sm">
                             {formData.certificateUrl ? (
-                              <Image src={formData.certificateUrl} alt="תעודת הסופר" fill priority kind="certificate" sizes="(max-width: 768px) 100vw, 720px" className="object-contain" />
+                              <Image src={formData.certificateUrl} alt="תעודת הסופר" fill kind="certificate" sizes="(max-width: 768px) 100vw, 720px" className="object-contain" />
                             ) : (
                               <Image src={certLocalPreview!} alt="תעודת הסופר" fill kind="certificate" sizes="(max-width: 768px) 100vw, 720px" className="object-contain" unoptimized />
                             )}

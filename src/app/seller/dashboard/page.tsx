@@ -1082,7 +1082,7 @@ function SellerDashboardContent() {
              {products.length === 0 && <div className="py-24 text-center bg-white rounded-[2rem] border-2 border-dashed text-muted-foreground italic">אין מוצרים במלאי. לחץ על כפתור הפלוס להוספה.</div>}
              {paginatedProducts.map((p: any) => (
                <Card key={p.id} className="border-none shadow-premium rounded-[2rem] bg-white p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
-                 <div className="w-20 h-20 bg-muted rounded-2xl shrink-0 overflow-hidden relative border"><Image src={p.images?.[0] || logoImg} alt="product" fill className="object-cover" /></div>
+                 <div className="w-20 h-20 bg-muted rounded-2xl shrink-0 overflow-hidden relative border"><Image src={p.images?.[0] || logoImg} alt="product" fill kind="product" sizes="80px" className="object-cover" /></div>
                  <div className="flex-1 text-right w-full">
                     <p className="font-black text-lg text-primary">{p.product_type}</p>
                     <p className="text-[10px] text-muted-foreground font-bold">{p.script_type} | {p.script_level}</p>

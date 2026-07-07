@@ -563,7 +563,7 @@ export default function SellerProfile({
                        {products.map((p: any) => (
                           <Card key={p.id} className="group overflow-hidden border-none shadow-premium rounded-2xl bg-muted/10 hover:bg-white hover:shadow-2xl transition-all duration-500">
                             <div className="relative h-40 md:h-44">
-                              <Image src={p.images?.[0] || logoImg} alt={p.product_type} fill className="object-cover group-hover:scale-105 transition-transform duration-700" />
+                              <Image src={p.images?.[0] || logoImg} alt={p.product_type} fill kind="product" sizes="(max-width: 640px) 100vw, 50vw" className="object-cover group-hover:scale-105 transition-transform duration-700" />
                               <Badge className="absolute top-3 right-3 bg-primary/80 text-white text-[8px] px-3 py-1 rounded-full backdrop-blur-md">
                                 {p.script_level}
                               </Badge>
@@ -606,7 +606,7 @@ export default function SellerProfile({
                         }}
                         className="group relative aspect-square overflow-hidden rounded-2xl border border-muted/50 shadow-premium"
                       >
-                        <Image src={sample} alt={sellerFullName === 'הסופר' ? `דוגמת כתיבה ${i + 1}` : `דוגמת כתיבה ${i + 1} של ${sellerFullName}`} fill className="object-cover transition-transform duration-1000 group-hover:scale-110" />
+                        <Image src={sample} alt={sellerFullName === 'הסופר' ? `דוגמת כתיבה ${i + 1}` : `דוגמת כתיבה ${i + 1} של ${sellerFullName}`} fill kind="writing_sample" sizes="(max-width: 768px) 50vw, 300px" className="object-cover transition-transform duration-1000 group-hover:scale-110" />
                         <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
                           <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-xs font-black text-primary shadow-lg">
                             <ZoomIn className="h-4 w-4 text-accent" />

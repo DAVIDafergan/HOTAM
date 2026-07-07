@@ -10,9 +10,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-rubik)', 'Arial', 'sans-serif'],
-        body: ['var(--font-rubik)', 'Arial', 'sans-serif'],
-        headline: ['var(--font-rubik)', 'Arial', 'sans-serif'],
+        sans: ['var(--font-assistant)', 'Arial', 'sans-serif'],
+        body: ['var(--font-assistant)', 'Arial', 'sans-serif'],
+        headline: ['var(--font-assistant)', 'Arial', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {

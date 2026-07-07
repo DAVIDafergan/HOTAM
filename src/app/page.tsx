@@ -78,7 +78,7 @@ export default function Home() {
             <ScrollFadeIn className="mt-8 md:mt-28 text-center">
               <div className="flex flex-col items-center gap-3">
                 <MotionTap className="inline-block">
-                  <Button size="lg" asChild className="rounded-full gap-3 font-black text-white bg-primary hover:bg-primary/90 focus:ring-4 focus:ring-primary/30 transition-all duration-300 px-12 h-16 shadow-xl">
+                  <Button size="lg" asChild className="rounded-full gap-3 font-bold text-white bg-primary hover:bg-primary/90 focus:ring-4 focus:ring-primary/30 transition-all duration-300 px-12 h-16 shadow-xl">
                     <Link href="/search?view=all">
                       <Search className="w-5 h-5" />
                       צפה בכל המוצרים באתר
@@ -117,7 +117,7 @@ export default function Home() {
           </Link>
           <div className="text-center space-y-1">
             <p className="text-sm font-bold text-primary/60">נבנה ע"י DA ניהול פרויקטים</p>
-            <p className="text-[10px] font-black text-muted-foreground/30 tracking-[0.4em] uppercase">Sacred Scribal Art © 2024</p>
+            <p className="text-[10px] font-medium text-muted-foreground/30 tracking-[0.4em] uppercase">Sacred Scribal Art © 2024</p>
             <Link href="/terms" className="text-[10px] font-bold text-muted-foreground/50 hover:text-primary transition-colors underline underline-offset-2">תקנון ותנאי שימוש</Link>
           </div>
         </div>

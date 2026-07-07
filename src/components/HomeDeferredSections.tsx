@@ -52,7 +52,7 @@ export async function HomeDeferredSections() {
         <section className="section-shell bg-[#F8F9FA]" aria-labelledby="top-scribes-heading">
           <div className="container mx-auto px-4 md:px-5">
             <ScrollFadeIn className="text-center mb-8 md:mb-24 space-y-4 md:space-y-6">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-accent/10 rounded-full text-accent font-black text-[10px] uppercase tracking-widest">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-accent/10 rounded-full text-accent font-semibold text-[10px] uppercase tracking-widest">
                 <Trophy className="w-3.5 h-3.5" /> נבחרת הסופרים
               </div>
               <h2 id="top-scribes-heading" className="text-[2.2rem] md:text-[3rem] font-headline font-black text-primary tracking-tight">
@@ -85,7 +85,7 @@ export async function HomeDeferredSections() {
             </div>
             <div className="flex justify-center pt-4">
               <MotionTap className="inline-block">
-                <Button size="lg" asChild className="bg-accent text-primary hover:bg-accent/90 px-12 rounded-full font-black uppercase tracking-widest h-16 shadow-2xl transition-all duration-300">
+                <Button size="lg" asChild className="bg-accent text-primary hover:bg-accent/90 px-12 rounded-full font-bold uppercase tracking-widest h-16 shadow-2xl transition-all duration-300">
                   <Link href="/onboarding/seller">הצטרף כסופר למערכת</Link>
                 </Button>
               </MotionTap>

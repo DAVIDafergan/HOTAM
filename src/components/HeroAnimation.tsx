@@ -169,7 +169,7 @@ export function HeroAnimation() {
     return [];
   };
   const hasSubTypes = getSubTypesForProduct(selectedProduct).length > 0;
-  const finalSearchButtonClass = "w-full max-w-3xl bg-accent text-primary hover:bg-accent/92 rounded-full px-12 md:px-20 h-[4.4rem] font-black text-base md:text-lg uppercase tracking-[0.16em] md:tracking-[0.2em] shadow-premium-lg gap-4 focus:ring-4 focus:ring-accent/30 transition-all duration-500 group";
+  const finalSearchButtonClass = "w-full max-w-3xl bg-accent text-primary hover:bg-accent/92 rounded-full px-12 md:px-20 h-[4.4rem] font-bold text-base md:text-lg uppercase tracking-[0.16em] md:tracking-[0.2em] shadow-premium-lg gap-4 focus:ring-4 focus:ring-accent/30 transition-all duration-500 group";
 
   const handleFinalSearch = () => {
     const params = new URLSearchParams();
@@ -239,7 +239,7 @@ export function HeroAnimation() {
                 {step > n ? <span aria-label="שלב הושלם" className="text-accent text-lg leading-none">✓</span> : n}
                 </div>
                 <span className={cn(
-                  "text-xs font-black uppercase tracking-widest transition-colors hidden sm:block",
+                  "text-xs font-semibold uppercase tracking-widest transition-colors hidden sm:block",
                   step === n ? "text-primary" : "text-primary/60"
                 )}>{label}</span>
               </div>
@@ -265,16 +265,16 @@ export function HeroAnimation() {
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             className="flex flex-wrap items-center justify-center gap-2 mb-4 md:mb-8"
           >
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/10 bg-primary/5 px-3 py-1.5 text-xs font-black text-primary">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/10 bg-primary/5 px-3 py-1.5 text-xs font-bold text-primary">
               {selectedProduct}
             </span>
             {quantity > 1 && (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/10 bg-primary/5 px-3 py-1.5 text-xs font-black text-primary">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/10 bg-primary/5 px-3 py-1.5 text-xs font-bold text-primary">
                 {quantity} יח'
               </span>
             )}
             {selectedCity && (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/10 bg-primary/5 px-3 py-1.5 text-xs font-black text-primary">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/10 bg-primary/5 px-3 py-1.5 text-xs font-bold text-primary">
                 {selectedCity}
               </span>
             )}
@@ -311,11 +311,11 @@ export function HeroAnimation() {
                     <button type="button" onClick={() => setQuantity(Math.max(1, quantity - 1))} aria-label="הפחת כמות" className="w-10 h-10 rounded-xl border-2 border-primary/15 font-bold hover:bg-white active:scale-90 transition-all text-primary flex items-center justify-center text-lg bg-white shadow-sm">−</button>
                     <div className="flex items-center gap-2 px-4">
                       <span className="text-2xl font-black text-primary tabular-nums leading-none">{quantity}</span>
-                      <span className="text-xs font-black text-primary/60 uppercase tracking-tight">יח'</span>
+                      <span className="text-xs font-semibold text-primary/60 uppercase tracking-tight">יח'</span>
                     </div>
                     <button type="button" onClick={() => setQuantity(quantity + 1)} aria-label="הוסף כמות" className="w-10 h-10 rounded-xl border-2 border-primary/15 font-bold hover:bg-white active:scale-90 transition-all text-primary flex items-center justify-center text-lg bg-white shadow-sm">+</button>
                   </div>
-                  <Button onClick={() => setStep(2)} className="bg-primary text-white hover:bg-primary/95 rounded-full px-10 h-12 font-black uppercase text-xs tracking-[0.2em] shadow-premium transition-all hover:scale-105 active:scale-95 group gap-2">
+                  <Button onClick={() => setStep(2)} className="bg-primary text-white hover:bg-primary/95 rounded-full px-10 h-12 font-bold uppercase text-xs tracking-[0.2em] shadow-premium transition-all hover:scale-105 active:scale-95 group gap-2">
                     המשך למפרט <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                   </Button>
                 </motion.div>
@@ -326,7 +326,7 @@ export function HeroAnimation() {
               <Button
                 variant="ghost"
                 onClick={() => router.push('/search?view=all')}
-                className="h-10 px-6 rounded-full text-[11px] font-black uppercase tracking-widest text-primary/60 hover:text-primary hover:bg-primary/5 border border-primary/10 hover:border-primary/20 transition-all gap-2"
+                className="h-10 px-6 rounded-full text-[11px] font-semibold uppercase tracking-widest text-primary/60 hover:text-primary hover:bg-primary/5 border border-primary/10 hover:border-primary/20 transition-all gap-2"
               >
                 <Search className="w-3.5 h-3.5" />
                 צפה בכל המוצרים ללא פילטר
@@ -339,17 +339,17 @@ export function HeroAnimation() {
         {step === 2 && (
           <motion.div key="step2" initial={{ opacity: 0, x: 28 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ type: "spring", stiffness: 300, damping: 28 }} className="space-y-4 md:space-y-7 text-right">
             <div className="flex justify-between items-center border-b border-primary/5 pb-4">
-              <Button variant="ghost" onClick={() => setStep(1)} className="font-black text-xs uppercase tracking-widest h-10 px-4 rounded-xl hover:bg-primary/5 gap-1"><ChevronRight className="w-4 h-4" /> חזור</Button>
+              <Button variant="ghost" onClick={() => setStep(1)} className="font-semibold text-xs uppercase tracking-widest h-10 px-4 rounded-xl hover:bg-primary/5 gap-1"><ChevronRight className="w-4 h-4" /> חזור</Button>
               <div className="text-right">
                 <h2 className="text-xl md:text-2xl font-headline font-black text-primary">איזה סוג בדיוק?</h2>
-                <p className="text-xs text-primary/60 font-black uppercase tracking-widest mt-0.5">עבור {selectedProduct} · שלב 2 מתוך 3</p>
+                <p className="text-xs text-primary/60 font-semibold uppercase tracking-widest mt-0.5">עבור {selectedProduct} · שלב 2 מתוך 3</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               {hasSubTypes && (
                 <div className="space-y-4 rounded-2xl md:rounded-3xl bg-primary/[0.03] md:bg-white/60 border-0 md:border md:border-primary/5 p-4 md:p-5 shadow-none md:shadow-sm">
-                  <Label className="font-black text-xs uppercase text-primary/60 mr-1 tracking-widest">תת-סוג המוצר</Label>
+                  <Label className="font-semibold text-xs uppercase text-primary/60 mr-1 tracking-widest">תת-סוג המוצר</Label>
                   <RadioGroup value={subType} onValueChange={setSubType} className="grid grid-cols-2 gap-3">
                     {selectedProduct !== 'מזוזה' && <CustomTile value="all" label="כל הסוגים" active={subType === 'all'} />}
                     {getSubTypesForProduct(selectedProduct).map(opt => <CustomTile key={opt} value={opt} label={opt} active={subType === opt} />)}
@@ -358,7 +358,7 @@ export function HeroAnimation() {
               )}
 
               <div className="space-y-4 rounded-2xl md:rounded-3xl bg-primary/[0.03] md:bg-white/60 border-0 md:border md:border-primary/5 p-4 md:p-5 shadow-none md:shadow-sm">
-                <Label className="font-black text-xs uppercase text-primary/60 mr-1 tracking-widest">סוג הכתב (מסורת)</Label>
+                <Label className="font-semibold text-xs uppercase text-primary/60 mr-1 tracking-widest">סוג הכתב (מסורת)</Label>
                 <RadioGroup value={scriptType} onValueChange={setScriptType} className="grid grid-cols-1 gap-2">
                   {[
                     {v: 'all', l: 'כל המסורות'},
@@ -373,7 +373,7 @@ export function HeroAnimation() {
               </div>
 
               <div className="space-y-4 rounded-2xl md:rounded-3xl bg-primary/[0.03] md:bg-white/60 border-0 md:border md:border-primary/5 p-4 md:p-5 shadow-none md:shadow-sm">
-                <Label className="font-black text-xs uppercase text-primary/60 mr-1 tracking-widest">רמת הידור מבוקשת</Label>
+                <Label className="font-semibold text-xs uppercase text-primary/60 mr-1 tracking-widest">רמת הידור מבוקשת</Label>
                 <RadioGroup value={qualityLevel} onValueChange={setQualityLevel} className="grid grid-cols-2 gap-3">
                   {getQualityLevels(selectedProduct).map(q => <CustomTile key={q.v} value={q.v} label={q.l} active={qualityLevel === q.v} compact />)}
                 </RadioGroup>
@@ -383,7 +383,7 @@ export function HeroAnimation() {
                 {selectedProduct === 'מגילה' ? (
                   <div className="space-y-4">
                     <div className="space-y-3">
-                      <Label className="text-xs font-black uppercase text-primary/60 tracking-widest">מספר שורות</Label>
+                      <Label className="text-xs font-semibold uppercase text-primary/60 tracking-widest">מספר שורות</Label>
                       <div className="grid grid-cols-4 gap-2">
                         {['all', '11', '21', '28', '42'].map(r => (
                           <button
@@ -394,7 +394,7 @@ export function HeroAnimation() {
                               setMegillahHeight('all');
                             }}
                             className={cn(
-                              "h-14 rounded-2xl border-2 font-black text-xs transition-all",
+                              "h-14 rounded-2xl border-2 font-bold text-xs transition-all",
                               megillahRows === r ? "border-primary bg-primary text-white shadow-lg scale-105" : "bg-white/40 border-primary/5 text-primary hover:border-accent/40"
                             )}
                           >
@@ -404,7 +404,7 @@ export function HeroAnimation() {
                       </div>
                     </div>
                     <div className="space-y-3">
-                      <Label className="text-xs font-black uppercase text-primary/60 tracking-widest">גובה קלף (ס"מ)</Label>
+                      <Label className="text-xs font-semibold uppercase text-primary/60 tracking-widest">גובה קלף (ס"מ)</Label>
                       <Select value={megillahHeight} onValueChange={setMegillahHeight}>
                         <SelectTrigger className="h-14 rounded-2xl text-right font-bold text-base sm:text-sm bg-white/50 border-2 border-transparent">
                           <SelectValue placeholder="בחר גובה..." />
@@ -427,10 +427,10 @@ export function HeroAnimation() {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <Label className="font-black text-xs uppercase text-primary/60 tracking-widest">גודל הקלף (ס"מ)</Label>
+                    <Label className="font-semibold text-xs uppercase text-primary/60 tracking-widest">גודל הקלף (ס"מ)</Label>
                     <div className="grid grid-cols-2 gap-2">
                       {[...getSizesForProduct(selectedProduct, scriptType), 'other'].map(sz => (
-                        <button type="button" key={sz} onClick={() => setScrollSize(sz)} className={cn("h-12 rounded-xl border-2 font-black text-[11px] transition-all", scrollSize === sz ? "border-primary bg-primary text-white shadow-md" : "bg-white/40 border-primary/5 text-primary hover:border-accent/40")}>{sz === 'other' ? 'שאר הגדלים' : sz}</button>
+                        <button type="button" key={sz} onClick={() => setScrollSize(sz)} className={cn("h-12 rounded-xl border-2 font-bold text-[11px] transition-all", scrollSize === sz ? "border-primary bg-primary text-white shadow-md" : "bg-white/40 border-primary/5 text-primary hover:border-accent/40")}>{sz === 'other' ? 'שאר הגדלים' : sz}</button>
                       ))}
                     </div>
                   </div>
@@ -439,7 +439,7 @@ export function HeroAnimation() {
             </div>
 
             <div className="flex justify-center pt-4 md:pt-8">
-               <Button onClick={() => setStep(3)} className="bg-primary text-white hover:bg-primary/95 rounded-full px-16 h-12 md:h-14 font-black uppercase text-sm tracking-[0.2em] shadow-premium transition-all hover:scale-105 active:scale-95 group gap-2">
+               <Button onClick={() => setStep(3)} className="bg-primary text-white hover:bg-primary/95 rounded-full px-16 h-12 md:h-14 font-bold uppercase text-sm tracking-[0.2em] shadow-premium transition-all hover:scale-105 active:scale-95 group gap-2">
                  המשך למיקום וקבלה <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
                </Button>
              </div>
@@ -449,23 +449,23 @@ export function HeroAnimation() {
         {step === 3 && (
           <motion.div key="step3" initial={{ opacity: 0, x: 28 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ type: "spring", stiffness: 300, damping: 28 }} className="space-y-4 md:space-y-7 text-right">
             <div className="flex justify-between items-center border-b border-primary/5 pb-4">
-              <Button variant="ghost" onClick={() => setStep(2)} className="font-black text-xs uppercase tracking-widest h-10 px-4 rounded-xl hover:bg-primary/5 gap-1"><ChevronRight className="w-4 h-4" /> חזור</Button>
+              <Button variant="ghost" onClick={() => setStep(2)} className="font-semibold text-xs uppercase tracking-widest h-10 px-4 rounded-xl hover:bg-primary/5 gap-1"><ChevronRight className="w-4 h-4" /> חזור</Button>
               <div className="text-right">
                 <h2 className="text-xl md:text-2xl font-headline font-black text-primary">איפה ואיך תרצו לקבל?</h2>
-                <p className="text-xs text-primary/60 font-black uppercase tracking-widest mt-0.5">שלב 3 מתוך 3</p>
+                <p className="text-xs text-primary/60 font-semibold uppercase tracking-widest mt-0.5">שלב 3 מתוך 3</p>
               </div>
             </div>
 
             <div className="max-w-2xl mx-auto w-full space-y-6 rounded-2xl md:rounded-3xl bg-primary/[0.03] md:bg-white/60 border-0 md:border md:border-primary/5 p-4 md:p-6 shadow-none md:shadow-sm">
               <div className="space-y-4 pb-5 border-b border-primary/5">
                 <div className="flex items-center justify-between gap-3">
-                  <Label className="font-black text-xs uppercase text-primary/60 mr-1 tracking-widest">איפה תרצו למצוא סופר? (לא חובה)</Label>
-                  <Button variant="ghost" onClick={handleFinalSearch} className="shrink-0 h-8 px-3 rounded-full font-black text-[11px] uppercase tracking-widest text-primary/50 hover:text-primary hover:bg-primary/5">
+                  <Label className="font-semibold text-xs uppercase text-primary/60 mr-1 tracking-widest">איפה תרצו למצוא סופר? (לא חובה)</Label>
+                  <Button variant="ghost" onClick={handleFinalSearch} className="shrink-0 h-8 px-3 rounded-full font-semibold text-[11px] uppercase tracking-widest text-primary/50 hover:text-primary hover:bg-primary/5">
                     דלג, הצג הכל
                   </Button>
                 </div>
                 <div className="flex flex-col gap-3">
-                  <Button variant="outline" onClick={detectLocation} disabled={isDetectingLocation} className={cn("h-12 md:h-14 rounded-2xl gap-3 font-black text-xs uppercase border-2 transition-all", userCoords ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'hover:border-primary/20')}>
+                  <Button variant="outline" onClick={detectLocation} disabled={isDetectingLocation} className={cn("h-12 md:h-14 rounded-2xl gap-3 font-bold text-xs uppercase border-2 transition-all", userCoords ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'hover:border-primary/20')}>
                     {isDetectingLocation ? <Loader2 className="w-5 h-5 animate-spin" /> : <LocateFixed className="w-5 h-5" />}
                     {userCoords ? (detectedCity ? `המיקום שלך: ${detectedCity}` : 'המיקום שלך זוהה בהצלחה') : 'זהה את המיקום הנוכחי שלי'}
                   </Button>
@@ -478,7 +478,7 @@ export function HeroAnimation() {
                   />
                   <Label className="flex items-center justify-between rounded-2xl border-2 border-primary/5 bg-white/80 px-4 py-4 shadow-sm transition-all hover:border-primary/10">
                     <div className="space-y-1 text-right">
-                      <span className="block text-xs font-black uppercase tracking-tight text-primary">חפש גם בערים קרובות</span>
+                      <span className="block text-xs font-semibold uppercase tracking-tight text-primary">חפש גם בערים קרובות</span>
                       <span className="block text-xs font-medium text-primary/50">עד {NEARBY_RADIUS_KM} ק״מ מהעיר שנבחרה</span>
                     </div>
                     <Checkbox checked={includeNearbyCities} onCheckedChange={(value) => setIncludeNearbyCities(!!value)} className="w-5 h-5 rounded-md" />
@@ -488,7 +488,7 @@ export function HeroAnimation() {
 
               <div className="pt-2">
                 <div className="space-y-3">
-                  <Label className="font-black text-xs uppercase text-primary/60 mr-1 tracking-widest">אופן קבלת המוצר</Label>
+                  <Label className="font-semibold text-xs uppercase text-primary/60 mr-1 tracking-widest">אופן קבלת המוצר</Label>
                   <RadioGroup value={shippingPreference} onValueChange={(v) => setShippingPreference(v as ShippingPreference)} className="grid grid-cols-3 gap-2">
                     <CustomTile value="all" label="הכל" active={shippingPreference === 'all'} compact />
                     <CustomTile value="shipping" label="משלוח בלבד" active={shippingPreference === 'shipping'} compact />
@@ -496,7 +496,7 @@ export function HeroAnimation() {
                   </RadioGroup>
                 </div>
                 <div className="pt-5">
-                  <Button variant="ghost" onClick={() => setShowAdvanced(!showAdvanced)} className="w-full h-12 md:h-14 rounded-2xl border-2 border-dashed border-primary/10 gap-3 font-black text-xs uppercase tracking-widest text-primary/60 hover:bg-primary/5 hover:border-primary/20 transition-all">
+                  <Button variant="ghost" onClick={() => setShowAdvanced(!showAdvanced)} className="w-full h-12 md:h-14 rounded-2xl border-2 border-dashed border-primary/10 gap-3 font-semibold text-xs uppercase tracking-widest text-primary/60 hover:bg-primary/5 hover:border-primary/20 transition-all">
                     <Settings2 className="w-5 h-5 text-accent" /> {showAdvanced ? 'הסתר הגדרות סופר מתקדמות' : 'מסנני קדושה והנהגת הסופר'}
                   </Button>
                 </div>
@@ -505,7 +505,7 @@ export function HeroAnimation() {
                       <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden pt-5 px-1">
                         <div className="grid md:grid-cols-2 gap-4">
                           <div className="space-y-3">
-                            <Label className="text-xs font-black uppercase text-primary/40 tracking-widest">הסמכת הסופר</Label>
+                            <Label className="text-xs font-semibold uppercase text-primary/40 tracking-widest">הסמכת הסופר</Label>
                             <div className="grid grid-cols-2 gap-2">
                               <CustomTile value="valid" label="תעודה בתוקף" active={certStatus === 'valid'} compact onClick={() => setCertStatus(certStatus === 'valid' ? '' : 'valid')} />
                               <CustomTile value="expired" label="תעודה בעבר" active={certStatus === 'expired'} compact onClick={() => setCertStatus(certStatus === 'expired' ? '' : 'expired')} />
@@ -514,7 +514,7 @@ export function HeroAnimation() {
                           </div>
 
                           <div className="space-y-3">
-                            <Label className="text-xs font-black uppercase text-primary/40 tracking-widest">לימוד תורה יומיומי</Label>
+                            <Label className="text-xs font-semibold uppercase text-primary/40 tracking-widest">לימוד תורה יומיומי</Label>
                             <div className="grid grid-cols-2 gap-2">
                               <CustomTile value="fixed" label="קובע עיתים" active={studyFreq === 'fixed'} compact onClick={() => setStudyFreq(studyFreq === 'fixed' ? '' : 'fixed')} />
                               <CustomTile value="half-day" label="אברך חצי יום" active={studyFreq === 'half-day'} compact onClick={() => setStudyFreq(studyFreq === 'half-day' ? '' : 'half-day')} />
@@ -523,7 +523,7 @@ export function HeroAnimation() {
                           </div>
 
                           <div className="space-y-3 md:col-span-2">
-                            <Label className="text-xs font-black uppercase text-primary/40 tracking-widest">מנהג טבילה</Label>
+                            <Label className="text-xs font-semibold uppercase text-primary/40 tracking-widest">מנהג טבילה</Label>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                               <CustomTile value="daily" label="כל יום" active={mikvehFreq === 'daily'} compact onClick={() => setMikvehFreq(mikvehFreq === 'daily' ? '' : 'daily')} />
                               <CustomTile value="before" label="לפני כתיבה" active={mikvehFreq === 'before'} compact onClick={() => setMikvehFreq(mikvehFreq === 'before' ? '' : 'before')} />
@@ -533,7 +533,7 @@ export function HeroAnimation() {
                           </div>
 
                           <Label className="md:col-span-2 flex items-center justify-between p-4 bg-white/80 border-2 border-primary/5 rounded-2xl cursor-pointer hover:bg-white hover:border-primary/10 transition-all shadow-sm">
-                            <div className="flex items-center gap-3"><UserCheck className="w-5 h-5 text-accent" /><span className="text-xs font-black uppercase text-primary tracking-tight">הצג סופרים נשואים בלבד</span></div>
+                            <div className="flex items-center gap-3"><UserCheck className="w-5 h-5 text-accent" /><span className="text-xs font-semibold uppercase text-primary tracking-tight">הצג סופרים נשואים בלבד</span></div>
                             <Checkbox checked={marriedOnly} onCheckedChange={(v) => setMarriedOnly(!!v)} className="w-6 h-6 rounded-lg" />
                           </Label>
                         </div>

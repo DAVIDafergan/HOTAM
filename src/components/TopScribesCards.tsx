@@ -93,12 +93,12 @@ export function TopScribesCards({ topScribes }: { topScribes: TopScribeCard[] })
                 </p>
                 <div className="flex items-center justify-center gap-3 border-t pt-4">
                   <div className="text-right">
-                    <p className="text-[8px] font-black text-muted-foreground uppercase tracking-tighter">ניסיון</p>
+                    <p className="text-[8px] font-semibold text-muted-foreground uppercase tracking-tighter">ניסיון</p>
                     <p className="text-xs font-black text-primary tabular-nums">{scribe.experience_years}ש'</p>
                   </div>
                   <div className="w-px h-5 bg-muted" />
                   <div className="text-right">
-                    <p className="text-[8px] font-black text-muted-foreground uppercase tracking-tighter">דירוג</p>
+                    <p className="text-[8px] font-semibold text-muted-foreground uppercase tracking-tighter">דירוג</p>
                     <div className="flex items-center gap-0.5 mt-0.5">
                       <Star className="w-2.5 h-2.5 fill-accent text-accent" />
                       <span className="text-xs font-black text-primary">{avg}</span>
@@ -106,7 +106,7 @@ export function TopScribesCards({ topScribes }: { topScribes: TopScribeCard[] })
                   </div>
                 </div>
                 <div className="mt-4">
-                  <Button variant="outline" className="rounded-full w-full h-10 border-primary/10 text-[9px] font-black uppercase tracking-wide group-hover:bg-primary group-hover:text-white transition-all">
+                  <Button variant="outline" className="rounded-full w-full h-10 border-primary/10 text-[9px] font-bold uppercase tracking-wide group-hover:bg-primary group-hover:text-white transition-all">
                     צפה בפרופיל <ArrowLeft className="w-3 h-3 mr-2" />
                   </Button>
                 </div>

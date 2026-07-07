@@ -234,7 +234,7 @@ export function Navbar() {
                           {user ? (
                             <div className="flex items-center justify-end gap-3 w-full">
                               <div className="text-right space-y-0.5">
-                                <p className="text-[10px] font-black text-accent uppercase tracking-widest flex items-center justify-end gap-1.5 leading-none">
+                                <p className="text-[10px] font-semibold text-accent uppercase tracking-widest flex items-center justify-end gap-1.5 leading-none">
                                   {greetingIcon} {greeting},
                                 </p>
                                 <p className="text-xl font-headline font-black text-primary tracking-tight truncate max-w-[150px] leading-tight">{displayName}</p>
@@ -246,7 +246,7 @@ export function Navbar() {
                             </div>
                           ) : (
                             <div className="text-right py-2 space-y-1">
-                               <p className="text-[10px] font-black text-accent uppercase tracking-widest">ברוכים הבאים</p>
+                               <p className="text-[10px] font-semibold text-accent uppercase tracking-widest">ברוכים הבאים</p>
                                <Logo />
                             </div>
                           )}
@@ -262,7 +262,7 @@ export function Navbar() {
                         )}
                         
                         <div className="my-3 border-t border-primary/5 relative">
-                           <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-[7px] font-black text-primary/20 tracking-[0.3em] uppercase">MEMBER</span>
+                           <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-[7px] font-semibold text-primary/20 tracking-[0.3em] uppercase">MEMBER</span>
                         </div>
 
                         {user ? (
@@ -277,7 +277,7 @@ export function Navbar() {
                             />
                             <button 
                               onClick={() => { handleLogout(); setIsOpen(false); }}
-                              className="flex items-center justify-end gap-4 p-4 rounded-2xl hover:bg-destructive/5 transition-all text-destructive font-black text-sm mt-2 group active:scale-95 min-h-[56px]"
+                              className="flex items-center justify-end gap-4 p-4 rounded-2xl hover:bg-destructive/5 transition-all text-destructive font-bold text-sm mt-2 group active:scale-95 min-h-[56px]"
                             >
                               <span className="group-hover:-translate-x-1 transition-transform">התנתקות</span>
                               <div className="p-2.5 bg-destructive/10 rounded-xl group-hover:scale-110 transition-transform">
@@ -287,7 +287,7 @@ export function Navbar() {
                           </>
                         ) : (
                           <div className="mt-4 px-1">
-                            <Button asChild className="w-full bg-primary hover:bg-primary/90 h-14 rounded-2xl shadow-lg font-black text-sm uppercase tracking-widest gap-2">
+                            <Button asChild className="w-full bg-primary hover:bg-primary/90 h-14 rounded-2xl shadow-lg font-bold text-sm uppercase tracking-widest gap-2">
                               <Link href="/login" onClick={() => setIsOpen(false)}>
                                 <LogIn className="w-4 h-4" /> התחברות למערכת 
                               </Link>
@@ -352,7 +352,7 @@ export function Navbar() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-72 p-2 rounded-[2rem] shadow-premium border-none bg-white/95 backdrop-blur-md mt-2">
-                      <DropdownMenuLabel className="text-sm font-black uppercase text-primary flex items-center gap-2 p-4">
+                      <DropdownMenuLabel className="text-sm font-semibold uppercase text-primary flex items-center gap-2 p-4">
                         <Bell className="w-4 h-4 text-accent" /> עדכוני מערכת
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator className="bg-primary/5" />
@@ -390,7 +390,7 @@ export function Navbar() {
                         )}
                         
                         <div className="pt-2">
-                          <Button variant="ghost" asChild className="w-full h-10 rounded-xl text-[10px] font-black uppercase tracking-widest text-primary/40 hover:text-primary">
+                          <Button variant="ghost" asChild className="w-full h-10 rounded-xl text-[10px] font-semibold uppercase tracking-widest text-primary/40 hover:text-primary">
                              <Link href="/admin">לניהול המערכת המלא ←</Link>
                           </Button>
                         </div>
@@ -417,7 +417,7 @@ export function Navbar() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-72 p-2 rounded-[2rem] shadow-premium border-none bg-white/95 backdrop-blur-md mt-2">
-                      <DropdownMenuLabel className="text-sm font-black uppercase text-primary flex items-center gap-2 p-4">
+                      <DropdownMenuLabel className="text-sm font-semibold uppercase text-primary flex items-center gap-2 p-4">
                         <Bell className="w-4 h-4 text-accent" /> התראות הודעות
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator className="bg-primary/5" />
@@ -447,7 +447,7 @@ export function Navbar() {
                           </div>
                         )}
                         <div className="pt-2">
-                          <Button variant="ghost" asChild className="w-full h-10 rounded-xl text-[10px] font-black uppercase tracking-widest text-primary/40 hover:text-primary">
+                          <Button variant="ghost" asChild className="w-full h-10 rounded-xl text-[10px] font-semibold uppercase tracking-widest text-primary/40 hover:text-primary">
                             <Link href="/customer/dashboard?tab=messages">לכל ההודעות ←</Link>
                           </Button>
                         </div>
@@ -474,7 +474,7 @@ export function Navbar() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-72 p-2 rounded-[2rem] shadow-premium border-none bg-white/95 backdrop-blur-md mt-2">
-                      <DropdownMenuLabel className="text-sm font-black uppercase text-primary flex items-center gap-2 p-4">
+                      <DropdownMenuLabel className="text-sm font-semibold uppercase text-primary flex items-center gap-2 p-4">
                         <Bell className="w-4 h-4 text-accent" /> התראות סופר
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator className="bg-primary/5" />
@@ -530,7 +530,7 @@ export function Navbar() {
                         )}
                         
                         <div className="pt-2">
-                          <Button variant="ghost" asChild className="w-full h-10 rounded-xl text-[10px] font-black uppercase tracking-widest text-primary/40 hover:text-primary">
+                          <Button variant="ghost" asChild className="w-full h-10 rounded-xl text-[10px] font-semibold uppercase tracking-widest text-primary/40 hover:text-primary">
                              <Link href="/seller/dashboard">ללוח הבקרה המלא ←</Link>
                           </Button>
                         </div>
@@ -547,7 +547,7 @@ export function Navbar() {
                       aria-label="פתח תפריט משתמש"
                     >
                       <div className="hidden sm:flex flex-col items-end text-right">
-                        <span className="text-[10px] font-black text-primary uppercase tracking-tighter">{greeting}, {displayName}</span>
+                        <span className="text-[10px] font-semibold text-primary uppercase tracking-tighter">{greeting}, {displayName}</span>
                         <span className="text-[8px] font-bold text-accent uppercase">{isSuperAdmin ? 'מנהל מערכת' : 'ניהול חשבון'}</span>
                       </div>
                       <Avatar className="h-8 w-8 border-2 border-white shadow-sm shrink-0">
@@ -561,7 +561,7 @@ export function Navbar() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56 p-2 rounded-[1.5rem] shadow-premium border-none bg-white/70 backdrop-blur-md animate-in fade-in zoom-in-95 duration-200 mt-2">
                     <DropdownMenuItem asChild className="rounded-xl p-3 cursor-pointer hover:bg-white/50 transition-colors">
-                      <Link href={dashboardLink} className="flex items-center gap-2 justify-end w-full text-xs font-black text-primary uppercase">
+                      <Link href={dashboardLink} className="flex items-center gap-2 justify-end w-full text-xs font-semibold text-primary uppercase">
                         איזור אישי 
                         <LayoutDashboard className="w-4 h-4 text-accent" />
                       </Link>
@@ -569,7 +569,7 @@ export function Navbar() {
                     <div className="my-1 border-t border-primary/5" />
                     <DropdownMenuItem 
                       onClick={handleLogout}
-                      className="rounded-xl p-3 cursor-pointer text-destructive hover:bg-destructive/5 transition-colors flex items-center gap-2 justify-end w-full font-black text-xs uppercase"
+                      className="rounded-xl p-3 cursor-pointer text-destructive hover:bg-destructive/5 transition-colors flex items-center gap-2 justify-end w-full font-bold text-xs uppercase"
                     >
                       התנתקות 
                       <LogOut className="w-4 h-4" />
@@ -614,10 +614,10 @@ function MobileNavLink({ href, icon, label, onClick, hasBadge = false, active = 
       href={href} 
       onClick={onClick}
       className={cn(
-        "flex items-center justify-end gap-4 px-4 py-3.5 rounded-2xl transition-all font-black text-sm border group active:scale-95 relative min-h-[56px]",
+        "flex items-center justify-end gap-4 px-4 py-3.5 rounded-2xl transition-all text-sm border group active:scale-95 relative min-h-[56px]",
         active
-          ? "bg-primary/5 border-primary/10 text-primary shadow-sm"
-          : "border-transparent text-primary/70 hover:bg-white hover:border-primary/5 hover:text-primary hover:shadow-sm"
+          ? "font-bold bg-primary/5 border-primary/10 text-primary shadow-sm"
+          : "font-medium border-transparent text-primary/70 hover:bg-white hover:border-primary/5 hover:text-primary hover:shadow-sm"
       )}
     >
       <span className={cn("transition-colors", active ? "text-primary" : "group-hover:text-accent")}>{label}</span>

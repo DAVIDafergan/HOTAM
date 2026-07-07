@@ -35,11 +35,11 @@ export function TorahExpertBanner() {
                   initial={{ opacity: 0, y: 4 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, ease: 'easeOut' }}
-                  className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-[10px] font-black tracking-[0.22em] text-white/80"
+                  className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-[10px] font-semibold tracking-[0.22em] text-white/80"
                 >
                   TORAH CONCIERGE
                 </motion.div>
-                <div className="flex items-center gap-3 text-[10px] font-black tracking-widest text-white/55">
+                <div className="flex items-center gap-3 text-[10px] font-semibold tracking-widest text-white/55">
                    <div className="flex items-center gap-1">
                      <CheckCircle2 className="h-3.5 w-3.5 text-white/75" /> ליווי אישי
                     </div>
@@ -71,7 +71,7 @@ export function TorahExpertBanner() {
           >
             <Button 
               asChild
-              className="h-14 w-full rounded-2xl border border-white/25 bg-white/5 px-9 text-base font-black tracking-tight text-white shadow-[0_16px_34px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/10 active:scale-95 group md:w-auto"
+              className="h-14 w-full rounded-2xl border border-white/25 bg-white/5 px-9 text-base font-bold tracking-tight text-white shadow-[0_16px_34px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/10 active:scale-95 group md:w-auto"
             >
               <a href={`https://wa.me/${whatsappNumber}?text=${message}`} target="_blank" rel="noopener noreferrer">
                 <MessageCircle className="ml-2.5 h-5 w-5 transition-transform duration-300 group-hover:rotate-6" />

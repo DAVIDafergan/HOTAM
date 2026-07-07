@@ -29,14 +29,15 @@ import {
 } from 'lucide-react';
 import Image from '@/components/SmartImage';
 import Link from 'next/link';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useSupabaseClient, useApp, addDocumentNonBlocking } from '@/lib/supabase-hooks';
 import { doc, collection, serverTimestamp } from '@/lib/supabase-compat';
 import { supabase } from '@/lib/supabase';
 import { useRouter, usePathname } from 'next/navigation';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { 
-  Dialog, 
-  DialogContent, 
+import {
+  Dialog,
+  DialogContent,
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog';
@@ -48,6 +49,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { MotionTap } from '@/components/MotionTap';
+import { EASE } from '@/lib/motion';
 
 const MIN_IMAGE_ZOOM_LEVEL = 1;
 const MAX_IMAGE_ZOOM_LEVEL = 4;
@@ -133,6 +136,9 @@ export function ProductDetailsClient({
   const [imageZoomLevel, setImageZoomLevel] = useState(1);
   const [imagePan, setImagePan] = useState({ x: 0, y: 0 });
   const dragOriginRef = useRef<{ x: number; y: number } | null>(null);
+  const galleryScrollRef = useRef<HTMLDivElement | null>(null);
+  const gallerySlideRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const shouldReduceMotion = useReducedMotion();
 
   const isOwnProductReviewBlocked = Boolean(
     user && user.role === 'seller' && user.uid === product?.seller_id
@@ -152,6 +158,10 @@ export function ProductDetailsClient({
     });
     return list;
   }, [reviews, reviewSortOrder]);
+  const avgProductRating = useMemo(() => {
+    if (!reviews || reviews.length === 0) return 0;
+    return reviews.reduce((sum: number, r: any) => sum + (Number(r.rating) || 0), 0) / reviews.length;
+  }, [reviews]);
   const getProductReviewSubmitLabel = () => {
     if (!user) return 'התחבר כדי לפרסם ביקורת';
     if (isOwnProductReviewBlocked) return 'לא ניתן לדרג מוצר שלך';
@@ -243,6 +253,41 @@ export function ProductDetailsClient({
       isActive = false;
     };
   }, [initialProduct, initialSeller, initialReviews, productId]);
+
+  // Tracks which gallery slide is centered in the swipeable scroller so the dot indicator
+  // and thumbnail strip stay in sync, regardless of RTL scroll-direction quirks.
+  useEffect(() => {
+    const container = galleryScrollRef.current;
+    const imageCount = Array.isArray(product?.images) ? product.images.length : 0;
+    if (!container || imageCount <= 1) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const mostVisible = entries
+          .filter(e => e.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (!mostVisible) return;
+        const idx = gallerySlideRefs.current.findIndex(el => el === mostVisible.target);
+        if (idx !== -1) setSelectedImageIdx(idx);
+      },
+      { root: container, threshold: [0.5, 0.75, 1] }
+    );
+    gallerySlideRefs.current.forEach(el => el && observer.observe(el));
+    return () => observer.disconnect();
+  }, [product?.images]);
+
+  const scrollToGalleryImage = (idx: number) => {
+    setSelectedImageIdx(idx);
+    gallerySlideRefs.current[idx]?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  };
+
+  const openImageZoom = (idx: number) => {
+    setSelectedImageIdx(idx);
+    setImageZoomLevel(MIN_IMAGE_ZOOM_LEVEL);
+    setImagePan({ x: 0, y: 0 });
+    dragOriginRef.current = null;
+    setIsImageDialogOpen(true);
+  };
 
   const handleToggleFavorite = async () => {
     if (!user || !profileRef || isProcessingFavorite) {
@@ -470,56 +515,66 @@ export function ProductDetailsClient({
   return (
     <div className="min-h-screen bg-[#FAFAF8] pb-24 sm:pb-28 md:pb-32" dir="rtl">
       <Navbar />
-      <main className="container mx-auto px-4 py-20 md:py-28 max-w-6xl">
+      <main className="container mx-auto px-4 pt-28 pb-16 md:py-28 max-w-6xl">
 
-        {/* Mobile Header Actions */}
-        <div className="mb-6 mt-4 flex justify-end md:hidden">
-          <div className="flex gap-2">
-            <Button variant="outline" size="icon" onClick={handleShare} className="rounded-full bg-white border-primary/10 shadow-sm transition-all duration-200 hover:scale-105 active:scale-90"><Share2 className="w-4 h-4" /></Button>
-            <Button variant="outline" size="icon" onClick={handleToggleFavorite} className={cn("rounded-full bg-white border-primary/10 shadow-sm transition-all duration-200 hover:scale-105 active:scale-90", isFavorite ? 'bg-primary text-white border-primary' : '')}><Heart className={cn("w-4 h-4 transition-transform duration-200", isFavorite ? 'fill-current' : '')} /></Button>
-          </div>
-        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-16 items-start">
+          {/* Product Images — Amazon-style swipeable gallery with dot indicator + thumbnails */}
+          <div className="space-y-2 md:space-y-4">
+            <div className="relative">
+              <div
+                ref={galleryScrollRef}
+                className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide rounded-[1.5rem] md:rounded-[1.75rem] aspect-[3/2] md:aspect-[4/5] bg-white shadow-[0_8px_40px_rgba(15,23,42,0.06)] ring-1 ring-primary/5 [-webkit-overflow-scrolling:touch] scroll-smooth"
+              >
+                {images.map((img: string, i: number) => (
+                  <button
+                    key={i}
+                    ref={el => { gallerySlideRefs.current[i] = el; }}
+                    type="button"
+                    aria-label={`פתח תצוגת זום לתמונה ${i + 1} מתוך ${images.length}`}
+                    onClick={() => openImageZoom(i)}
+                    className="group relative w-full h-full shrink-0 snap-center text-right"
+                  >
+                    <Image loader={unsplashLoader} src={img} alt={product.product_type} fill priority={i === 0} kind="product" sizes="(max-width: 768px) 100vw, 50vw" className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]" />
+                  </button>
+                ))}
+              </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-start">
-          {/* Product Images */}
-          <div className="space-y-4">
-            <button
-              type="button"
-              aria-label={`פתח תצוגת זום לתמונה ${selectedImageIdx + 1} מתוך ${images.length}`}
-              onClick={() => {
-                setImageZoomLevel(MIN_IMAGE_ZOOM_LEVEL);
-                setImagePan({ x: 0, y: 0 });
-                dragOriginRef.current = null;
-                setIsImageDialogOpen(true);
-              }}
-              className="group relative block aspect-[4/5] w-full overflow-hidden rounded-[1.75rem] bg-white text-right shadow-[0_8px_40px_rgba(15,23,42,0.06)] ring-1 ring-primary/5 transition-shadow duration-500 hover:shadow-[0_16px_56px_rgba(15,23,42,0.10)]"
-            >
-              <Image loader={unsplashLoader} src={currentImage} alt={product.product_type} fill priority kind="product" sizes="(max-width: 768px) 100vw, 50vw" className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]" />
               {product.quantity <= 0 && (
-                <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center">
+                <div className="absolute inset-0 rounded-[1.5rem] md:rounded-[1.75rem] bg-black/40 backdrop-blur-sm flex items-center justify-center pointer-events-none">
                   <Badge variant="destructive" className="px-8 py-3 text-sm font-black uppercase tracking-widest rounded-full shadow-2xl">אזל מהמלאי</Badge>
                 </div>
               )}
-              <div className="absolute bottom-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-[10px] font-bold text-primary shadow-md backdrop-blur-sm">
-                  <ZoomIn className="w-3.5 h-3.5" />
-                  <span>הגדלה</span>
-                </div>
-              </div>
-              <div className="absolute top-4 right-4 hidden md:block">
-                <Badge className="bg-white/90 backdrop-blur-md text-primary border-none px-4 py-1.5 rounded-full font-bold text-[10px] uppercase shadow-sm">
+
+              <div className="absolute top-3 right-3 md:top-4 md:right-4 pointer-events-none">
+                <Badge className="bg-white/90 backdrop-blur-md text-primary border-none px-3.5 py-1.5 rounded-full font-bold text-[10px] uppercase shadow-sm">
                   {product.script_level}
                 </Badge>
               </div>
-            </button>
+
+              {images.length > 1 && (
+                <div className="absolute bottom-3 inset-x-0 flex justify-center gap-1.5 pointer-events-none">
+                  {images.map((_: string, i: number) => (
+                    <div
+                      key={i}
+                      className={cn(
+                        "h-1.5 rounded-full bg-white shadow transition-all duration-300",
+                        selectedImageIdx === i ? "w-5 opacity-100" : "w-1.5 opacity-50"
+                      )}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+
             {images.length > 1 && (
               <div className="flex gap-2.5 overflow-x-auto py-1 no-scrollbar px-0.5">
                 {images.map((img: string, i: number) => (
                   <button
                     key={i}
-                    onClick={() => setSelectedImageIdx(i)}
+                    onClick={() => scrollToGalleryImage(i)}
+                    aria-label={`עבור לתמונה ${i + 1}`}
                     className={cn(
-                      "relative w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden shrink-0 transition-all duration-200",
+                      "relative w-12 h-12 md:w-20 md:h-20 rounded-2xl overflow-hidden shrink-0 transition-all duration-200",
                       selectedImageIdx === i ? 'ring-2 ring-primary ring-offset-2' : 'ring-1 ring-primary/10 opacity-70 hover:opacity-100 hover:ring-primary/30'
                     )}
                   >
@@ -531,9 +586,11 @@ export function ProductDetailsClient({
           </div>
 
           {/* Product Info */}
-          <div className="text-right space-y-8 md:sticky md:top-28">
-            <div className="space-y-4">
-              <div className="flex flex-wrap gap-2 justify-start items-center">
+          <div className="text-right space-y-2 md:space-y-8 md:sticky md:top-28">
+            <div className="space-y-2 md:space-y-4">
+              {/* Script-level badge already overlays the image; this row repeats it (with
+                  stock count) only where there's room for it — the two-column desktop layout. */}
+              <div className="hidden md:flex flex-wrap gap-2 justify-start items-center">
                 <Badge variant="outline" className="border-accent/30 text-accent font-bold text-[11px] py-1 px-3 rounded-full bg-accent/5 whitespace-nowrap">
                   {product.script_level}
                 </Badge>
@@ -547,7 +604,7 @@ export function ProductDetailsClient({
                   {product.sub_type && product.sub_type !== 'all' && (
                     <p className="text-sm font-bold text-muted-foreground uppercase tracking-wide">{product.product_type}</p>
                   )}
-                  <h1 className="text-4xl md:text-5xl font-headline font-black text-primary leading-[1.1] tracking-tight">
+                  <h1 className="text-2xl sm:text-4xl md:text-5xl font-headline font-black text-primary leading-[1.15] tracking-tight">
                     {product.sub_type && product.sub_type !== 'all' ? product.sub_type : product.product_type}
                   </h1>
                 </div>
@@ -570,43 +627,145 @@ export function ProductDetailsClient({
                     <Heart className={cn("w-[18px] h-[18px] transition-transform duration-200", isFavorite && "fill-current")} />
                   </button>
                 </div>
+                <div className="flex md:hidden items-center gap-1.5 shrink-0 pt-1">
+                  <button
+                    onClick={handleShare}
+                    aria-label="שיתוף"
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-white border border-primary/10 shadow-sm text-primary/40 transition-all duration-200 active:scale-90"
+                  >
+                    <Share2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={handleToggleFavorite}
+                    aria-label={isFavorite ? 'הסר ממועדפים' : 'הוסף למועדפים'}
+                    className={cn(
+                      "flex h-10 w-10 items-center justify-center rounded-full border shadow-sm transition-all duration-200 active:scale-90",
+                      isFavorite ? "bg-primary text-white border-primary" : "bg-white text-primary/40 border-primary/10"
+                    )}
+                  >
+                    <Heart className={cn("w-4 h-4 transition-transform duration-200", isFavorite && "fill-current")} />
+                  </button>
+                </div>
               </div>
             </div>
 
             {/* Price — clean, no decorative card chrome */}
-            <div className="space-y-5 border-y border-primary/8 py-6">
+            <div className="space-y-2 md:space-y-5 border-y border-primary/8 py-3 md:py-6">
               <div className="flex items-baseline justify-end gap-1.5">
-                <span className="text-primary text-5xl md:text-6xl font-black tabular-nums tracking-tighter">{displayPrice}</span>
-                <span className="text-primary/60 text-2xl md:text-3xl font-bold">₪</span>
+                <span className="text-primary text-3xl sm:text-5xl md:text-6xl font-black tabular-nums tracking-tighter">{displayPrice}</span>
+                <span className="text-primary/60 text-lg sm:text-2xl md:text-3xl font-bold">₪</span>
               </div>
-              <p className="text-xs font-bold text-primary/40 uppercase tracking-[0.15em] -mt-3">
+              <p className="text-xs font-bold text-primary/40 uppercase tracking-[0.15em]">
                 {hasDelivery ? 'המחירים כוללים מע"מ ומשלוח' : 'המחירים כוללים מע"מ'}
               </p>
+            </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <section aria-labelledby="delivery-time-label" className="flex flex-col items-end gap-1 rounded-2xl bg-primary/[0.03] p-4 text-right">
-                  <Clock className="w-4 h-4 text-primary/30 mb-1" />
-                  <span id="delivery-time-label" className="text-[10px] font-bold text-primary/40 uppercase tracking-wide whitespace-nowrap">זמן אספקה</span>
-                  <span className="text-sm font-black text-primary leading-none whitespace-nowrap">
-                    {product.product_type === 'ספר תורה' ? 'בתיאום אישי' : `${product.delivery_time || '3'} ימים`}
+            {/* Buy Box — primary CTA visible immediately, no scroll required */}
+            <motion.div
+              initial={{ opacity: shouldReduceMotion ? 1 : 0, y: shouldReduceMotion ? 0 : 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: EASE }}
+              className="space-y-2"
+            >
+              <MotionTap>
+                {product.product_type === 'ספר תורה' ? (
+                  <Button
+                    onClick={handleTorahCoordination}
+                    disabled={isProcessingRequest}
+                    className="w-full bg-accent text-primary hover:bg-accent/90 h-12 md:h-16 rounded-2xl font-black text-sm md:text-base gap-3 shadow-lg transition-shadow duration-300 hover:shadow-xl"
+                  >
+                    {isProcessingRequest ? <Loader2 className="w-5 h-5 animate-spin" /> : <CalendarCheck className="w-5 h-5" />}
+                    תיאום ופגישה
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handlePurchaseClick}
+                    disabled={product.quantity <= 0}
+                    className="w-full bg-primary text-white hover:bg-primary/90 h-12 md:h-16 rounded-2xl font-black text-sm md:text-base gap-3 shadow-lg transition-shadow duration-300 hover:shadow-xl disabled:opacity-50"
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    רכישה מאובטחת
+                  </Button>
+                )}
+              </MotionTap>
+              <MotionTap>
+                <Button
+                  variant="outline"
+                  asChild
+                  className="w-full border-primary/15 text-primary h-10 md:h-12 rounded-2xl font-bold text-sm gap-2 hover:bg-primary/5 transition-colors duration-200"
+                >
+                  <Link href={`/chat/${product.seller_id}?productId=${productId}`}>
+                    <MessageCircle className="w-4 h-4 text-accent" />
+                    התייעצות עם הסופר
+                  </Link>
+                </Button>
+              </MotionTap>
+            </motion.div>
+
+            {/* Seller Summary — social-profile-style card, visible immediately (no tab click needed) */}
+            {seller && (
+              <motion.div
+                initial={{ opacity: shouldReduceMotion ? 1 : 0, y: shouldReduceMotion ? 0 : 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: shouldReduceMotion ? 0 : 0.05, ease: EASE }}
+              >
+                <Link
+                  href={`/sellers/${seller.id}`}
+                  className="flex items-center gap-3 rounded-2xl border border-primary/10 bg-white p-3 hover:border-accent/30 hover:shadow-md transition-all duration-200 group"
+                >
+                  <div className="relative w-11 h-11 md:w-12 md:h-12 rounded-full overflow-hidden shrink-0 bg-muted ring-1 ring-primary/10">
+                    {seller.profile_image ? (
+                      <Image src={seller.profile_image} alt={`${seller.first_name} ${seller.last_name}`} fill kind="avatar" sizes="48px" className="object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center"><UserRound className="w-5 h-5 text-primary/20" /></div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0 text-right space-y-0.5">
+                    <div className="flex items-center gap-1.5 justify-end">
+                      <span className="font-black text-primary text-sm truncate">{seller.first_name} {seller.last_name}</span>
+                      <Badge className="bg-emerald-50 text-emerald-600 border-none text-[8px] font-black uppercase px-2 py-0.5 shrink-0">סופר מאומת</Badge>
+                    </div>
+                    <div className="flex items-center gap-1.5 justify-end text-[11px] font-bold text-muted-foreground">
+                      {reviews.length > 0 && (
+                        <>
+                          <span className="flex items-center gap-0.5 whitespace-nowrap">
+                            <Star className="w-3 h-3 fill-accent text-accent" />
+                            {avgProductRating.toFixed(1)} ({reviews.length})
+                          </span>
+                          <span>•</span>
+                        </>
+                      )}
+                      <span className="truncate">{sellerCity || 'ישראל'}</span>
+                    </div>
+                  </div>
+                  <ArrowLeft className="w-4 h-4 text-primary/20 group-hover:text-accent group-hover:-translate-x-0.5 transition-all duration-200 shrink-0" />
+                </Link>
+              </motion.div>
+            )}
+
+            <div className="grid grid-cols-2 gap-3">
+              <section aria-labelledby="delivery-time-label" className="flex flex-col items-end gap-1 rounded-2xl bg-primary/[0.03] p-4 text-right">
+                <Clock className="w-4 h-4 text-primary/30 mb-1" />
+                <span id="delivery-time-label" className="text-[10px] font-bold text-primary/40 uppercase tracking-wide whitespace-nowrap">זמן אספקה</span>
+                <span className="text-sm font-black text-primary leading-none whitespace-nowrap">
+                  {product.product_type === 'ספר תורה' ? 'בתיאום אישי' : `${product.delivery_time || '3'} ימים`}
+                </span>
+              </section>
+              {hasDelivery ? (
+                <section aria-labelledby="delivery-fee-label" className="flex flex-col items-end gap-1 rounded-2xl bg-primary/[0.03] p-4 text-right">
+                  <Truck className="w-4 h-4 text-primary/30 mb-1" />
+                  <span id="delivery-fee-label" className="text-[10px] font-bold text-primary/40 uppercase tracking-wide whitespace-nowrap">עלות משלוח</span>
+                  <span className="text-sm font-black text-emerald-600 leading-none whitespace-nowrap">
+                    {Number(product.delivery_fee) > 0 ? `₪${product.delivery_fee}` : 'משלוח חינם'}
                   </span>
                 </section>
-                {hasDelivery ? (
-                  <section aria-labelledby="delivery-fee-label" className="flex flex-col items-end gap-1 rounded-2xl bg-primary/[0.03] p-4 text-right">
-                    <Truck className="w-4 h-4 text-primary/30 mb-1" />
-                    <span id="delivery-fee-label" className="text-[10px] font-bold text-primary/40 uppercase tracking-wide whitespace-nowrap">עלות משלוח</span>
-                    <span className="text-sm font-black text-emerald-600 leading-none whitespace-nowrap">
-                      {Number(product.delivery_fee) > 0 ? `₪${product.delivery_fee}` : 'משלוח חינם'}
-                    </span>
-                  </section>
-                ) : (
-                  <section aria-labelledby="stock-status-label" className="flex flex-col items-end gap-1 rounded-2xl bg-primary/[0.03] p-4 text-right">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 mb-1" />
-                    <span id="stock-status-label" className="text-[10px] font-bold text-primary/40 uppercase tracking-wide whitespace-nowrap">זמינות</span>
-                    <span className="text-sm font-black text-emerald-600 leading-none whitespace-nowrap">{product.quantity > 0 ? 'במלאי' : 'אזל זמנית'}</span>
-                  </section>
-                )}
-              </div>
+              ) : (
+                <section aria-labelledby="stock-status-label" className="flex flex-col items-end gap-1 rounded-2xl bg-primary/[0.03] p-4 text-right">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 mb-1" />
+                  <span id="stock-status-label" className="text-[10px] font-bold text-primary/40 uppercase tracking-wide whitespace-nowrap">זמינות</span>
+                  <span className="text-sm font-black text-emerald-600 leading-none whitespace-nowrap">{product.quantity > 0 ? 'במלאי' : 'אזל זמנית'}</span>
+                </section>
+              )}
             </div>
 
             <div className="space-y-3">

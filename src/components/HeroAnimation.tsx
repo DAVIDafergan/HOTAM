@@ -48,7 +48,7 @@ const heroItemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE } },
 };
 
-const MotionButton = motion(Button);
+const MotionButton = motion.create(Button);
 
 export function HeroAnimation() {
   const router = useRouter();

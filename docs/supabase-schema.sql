@@ -33,6 +33,7 @@ DROP TABLE IF EXISTS public.profiles              CASCADE;
 DROP TABLE IF EXISTS public.supermarket_reviews   CASCADE;
 DROP TABLE IF EXISTS public.reviews               CASCADE;
 DROP TABLE IF EXISTS public.reports               CASCADE;
+DROP TABLE IF EXISTS public.contact_messages      CASCADE;
 DROP TABLE IF EXISTS public.orders    CASCADE;
 DROP TABLE IF EXISTS public.products  CASCADE;
 DROP TABLE IF EXISTS public.chats     CASCADE;
@@ -305,6 +306,20 @@ CREATE TABLE IF NOT EXISTS public.reports (
   created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- ── contact_messages ─────────────────────────────────────────────────────────
+-- Public "Contact Us" form submissions (src/app/contact/page.tsx). Anyone,
+-- including anonymous visitors, may insert; only admins may read/manage.
+CREATE TABLE IF NOT EXISTS public.contact_messages (
+  id          UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name        TEXT        NOT NULL,
+  email       TEXT        NOT NULL,
+  phone       TEXT,
+  subject     TEXT,
+  message     TEXT        NOT NULL,
+  status      TEXT        NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'read', 'resolved')),
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- =============================================================================
 -- INDEXES
 -- =============================================================================
@@ -331,6 +346,7 @@ CREATE INDEX IF NOT EXISTS idx_chats_unread_state     ON public.chats USING GIN 
 CREATE INDEX IF NOT EXISTS idx_sellers_is_approved    ON public.sellers (is_approved);
 CREATE INDEX IF NOT EXISTS idx_password_reset_log_email_created_at ON public.password_reset_log (email, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_email_rate_limit_log_user_sent_at ON public.email_rate_limit_log (user_id, sent_at);
+CREATE INDEX IF NOT EXISTS idx_contact_messages_status_created_at ON public.contact_messages (status, created_at DESC);
 
 -- =============================================================================
 -- ROW-LEVEL SECURITY (RLS)
@@ -349,6 +365,7 @@ ALTER TABLE public.supermarket_reviews   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reports               ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.password_reset_log    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.email_rate_limit_log  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.contact_messages      ENABLE ROW LEVEL SECURITY;
 
 -- ── Admin helper (SECURITY DEFINER avoids infinite recursion when policies
 --    on other tables query the admins table, which itself has policies) ────────
@@ -547,6 +564,14 @@ CREATE POLICY "Allow public read"       ON public.reports FOR SELECT USING (true
 CREATE POLICY "reports_reporter_insert" ON public.reports FOR INSERT
   WITH CHECK (auth.uid()::TEXT = reporter_id);
 CREATE POLICY "reports_admin_all"       ON public.reports FOR ALL USING (public.is_admin());
+
+-- ── contact_messages policies ──────────────────────────────────────────────────
+-- Anyone (including anonymous visitors) can submit the public contact form;
+-- only admins can read/update/delete submissions.
+CREATE POLICY "contact_messages_public_insert" ON public.contact_messages
+  FOR INSERT TO anon, authenticated WITH CHECK (true);
+CREATE POLICY "contact_messages_admin_all"     ON public.contact_messages
+  FOR ALL USING (public.is_admin());
 
 -- ── password_reset_log policies ────────────────────────────────────────────────
 CREATE POLICY "password_reset_log_service_role_all" ON public.password_reset_log

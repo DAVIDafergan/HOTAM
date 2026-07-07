@@ -49,7 +49,10 @@ import {
   Phone,
   Mail,
   MapPin,
-  FileDown
+  FileDown,
+  Pencil,
+  Inbox,
+  Send
 } from 'lucide-react';
 import { 
   useUser, 
@@ -70,6 +73,8 @@ import {
 } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -102,6 +107,7 @@ export default function AdminDashboard() {
   const [customersPage, setCustomersPage] = useState(1);
   const [salesPage, setSalesPage] = useState(1);
   const [reportsPage, setReportsPage] = useState(1);
+  const [inquiriesPage, setInquiriesPage] = useState(1);
   const [torahPage, setTorahPage] = useState(1);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [deletingCustomerId, setDeletingCustomerId] = useState<string | null>(null);
@@ -339,6 +345,12 @@ export default function AdminDashboard() {
   }, [db, canLoadData]);
   const { data: allReports } = useCollection<any>(reportsQuery);
 
+  const inquiriesQuery = useMemoStable(() => {
+    if (!canLoadData) return null;
+    return query(collection(db, 'contact_messages'), orderBy('created_at', 'desc'), limit(500));
+  }, [db, canLoadData]);
+  const { data: allInquiries } = useCollection<any>(inquiriesQuery);
+
   const stats = useMemo(() => {
     const s = activeSellers;
     const c = customersData;
@@ -451,6 +463,17 @@ export default function AdminDashboard() {
       (r.reason || '').toLowerCase().includes(term)
     );
   }, [allReports, searchTerm]);
+
+  const filteredInquiries = useMemo(() => {
+    if (!allInquiries) return [];
+    if (!searchTerm) return allInquiries;
+    const term = searchTerm.toLowerCase();
+    return allInquiries.filter((m: any) =>
+      (m.name || '').toLowerCase().includes(term) ||
+      (m.email || '').toLowerCase().includes(term) ||
+      (m.message || '').toLowerCase().includes(term)
+    );
+  }, [allInquiries, searchTerm]);
 
   useEffect(() => {
     setPendingPage(1);
@@ -603,6 +626,24 @@ export default function AdminDashboard() {
     }
   };
 
+  const deleteInquiry = async (id: string) => {
+    if (confirm('מחיקת הפנייה מהמערכת?')) {
+      const { error } = await db.from('contact_messages').delete().eq('id', id);
+      if (error) {
+        toast({ variant: "destructive", title: "מחיקת הפנייה נכשלה", description: error.message });
+        return;
+      }
+      toast({ title: "הפנייה נמחקה" });
+    }
+  };
+
+  const updateInquiryStatus = async (id: string, status: 'new' | 'read' | 'resolved') => {
+    const { error } = await db.from('contact_messages').update({ status }).eq('id', id);
+    if (error) {
+      toast({ variant: "destructive", title: "עדכון סטטוס הפנייה נכשל", description: error.message });
+    }
+  };
+
   const deleteCustomer = async (id: string) => {
     if (confirm('האם אתה בטוח שברצונך למחוק לקוח זה לצמיתות?')) {
       setDeletingCustomerId(id);
@@ -625,6 +666,7 @@ export default function AdminDashboard() {
     { id: 'sales', label: 'יומן מכירות', icon: <History className="w-4 h-4" /> },
     { id: 'torah', label: 'ספרי תורה', icon: <Scroll className="w-4 h-4" /> },
     { id: 'reports', label: 'דיווחים', icon: <Flag className="w-4 h-4" /> },
+    { id: 'inquiries', label: 'פניות', icon: <Inbox className="w-4 h-4" /> },
   ] as const;
 
   const exportSellersToExcel = async () => {
@@ -890,13 +932,23 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="reports">
-            <ReportsTable 
-              reports={filteredReports} 
+            <ReportsTable
+              reports={filteredReports}
               sellers={sellerDirectory}
-              onDelete={deleteReport} 
+              onDelete={deleteReport}
               onLinkToTab={handleTabLink}
-              page={reportsPage} 
-              setPage={setReportsPage} 
+              page={reportsPage}
+              setPage={setReportsPage}
+            />
+          </TabsContent>
+
+          <TabsContent value="inquiries">
+            <InquiriesTable
+              inquiries={filteredInquiries}
+              onDelete={deleteInquiry}
+              onUpdateStatus={updateInquiryStatus}
+              page={inquiriesPage}
+              setPage={setInquiriesPage}
             />
           </TabsContent>
         </Tabs>
@@ -997,6 +1049,7 @@ function ScribeTable({ scribes, onApprove, onDelete, isLoading, orders, totalCou
                   <TableCell className="px-8">
                     <div className="flex items-center gap-2 justify-end">
                       <VerifyScribeDialog scribe={scribe} db={db} />
+                      <EditSellerDialog scribe={scribe} db={db} />
                       {!scribe.is_approved ? (
                         <Button onClick={() => onApprove(scribe.id)} className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-full px-5 h-8 text-[9px] font-black uppercase tracking-widest">אשר סופר</Button>
                       ) : (
@@ -1451,6 +1504,275 @@ function ReportsTable({ reports, sellers, onDelete, onLinkToTab, page, setPage }
       </Card>
       <Pagination current={page} total={reports.length} onChange={setPage} />
     </div>
+  );
+}
+
+const inquiryStatusLabels: Record<string, string> = {
+  new: 'חדשה',
+  read: 'נקראה',
+  resolved: 'טופלה',
+};
+
+const inquiryStatusStyles: Record<string, string> = {
+  new: 'bg-accent/10 text-accent border-accent/20',
+  read: 'bg-blue-50 text-blue-600 border-blue-200',
+  resolved: 'bg-emerald-50 text-emerald-600 border-emerald-200',
+};
+
+function InquiriesTable({ inquiries, onDelete, onUpdateStatus, page, setPage }: any) {
+  const paginatedData = (inquiries || []).slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+
+  if (!inquiries || inquiries.length === 0) return <Card className="p-24 text-center bg-white rounded-[3rem] shadow-premium italic text-muted-foreground">אין פניות חדשות במערכת.</Card>;
+
+  return (
+    <div className="space-y-4">
+      <Card className="border-none shadow-premium rounded-[2.5rem] overflow-hidden bg-white">
+        <Table>
+          <TableHeader className="bg-muted/30">
+            <TableRow className="border-none">
+              <TableHead className="text-right font-black text-[10px] uppercase py-6 px-8">תאריך</TableHead>
+              <TableHead className="text-right font-black text-[10px] uppercase py-6">פונה</TableHead>
+              <TableHead className="text-right font-black text-[10px] uppercase py-6">הודעה</TableHead>
+              <TableHead className="text-right font-black text-[10px] uppercase py-6">סטטוס</TableHead>
+              <TableHead className="text-left font-black text-[10px] uppercase py-6 px-8">ניהול</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {paginatedData.map((m: any) => {
+              const date = m.created_at?.toDate ? m.created_at.toDate() : new Date(m.created_at);
+              return (
+                <TableRow key={m.id} className="border-muted/20">
+                  <TableCell className="py-6 px-8 text-[10px] font-bold whitespace-nowrap">{date.toLocaleDateString('he-IL')}</TableCell>
+                  <TableCell>
+                    <p className="text-[11px] font-black text-primary">{m.name}</p>
+                    <p className="text-[9px] font-bold text-muted-foreground" dir="ltr">{m.email}</p>
+                  </TableCell>
+                  <TableCell className="text-[10px] font-bold text-primary/70 max-w-xs truncate">{m.message}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={cn("text-[8px] font-black uppercase px-2 py-0.5 rounded-full", inquiryStatusStyles[m.status] || inquiryStatusStyles.new)}>
+                      {inquiryStatusLabels[m.status] || 'חדשה'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="px-8">
+                    <div className="flex items-center gap-2 justify-end">
+                      <InquiryDetailDialog inquiry={m} onUpdateStatus={onUpdateStatus} />
+                      <Button variant="ghost" size="icon" onClick={() => onDelete(m.id)} className="h-10 w-10 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive"><Trash2 className="w-3.5 h-3.5" /></Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </Card>
+      <Pagination current={page} total={inquiries.length} onChange={setPage} />
+    </div>
+  );
+}
+
+function InquiryDetailDialog({ inquiry, onUpdateStatus }: any) {
+  const [open, setOpen] = useState(false);
+  const date = inquiry.created_at?.toDate ? inquiry.created_at.toDate() : new Date(inquiry.created_at);
+  const whatsappHref = inquiry.phone
+    ? `https://wa.me/${inquiry.phone.replace(/\D/g, '').replace(/^0/, '972')}`
+    : null;
+
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next);
+    if (next && inquiry.status === 'new') {
+      onUpdateStatus(inquiry.id, 'read');
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="icon" className="h-10 w-10 rounded-full hover:bg-primary hover:text-white transition-all border-primary/5 shadow-sm" aria-label="צפה בפנייה">
+          <Eye className="w-3.5 h-3.5" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-lg rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white max-h-[85vh] overflow-y-auto z-[150]" dir="rtl">
+        <div className="bg-primary p-6 text-white text-right sticky top-0 z-50">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-headline font-black tracking-tight text-white flex items-center gap-3">
+              <Inbox className="w-5 h-5 text-accent" />
+              {inquiry.name}
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-white/60 text-xs font-semibold mt-1">{date.toLocaleDateString('he-IL')} · {date.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}</p>
+        </div>
+
+        <div className="p-8 space-y-6 text-right">
+          <div className="bg-muted/30 p-5 rounded-2xl space-y-3 text-[11px] font-bold">
+            <div className="flex justify-between border-b border-white/50 pb-2"><span dir="ltr">{inquiry.email}</span><span className="text-muted-foreground">אימייל:</span></div>
+            {inquiry.phone && (
+              <div className="flex justify-between"><span dir="ltr">{inquiry.phone}</span><span className="text-muted-foreground">טלפון:</span></div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-[10px] font-black text-primary uppercase tracking-widest">תוכן ההודעה</p>
+            <p className="bg-accent/5 p-5 rounded-2xl text-sm font-medium text-primary/80 leading-relaxed whitespace-pre-wrap">{inquiry.message}</p>
+          </div>
+
+          <div className="flex flex-wrap gap-2 pt-2">
+            <Button asChild className="rounded-full h-11 px-6 bg-primary text-white hover:bg-primary/90 gap-2 font-bold text-xs">
+              <a href={`mailto:${inquiry.email}`}><Mail className="w-4 h-4" /> השב באימייל</a>
+            </Button>
+            {whatsappHref && (
+              <Button asChild variant="outline" className="rounded-full h-11 px-6 gap-2 font-bold text-xs border-emerald-200 text-emerald-600 hover:bg-emerald-50">
+                <a href={whatsappHref} target="_blank" rel="noopener noreferrer"><MessageSquare className="w-4 h-4" /> וואטסאפ</a>
+              </Button>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between pt-4 border-t">
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">סטטוס פנייה</p>
+            <div className="flex gap-2">
+              {(['new', 'read', 'resolved'] as const).map(status => (
+                <Button
+                  key={status}
+                  size="sm"
+                  variant={inquiry.status === status ? 'default' : 'outline'}
+                  onClick={() => onUpdateStatus(inquiry.id, status)}
+                  className="rounded-full text-[9px] font-black uppercase h-8"
+                >
+                  {inquiryStatusLabels[status]}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditSellerDialog({ scribe, db }: any) {
+  const { toast } = useToast();
+  const [open, setOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const buildFormFromScribe = (s: any) => ({
+    first_name: s.first_name || '',
+    last_name: s.last_name || '',
+    email: s.email || '',
+    phone: s.phone || '',
+    city: s.city || '',
+    address: s.address || '',
+    business_name: s.business_name || '',
+    business_id: s.business_id || '',
+    bank_name: s.bank_name || '',
+    bank_branch: s.bank_branch || '',
+    bank_account_number: s.bank_account_number || '',
+    experience_years: s.experience_years ?? '',
+    notes: s.notes || '',
+  });
+  const [form, setForm] = useState(buildFormFromScribe(scribe));
+
+  // Re-sync the form to the latest DB values every time the dialog is (re)opened, so a
+  // stale in-memory copy never overwrites a change made elsewhere in the meantime.
+  useEffect(() => {
+    if (open) setForm(buildFormFromScribe(scribe));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  const updateField = (key: string, value: string) => setForm((prev: any) => ({ ...prev, [key]: value }));
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    const payload = {
+      ...form,
+      experience_years: form.experience_years === '' ? null : Number(form.experience_years),
+    };
+    const { error, count } = await db
+      .from('sellers')
+      .update(payload, { count: 'exact' })
+      .eq('id', scribe.id);
+    setIsSaving(false);
+
+    if (error || count === null || count === 0) {
+      toast({
+        variant: 'destructive',
+        title: 'שגיאה בעדכון פרטי הסופר',
+        description: error?.message ?? 'לא נמצאו שורות לעדכון',
+      });
+      return;
+    }
+
+    toast({ title: 'פרטי הסופר עודכנו בהצלחה' });
+    setOpen(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="icon" className="h-10 w-10 rounded-full hover:bg-primary hover:text-white transition-all border-primary/5 shadow-sm" aria-label="ערוך פרטי סופר">
+          <Pencil className="w-3.5 h-3.5" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white max-h-[85vh] overflow-y-auto z-[150]" dir="rtl">
+        <div className="bg-primary p-6 text-white text-right sticky top-0 z-50">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-headline font-black tracking-tight text-white flex items-center gap-3">
+              <Pencil className="w-5 h-5 text-accent" />
+              עריכת פרטי {scribe.first_name} {scribe.last_name}
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-white/60 text-xs font-semibold mt-1">כמנהל, ניתן לערוך כאן את כל פרטי הסופר — כולל פרטי חשבון בנק שהסופר עצמו אינו יכול לערוך</p>
+        </div>
+
+        <div className="p-8 space-y-8 text-right">
+          {/* Personal */}
+          <div className="space-y-4">
+            <p className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2"><UserCheck className="w-4 h-4" /> פרטים אישיים</p>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5"><Label className="text-xs font-semibold">שם פרטי</Label><Input value={form.first_name} onChange={e => updateField('first_name', e.target.value)} className="rounded-xl h-11" /></div>
+              <div className="space-y-1.5"><Label className="text-xs font-semibold">שם משפחה</Label><Input value={form.last_name} onChange={e => updateField('last_name', e.target.value)} className="rounded-xl h-11" /></div>
+              <div className="space-y-1.5"><Label className="text-xs font-semibold">אימייל</Label><Input type="email" value={form.email} onChange={e => updateField('email', e.target.value)} className="rounded-xl h-11" dir="ltr" /></div>
+              <div className="space-y-1.5"><Label className="text-xs font-semibold">טלפון</Label><Input value={form.phone} onChange={e => updateField('phone', e.target.value)} className="rounded-xl h-11" dir="ltr" /></div>
+              <div className="space-y-1.5"><Label className="text-xs font-semibold">עיר</Label><Input value={form.city} onChange={e => updateField('city', e.target.value)} className="rounded-xl h-11" /></div>
+              <div className="space-y-1.5"><Label className="text-xs font-semibold">כתובת</Label><Input value={form.address} onChange={e => updateField('address', e.target.value)} className="rounded-xl h-11" /></div>
+            </div>
+          </div>
+
+          {/* Business */}
+          <div className="space-y-4">
+            <p className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2"><Building2 className="w-4 h-4" /> פרטי עסק</p>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5"><Label className="text-xs font-semibold">שם עסק</Label><Input value={form.business_name} onChange={e => updateField('business_name', e.target.value)} className="rounded-xl h-11" /></div>
+              <div className="space-y-1.5"><Label className="text-xs font-semibold">ח.פ / עוסק מורשה</Label><Input value={form.business_id} onChange={e => updateField('business_id', e.target.value)} className="rounded-xl h-11" dir="ltr" /></div>
+            </div>
+          </div>
+
+          {/* Bank — admin-only override; sellers cannot edit these fields themselves */}
+          <div className="space-y-4">
+            <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-2"><Landmark className="w-4 h-4" /> פרטי חשבון בנק (לעריכת מנהל בלבד)</p>
+            <div className="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100/50 grid sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5"><Label className="text-xs font-semibold">שם בנק</Label><Input value={form.bank_name} onChange={e => updateField('bank_name', e.target.value)} className="rounded-xl h-11 bg-white" /></div>
+              <div className="space-y-1.5"><Label className="text-xs font-semibold">סניף</Label><Input value={form.bank_branch} onChange={e => updateField('bank_branch', e.target.value)} className="rounded-xl h-11 bg-white" /></div>
+              <div className="space-y-1.5 sm:col-span-2"><Label className="text-xs font-semibold">מספר חשבון</Label><Input value={form.bank_account_number} onChange={e => updateField('bank_account_number', e.target.value)} className="rounded-xl h-11 bg-white" dir="ltr" /></div>
+            </div>
+          </div>
+
+          {/* Professional */}
+          <div className="space-y-4">
+            <p className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2"><ShieldCheck className="w-4 h-4" /> רקע מקצועי</p>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5"><Label className="text-xs font-semibold">שנות ניסיון</Label><Input type="number" min={0} value={form.experience_years} onChange={e => updateField('experience_years', e.target.value)} className="rounded-xl h-11" /></div>
+            </div>
+            <div className="space-y-1.5"><Label className="text-xs font-semibold">הערות</Label><Textarea value={form.notes} onChange={e => updateField('notes', e.target.value)} className="rounded-xl min-h-24" /></div>
+          </div>
+        </div>
+
+        <div className="p-6 border-t bg-muted/20 flex justify-end gap-3 sticky bottom-0">
+          <Button variant="outline" onClick={() => setOpen(false)} className="rounded-full h-11 px-6" disabled={isSaving}>ביטול</Button>
+          <Button onClick={handleSave} disabled={isSaving} className="rounded-full h-11 px-8 bg-primary text-white hover:bg-primary/90 gap-2">
+            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+            שמור שינויים
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

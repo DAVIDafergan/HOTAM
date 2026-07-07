@@ -19,6 +19,13 @@ const WorkFlow = dynamic(() => import('@/components/WorkFlow').then(mod => mod.W
   loading: () => <section aria-hidden="true" className="min-h-[680px] w-full bg-gradient-to-b from-primary/10 via-primary/5 to-primary/0 animate-pulse" />,
 });
 
+const HomeProductsCarousel = dynamic(
+  () => import('@/components/HomeProductsCarousel').then(mod => mod.HomeProductsCarousel),
+  {
+    loading: () => <section aria-hidden="true" className="min-h-[420px] w-full bg-gradient-to-b from-muted/40 via-muted/10 to-transparent animate-pulse" />,
+  }
+);
+
 const HomeDeferredSections = dynamic(
   () => import('@/components/HomeDeferredSections').then(mod => mod.HomeDeferredSections),
   {
@@ -35,6 +42,8 @@ export default function Home() {
         <h1 className="sr-only">חותם - זירת המסחר המובילה לכלי קודש וסת''ם מהודרים</h1>
 
         <HeroAnimation />
+
+        <HomeProductsCarousel />
 
         <WorkFlow />
 

@@ -337,7 +337,7 @@ export function ProductDetailsClient({
     const requestData = {
       seller_id: product.seller_id,
       product_id: productId,
-      product_name: 'ספר תורה',
+      product_name: product.sub_type && product.sub_type !== 'all' ? product.sub_type : product.product_type,
       product_image: product.images?.[0] || '',
       amount: product.price,
       status: 'torah_request',
@@ -461,8 +461,13 @@ export function ProductDetailsClient({
   const rawImages = Array.isArray(product.images) ? product.images : [];
   const images = rawImages.length > 0 ? rawImages : [logoImg];
   const currentImage = images[selectedImageIdx] || logoImg;
-  const displayPrice = (Number(product.price) * VAT_MULTIPLIER).toFixed(0);
+  const displayPrice = Math.round(Number(product.price) * VAT_MULTIPLIER).toLocaleString('he-IL');
   const productDisplayTitle = `${product.product_type}${product.sub_type && product.sub_type !== 'all' ? ` ${product.sub_type}` : ''}`;
+  // ספר תורה and ספר הפטרות are both custom/coordinated orders — the buyer never buys
+  // instantly or contacts the seller directly; they leave a request that "חותם" staff
+  // (not the seller) follow up on, via the same torah_request order flow.
+  const isCoordinationOnlyProduct = product.product_type === 'ספר תורה'
+    || (product.product_type === 'מוצרי יודאיקה שונים' && product.sub_type === 'ספר הפטרות');
   const normalizedDeliveryType = (() => {
     const raw = String(product.delivery_type || '').toLowerCase();
     if (raw === 'delivery' || raw === 'shipping' || raw === 'shipping_only') return 'delivery';
@@ -909,7 +914,7 @@ export function ProductDetailsClient({
       <div className="fixed bottom-0 left-0 right-0 z-[100] bg-white/95 backdrop-blur-2xl border-t border-primary/8 h-20 sm:h-24 md:h-28 shadow-[0_-8px_30px_rgba(15,23,42,0.06)]">
         <div className="container mx-auto px-3 sm:px-4 h-full flex items-center justify-between gap-3 md:gap-4 max-w-6xl">
           <div className="flex-1 flex gap-2.5 md:gap-4">
-             {product.product_type === 'ספר תורה' ? (
+             {isCoordinationOnlyProduct ? (
                <Button
                 onClick={handleTorahCoordination}
                 disabled={isProcessingRequest}
@@ -928,10 +933,10 @@ export function ProductDetailsClient({
                  <span>רכישה מאובטחת</span>
                </Button>
              )}
-             {/* ספר תורה requests are handled by "חותם" staff, not a direct chat with the
-                 seller — hiding this keeps the buyer's only contact path through the
-                 coordination request above, which lands with the admin team. */}
-             {product.product_type !== 'ספר תורה' && (
+             {/* ספר תורה / ספר הפטרות requests are handled by "חותם" staff, not a direct
+                 chat with the seller — hiding this keeps the buyer's only contact path
+                 through the coordination request above, which lands with the admin team. */}
+             {!isCoordinationOnlyProduct && (
                <Button
                 variant="outline"
                 asChild

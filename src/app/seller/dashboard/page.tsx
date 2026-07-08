@@ -1147,7 +1147,7 @@ function SellerDashboardContent() {
                     <p className="font-black text-lg text-primary">{p.product_type}</p>
                     <p className="text-[10px] text-muted-foreground font-bold">{p.script_type} | {p.script_level}</p>
                     <div className="flex items-center justify-end gap-3 mt-2">
-                       <Badge variant="secondary" className="font-black text-xs">₪{p.price}</Badge>
+                       <Badge variant="secondary" className="font-black text-xs">₪{Number(p.price || 0).toLocaleString('he-IL')}</Badge>
                        <div className="flex items-center bg-muted/30 rounded-full px-2 py-1 gap-2 border">
                           <button onClick={() => updateStock(p.id, -1)} disabled={p.quantity <= 0} className="w-6 h-6 rounded-full bg-white shadow-sm flex items-center justify-center hover:bg-destructive/10 text-destructive disabled:opacity-30"><Minus className="w-3.5 h-3.5" /></button>
                           <span className="text-[10px] font-black text-primary px-1">מלאי: {p.quantity}</span>
@@ -1897,17 +1897,17 @@ function SellerDashboardContent() {
                         <div className="flex justify-between items-center px-1">
                           <div className="flex items-center gap-1.5 text-muted-foreground">
                              <Info className="w-3.5 h-3.5" />
-                             <span className="text-[10px] font-bold">עמלת אתר ({(getCommissionRate(formType) * 100).toFixed(0)}%): ₪{formPrice !== '' ? (Number(formPrice) * getCommissionRate(formType)).toFixed(0) : '---'}</span>
+                             <span className="text-[10px] font-bold">עמלת אתר ({(getCommissionRate(formType) * 100).toFixed(0)}%): ₪{formPrice !== '' ? Math.round(Number(formPrice) * getCommissionRate(formType)).toLocaleString('he-IL') : '---'}</span>
                           </div>
                           <div className="bg-emerald-600 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase">
-                            הרווח שלך: ₪{formPrice !== '' ? (Number(formPrice) * getSellerPayoutRate(formType)).toFixed(0) : '---'}
+                            הרווח שלך: ₪{formPrice !== '' ? Math.round(Number(formPrice) * getSellerPayoutRate(formType)).toLocaleString('he-IL') : '---'}
                           </div>
                         </div>
                         <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mt-1">
                           <Info className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                           <span className="text-[10px] font-bold text-amber-700">
                             המחיר שיוצג ללקוחות באתר כולל מע&quot;מ 18%:{' '}
-                            <span className="text-amber-900">₪{formPrice !== '' ? (Number(formPrice) * 1.18).toFixed(0) : '---'}</span>
+                            <span className="text-amber-900">₪{formPrice !== '' ? Math.round(Number(formPrice) * 1.18).toLocaleString('he-IL') : '---'}</span>
                           </span>
                         </div>
                       </div>

@@ -535,7 +535,7 @@ export default function CustomerDashboard() {
                           <span className="text-[10px] text-muted-foreground font-bold flex items-center gap-1"><Clock className="w-3 h-3" /> {order.created_at ? new Date(order.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
                         </div>
                          <p className="font-black text-primary text-base leading-tight mb-1 truncate">{order.product_name}</p>
-                        <p className="text-sm font-black text-accent">₪{order.amount}</p>
+                        <p className="text-sm font-black text-accent">₪{Number(order.amount || 0).toLocaleString('he-IL')}</p>
 
                         {order.status === 'paid' && (
                           <div className="mt-3 p-3 bg-blue-50/50 rounded-xl border border-blue-100 space-y-1">

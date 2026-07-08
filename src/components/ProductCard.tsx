@@ -52,7 +52,7 @@ export function ProductCard({
     });
   };
 
-  const finalPrice = (Number(product.price) * 1.18).toFixed(0);
+  const finalPrice = Math.round(Number(product.price) * 1.18).toLocaleString('he-IL');
 
   // Logic for displaying title for Judaica
   const displayTitle = product.product_type === 'מוצרי יודאיקה שונים' ? (product.sub_type || 'מוצר יודאיקה') : product.product_type;

@@ -167,6 +167,18 @@ export default function CheckoutPage() {
   const customerRef = useMemoStable(() => user ? doc(db, 'customers', user.uid) : null, [db, user?.uid]);
   const { data: customer } = useDoc<any>(customerRef);
 
+  // ספר תורה / ספר הפטרות are coordination-only — leaving details for "חותם" staff via
+  // the product page's request flow, never an instant checkout. Guard against reaching
+  // this page directly (e.g. a stale link or a manually typed URL).
+  useEffect(() => {
+    if (!product) return;
+    const isCoordinationOnlyProduct = product.product_type === 'ספר תורה'
+      || (product.product_type === 'מוצרי יודאיקה שונים' && product.sub_type === 'ספר הפטרות');
+    if (isCoordinationOnlyProduct) {
+      router.replace(`/products/${productId}`);
+    }
+  }, [product, productId, router]);
+
   useEffect(() => {
     if (customer) {
       setRecipientName(`${customer.first_name || ''} ${customer.last_name || ''}`);
@@ -506,7 +518,7 @@ export default function CheckoutPage() {
                       <Truck className="w-5 h-5 text-primary" />
                       <div className="text-right">
                         <span className="font-black text-primary block">משלוח</span>
-                        <span className="text-xs text-muted-foreground">עד הבית (+₪{product.delivery_fee || 0})</span>
+                        <span className="text-xs text-muted-foreground">עד הבית (+₪{Number(product.delivery_fee || 0).toLocaleString('he-IL')})</span>
                       </div>
                     </div>
                     <RadioGroupItem value="shipping" id="delivery" disabled={!canShip} />
@@ -611,7 +623,7 @@ export default function CheckoutPage() {
                     ) : (
                       <>
                         <CreditCard className="w-6 h-6" />
-                        בצע תשלום מאובטח - ₪{totalPrice}
+                        בצע תשלום מאובטח - ₪{totalPrice.toLocaleString('he-IL')}
                       </>
                     )}
                   </Button>
@@ -628,21 +640,21 @@ export default function CheckoutPage() {
                 </div>
                 <div className="space-y-3 border-t pt-4">
                   <div className="flex justify-between text-xs font-bold">
-                    <span>₪{basePrice}</span>
+                    <span>₪{basePrice.toLocaleString('he-IL')}</span>
                     <span className="text-muted-foreground">מחיר סופר</span>
                   </div>
                   <div className="flex justify-between text-xs text-emerald-600 font-bold">
-                    <span>₪{vatAmount}</span>
+                    <span>₪{vatAmount.toLocaleString('he-IL')}</span>
                     <span className="text-muted-foreground">מע"מ (18%)</span>
                   </div>
                   {deliveryChoice === 'shipping' && (
                     <div className="flex justify-between text-xs font-bold">
-                      <span>₪{product.delivery_fee || 0}</span>
+                      <span>₪{Number(product.delivery_fee || 0).toLocaleString('he-IL')}</span>
                       <span className="text-muted-foreground">דמי משלוח</span>
                     </div>
                   )}
                   <div className="flex justify-between text-xl font-black border-t pt-3 mt-3">
-                    <span className="text-primary">₪{totalPrice}</span>
+                    <span className="text-primary">₪{totalPrice.toLocaleString('he-IL')}</span>
                     <span className="text-primary">סה"כ לתשלום</span>
                   </div>
                 </div>

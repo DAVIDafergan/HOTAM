@@ -489,7 +489,7 @@ function ChatContent() {
                           )}
                           <div className="space-y-0.5 text-right">
                             <p className="text-[10px] opacity-80 leading-tight">מוצר: <span className="font-bold">{msg.product_name}</span></p>
-                            <p className="text-xl font-black leading-none">₪{msg.amount}</p>
+                            <p className="text-xl font-black leading-none">₪{Number(msg.amount || 0).toLocaleString('he-IL')}</p>
                           </div>
                         </div>
                         <Button
@@ -649,7 +649,7 @@ function PaymentProductItem({ product, onSelect, highlight = false }: any) {
       <div className="flex-1 space-y-0.5">
         <h4 className="font-bold text-sm text-primary group-hover:text-accent transition-colors">{product.product_type}</h4>
         <p className="text-[10px] text-muted-foreground font-medium">{product.script_type}</p>
-        <p className="text-sm font-black text-primary">₪{product.price}</p>
+        <p className="text-sm font-black text-primary">₪{Number(product.price || 0).toLocaleString('he-IL')}</p>
       </div>
       <Plus className="w-5 h-5 text-accent opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:rotate-90" />
     </button>

@@ -1,8 +1,11 @@
 // Single source of truth for the platform's commission rate by product category.
 // Keep this in sync with any server-side/DB logic that persists `orders.seller_net`.
-const MEGILLAH_COMMISSION_RATE = 0.15;
-const TORAH_SCROLL_COMMISSION_RATE = 0.10;
-const DEFAULT_COMMISSION_RATE = 0.20;
+// Platform commission is retired — sellers keep 100% of the sale price. This is separate
+// from VAT_MULTIPLIER (18%), which stays untouched; commission and VAT are not the same
+// line item and this file has no bearing on VAT.
+const MEGILLAH_COMMISSION_RATE = 0;
+const TORAH_SCROLL_COMMISSION_RATE = 0;
+const DEFAULT_COMMISSION_RATE = 0;
 
 export function getCommissionRate(productType?: string | null): number {
   if (productType === 'מגילה') return MEGILLAH_COMMISSION_RATE;

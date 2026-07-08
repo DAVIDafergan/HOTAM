@@ -418,7 +418,7 @@ export default function AdminDashboard() {
         chunks.map(async (chunk) => {
           const { data } = await db
             .from('sellers')
-            .select('id, first_name, last_name')
+            .select('id, first_name, last_name, phone, email')
             .in('id', chunk);
           return (data || []).map((seller: any) => ({ ...seller, id: String(seller.id) }));
         })
@@ -1434,6 +1434,40 @@ function SalesCards({ orders, sellers, onLinkToTab, page, setPage }: any) {
   );
 }
 
+// One card per request instead of a cramped table — a torah_request has 8 fields worth
+// showing (buyer name/phone/email, seller name/phone/email, product, date) and a 4-5 column
+// table just doesn't fit that without hiding half of it behind a click.
+function TorahContactBlock({ title, icon, name, phone, email }: { title: string; icon: any; name: string; phone?: string | null; email?: string | null }) {
+  return (
+    <div className="space-y-3 text-right">
+      <p className="text-[10px] font-black text-primary/50 uppercase tracking-widest flex items-center justify-end gap-2">
+        {title} {icon}
+      </p>
+      <div className="space-y-2 text-[12px] font-bold text-primary">
+        <p>{name || 'לא צוין'}</p>
+        {phone ? (
+          <a href={`tel:${phone}`} className="flex items-center justify-end gap-2 hover:text-accent transition-colors" dir="ltr">
+            {phone} <Phone className="w-3.5 h-3.5 shrink-0" />
+          </a>
+        ) : (
+          <p className="flex items-center justify-end gap-2 text-muted-foreground font-medium">
+            לא צוין <Phone className="w-3.5 h-3.5 shrink-0 opacity-30" />
+          </p>
+        )}
+        {email ? (
+          <a href={`mailto:${email}`} className="flex items-center justify-end gap-2 hover:text-accent transition-colors break-all" dir="ltr">
+            {email} <Mail className="w-3.5 h-3.5 shrink-0" />
+          </a>
+        ) : (
+          <p className="flex items-center justify-end gap-2 text-muted-foreground font-medium">
+            לא צוין <Mail className="w-3.5 h-3.5 shrink-0 opacity-30" />
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function TorahRequestsTable({ orders, sellers, page, setPage }: any) {
   const paginatedData = orders.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
@@ -1441,47 +1475,37 @@ function TorahRequestsTable({ orders, sellers, page, setPage }: any) {
 
   return (
     <div className="space-y-4">
-      <Card className="border-none shadow-premium rounded-[2.5rem] overflow-hidden bg-white">
-        <Table>
-          <TableHeader className="bg-muted/30">
-            <TableRow className="border-none">
-              <TableHead className="text-right font-black text-[10px] uppercase py-6 px-8">ID / תאריך</TableHead>
-              <TableHead className="text-right font-black text-[10px] uppercase py-6">קונה</TableHead>
-              <TableHead className="text-right font-black text-[10px] uppercase py-6">מוכר (סופר)</TableHead>
-              <TableHead className="text-right font-black text-[10px] uppercase py-6">מוצר</TableHead>
-              <TableHead className="text-left font-black text-[10px] uppercase py-6 px-8">פעולות</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginatedData.map((o: any) => {
-              const seller = sellers?.find((s: any) => s.id === o.seller_id);
-              const date = o.created_at?.toDate ? o.created_at.toDate() : new Date(o.created_at);
-              return (
-                <TableRow key={o.id} className="border-muted/20">
-                  <TableCell className="py-6 px-8">
-                     <p className="text-[9px] font-black text-primary font-mono mb-1">{o.id}</p>
-                     <p className="text-[10px] font-bold text-muted-foreground">{date.toLocaleDateString('he-IL')}</p>
-                  </TableCell>
-                  <TableCell className="text-[10px] font-bold text-primary">
-                    <div className="space-y-0.5">
-                      <p>{o.buyer_name || 'לא צוין'}</p>
-                      {o.buyer_phone && <p className="text-muted-foreground font-medium" dir="ltr">{o.buyer_phone}</p>}
-                      {o.buyer_email && <p className="text-muted-foreground font-medium" dir="ltr">{o.buyer_email}</p>}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-[10px] font-bold text-primary">{seller ? `${seller.first_name} ${seller.last_name}` : 'סופר לא מזוהה'}</TableCell>
-                  <TableCell className="text-[10px] font-bold text-primary">{o.product_name}</TableCell>
-                  <TableCell className="px-8 text-left">
-                    <Button variant="ghost" size="sm" asChild className="rounded-full h-8 px-4 text-[9px] font-black border-primary/5">
-                       <Link href={`/products/${o.product_id}`}>צפה במוצר</Link>
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </Card>
+      {paginatedData.map((o: any) => {
+        const seller = sellers?.find((s: any) => s.id === o.seller_id);
+        const date = o.created_at?.toDate ? o.created_at.toDate() : new Date(o.created_at);
+        return (
+          <Card key={o.id} className="border-none shadow-premium rounded-[2.5rem] overflow-hidden bg-white p-6 md:p-8 space-y-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="text-right">
+                <p className="text-[9px] font-black text-primary/40 font-mono uppercase tracking-widest">#{o.id}</p>
+                <p className="text-[11px] font-bold text-muted-foreground">
+                  {date.toLocaleDateString('he-IL')} · {date.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}
+                </p>
+              </div>
+              <Button variant="ghost" size="sm" asChild className="rounded-full h-9 px-4 text-[10px] font-black border border-primary/5 gap-1.5">
+                <Link href={`/products/${o.product_id}`}>צפה במוצר <ExternalLink className="w-3 h-3" /></Link>
+              </Button>
+            </div>
+
+            <div className="flex items-center gap-2 justify-end text-primary">
+              <span className="font-black text-base">{o.product_name}</span>
+              <Scroll className="w-4 h-4 text-accent shrink-0" />
+            </div>
+
+            <div className="border-t border-primary/5 pt-5 grid md:grid-cols-2 gap-6">
+              <TorahContactBlock title="הלקוח" icon={<UserRound className="w-3.5 h-3.5" />} name={o.buyer_name} phone={o.buyer_phone} email={o.buyer_email} />
+              <div className="md:border-r md:pr-6 border-primary/5">
+                <TorahContactBlock title="הסופר" icon={<Scroll className="w-3.5 h-3.5" />} name={seller ? `${seller.first_name} ${seller.last_name}` : ''} phone={seller?.phone} email={seller?.email} />
+              </div>
+            </div>
+          </Card>
+        );
+      })}
       <Pagination current={page} total={orders.length} onChange={setPage} />
     </div>
   );

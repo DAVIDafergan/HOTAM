@@ -367,6 +367,31 @@ function SearchContent() {
         const ratingB = reviewTotalsByProduct.get(b.id) || 0;
         return ratingB - ratingA;
       });
+    } else {
+      // No explicit sort chosen (default "newest" order) — lightly demote products priced
+      // 40%+ above their category's average price, so a single outlier-high listing can't
+      // dominate the top of unsorted results. Nothing is hidden or removed, just pushed
+      // after normally-priced listings; a category only counts (avg needs to mean something)
+      // once it has at least 3 products in the current result set. Stable within each group.
+      const groupKey = (p: any) => `${p.product_type}::${p.sub_type || ''}`;
+      const groupTotals = new Map<string, { sum: number; count: number }>();
+      for (const p of results) {
+        const key = groupKey(p);
+        const entry = groupTotals.get(key) || { sum: 0, count: 0 };
+        entry.sum += Number(p.price) || 0;
+        entry.count += 1;
+        groupTotals.set(key, entry);
+      }
+      const isOverpriced = (p: any) => {
+        const group = groupTotals.get(groupKey(p));
+        if (!group || group.count < 3) return false;
+        const avg = group.sum / group.count;
+        return avg > 0 && (Number(p.price) || 0) >= avg * 1.4;
+      };
+      results = results
+        .map((p, index) => ({ p, index, overpriced: isOverpriced(p) }))
+        .sort((a, b) => (a.overpriced === b.overpriced ? a.index - b.index : a.overpriced ? 1 : -1))
+        .map(({ p }) => p);
     }
 
     return results;

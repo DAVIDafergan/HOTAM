@@ -1912,6 +1912,15 @@ function SellerDashboardContent() {
                             <span className="text-amber-900">₪{formPrice !== '' ? Math.round(Number(formPrice) * 1.18).toLocaleString('he-IL') : '---'}</span>
                           </span>
                         </div>
+                        <p className="text-[10px] font-bold text-primary/60 px-1 mt-1">
+                          המחיר נקבע על ידכם באופן מלא — אתם קובעים כמה המוצר שלכם שווה.
+                        </p>
+                        <div className="flex items-start gap-1.5 bg-primary/[0.03] rounded-xl px-3 py-2.5 mt-1">
+                          <TrendingUp className="w-3.5 h-3.5 text-primary/40 shrink-0 mt-0.5" />
+                          <span className="text-[10px] font-medium text-primary/70 leading-relaxed">
+                            טיפ: אם המחיר גבוה משמעותית מהמקובל למוצר דומה, האלגוריתם שלנו יזהה זאת ויציג את המודעה שלכם נמוך יותר בתוצאות החיפוש — כדי לשמור על הוגנות לקונים. מחיר תחרותי = חשיפה גבוהה יותר.
+                          </span>
+                        </div>
                       </div>
                     </div>
 

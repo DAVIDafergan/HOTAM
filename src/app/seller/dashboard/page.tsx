@@ -90,6 +90,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { getCityFromAddressComponents, loadGoogleMapsPlacesScript } from '@/lib/google-maps';
+import { TORAH_DELIVERY_TIME_OPTIONS } from '@/lib/torah-delivery-time';
 
 const PRODUCT_SUBTYPES: Record<string, string[]> = {
   'מזוזה': ['קלף', 'קלף + בית'],
@@ -815,7 +816,7 @@ function SellerDashboardContent() {
     setFormImages(p.images || []);
     setFormParchmentSize(p.parchment_size || '');
     setFormProofreading(p.proofreading_level || '');
-    setFormDeliveryTime(p.delivery_time || '3');
+    setFormDeliveryTime(p.delivery_time || (p.product_type === 'ספר תורה' ? TORAH_DELIVERY_TIME_OPTIONS[0].value : '3'));
     setFormDeliveryType(p.delivery_type || 'pickup');
     setFormDeliveryFee(p.delivery_fee ? String(p.delivery_fee) : '');
     setFormDeliveryArea(Array.isArray(p.delivery_area) ? p.delivery_area : [p.delivery_area || 'כל הארץ']);
@@ -1717,7 +1718,20 @@ function SellerDashboardContent() {
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black uppercase text-primary/40 tracking-wider">סוג המוצר *</Label>
                         <div className="relative">
-                           <Select value={formType} onValueChange={v => { setFormType(v); setFormSubType(''); setFormParchmentSize(''); setMegRows(''); setMegHeight(''); }}>
+                           <Select value={formType} onValueChange={v => {
+                             setFormType(v);
+                             setFormSubType('');
+                             setFormParchmentSize('');
+                             setMegRows('');
+                             setMegHeight('');
+                             // ספר תורה delivery estimates are measured in months, not days —
+                             // switching product type resets to a sane default for the new scale.
+                             const wasTorah = formType === 'ספר תורה';
+                             const isTorah = v === 'ספר תורה';
+                             if (wasTorah !== isTorah) {
+                               setFormDeliveryTime(isTorah ? TORAH_DELIVERY_TIME_OPTIONS[0].value : '3');
+                             }
+                           }}>
                             <SelectTrigger className="h-14 rounded-2xl border-2 border-primary/5 bg-slate-50/50 focus:border-primary/20 text-right font-bold transition-all">
                               <SelectValue placeholder="בחר סוג כלי קודש..." />
                             </SelectTrigger>
@@ -1913,14 +1927,24 @@ function SellerDashboardContent() {
                         </div>
                       </div>
                       <div className="space-y-2">
-                         <Label className="text-[10px] font-black uppercase text-primary/40 tracking-wider">זמן אספקה (ימי עסקים) *</Label>
+                         <Label className="text-[10px] font-black uppercase text-primary/40 tracking-wider">
+                           {formType === 'ספר תורה' ? 'זמן אספקה משוער *' : 'זמן אספקה (ימי עסקים) *'}
+                         </Label>
                          <Select value={formDeliveryTime} onValueChange={setFormDeliveryTime}>
                            <SelectTrigger className="h-14 rounded-2xl border-2 border-primary/5"><SelectValue /></SelectTrigger>
                            <SelectContent className="rounded-xl">
-                             <SelectItem value="1" className="font-bold">יום אחד (מיידי)</SelectItem>
-                             <SelectItem value="3" className="font-bold">עד 3 ימים</SelectItem>
-                             <SelectItem value="7" className="font-bold">עד 7 ימים</SelectItem>
-                             <SelectItem value="14" className="font-bold">עד 14 ימים</SelectItem>
+                             {formType === 'ספר תורה' ? (
+                               TORAH_DELIVERY_TIME_OPTIONS.map(opt => (
+                                 <SelectItem key={opt.value} value={opt.value} className="font-bold">{opt.label}</SelectItem>
+                               ))
+                             ) : (
+                               <>
+                                 <SelectItem value="1" className="font-bold">יום אחד (מיידי)</SelectItem>
+                                 <SelectItem value="3" className="font-bold">עד 3 ימים</SelectItem>
+                                 <SelectItem value="7" className="font-bold">עד 7 ימים</SelectItem>
+                                 <SelectItem value="14" className="font-bold">עד 14 ימים</SelectItem>
+                               </>
+                             )}
                            </SelectContent>
                          </Select>
                       </div>

@@ -43,6 +43,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import unsplashLoader from '@/lib/unsplashLoader';
 import { cn } from '@/lib/utils';
+import { getTorahDeliveryTimeLabel } from '@/lib/torah-delivery-time';
 import { PROFILE_NOT_FOUND_CODE } from '@/lib/supabase-errors';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -646,7 +647,7 @@ export function ProductDetailsClient({
                   <Clock className="w-4 h-4 text-primary/30 mb-1" />
                   <span id="delivery-time-label" className="text-[11px] font-bold text-primary/40 uppercase tracking-wide whitespace-nowrap">זמן אספקה</span>
                   <span className="text-sm font-black text-primary leading-none whitespace-nowrap">
-                    {product.product_type === 'ספר תורה' ? 'בתיאום אישי' : `${product.delivery_time || '3'} ימים`}
+                    {product.product_type === 'ספר תורה' ? getTorahDeliveryTimeLabel(product.delivery_time) : `${product.delivery_time || '3'} ימים`}
                   </span>
                 </section>
                 {hasDelivery ? (
@@ -927,17 +928,22 @@ export function ProductDetailsClient({
                  <span>רכישה מאובטחת</span>
                </Button>
              )}
-             <Button
-              variant="outline"
-              asChild
-              className="flex-1 border-primary/15 text-primary h-14 md:h-16 rounded-2xl font-bold gap-3 hover:bg-primary/5 transition-all duration-200 active:scale-95 shadow-none"
-             >
-              <Link href={`/chat/${product.seller_id}?productId=${productId}`}>
-                <MessageCircle className="w-5 h-5 text-accent" />
-                <span className="hidden sm:inline">התייעצות</span>
-                <span className="sm:hidden">צ'אט</span>
-              </Link>
-             </Button>
+             {/* ספר תורה requests are handled by "חותם" staff, not a direct chat with the
+                 seller — hiding this keeps the buyer's only contact path through the
+                 coordination request above, which lands with the admin team. */}
+             {product.product_type !== 'ספר תורה' && (
+               <Button
+                variant="outline"
+                asChild
+                className="flex-1 border-primary/15 text-primary h-14 md:h-16 rounded-2xl font-bold gap-3 hover:bg-primary/5 transition-all duration-200 active:scale-95 shadow-none"
+               >
+                <Link href={`/chat/${product.seller_id}?productId=${productId}`}>
+                  <MessageCircle className="w-5 h-5 text-accent" />
+                  <span className="hidden sm:inline">התייעצות</span>
+                  <span className="sm:hidden">צ'אט</span>
+                </Link>
+               </Button>
+             )}
           </div>
           <div className="hidden sm:flex flex-col items-end border-r pr-6 md:pr-10 border-primary/8">
             <span className="text-[11px] font-bold text-primary/35 uppercase tracking-[0.2em] mb-1">סה"כ לתשלום</span>

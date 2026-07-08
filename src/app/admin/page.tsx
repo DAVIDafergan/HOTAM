@@ -2,6 +2,8 @@
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
+import { EASE } from '@/lib/motion';
 import { Navbar } from '@/components/Navbar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -110,6 +112,8 @@ export default function AdminDashboard() {
   const [inquiriesPage, setInquiriesPage] = useState(1);
   const [torahPage, setTorahPage] = useState(1);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
   const [deletingCustomerId, setDeletingCustomerId] = useState<string | null>(null);
   const [customerAuthCreatedAt, setCustomerAuthCreatedAt] = useState<Record<string, string>>({});
   const [pendingSellers, setPendingSellers] = useState<any[]>([]);
@@ -772,8 +776,8 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-[#F8F9FA] flex flex-col" dir="rtl">
       <Navbar />
       
-      <main className="container mx-auto px-4 py-32 max-w-7xl flex-1">
-        <div className="flex flex-col xl:flex-row xl:items-end justify-between mb-12 gap-4 xl:gap-6">
+      <main className="container mx-auto px-4 py-8 md:py-12 max-w-7xl flex-1">
+        <div className="flex flex-col xl:flex-row xl:items-end justify-between mb-6 gap-4 xl:gap-6">
           <div className="text-start w-full xl:w-auto">
              <div className="flex items-center gap-3 mb-2">
                 <div className="bg-primary/5 p-3 rounded-2xl">
@@ -809,16 +813,44 @@ export default function AdminDashboard() {
           <StatCard label="מוצרים שנמכרו" value={stats.productsSold} icon={<ShoppingBag />} color="bg-orange-500" />
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <TabsList className="hidden md:flex bg-white/50 backdrop-blur-md p-1.5 rounded-[2rem] shadow-premium border h-16 w-full overflow-x-auto whitespace-nowrap scrollbar-hide">
-            {adminTabItems.map((tab) => (
-              <TabsTrigger key={tab.id} value={tab.id} className="px-8 rounded-[1.5rem] data-[state=active]:bg-primary data-[state=active]:text-white font-black text-[10px] uppercase tracking-widest gap-2">
-                {tab.icon} {tab.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="md:flex md:flex-row-reverse md:items-start md:gap-6">
+          {/* Desktop-only vertical sidebar, right-aligned (RTL). Collapses to icon-only via
+              plain component state — no localStorage in this codebase's client components. */}
+          <motion.div
+            initial={false}
+            animate={{ width: isSidebarCollapsed ? 76 : 240 }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.35, ease: EASE }}
+            className="hidden md:block shrink-0 sticky top-28 self-start"
+          >
+            <div className="bg-white/50 backdrop-blur-md rounded-[2rem] shadow-premium border p-3 space-y-1 overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setIsSidebarCollapsed(v => !v)}
+                aria-label={isSidebarCollapsed ? 'הרחב סרגל ניהול' : 'צמצם סרגל ניהול'}
+                className="w-full flex items-center justify-center h-10 rounded-xl hover:bg-primary/5 text-primary/50 hover:text-primary transition-colors mb-1"
+              >
+                {isSidebarCollapsed ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+              </button>
+              <TabsList className="flex flex-col bg-transparent p-0 h-auto gap-1 w-full">
+                {adminTabItems.map((tab) => (
+                  <TabsTrigger
+                    key={tab.id}
+                    value={tab.id}
+                    title={tab.label}
+                    className={cn(
+                      "w-full flex items-center rounded-2xl h-12 data-[state=active]:bg-primary data-[state=active]:text-white font-black text-[11px] uppercase tracking-widest gap-3 transition-colors",
+                      isSidebarCollapsed ? "justify-center px-0" : "justify-start px-4"
+                    )}
+                  >
+                    {tab.icon}
+                    {!isSidebarCollapsed && <span className="truncate">{tab.label}</span>}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
+          </motion.div>
 
-          <div className="md:hidden">
+          <div className="md:hidden mb-8">
             <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
               <SheetTrigger asChild>
                 <button className="w-full flex items-center justify-between bg-white rounded-2xl shadow-premium border border-primary/5 px-5 h-14 font-black text-primary text-sm">
@@ -865,6 +897,7 @@ export default function AdminDashboard() {
             </Sheet>
           </div>
 
+          <div className="flex-1 min-w-0 space-y-8">
           <TabsContent value="pending">
             <ScribeTable 
               scribes={filteredSellersPending} 
@@ -951,6 +984,7 @@ export default function AdminDashboard() {
               setPage={setInquiriesPage}
             />
           </TabsContent>
+          </div>
         </Tabs>
       </main>
     </div>

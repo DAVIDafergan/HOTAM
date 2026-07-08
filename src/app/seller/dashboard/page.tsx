@@ -91,6 +91,7 @@ import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { getCityFromAddressComponents, loadGoogleMapsPlacesScript } from '@/lib/google-maps';
 import { TORAH_DELIVERY_TIME_OPTIONS } from '@/lib/torah-delivery-time';
+import { PLATFORM_WHATSAPP_NUMBER, PLATFORM_WHATSAPP_DISPLAY } from '@/lib/constants';
 
 const PRODUCT_SUBTYPES: Record<string, string[]> = {
   'מזוזה': ['קלף', 'קלף + בית'],
@@ -1231,12 +1232,13 @@ function SellerDashboardContent() {
                                       בשל אופי המוצר, הפרטים האישיים מנוהלים על ידי צוות 'חותם'. אנא צור איתנו קשר לתיאום פגישה אישית להתרשמות הלקוח מהספר.
                                     </p>
                                   </div>
-                                  <div className="pt-4">
+                                  <div className="pt-4 space-y-2">
                                     <Button asChild className="bg-primary text-white hover:bg-primary/90 rounded-full px-12 h-14 font-black uppercase tracking-widest shadow-xl gap-3">
-                                      <a href="https://wa.me/972500000000" target="_blank" rel="noopener noreferrer">
+                                      <a href={`https://wa.me/${PLATFORM_WHATSAPP_NUMBER}`} target="_blank" rel="noopener noreferrer">
                                         צרו קשר עם הנהלת האתר
                                       </a>
                                     </Button>
+                                    <p className="text-xs font-bold text-muted-foreground">אין לך WhatsApp? התקשרו: {PLATFORM_WHATSAPP_DISPLAY}</p>
                                   </div>
                                </div>
                              ) : (

@@ -1428,7 +1428,13 @@ function TorahRequestsTable({ orders, sellers, page, setPage }: any) {
                      <p className="text-[9px] font-black text-primary font-mono mb-1">{o.id}</p>
                      <p className="text-[10px] font-bold text-muted-foreground">{date.toLocaleDateString('he-IL')}</p>
                   </TableCell>
-                  <TableCell className="text-[10px] font-bold text-primary">{o.buyer_name}</TableCell>
+                  <TableCell className="text-[10px] font-bold text-primary">
+                    <div className="space-y-0.5">
+                      <p>{o.buyer_name || 'לא צוין'}</p>
+                      {o.buyer_phone && <p className="text-muted-foreground font-medium" dir="ltr">{o.buyer_phone}</p>}
+                      {o.buyer_email && <p className="text-muted-foreground font-medium" dir="ltr">{o.buyer_email}</p>}
+                    </div>
+                  </TableCell>
                   <TableCell className="text-[10px] font-bold text-primary">{seller ? `${seller.first_name} ${seller.last_name}` : 'סופר לא מזוהה'}</TableCell>
                   <TableCell className="text-[10px] font-bold text-primary">{o.product_name}</TableCell>
                   <TableCell className="px-8 text-left">

@@ -5,9 +5,10 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { MessageCircle, Gem, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { PLATFORM_WHATSAPP_NUMBER } from '@/lib/constants';
 
 export function TorahExpertBanner() {
-  const whatsappNumber = "972556674329";
+  const whatsappNumber = PLATFORM_WHATSAPP_NUMBER;
   const message = encodeURIComponent("שלום, אני מעוניין בייעוץ לרכישת ספר תורה דרך מערכת חותם.");
 
   return (

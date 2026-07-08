@@ -22,11 +22,11 @@ import {
 import Link from 'next/link';
 import { useSupabaseClient } from '@/lib/supabase-hooks';
 import { useToast } from '@/hooks/use-toast';
+import { PLATFORM_WHATSAPP_NUMBER, PLATFORM_WHATSAPP_DISPLAY } from '@/lib/constants';
 
 export default function ContactPage() {
-  const formattedPhone = '055-667-4329';
-  const whatsappPhoneIntl = '972556674329';
-  const whatsappHref = `https://wa.me/${whatsappPhoneIntl}`;
+  const formattedPhone = PLATFORM_WHATSAPP_DISPLAY;
+  const whatsappHref = `https://wa.me/${PLATFORM_WHATSAPP_NUMBER}`;
   const contactEmail = 'DA@101.ORG.IL';
 
   return (

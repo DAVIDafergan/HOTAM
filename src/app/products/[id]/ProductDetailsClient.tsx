@@ -29,8 +29,8 @@ import {
 } from 'lucide-react';
 import Image from '@/components/SmartImage';
 import Link from 'next/link';
-import { useSupabaseClient, useApp, addDocumentNonBlocking } from '@/lib/supabase-hooks';
-import { doc, collection, serverTimestamp } from '@/lib/supabase-compat';
+import { useSupabaseClient, useApp } from '@/lib/supabase-hooks';
+import { doc } from '@/lib/supabase-compat';
 import { supabase } from '@/lib/supabase';
 import { useRouter, usePathname } from 'next/navigation';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -49,6 +49,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Input } from '@/components/ui/input';
 
 const MIN_IMAGE_ZOOM_LEVEL = 1;
 const MAX_IMAGE_ZOOM_LEVEL = 4;
@@ -108,6 +109,8 @@ export function ProductDetailsClient({
   const [selectedImageIdx, setSelectedImageIdx] = useState(0);
   const [isProcessingRequest, setIsProcessingRequest] = useState(false);
   const [isProcessingFavorite, setIsProcessingFavorite] = useState(false);
+  const [isCoordinationPhoneDialogOpen, setIsCoordinationPhoneDialogOpen] = useState(false);
+  const [coordinationPhoneInput, setCoordinationPhoneInput] = useState('');
 
   const logoImg = PlaceHolderImages.find(img => img.id === 'site-logo')?.imageUrl || 'https://picsum.photos/seed/hotam-logo/400/400';
 
@@ -330,9 +333,16 @@ export function ProductDetailsClient({
     router.push(`/checkout/${productId}`);
   };
 
-  const handleTorahCoordination = () => {
-    if (!user) { router.push('/login?redirect=' + encodeURIComponent(pathname)); return; }
+  // Actually creates the torah_request order. Admin needs the buyer's real contact
+  // details to follow up (this is the whole point of the flow), so a missing phone
+  // blocks submission until handleTorahCoordination prompts for one.
+  const submitTorahCoordination = async (phone: string) => {
     setIsProcessingRequest(true);
+
+    const buyerName = (profileData?.first_name || profileData?.last_name)
+      ? `${profileData?.first_name || ''} ${profileData?.last_name || ''}`.trim()
+      : (user!.displayName || 'משתמש');
+    const buyerEmail = profileData?.email || user!.email || '';
 
     const requestData = {
       seller_id: product.seller_id,
@@ -341,22 +351,52 @@ export function ProductDetailsClient({
       product_image: product.images?.[0] || '',
       amount: product.price,
       status: 'torah_request',
-      buyer_id: user.uid,
-      created_at: serverTimestamp(),
-      is_torah_request: true,
+      buyer_id: user!.uid,
+      buyer_name: buyerName,
+      buyer_phone: phone,
+      buyer_email: buyerEmail,
       delivery_method: 'תיאום מול האתר'
     };
 
-    addDocumentNonBlocking(collection(db, 'orders'), requestData);
-    
-    setTimeout(() => {
-      setIsProcessingRequest(false);
-      toast({ 
-        title: "הבקשה נשלחה בהצלחה", 
-        description: "נציג 'חותם' יחזור אליך בהקדם לתיאום פגישה להתרשמות מהספר." 
+    const { error } = await supabase.from('orders').insert(requestData);
+    setIsProcessingRequest(false);
+
+    if (error) {
+      console.error('[torah coordination] insert error:', error.message);
+      toast({
+        variant: 'destructive',
+        title: 'משהו השתבש',
+        description: 'הבקשה לא נשלחה. נסו שוב או צרו איתנו קשר.',
       });
-      router.push('/customer/dashboard');
-    }, 1000);
+      return;
+    }
+
+    setIsCoordinationPhoneDialogOpen(false);
+    setCoordinationPhoneInput('');
+    toast({
+      title: "הבקשה נשלחה בהצלחה",
+      description: "נציג 'חותם' יחזור אליך בהקדם לתיאום פגישה להתרשמות מהספר."
+    });
+    router.push('/customer/dashboard');
+  };
+
+  const handleTorahCoordination = () => {
+    if (!user) { router.push('/login?redirect=' + encodeURIComponent(pathname)); return; }
+    const existingPhone = profileData?.phone?.trim();
+    if (!existingPhone) {
+      setIsCoordinationPhoneDialogOpen(true);
+      return;
+    }
+    submitTorahCoordination(existingPhone);
+  };
+
+  const handleCoordinationPhoneSubmit = () => {
+    const phone = coordinationPhoneInput.trim();
+    if (!phone) {
+      toast({ variant: 'destructive', title: 'נא להזין מספר טלפון' });
+      return;
+    }
+    submitTorahCoordination(phone);
   };
 
   const handleShare = async () => {
@@ -1056,6 +1096,40 @@ export function ProductDetailsClient({
                 }}
               />
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* One missing field — the buyer's phone — blocks the whole point of the ספר תורה /
+          ספר הפטרות coordination flow (admin has no way to follow up without it), so this
+          asks for just that instead of a full form. */}
+      <Dialog open={isCoordinationPhoneDialogOpen} onOpenChange={(open) => { if (!isProcessingRequest) setIsCoordinationPhoneDialogOpen(open); }}>
+        <DialogContent className="max-w-sm rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl bg-white" dir="rtl">
+          <div className="p-8 space-y-5 text-right">
+            <DialogHeader className="space-y-2 text-right">
+              <DialogTitle className="text-xl font-headline font-black text-primary">מספר טלפון ליצירת קשר</DialogTitle>
+              <p className="text-sm font-medium text-muted-foreground">
+                כדי שנציג 'חותם' יוכל לחזור אליכם לתיאום הפגישה, נא להשאיר מספר טלפון.
+              </p>
+            </DialogHeader>
+            <Input
+              type="tel"
+              value={coordinationPhoneInput}
+              onChange={e => setCoordinationPhoneInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleCoordinationPhoneSubmit(); }}
+              placeholder="050-0000000"
+              className="h-14 rounded-2xl text-right"
+              dir="ltr"
+              autoFocus
+              disabled={isProcessingRequest}
+            />
+            <Button
+              onClick={handleCoordinationPhoneSubmit}
+              disabled={isProcessingRequest}
+              className="w-full bg-primary text-white h-14 rounded-2xl font-black"
+            >
+              {isProcessingRequest ? <Loader2 className="w-5 h-5 animate-spin" /> : 'שליחת הבקשה'}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

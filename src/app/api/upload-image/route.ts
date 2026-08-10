@@ -10,6 +10,7 @@ const ALLOWED_IMAGE_TYPES = new Set([
   'image/heic',
   'image/heif',
 ]);
+const HEIC_TYPES = new Set(['image/heic', 'image/heif']);
 export const maxDuration = 30;
 export const runtime = 'nodejs';
 const MAX_UPLOAD_SIZE_BYTES = 15 * 1024 * 1024;
@@ -87,6 +88,14 @@ export async function POST(req: NextRequest) {
     const contentType = resolveImageType(file);
     if (!contentType) {
       return NextResponse.json({ error: 'Unsupported file type' }, { status: 400 });
+    }
+    // This route stores the raw upload with no HEIC->browser-safe conversion step
+    // (unlike the presign+complete flow), so it can never safely accept HEIC/HEIF.
+    if (HEIC_TYPES.has(contentType)) {
+      return NextResponse.json(
+        { error: 'תמונות בפורמט HEIC/HEIF אינן נתמכות בנתיב זה. נא לשנות את פורמט התמונה ל-JPG או PNG.' },
+        { status: 400 }
+      );
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());

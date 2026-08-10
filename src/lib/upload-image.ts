@@ -92,22 +92,37 @@ export async function uploadImageDirect(
   await putFileWithProgress(presignedUrl, file, contentType, onProgress);
   onProgress?.(100);
 
+  const completeHeaders = {
+    'Content-Type': 'application/json',
+    ...(authToken ? { Authorization: 'Bearer ' + authToken } : {}),
+    'x-upload-context': keyPrefix === 'onboarding' ? 'onboarding' : 'authenticated',
+  };
+  const completeBody = JSON.stringify({ publicUrl, key, fileName: file.name, contentType, assetKind });
+
+  // Browsers can't render raw HEIC/HEIF bytes, so for those we must wait for the
+  // server to convert the image and hand back a browser-displayable URL before resolving.
+  if (contentType === 'image/heic' || contentType === 'image/heif') {
+    const completeRes = await fetch('/api/upload-image/complete', {
+      method: 'POST',
+      headers: completeHeaders,
+      body: completeBody,
+    });
+
+    if (!completeRes.ok) {
+      const err = await completeRes.json().catch(() => ({}));
+      throw new Error((err as { error?: string })?.error || 'המרת התמונה נכשלה. נא להעלות תמונה בפורמט JPG או PNG.');
+    }
+
+    const { url, metadata } = await completeRes.json();
+    return { url, metadata: metadata || null };
+  }
+
   // The file is already live at `publicUrl` — resolve now so the UI can render it immediately.
   // The Cloudinary migration/metadata persistence is a background nicety and must not block that.
   void fetch('/api/upload-image/complete', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(authToken ? { Authorization: 'Bearer ' + authToken } : {}),
-      'x-upload-context': keyPrefix === 'onboarding' ? 'onboarding' : 'authenticated',
-    },
-    body: JSON.stringify({
-      publicUrl,
-      key,
-      fileName: file.name,
-      contentType,
-      assetKind,
-    }),
+    headers: completeHeaders,
+    body: completeBody,
   }).catch(() => undefined);
 
   return { url: publicUrl, metadata: null };

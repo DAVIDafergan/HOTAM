@@ -29,6 +29,8 @@ async function authenticateRequest(req: NextRequest, requireAuth: boolean) {
   return user;
 }
 
+const BROWSER_UNSAFE_TYPES = new Set(['image/heic', 'image/heif']);
+
 export async function POST(req: NextRequest) {
   try {
     const uploadContext = req.headers.get('x-upload-context');
@@ -38,6 +40,7 @@ export async function POST(req: NextRequest) {
     const publicUrl = typeof body?.publicUrl === 'string' ? body.publicUrl.trim() : '';
     const key = typeof body?.key === 'string' ? body.key.trim() : '';
     const assetKind = body?.assetKind as ImageAssetKind | undefined;
+    const contentType = typeof body?.contentType === 'string' ? body.contentType.trim().toLowerCase() : '';
 
     if (!publicUrl || !key) {
       return NextResponse.json({ error: 'Missing upload payload' }, { status: 400 });
@@ -50,6 +53,60 @@ export async function POST(req: NextRequest) {
     const kind = inferImageKind(assetKind, key.split('/')[0], isOnboarding ? 'certificate' : 'product');
     const uploadContextValue = isOnboarding ? 'onboarding' : 'authenticated';
     const ownerId = user?.id || null;
+    const needsSyncConversion = BROWSER_UNSAFE_TYPES.has(contentType);
+
+    // Browsers can't render raw HEIC/HEIF bytes. For those uploads we must convert
+    // synchronously and hand back a browser-displayable URL — never the raw S3 one.
+    if (needsSyncConversion) {
+      if (!isCloudinaryServerConfigured()) {
+        return NextResponse.json(
+          { error: 'תמונות בפורמט HEIC/HEIF אינן נתמכות כרגע. נא להמיר את התמונה לפורמט JPG או PNG ולנסות שוב.' },
+          { status: 503 }
+        );
+      }
+
+      try {
+        const cloudinaryAsset = await uploadRemoteImageToCloudinary({
+          sourceUrl: publicUrl,
+          sourceKey: key,
+          kind,
+          ownerId,
+          uploadContext: uploadContextValue,
+          forceFormat: 'jpg',
+        });
+
+        const persisted = await persistImageAsset({
+          ownerId,
+          sourceKey: key,
+          sourceUrl: publicUrl,
+          originalS3Url: publicUrl,
+          deliveryUrl: cloudinaryAsset.cloudinary_secure_url || publicUrl,
+          cloudinarySecureUrl: cloudinaryAsset.cloudinary_secure_url || null,
+          cloudinaryPublicId: cloudinaryAsset.cloudinary_public_id || null,
+          blurDataUrl: cloudinaryAsset.blur_data_url || null,
+          width: cloudinaryAsset.width ?? null,
+          height: cloudinaryAsset.height ?? null,
+          kind,
+          uploadContext: uploadContextValue,
+          migrationStatus: 'migrated',
+        });
+
+        if (!cloudinaryAsset.cloudinary_secure_url) {
+          throw new Error('Cloudinary did not return a converted URL');
+        }
+
+        return NextResponse.json({
+          url: cloudinaryAsset.cloudinary_secure_url,
+          metadata: persisted,
+        });
+      } catch (error) {
+        console.error('[upload-image-complete] HEIC conversion failed', error);
+        return NextResponse.json(
+          { error: 'לא ניתן היה להמיר את התמונה. נא להעלות תמונה בפורמט JPG או PNG ולנסות שוב.' },
+          { status: 502 }
+        );
+      }
+    }
 
     const pendingMetadata: Partial<ImageAssetRecord> = {
       source_key: key,

@@ -1,7 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { uploadImageDirect } from '@/lib/upload-image';
 import { compressImageFile } from '@/lib/image-compression';
-import type { ImageAssetKind } from '@/lib/cloudinary-shared';
+import { isCloudinaryConfigured, type ImageAssetKind } from '@/lib/cloudinary-shared';
+
+const HEIC_TYPES = new Set(['image/heic', 'image/heif']);
 
 const ALLOWED_IMAGE_TYPES = new Set([
   'image/jpeg',
@@ -65,6 +67,13 @@ export async function uploadImageAssetViaApi(
   validateUploadFile(file);
   const originalContentType = getImageMimeType(file);
   if (!originalContentType) throw new Error('סוג קובץ לא נתמך.');
+
+  // HEIC/HEIF (the default iPhone photo format) can't be rendered by any browser and
+  // must be converted server-side via Cloudinary — without it configured we'd upload
+  // bytes that will never display, so block early with a clear, actionable message.
+  if (HEIC_TYPES.has(originalContentType) && !isCloudinaryConfigured()) {
+    throw new Error('תמונות בפורמט HEIC/HEIF (ברירת המחדל באייפון) אינן נתמכות כרגע. נא לשנות את פורמט התמונה ל-JPG או PNG ולנסות שוב.');
+  }
 
   // Compress on the client before it ever leaves the device — cuts upload time and storage costs.
   const uploadFile = await compressImageFile(file);

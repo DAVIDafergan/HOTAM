@@ -76,12 +76,14 @@ export async function uploadRemoteImageToCloudinary({
   kind,
   ownerId,
   uploadContext,
+  forceFormat,
 }: {
   sourceUrl: string;
   sourceKey: string;
   kind: ImageAssetKind;
   ownerId?: string | null;
   uploadContext: 'authenticated' | 'onboarding';
+  forceFormat?: string;
 }): Promise<Pick<
   ImageAssetRecord,
   'cloudinary_secure_url' | 'cloudinary_public_id' | 'width' | 'height' | 'blur_data_url' | 'migration_status'
@@ -93,6 +95,9 @@ export async function uploadRemoteImageToCloudinary({
     public_id: publicId,
     overwrite: true,
     resource_type: 'image',
+    // Camera-original formats (HEIC/HEIF) can't be rendered by browsers — force a transcode
+    // to a universally displayable format so the stored delivery URL is never raw HEIC bytes.
+    ...(forceFormat ? { format: forceFormat } : {}),
     tags: ['hotam', `kind:${kind}`, `context:${uploadContext}`],
     context: {
       source_url: sourceUrl,

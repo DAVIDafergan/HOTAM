@@ -4,6 +4,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { createClient } from '@supabase/supabase-js';
 import { buildPublicImageUrl } from '@/lib/s3-upload';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { isCloudinaryServerConfigured } from '@/lib/cloudinary-server';
 
 const ALLOWED_TYPES = new Set([
   'image/jpeg',
@@ -14,6 +15,7 @@ const ALLOWED_TYPES = new Set([
   'image/heic',
   'image/heif',
 ]);
+const HEIC_TYPES = new Set(['image/heic', 'image/heif']);
 const MAX_SIZE = 15 * 1024 * 1024;
 
 export const runtime = 'nodejs';
@@ -52,6 +54,14 @@ export async function POST(req: NextRequest) {
     }
     if (!fileSize || fileSize > MAX_SIZE) {
       return NextResponse.json({ error: 'File too large (max 15MB)' }, { status: 400 });
+    }
+    // HEIC/HEIF can't be rendered by browsers and requires Cloudinary to convert it
+    // after upload — without it configured, don't let the file land in S3 unusably.
+    if (HEIC_TYPES.has(contentType) && !isCloudinaryServerConfigured()) {
+      return NextResponse.json(
+        { error: 'תמונות בפורמט HEIC/HEIF אינן נתמכות כרגע. נא לשנות את פורמט התמונה ל-JPG או PNG ולנסות שוב.' },
+        { status: 503 }
+      );
     }
 
     const region = process.env.AWS_REGION?.trim();

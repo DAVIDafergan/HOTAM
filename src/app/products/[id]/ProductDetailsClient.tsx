@@ -117,8 +117,6 @@ export function ProductDetailsClient({
   const [product, setProduct] = useState<any>(initialProduct);
   const [seller, setSeller] = useState<any>(initialSeller);
   const [isLoadingFallback, setIsLoadingFallback] = useState(!initialProduct && !!productId);
-  const isProductLoading = false;
-  const isSellerLoading = false;
 
   const profileRef = user && profile?.role
     ? doc(db, profile.role === 'seller' ? 'sellers' : 'customers', user.uid)
@@ -495,7 +493,7 @@ export function ProductDetailsClient({
     }
   };
 
-  if ((isProductLoading || isLoadingFallback) && !product) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-12 h-12 animate-spin text-primary" /></div>;
+  if (isLoadingFallback && !product) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-12 h-12 animate-spin text-primary" /></div>;
   if (!product) return <div className="min-h-screen flex items-center justify-center">המוצר לא נמצא</div>;
 
   const rawImages = Array.isArray(product.images) ? product.images : [];
@@ -564,8 +562,7 @@ export function ProductDetailsClient({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-start">
-          {/* Product Images — swipeable gallery (kept from the prior round as an accepted
-              improvement) restored onto the original aspect ratio/sizing/hover treatment. */}
+          {/* Product images — swipeable gallery */}
           <div className="space-y-4">
             <div className="relative group">
               <div
@@ -590,7 +587,7 @@ export function ProductDetailsClient({
                   <Badge variant="destructive" className="px-8 py-3 text-sm font-black uppercase tracking-widest rounded-full shadow-2xl">אזל מהמלאי</Badge>
                 </div>
               )}
-              <div className="absolute bottom-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <div className="absolute bottom-4 left-4 opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
                 <div className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-bold text-primary shadow-md backdrop-blur-sm">
                   <ZoomIn className="w-3.5 h-3.5" />
                   <span>הגדלה</span>
@@ -782,9 +779,7 @@ export function ProductDetailsClient({
 
             <TabsContent value="seller" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
               <div className="max-w-3xl">
-                {isSellerLoading ? (
-                  <div className="flex justify-center py-10"><Loader2 className="w-10 h-10 animate-spin text-primary/30" /></div>
-                ) : seller ? (
+                {seller ? (
                   <div className="flex flex-col md:flex-row items-center gap-10">
                     <div className="relative w-28 h-28 md:w-32 md:h-32 rounded-full overflow-hidden shrink-0 bg-muted flex items-center justify-center ring-1 ring-primary/10">
                       {seller.profile_image ? (
@@ -813,7 +808,11 @@ export function ProductDetailsClient({
                       </div>
                     </div>
                   </div>
-                ) : null}
+                ) : (
+                  <p className="text-muted-foreground text-sm font-bold py-10 text-center md:text-right">
+                    פרטי הסופר אינם זמינים כרגע.
+                  </p>
+                )}
               </div>
             </TabsContent>
 
@@ -925,7 +924,7 @@ export function ProductDetailsClient({
                                 size="sm"
                                 onClick={() => handleDeleteProductReview(rev.id)}
                                 disabled={deletingReviewId === rev.id}
-                                className="h-6 px-2 text-[11px] text-destructive/50 hover:text-destructive hover:bg-destructive/5 gap-1 rounded-full"
+                                className="h-8 px-2 text-[11px] text-destructive/50 hover:text-destructive hover:bg-destructive/5 gap-1 rounded-full"
                               >
                                 {deletingReviewId === rev.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
                                 מחק

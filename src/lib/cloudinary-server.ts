@@ -3,6 +3,7 @@ import {
   type ImageAssetKind,
   type ImageAssetRecord,
   buildCloudinaryImageUrl,
+  buildHotamPublicId,
   getCloudinaryCloudName,
   getImageBlurDataUrl,
 } from '@/lib/cloudinary-shared';
@@ -53,8 +54,7 @@ export function ensureCloudinaryServerConfig() {
 }
 
 function buildPublicId(sourceKey: string, kind: ImageAssetKind) {
-  const withoutExtension = sourceKey.replace(/\.[a-z0-9]+$/i, '');
-  return `hotam/${kind}/${withoutExtension.replace(/[^a-zA-Z0-9/_-]/g, '_')}`;
+  return buildHotamPublicId(kind, sourceKey);
 }
 
 async function createBlurDataUrl(secureUrl: string, kind: ImageAssetKind) {

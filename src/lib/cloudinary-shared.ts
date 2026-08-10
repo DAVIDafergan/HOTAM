@@ -232,6 +232,26 @@ export function isRemoteImageUrl(src?: string | null) {
   return Boolean(src && /^https?:\/\//.test(src));
 }
 
+// Single source of truth for the Cloudinary public_id scheme, shared between the server
+// (which computes it once at upload time in cloudinary-server.ts) and the client (which
+// re-derives the identical id at render time below) — the two must never drift apart.
+export function buildHotamPublicId(kind: ImageAssetKind, sourceKey: string): string {
+  const withoutExtension = sourceKey.replace(/\.[a-z0-9]+$/i, '');
+  return `hotam/${kind}/${withoutExtension.replace(/[^a-zA-Z0-9/_-]/g, '_')}`;
+}
+
+function buildS3UploadPublicId(kind: ImageAssetKind, src: string): string | null {
+  if (!isS3Url(src)) return null;
+  try {
+    const { pathname } = new URL(src);
+    const sourceKey = decodeURIComponent(pathname.replace(/^\/+/, ''));
+    if (!sourceKey) return null;
+    return buildHotamPublicId(kind, sourceKey);
+  } catch {
+    return null;
+  }
+}
+
 export function inferImageKind(
   assetKind?: ImageAssetKind | null,
   keyPrefix?: string | null,
@@ -302,6 +322,28 @@ export function buildCloudinaryImageUrl(
   }
 
   return `https://${CLOUDINARY_HOST}/${cloudName}/image/fetch/${transformation}/${encodeCloudinaryFetchUrl(src)}`;
+}
+
+// Every S3/CloudFront-hosted upload is mirrored to a permanent Cloudinary asset in the
+// background right after upload (see uploadRemoteImageToCloudinary in cloudinary-server.ts),
+// using this exact deterministic public_id. That asset serves `Cache-Control: public,
+// immutable, max-age=2592000` — versus the `image/fetch` URL from buildCloudinaryImageUrl,
+// which re-fetches+transforms from origin on every distinct size/DPR and comes back
+// `private` (measured ~1s cold vs ~150ms warm). Since the id is derivable with no lookup,
+// callers can try this first and fall back to buildCloudinaryImageUrl if it 404s (the mirror
+// hasn't landed yet, or never will for a legacy/failed-migration asset).
+export function buildCloudinaryFastUploadUrl(
+  src: string,
+  { kind = 'generic', width, quality }: { kind?: ImageAssetKind; width?: number; quality?: number } = {}
+): string | null {
+  const cloudName = getCloudinaryCloudName();
+  if (!cloudName) return null;
+
+  const publicId = buildS3UploadPublicId(kind, src);
+  if (!publicId) return null;
+
+  const transformation = buildTransformSegments(getTransformConfig(kind, width, quality)).join(',');
+  return `https://${CLOUDINARY_HOST}/${cloudName}/image/upload/${transformation}/${publicId}`;
 }
 
 export function smartImageLoader({

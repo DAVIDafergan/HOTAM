@@ -52,6 +52,10 @@ import unsplashLoader from '@/lib/unsplashLoader';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { loadGoogleMapsPlacesScript } from '@/lib/google-maps';
 
+const orderStatusLabels: Record<string, string> = {
+  torah_request: 'בקשת תיאום',
+};
+
 export default function CustomerDashboard() {
   const { user, isUserLoading } = useUser();
   const { profile, isProfileLoading } = useApp();
@@ -530,7 +534,7 @@ export default function CustomerDashboard() {
                               <Badge className="bg-blue-50 text-blue-600 border-none font-black text-[9px] uppercase px-2 py-0.5 rounded-full"><ShieldCheck className="w-3 h-3 ml-1" /> בהקפאה</Badge>
                             ) : order.status === 'completed' ? (
                               <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[9px] uppercase px-2 py-0.5 rounded-full"><CheckCircle2 className="w-3 h-3 ml-1" /> הושלמה</Badge>
-                            ) : <Badge variant="outline" className="text-[9px] font-black uppercase rounded-full px-2">{order.status}</Badge>}
+                            ) : <Badge variant="outline" className="text-[9px] font-black uppercase rounded-full px-2">{orderStatusLabels[order.status] || 'בטיפול'}</Badge>}
                           </div>
                           <span className="text-[10px] text-muted-foreground font-bold flex items-center gap-1"><Clock className="w-3 h-3" /> {order.created_at ? new Date(order.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
                         </div>

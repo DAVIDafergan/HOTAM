@@ -871,7 +871,7 @@ function SearchContent() {
                     </span>
                   </div>
                 </div>
-                <div className="w-full shrink-0 px-1 text-right md:w-auto">
+                <div className="order-first w-full shrink-0 px-1 text-right md:order-none md:w-auto">
                   <h2 className="text-2xl md:text-4xl font-headline font-black text-primary tracking-tighter">מוצרים שנמצאו ({filteredProducts.length})</h2>
                 </div>
               </div>

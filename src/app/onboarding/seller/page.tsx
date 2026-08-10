@@ -759,7 +759,7 @@ export default function SellerOnboarding() {
                         <Label>סיסמה (לפחות 6 תווים) *</Label>
                         <div className="relative">
                           <Input type={showPassword ? "text" : "password"} autoComplete="new-password" value={formData.password} onChange={(e) => updateFieldWithValidation('password', e.target.value)} onBlur={() => handleFieldBlur('password')} required className={cn("text-slate-900 rounded-xl h-12", fieldErrors.password && "border-destructive")} />
-                          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground p-1">{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button>
+                          <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "הסתר סיסמה" : "הצג סיסמה"} className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground p-2">{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button>
                         </div>
                         <FieldError message={fieldErrors.password} />
                       </div>

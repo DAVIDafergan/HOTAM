@@ -6,6 +6,7 @@ import { ClientWrapper } from '@/components/ClientWrapper';
 import { Analytics } from '@vercel/analytics/next';
 import { Assistant } from 'next/font/google';
 import { AccessibilityButton } from '@/components/AccessibilityButton';
+import { SplashScreen } from '@/components/SplashScreen';
 
 // Assistant is a geometric, crisp Hebrew font with straight letterform strokes — used
 // site-wide for both headings and body copy, distinguished only by font-weight (see
@@ -122,6 +123,7 @@ export default function RootLayout({
         <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[200] focus:bg-white focus:p-4 focus:rounded-xl focus:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary">
           דילוג לתוכן המרכזי
         </a>
+        <SplashScreen />
         <SupabaseClientProvider>
           <ClientWrapper>
             <div id="main-content">

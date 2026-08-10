@@ -1866,7 +1866,7 @@ function VerifyScribeDialog({ scribe, db }: any) {
               <div>
                 <p>{scribe.first_name} {scribe.last_name}</p>
                 <div className="flex items-center gap-1 mt-1">
-                   {[1,2,3,4,5].map(s => <Star key={s} className={`w-3 s ${s <= averageRating ? 'text-accent fill-accent' : 'text-white/20'}`} />)}
+                   {[1,2,3,4,5].map(s => <Star key={s} className={`w-3 h-3 ${s <= averageRating ? 'text-accent fill-accent' : 'text-white/20'}`} />)}
                    <span className="text-[8px] opacity-60 mr-2">({reviews?.length || 0} ביקורות)</span>
                 </div>
               </div>

@@ -238,7 +238,7 @@ function SellerDashboardContent() {
     if (!canLoadData) return null;
     return query(collection(db, 'orders'), where('seller_id', '==', user.uid));
   }, [db, user?.uid, canLoadData]);
-  const { data: ordersData } = useCollection<any>(ordersQuery);
+  const { data: ordersData, isLoading: isOrdersLoading } = useCollection<any>(ordersQuery);
   const orders = (ordersData || []).filter((o: any) => o.status !== 'pending_payment').sort((a: any, b: any) => {
     const timeA = a.created_at?.toDate ? a.created_at.toDate().getTime() : 0;
     const timeB = b.created_at?.toDate ? b.created_at.toDate().getTime() : 0;
@@ -1140,8 +1140,12 @@ function SellerDashboardContent() {
           </div>
 
           <TabsContent value="inventory" className="space-y-4">
-             {products.length === 0 && <div className="py-24 text-center bg-white rounded-[2rem] border-2 border-dashed text-muted-foreground italic">אין מוצרים במלאי. לחץ על כפתור הפלוס להוספה.</div>}
-             {paginatedProducts.map((p: any) => (
+             {isProductsLoading ? (
+               <div className="py-24 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary/40" /></div>
+             ) : products.length === 0 ? (
+               <div className="py-24 text-center bg-white rounded-[2rem] border-2 border-dashed text-muted-foreground italic">אין מוצרים במלאי. לחץ על כפתור הפלוס להוספה.</div>
+             ) : null}
+             {!isProductsLoading && paginatedProducts.map((p: any) => (
                <Card key={p.id} className="border-none shadow-premium rounded-[2rem] bg-white p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
                  <div className="w-20 h-20 bg-muted rounded-2xl shrink-0 overflow-hidden relative border"><Image src={p.images?.[0] || logoImg} alt="product" fill kind="product" sizes="80px" className="object-cover" /></div>
                  <div className="flex-1 text-right w-full">
@@ -1150,9 +1154,9 @@ function SellerDashboardContent() {
                     <div className="flex items-center justify-end gap-3 mt-2">
                        <Badge variant="secondary" className="font-black text-xs">₪{Number(p.price || 0).toLocaleString('he-IL')}</Badge>
                        <div className="flex items-center bg-muted/30 rounded-full px-2 py-1 gap-2 border">
-                          <button onClick={() => updateStock(p.id, -1)} disabled={p.quantity <= 0} className="w-6 h-6 rounded-full bg-white shadow-sm flex items-center justify-center hover:bg-destructive/10 text-destructive disabled:opacity-30"><Minus className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => updateStock(p.id, -1)} disabled={p.quantity <= 0} aria-label="הפחת מהמלאי" className="w-9 h-9 rounded-full bg-white shadow-sm flex items-center justify-center hover:bg-destructive/10 text-destructive disabled:opacity-30"><Minus className="w-3.5 h-3.5" /></button>
                           <span className="text-[10px] font-black text-primary px-1">מלאי: {p.quantity}</span>
-                          <button onClick={() => updateStock(p.id, 1)} className="w-6 h-6 rounded-full bg-white shadow-sm flex items-center justify-center hover:bg-emerald-100 text-emerald-600"><Plus className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => updateStock(p.id, 1)} aria-label="הוסף למלאי" className="w-9 h-9 rounded-full bg-white shadow-sm flex items-center justify-center hover:bg-emerald-100 text-emerald-600"><Plus className="w-3.5 h-3.5" /></button>
                        </div>
                     </div>
                  </div>
@@ -1166,7 +1170,9 @@ function SellerDashboardContent() {
           </TabsContent>
 
           <TabsContent value="sales" className="space-y-4">
-             {orders.length > 0 ? (
+             {isOrdersLoading ? (
+               <div className="py-20 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary/40" /></div>
+             ) : orders.length > 0 ? (
                <div className="grid gap-4">
                  {paginatedOrders.map((o: any) => {
                    const isExpanded = expandedOrderId === o.id;
@@ -1438,7 +1444,7 @@ function SellerDashboardContent() {
                                       <span className="text-[10px] font-black text-white uppercase tracking-widest">מעלה תעודה... {uploadProgress.certificate}%</span>
                                     </div>
                                   ) : (
-                                    <button onClick={() => { void cleanupImages(profileData.certificate_url ? [profileData.certificate_url] : []); setProfileData({...profileData, certificate_url: ''}); }} className="absolute top-2 right-2 bg-destructive text-white rounded-full p-1 shadow-lg hover:scale-110 transition-transform"><X className="w-4 h-4" /></button>
+                                    <button onClick={() => { void cleanupImages(profileData.certificate_url ? [profileData.certificate_url] : []); setProfileData({...profileData, certificate_url: ''}); }} aria-label="הסר תעודה" className="absolute top-2 right-2 bg-destructive text-white rounded-full p-1.5 shadow-lg hover:scale-110 transition-transform"><X className="w-4 h-4" /></button>
                                   )}
                                 </div>
                               ) : (
@@ -1576,7 +1582,7 @@ function SellerDashboardContent() {
                             {profileData.writing_samples.map((img, idx) => (
                               <div key={`${img}-${idx}`} className="relative aspect-square rounded-2xl overflow-hidden border shadow-sm group">
                                 <Image src={img} alt="Sample" fill kind="writing_sample" sizes="(max-width: 640px) 50vw, 25vw" className="object-cover" />
-                                <button onClick={() => { const targetUrl = profileData.writing_samples[idx]; void cleanupImages(targetUrl ? [targetUrl] : []); setProfileData({...profileData, writing_samples: profileData.writing_samples.filter((_, i) => i !== idx)}); }} className="absolute top-2 right-2 bg-destructive text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"><X className="w-3 h-3" /></button>
+                                <button onClick={() => { const targetUrl = profileData.writing_samples[idx]; void cleanupImages(targetUrl ? [targetUrl] : []); setProfileData({...profileData, writing_samples: profileData.writing_samples.filter((_, i) => i !== idx)}); }} aria-label="הסר דוגמת כתיבה" className="absolute top-2 right-2 bg-destructive text-white rounded-full p-1.5 opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity"><X className="w-3.5 h-3.5" /></button>
                               </div>
                             ))}
                             {samplesLocalPreviews.map((localUrl, idx) => (

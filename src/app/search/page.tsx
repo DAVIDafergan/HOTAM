@@ -596,7 +596,7 @@ function SearchContent() {
       <FilterSection title="מאפייני כתיבה" icon={<Scroll className="w-3.5 h-3.5 text-accent" />} defaultOpen>
         <div className="space-y-4 pt-2">
           <div className="space-y-2">
-            <Label className="font-black text-primary text-[10px] uppercase tracking-widest opacity-40">סוג כתב ומסורת</Label>
+            <Label className="font-black text-muted-foreground text-[10px] uppercase tracking-widest">סוג כתב ומסורת</Label>
             <RadioGroup value={scriptType} onValueChange={setScriptType} className="grid grid-cols-1 gap-1.5">
               {[
                 { v: 'all', l: 'כל המסורות' },
@@ -612,7 +612,7 @@ function SearchContent() {
 
           {getParchmentSizes(selectedProduct, scriptType).length > 0 && (
             <div className="space-y-2 animate-in fade-in">
-              <Label className="font-black text-primary text-[10px] uppercase tracking-widest opacity-40">גודל (ס"מ)</Label>
+              <Label className="font-black text-muted-foreground text-[10px] uppercase tracking-widest">גודל (ס"מ)</Label>
               <RadioGroup value={scrollSize} onValueChange={setScrollSize} className="grid grid-cols-2 gap-1.5">
                 <CustomFilterTile value="other" label="שאר הגדלים" active={scrollSize === 'other'} />
                 {getParchmentSizes(selectedProduct, scriptType).map((size) => (

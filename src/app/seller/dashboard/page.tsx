@@ -1442,7 +1442,7 @@ function SellerDashboardContent() {
                                   )}
                                 </div>
                               ) : (
-                                <button type="button" onClick={() => certInputRef.current?.click()} className="w-full cursor-pointer py-10 flex flex-col items-center text-accent hover:opacity-80 transition-opacity">
+                                <button type="button" onClick={() => certInputRef.current?.click()} className="w-full cursor-pointer py-10 flex flex-col items-center text-accent-strong hover:opacity-80 transition-opacity">
                                   <div className="flex gap-4 mb-2">
                                     <ImageIcon className="w-10 h-10" />
                                     <Camera className="w-10 h-10" />

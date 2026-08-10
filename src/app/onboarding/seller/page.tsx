@@ -82,6 +82,10 @@ function validateOnboardingField(
       return !value.trim() ? 'יש להזין עיר' : undefined;
     case 'address':
       return !value.trim() ? 'יש להזין כתובת' : undefined;
+    case 'notes':
+      return !value.trim() ? 'יש לפרט על ההסמכה וההנהגה האישית שלך' : undefined;
+    case 'experienceYears':
+      return !value ? 'יש להזין שנות ניסיון' : undefined;
     default:
       return undefined;
   }
@@ -270,6 +274,7 @@ export default function SellerOnboarding() {
         ? prev.scriptTypes.filter(t => t !== type)
         : [...prev.scriptTypes, type]
     }));
+    setFieldErrors(prev => ({ ...prev, scriptTypes: undefined }));
   };
 
   const [uploadProgress, setUploadProgress] = useState<{ cert: number | null; samples: number | null }>({
@@ -397,12 +402,16 @@ export default function SellerOnboarding() {
       }
     }
     if (step === 3) {
-      if (!formData.notes) {
-        toast({ variant: "destructive", title: "פרטים חסרים", description: "אנא פרט על ההסמכה וההנהגה האישית שלך." });
-        return false;
-      }
-      if (!formData.experienceYears || formData.scriptTypes.length === 0) {
-        toast({ variant: "destructive", title: "פרטים חסרים", description: "אנא מלא את שנות הניסיון וסוגי הכתב." });
+      const stepFields = ['notes', 'experienceYears'];
+      const nextErrors: Record<string, string | undefined> = {};
+      stepFields.forEach((field) => {
+        nextErrors[field] = validateOnboardingField(field, String((formData as any)[field] ?? ''), { isExistingCustomer });
+      });
+      nextErrors.scriptTypes = formData.scriptTypes.length === 0 ? 'יש לבחור לפחות סוג כתב אחד' : undefined;
+      setFieldErrors(prev => ({ ...prev, ...nextErrors }));
+      setTouchedFields(prev => ({ ...prev, ...Object.fromEntries(stepFields.map((field) => [field, true])), scriptTypes: true }));
+      if (Object.values(nextErrors).some(Boolean)) {
+        toast({ variant: "destructive", title: "פרטים חסרים", description: "אנא תקן/י את השדות המסומנים באדום." });
         return false;
       }
     }
@@ -423,12 +432,19 @@ export default function SellerOnboarding() {
     return true;
   };
 
+  const scrollToFirstError = () => {
+    setTimeout(() => {
+      document.querySelector('.border-destructive')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 50);
+  };
+
   const nextStep = () => {
     if (validateStep()) setStep(s => Math.min(s + 1, totalSteps));
+    else scrollToFirstError();
   };
 
   const handleFinalSubmit = async () => {
-    if (!validateStep()) return;
+    if (!validateStep()) { scrollToFirstError(); return; }
     setLoading(true);
 
     try {
@@ -567,14 +583,14 @@ export default function SellerOnboarding() {
               <div key={meta.id} className="flex-1 flex items-center gap-2">
                 <div
                   className={cn(
-                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-black transition-all duration-300",
+                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-black transition-all duration-300",
                     step > meta.id ? "bg-primary text-white" : step === meta.id ? "bg-primary text-white ring-4 ring-primary/15" : "bg-primary/10 text-primary/40"
                   )}
                 >
                   {step > meta.id ? '✓' : meta.id}
                 </div>
                 {idx < STEP_META.length - 1 && (
-                  <div className="h-1 flex-1 rounded-full bg-primary/10 overflow-hidden">
+                  <div className="h-1.5 flex-1 rounded-full bg-primary/10 overflow-hidden">
                     <div
                       className="h-full bg-primary transition-all duration-500 ease-out"
                       style={{ width: step > meta.id ? '100%' : '0%' }}
@@ -833,13 +849,15 @@ export default function SellerOnboarding() {
 
                   <div className="space-y-2">
                     <Label className="font-bold">פרט על ההסמכה ואורח החיים הרוחני שלך *</Label>
-                    <Textarea placeholder="למדתי אצל הרב..., אני נוהג לטבול ב..., סדר היום שלי כולל..." value={formData.notes} onChange={(e) => updateField('notes', e.target.value)} required className="text-slate-900 rounded-2xl min-h-[120px]" />
+                    <Textarea placeholder="למדתי אצל הרב..., אני נוהג לטבול ב..., סדר היום שלי כולל..." value={formData.notes} onChange={(e) => updateFieldWithValidation('notes', e.target.value)} onBlur={() => handleFieldBlur('notes')} required className={cn("text-slate-900 rounded-2xl min-h-[120px]", fieldErrors.notes && "border-destructive")} />
+                    <FieldError message={fieldErrors.notes} />
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-8">
                     <div className="space-y-2">
                       <Label className="font-bold">שנות ניסיון במלאכת הקודש *</Label>
-                      <Input type="number" value={formData.experienceYears} onChange={(e) => updateField('experienceYears', e.target.value)} required className="text-slate-900 rounded-xl h-12" />
+                      <Input type="number" value={formData.experienceYears} onChange={(e) => updateFieldWithValidation('experienceYears', e.target.value)} onBlur={() => handleFieldBlur('experienceYears')} required className={cn("text-slate-900 rounded-xl h-12", fieldErrors.experienceYears && "border-destructive")} />
+                      <FieldError message={fieldErrors.experienceYears} />
                     </div>
                     <div className="space-y-2">
                       <Label className="font-bold">רמת הידור ממוצעת *</Label>
@@ -882,6 +900,7 @@ export default function SellerOnboarding() {
                         </div>
                       ))}
                     </div>
+                    <FieldError message={fieldErrors.scriptTypes} />
                   </div>
                 </motion.div>
               )}
@@ -955,8 +974,8 @@ export default function SellerOnboarding() {
                     <input type="file" ref={samplesInputRef} onChange={(e) => handleFileUpload(e, 'samples')} className="hidden" multiple accept="image/*" />
                   </div>
 
-                  <div className="flex items-start space-x-reverse space-x-3 p-5 bg-primary/5 rounded-2xl border border-primary/10">
-                    <Checkbox id="terms" checked={termsAccepted} onCheckedChange={(v) => setTermsAccepted(!!v)} className="mt-1" />
+                  <div className="flex items-start space-x-reverse space-x-3 p-5 bg-primary/5 rounded-2xl border border-primary/10 min-h-[48px]">
+                    <Checkbox id="terms" checked={termsAccepted} onCheckedChange={(v) => setTermsAccepted(!!v)} className="mt-1 h-5 w-5" />
                     <Label htmlFor="terms" className="text-[11px] font-bold leading-relaxed cursor-pointer">אני מצהיר כי כל הפרטים שהזנתי נכונים, ומתחייב לעסוק במלאכת הקודש בקדושה, טהרה ויראת שמיים. אני מאשר את <Link href="/terms" target="_blank" className="underline font-black text-primary hover:text-primary/70">תנאי השימוש ומדיניות הפרטיות</Link> של הפלטפורמה.</Label>
                   </div>
                 </motion.div>

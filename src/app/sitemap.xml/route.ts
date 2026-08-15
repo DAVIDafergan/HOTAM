@@ -1,5 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 
+// Regenerate at most once an hour instead of being cached indefinitely
+// (Route Handlers with no explicit revalidation can otherwise be frozen
+// at the value first computed, surviving across deployments).
+export const revalidate = 3600;
+
 const BASE_URL = 'https://www.hotam.shop';
 
 function escapeXml(value: string): string {
@@ -101,6 +106,7 @@ ${allEntries.map(renderUrlEntry).join('\n')}
   return new Response(xml, {
     headers: {
       'Content-Type': 'application/xml; charset=utf-8',
+      'Cache-Control': 'public, max-age=0, s-maxage=3600, must-revalidate',
     },
   });
 }

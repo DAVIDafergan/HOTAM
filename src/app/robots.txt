@@ -6,4 +6,4 @@ Disallow: /customer/dashboard/
 Disallow: /chat/
 Disallow: /api/
 
-Sitemap: https://hotam.shop/sitemap.xml
+Sitemap: https://www.hotam.shop/sitemap.xml

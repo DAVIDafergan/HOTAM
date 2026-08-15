@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     template: '%s | חותם - כלי קודש מהודרים'
   },
   description: 'חותם היא זירת מסחר יוקרתית לכלי קודש מהודרים — ספרי תורה, תפילין, מזוזות ויודאיקה ישירות מסופרי סת\'\'ם מוסמכים, עם שקיפות מלאה וליווי אישי.',
-  metadataBase: new URL('https://hotam.shop'),
+  metadataBase: new URL('https://www.hotam.shop'),
   alternates: {
     canonical: '/',
   },
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'חותם - זירת המסחר היוקרתית לכלי קודש מהודרים',
     description: 'ספרי תורה, תפילין, מזוזות ויודאיקה ישירות מהסופר — שקיפות מלאה, כשרות ללא פשרות וחוויית רכישה יוקרתית.',
-    url: 'https://hotam.shop',
+    url: 'https://www.hotam.shop',
     siteName: 'חותם',
     locale: 'he_IL',
     type: 'website',
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'חותם - כלי קודש מהודרים',
     description: 'זירת המסחר היוקרתית של עולם הסת\'\'ם.',
-    images: ['https://hotam.shop/og-image.png'],
+    images: ['https://www.hotam.shop/og-image.png'],
   },
   icons: {
     icon: [
@@ -108,8 +108,8 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "Organization",
               "name": "חותם - Hotam",
-              "url": "https://hotam.shop",
-              "logo": "https://hotam.shop/icon.svg",
+              "url": "https://www.hotam.shop",
+              "logo": "https://www.hotam.shop/icon.svg",
               "description": "זירת המסחר המובילה לכלי קודש מהודרים ישירות מסופרי סת''ם.",
               "address": {
                 "@type": "PostalAddress",

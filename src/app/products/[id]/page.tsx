@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         title: pageTitle,
         description: description,
         images: [{ url: imageUrl, width: 800, height: 600, alt: pageTitle }],
-        url: `https://hotam.shop/products/${id}`,
+        url: `https://www.hotam.shop/products/${id}`,
         type: 'website'
       },
       twitter: {
@@ -85,7 +85,7 @@ export default async function ProductPage({ params }: Props) {
       "price": Number(fields.price ?? 0),
       "priceCurrency": "ILS",
       "availability": Number(fields.quantity ?? 0) > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-      "url": `https://hotam.shop/products/${id}`
+      "url": `https://www.hotam.shop/products/${id}`
     }
   } : null;
 

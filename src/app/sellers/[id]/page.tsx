@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const pageTitle = `${seller.first_name} ${seller.last_name} — סופר סת"ם | חותם`;
     const description = seller.notes || `סופר סת"ם מוסמך עם ${seller.experience_years} שנות ניסיון. צפו בפרופיל המלא וביצירות שלו באתר חותם.`;
     const imageUrl = seller.profile_image || DEFAULT_OG_IMAGE;
-    const pageUrl = `https://hotam.shop/sellers/${id}`;
+    const pageUrl = `https://www.hotam.shop/sellers/${id}`;
 
     return {
       title: pageTitle,

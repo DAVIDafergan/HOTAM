@@ -10,7 +10,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/search',
     '/diagnosis',
     '/contact',
-    '/legal/tatpro',
     '/login',
     '/register',
     '/terms',

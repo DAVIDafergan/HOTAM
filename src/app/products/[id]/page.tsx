@@ -74,19 +74,34 @@ export default async function ProductPage({ params }: Props) {
   const [seller, reviews] = await Promise.all([sellerPromise, reviewsPromise]);
   
   // Dynamic JSON-LD for Search Engine Rich Results
+  const productName = fields
+    ? `${fields.product_type || 'מוצר קודש'}${fields.sub_type && fields.sub_type !== 'all' ? ` ${fields.sub_type}` : ''}`
+    : '';
   const jsonLd = fields ? {
     "@context": "https://schema.org",
     "@type": "Product",
-    "name": fields.product_type || 'מוצר קודש',
+    "name": productName,
     "description": fields.description || 'מוצר קודש מהודר מחותם',
     "image": Array.isArray(fields.images) ? (fields.images[0] || '') : '',
+    ...(seller ? { "brand": { "@type": "Brand", "name": `${seller.first_name} ${seller.last_name}` } } : {}),
     "offers": {
       "@type": "Offer",
       "price": Number(fields.price ?? 0),
       "priceCurrency": "ILS",
       "availability": Number(fields.quantity ?? 0) > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-      "url": `https://www.hotam.shop/products/${id}`
+      "url": `https://www.hotam.shop/products/${id}`,
+      ...(seller ? { "seller": { "@type": "Person", "name": `${seller.first_name} ${seller.last_name}` } } : {}),
     }
+  } : null;
+
+  const breadcrumbJsonLd = fields ? {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "חותם", "item": "https://www.hotam.shop" },
+      { "@type": "ListItem", "position": 2, "name": "חיפוש כלי קודש", "item": "https://www.hotam.shop/search" },
+      { "@type": "ListItem", "position": 3, "name": productName, "item": `https://www.hotam.shop/products/${id}` },
+    ],
   } : null;
 
   return (
@@ -95,6 +110,12 @@ export default async function ProductPage({ params }: Props) {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
+      {breadcrumbJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
         />
       )}
       <ProductDetailsClient

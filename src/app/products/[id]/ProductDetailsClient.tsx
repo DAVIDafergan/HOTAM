@@ -578,7 +578,7 @@ export function ProductDetailsClient({
                     onClick={() => openImageZoom(i)}
                     className="relative w-full h-full shrink-0 snap-center text-right"
                   >
-                    <Image loader={unsplashLoader} src={img} alt={product.product_type} fill priority={i === 0} kind="product" sizes="(max-width: 768px) 100vw, 50vw" className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]" />
+                    <Image loader={unsplashLoader} src={img} alt={`${productDisplayTitle} - תמונה ${i + 1} מתוך ${images.length}`} fill priority={i === 0} kind="product" sizes="(max-width: 768px) 100vw, 50vw" className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]" />
                   </button>
                 ))}
               </div>
@@ -624,7 +624,7 @@ export function ProductDetailsClient({
                       selectedImageIdx === i ? 'ring-2 ring-primary ring-offset-2' : 'ring-1 ring-primary/10 opacity-70 hover:opacity-100 hover:ring-primary/30'
                     )}
                   >
-                    <Image loader={unsplashLoader} src={img} alt="Thumb" fill kind="product" sizes="80px" className="object-cover" />
+                    <Image loader={unsplashLoader} src={img} alt={`תמונה ממוזערת ${i + 1} - ${productDisplayTitle}`} fill kind="product" sizes="80px" className="object-cover" />
                   </button>
                 ))}
               </div>

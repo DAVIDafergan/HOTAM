@@ -473,7 +473,7 @@ export default function SellerProfile({
                         <div className="relative w-full aspect-[1/1.4] max-h-[70vh]">
                            <Image 
                              src={seller.certificate_url} 
-                             alt="תעודת סופר" 
+                             alt={`תעודת סופר - ${sellerFullName}`}
                              fill 
                              className="object-contain"
                            />
@@ -838,7 +838,7 @@ export default function SellerProfile({
               {selectedWritingSample && (
                 <Image
                   src={selectedWritingSample}
-                  alt="דוגמת כתיבה"
+                  alt={`דוגמת כתיבה - ${sellerFullName}`}
                   fill
                   className="object-contain transition-transform duration-150"
                   style={{

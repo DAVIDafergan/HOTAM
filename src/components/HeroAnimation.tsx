@@ -566,7 +566,7 @@ export function HeroAnimation() {
           <Image
             loader={unsplashLoader}
             src={heroImg.imageUrl}
-            alt="Hebrew Script"
+            alt="רקע כתב סת''ם - חותם, זירת המסחר לכלי קודש מהודרים"
             fill
             priority
             kind="hero"

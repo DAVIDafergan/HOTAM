@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const id = resolvedParams?.id;
 
     if (!id || id === 'favicon.ico') {
-      return { title: 'פרופיל סופר סת"ם | חותם' };
+      return { title: 'פרופיל סופר סת"ם | חותם', robots: { index: false, follow: true } };
     }
 
     const seller = await getPublicSellerById(id);
@@ -22,6 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       return {
         title: 'סופר לא נמצא | חותם',
         description: 'מצטערים, פרופיל הסופר המבוקש אינו זמין כעת.',
+        robots: { index: false, follow: true },
       };
     }
 
@@ -33,6 +34,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
       title: pageTitle,
       description,
+      alternates: {
+        canonical: `/sellers/${id}`,
+      },
       openGraph: {
         title: pageTitle,
         description,
@@ -56,7 +60,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   } catch (error) {
     console.error('Seller metadata generation error:', error);
-    return { title: 'פרופיל סופר סת"ם | חותם' };
+    return { title: 'פרופיל סופר סת"ם | חותם', robots: { index: false, follow: true } };
   }
 }
 

@@ -14,15 +14,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const id = resolvedParams?.id;
     
     if (!id || id === 'favicon.ico') {
-      return { title: 'מוצר קודש מהודר' };
+      return { title: 'מוצר קודש מהודר', robots: { index: false, follow: true } };
     }
 
     const fields = await getPublicProductById(id);
-    
+
     if (!fields) {
       return {
         title: 'מוצר לא נמצא | חותם',
         description: 'מצטערים, המוצר המבוקש אינו זמין כעת.',
+        robots: { index: false, follow: true },
       };
     }
 
@@ -42,6 +43,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
       title: pageTitle,
       description: description,
+      alternates: {
+        canonical: `/products/${id}`,
+      },
       openGraph: {
         title: pageTitle,
         description: description,
@@ -58,7 +62,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   } catch (error) {
     console.error("Metadata generation error:", error);
-    return { title: 'חותם - כלי קודש מהודרים' };
+    return { title: 'חותם - כלי קודש מהודרים', robots: { index: false, follow: true } };
   }
 }
 

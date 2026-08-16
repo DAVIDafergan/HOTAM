@@ -18,23 +18,33 @@ export const metadata: Metadata = {
 };
 
 const PRODUCTS_LIMIT = 50;
+const SELLERS_LIMIT = 200;
 
 export default async function SearchPage() {
   let initialProducts: any[] = [];
+  let initialSellers: any[] = [];
   try {
     const supabase = await createSupabaseServerClient();
     if (supabase) {
-      const { data } = await supabase
-        .from('products')
-        .select('*')
-        .gt('quantity', 0)
-        .order('created_at', { ascending: false })
-        .limit(PRODUCTS_LIMIT);
-      initialProducts = data || [];
+      const [{ data: products }, { data: sellers }] = await Promise.all([
+        supabase
+          .from('products')
+          .select('*')
+          .gt('quantity', 0)
+          .order('created_at', { ascending: false })
+          .limit(PRODUCTS_LIMIT),
+        supabase
+          .from('sellers')
+          .select('*')
+          .eq('is_approved', true)
+          .limit(SELLERS_LIMIT),
+      ]);
+      initialProducts = products || [];
+      initialSellers = sellers || [];
     }
   } catch (e) {
-    console.error('Search page initial product fetch failed:', e);
+    console.error('Search page initial data fetch failed:', e);
   }
 
-  return <SearchPageClient initialProducts={initialProducts} />;
+  return <SearchPageClient initialProducts={initialProducts} initialSellers={initialSellers} />;
 }

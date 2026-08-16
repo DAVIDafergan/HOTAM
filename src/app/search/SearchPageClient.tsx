@@ -79,7 +79,7 @@ const SORT_OPTIONS = [
 ] as const;
 const sanitizePriceInput = (value: string) => value.replace(/[^\d]/g, '');
 
-function SearchContent({ initialProducts }: { initialProducts?: any[] }) {
+function SearchContent({ initialProducts, initialSellers }: { initialProducts?: any[]; initialSellers?: any[] }) {
   const { toast } = useToast();
   const shouldReduceMotion = useReducedMotion();
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
@@ -154,7 +154,11 @@ function SearchContent({ initialProducts }: { initialProducts?: any[] }) {
   const isLoading = isProductsHookLoading && !(initialProducts && initialProducts.length > 0);
 
   const sellersQuery = useMemoStable(() => query(collection(db, 'sellers'), where('is_approved', '==', true), limit(200)), [db]);
-  const { data: allSellers } = useCollection<any>(sellersQuery);
+  const { data: allSellersFromHook } = useCollection<any>(sellersQuery);
+  // Every product's matchApproved filter requires its seller record, so without
+  // this seed every product was excluded during SSR (0 results server-rendered)
+  // even though the products themselves were present.
+  const allSellers = allSellersFromHook ?? (initialSellers && initialSellers.length > 0 ? initialSellers : null);
 
   const reviewsQuery = useMemoStable(() => query(collection(db, 'reviews'), limit(200)), [db]);
   const { data: allReviews } = useCollection<any>(reviewsQuery);
@@ -1006,10 +1010,10 @@ function SearchContent({ initialProducts }: { initialProducts?: any[] }) {
   );
 }
 
-export default function SearchPageClient({ initialProducts }: { initialProducts?: any[] }) {
+export default function SearchPageClient({ initialProducts, initialSellers }: { initialProducts?: any[]; initialSellers?: any[] }) {
   return (
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="w-12 h-12 animate-spin text-primary/30" /></div>}>
-      <SearchContent initialProducts={initialProducts} />
+      <SearchContent initialProducts={initialProducts} initialSellers={initialSellers} />
     </Suspense>
   );
 }

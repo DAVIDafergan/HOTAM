@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { ProductDetailsClient } from './ProductDetailsClient';
 import { getPublicProductById, getPublicProductReviews, getPublicSellerById } from '@/lib/storefront-data';
 
@@ -21,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     if (!fields) {
       return {
-        title: 'מוצר לא נמצא | חותם',
+        title: 'מוצר לא נמצא',
         description: 'מצטערים, המוצר המבוקש אינו זמין כעת.',
         robots: { index: false, follow: true },
       };
@@ -32,7 +33,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const scriptType = fields.script_type || '';
     const displayPrice = Number(fields.price ?? 0) > 0 ? Math.round(Number(fields.price) * VAT_MULTIPLIER) : 0;
 
-    const pageTitle = `${title}${subType} • ₪${displayPrice.toLocaleString('he-IL')} | חותם`;
+    const titleBase = `${title}${subType} • ₪${displayPrice.toLocaleString('he-IL')}`;
+    // pageTitle (with the explicit "| חותם" suffix) is only for surfaces that don't
+    // apply the root layout's title template (OG/Twitter cards) — the <title> tag
+    // itself uses titleBase alone so the template doesn't double up the brand suffix.
+    const pageTitle = `${titleBase} | חותם`;
     const description = fields.description || `רכישת ${title}${subType} מהודר בכתב ${scriptType}, במחיר ₪${displayPrice.toLocaleString('he-IL')} כולל מע"מ, ישירות מסופר סת"ם ירא שמיים.`;
 
     let imageUrl = 'https://github.com/user-attachments/assets/c225c666-5c35-4add-86d2-ed2454e6f368';
@@ -41,7 +46,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
 
     return {
-      title: pageTitle,
+      title: titleBase,
       description: description,
       alternates: {
         canonical: `/products/${id}`,
@@ -62,7 +67,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   } catch (error) {
     console.error("Metadata generation error:", error);
-    return { title: 'חותם - כלי קודש מהודרים', robots: { index: false, follow: true } };
+    return { title: 'מוצר קודש', robots: { index: false, follow: true } };
   }
 }
 
@@ -74,6 +79,7 @@ export default async function ProductPage({ params }: Props) {
   const fieldsPromise = getPublicProductById(id);
   const reviewsPromise = getPublicProductReviews(id);
   const fields = await fieldsPromise;
+  if (!fields) notFound();
   const sellerPromise = fields?.seller_id ? getPublicSellerById(fields.seller_id) : Promise.resolve(null);
   const [seller, reviews] = await Promise.all([sellerPromise, reviewsPromise]);
   

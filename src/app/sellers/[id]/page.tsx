@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import SellerProfileClient from './SellerProfileClient';
 import { getPublicSellerById, getPublicSellerPageData } from '@/lib/storefront-data';
 
@@ -14,25 +15,29 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const id = resolvedParams?.id;
 
     if (!id || id === 'favicon.ico') {
-      return { title: 'פרופיל סופר סת"ם | חותם', robots: { index: false, follow: true } };
+      return { title: 'פרופיל סופר סת"ם', robots: { index: false, follow: true } };
     }
 
     const seller = await getPublicSellerById(id);
     if (!seller) {
       return {
-        title: 'סופר לא נמצא | חותם',
+        title: 'סופר לא נמצא',
         description: 'מצטערים, פרופיל הסופר המבוקש אינו זמין כעת.',
         robots: { index: false, follow: true },
       };
     }
 
-    const pageTitle = `${seller.first_name} ${seller.last_name} — סופר סת"ם | חותם`;
+    const titleBase = `${seller.first_name} ${seller.last_name} — סופר סת"ם`;
+    // pageTitle (with the explicit "| חותם" suffix) is only for OG/Twitter, which
+    // don't get the root layout's title template applied — the <title> tag itself
+    // uses titleBase alone so the template doesn't double up the brand suffix.
+    const pageTitle = `${titleBase} | חותם`;
     const description = seller.notes || `סופר סת"ם מוסמך עם ${seller.experience_years} שנות ניסיון. צפו בפרופיל המלא וביצירות שלו באתר חותם.`;
     const imageUrl = seller.profile_image || DEFAULT_OG_IMAGE;
     const pageUrl = `https://www.hotam.shop/sellers/${id}`;
 
     return {
-      title: pageTitle,
+      title: titleBase,
       description,
       alternates: {
         canonical: `/sellers/${id}`,
@@ -60,7 +65,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   } catch (error) {
     console.error('Seller metadata generation error:', error);
-    return { title: 'פרופיל סופר סת"ם | חותם', robots: { index: false, follow: true } };
+    return { title: 'פרופיל סופר סת"ם', robots: { index: false, follow: true } };
   }
 }
 
@@ -71,6 +76,7 @@ export default async function SellerPage({ params }: Props) {
   if (!id || id === 'favicon.ico') return null;
 
   const { seller, products, reviews } = await getPublicSellerPageData(id);
+  if (!seller) notFound();
 
   const ratedReviews = (reviews || []).filter((r: any) => Number(r?.rating) > 0);
   const avgRating = ratedReviews.length > 0

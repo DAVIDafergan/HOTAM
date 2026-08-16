@@ -79,7 +79,7 @@ const SORT_OPTIONS = [
 ] as const;
 const sanitizePriceInput = (value: string) => value.replace(/[^\d]/g, '');
 
-function SearchContent() {
+function SearchContent({ initialProducts }: { initialProducts?: any[] }) {
   const { toast } = useToast();
   const shouldReduceMotion = useReducedMotion();
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
@@ -140,7 +140,12 @@ function SearchContent() {
     return query(collection(db, 'products'), where('quantity', '>', 0), limit(50));
   }, [db]);
 
-  const { data: allProducts, isLoading } = useCollection<any>(productsQuery);
+  const { data: allProductsFromHook, isLoading: isProductsHookLoading } = useCollection<any>(productsQuery);
+  // Server-rendered seed so Google (and the first paint) sees real product
+  // content immediately, instead of the loading spinner this page showed
+  // before the live client-side fetch resolved.
+  const allProducts = allProductsFromHook ?? (initialProducts && initialProducts.length > 0 ? initialProducts : null);
+  const isLoading = isProductsHookLoading && !(initialProducts && initialProducts.length > 0);
 
   const sellersQuery = useMemoStable(() => query(collection(db, 'sellers'), where('is_approved', '==', true), limit(200)), [db]);
   const { data: allSellers } = useCollection<any>(sellersQuery);
@@ -995,10 +1000,10 @@ function SearchContent() {
   );
 }
 
-export default function SearchPageClient() {
+export default function SearchPageClient({ initialProducts }: { initialProducts?: any[] }) {
   return (
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="w-12 h-12 animate-spin text-primary/30" /></div>}>
-      <SearchContent />
+      <SearchContent initialProducts={initialProducts} />
     </Suspense>
   );
 }

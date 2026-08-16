@@ -84,13 +84,19 @@ function SearchContent({ initialProducts }: { initialProducts?: any[] }) {
   const shouldReduceMotion = useReducedMotion();
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [isDesktopFilters, setIsDesktopFilters] = useState(false);
-  const [showResults, setShowResults] = useState(false);
+  const searchParams = useSearchParams();
+  // Computed synchronously from the request URL (not via a useEffect that only
+  // runs after client-side hydration), so a direct link/crawl to
+  // /search?view=all server-renders the actual results instead of the landing
+  // wizard screen with the real content only appearing after hydration.
+  const [showResults, setShowResults] = useState(
+    () => searchParams.get('view') === 'all' || searchParams.get('view') === 'results'
+  );
   const [shippingPreference, setShippingPreference] = useState<ShippingPreference>('all');
   const [sortOrder, setSortOrder] = useState('newest');
   const [viewMode, setViewMode] = useState<ProductCardViewMode>('grid');
   const isMobile = useIsMobile();
   const hasManualViewMode = React.useRef(false);
-  const searchParams = useSearchParams();
   const db = useSupabaseClient();
 
   // Default to list view on mobile once the viewport is known client-side, without

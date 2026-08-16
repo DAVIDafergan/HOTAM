@@ -5,6 +5,11 @@ import { getPublicSellerById, getPublicSellerPageData } from '@/lib/storefront-d
 
 const DEFAULT_OG_IMAGE = 'https://github.com/user-attachments/assets/c225c666-5c35-4add-86d2-ed2454e6f368';
 
+// Without this, notFound() renders the correct not-found content but Vercel
+// keeps serving it with a 200 status (confirmed live) — this route isn't a
+// good static-optimization candidate anyway (per-id, no generateStaticParams).
+export const dynamic = 'force-dynamic';
+
 type Props = {
   params: Promise<{ id: string }>;
 };

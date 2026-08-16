@@ -5,6 +5,11 @@ import { getPublicProductById, getPublicProductReviews, getPublicSellerById } fr
 
 const VAT_MULTIPLIER = 1.18;
 
+// Without this, notFound() renders the correct not-found content but Vercel
+// keeps serving it with a 200 status (confirmed live) — this route isn't a
+// good static-optimization candidate anyway (per-id, no generateStaticParams).
+export const dynamic = 'force-dynamic';
+
 type Props = {
   params: Promise<{ id: string }>;
 };

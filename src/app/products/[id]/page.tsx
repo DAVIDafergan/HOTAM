@@ -92,13 +92,43 @@ export default async function ProductPage({ params }: Props) {
   const productName = fields
     ? `${fields.product_type || 'מוצר קודש'}${fields.sub_type && fields.sub_type !== 'all' ? ` ${fields.sub_type}` : ''}`
     : '';
+  const ratedReviews = (reviews || []).filter((r: any) => Number(r?.rating) > 0);
+  const avgRating = ratedReviews.length > 0
+    ? ratedReviews.reduce((sum: number, r: any) => sum + Number(r.rating), 0) / ratedReviews.length
+    : null;
+
+  const additionalProperty = fields ? [
+    fields.script_type && { "@type": "PropertyValue", "name": "סוג כתב", "value": fields.script_type },
+    fields.script_level && { "@type": "PropertyValue", "name": "רמת הידור", "value": fields.script_level },
+    fields.parchment_size && { "@type": "PropertyValue", "name": "גודל קלף", "value": fields.parchment_size },
+    fields.proofreading_level && { "@type": "PropertyValue", "name": "רמת הגהה", "value": fields.proofreading_level },
+  ].filter(Boolean) : [];
+
   const jsonLd = fields ? {
     "@context": "https://schema.org",
     "@type": "Product",
     "name": productName,
     "description": fields.description || 'מוצר קודש מהודר מחותם',
-    "image": Array.isArray(fields.images) ? (fields.images[0] || '') : '',
+    "image": Array.isArray(fields.images) && fields.images.length > 0 ? fields.images : undefined,
+    "itemCondition": "https://schema.org/NewCondition",
+    ...(additionalProperty.length > 0 ? { additionalProperty } : {}),
     ...(seller ? { "brand": { "@type": "Brand", "name": `${seller.first_name} ${seller.last_name}` } } : {}),
+    ...(avgRating !== null ? {
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": Number(avgRating.toFixed(1)),
+        "reviewCount": ratedReviews.length,
+      },
+    } : {}),
+    ...(ratedReviews.length > 0 ? {
+      "review": ratedReviews.slice(0, 20).map((r: any) => ({
+        "@type": "Review",
+        "reviewRating": { "@type": "Rating", "ratingValue": Number(r.rating) },
+        "author": { "@type": "Person", "name": r.is_anonymous ? 'אנונימי' : (r.buyer_name || 'משתמש') },
+        ...(r.comment ? { "reviewBody": r.comment } : {}),
+        ...(r.created_at ? { "datePublished": new Date(r.created_at).toISOString() } : {}),
+      })),
+    } : {}),
     "offers": {
       "@type": "Offer",
       "price": Number(fields.price ?? 0),

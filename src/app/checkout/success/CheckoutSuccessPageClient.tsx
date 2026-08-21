@@ -15,7 +15,7 @@ function SuccessContent() {
   const orderId = searchParams.get('orderId');
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] pb-20 text-right" dir="rtl">
+    <div className="min-h-screen bg-background pb-20 text-right" dir="rtl">
       <Navbar />
       <main className="container mx-auto px-4 py-20 md:py-28 max-w-xl">
         <Card className="border-none shadow-premium rounded-[2.5rem] bg-white p-10 text-center space-y-6">

@@ -8,14 +8,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { 
-  Truck, 
-  MapPin, 
-  User, 
-  Loader2, 
-  CheckCircle2, 
-  CreditCard, 
-  AlertCircle
+import {
+  Truck,
+  MapPin,
+  User,
+  Loader2,
+  CheckCircle2,
+  CreditCard,
+  AlertCircle,
+  ShieldCheck
 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useUser, useSupabaseClient, useDoc, useMemoStable } from '@/lib/supabase-hooks';
@@ -284,10 +285,16 @@ export default function CheckoutPageClient() {
   const canShip = normalizedDeliveryType === 'shipping' || normalizedDeliveryType === 'both';
   const canPickup = normalizedDeliveryType === 'pickup' || normalizedDeliveryType === 'both';
 
+  // Deliberately no auto-selection on load, even when only one option is
+  // available or shipping has a cost — the customer must actively pick a
+  // method before totalPrice reflects any delivery fee. Only reacts if the
+  // *already-chosen* option stops being available (e.g. data changes under
+  // them), falling back to whichever option remains rather than clearing
+  // a choice they already made.
   useEffect(() => {
     if (!product) return;
     setDeliveryChoice((prev) => {
-      if (!prev) return canShip ? 'shipping' : 'pickup';
+      if (!prev) return prev;
       if (prev === 'shipping' && !canShip) return canPickup ? 'pickup' : '';
       if (prev === 'pickup' && !canPickup) return canShip ? 'shipping' : '';
       return prev;
@@ -487,7 +494,7 @@ export default function CheckoutPageClient() {
   if (!user || !product) return null;
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] pb-20 text-right" dir="rtl">
+    <div className="min-h-screen bg-background pb-32 md:pb-20 text-right" dir="rtl">
       <Navbar />
 
       <main className="container mx-auto px-4 py-20 md:py-28 max-w-4xl">
@@ -502,8 +509,8 @@ export default function CheckoutPageClient() {
                   <User className="w-6 h-6 text-accent" />
                 </div>
                 <div className="space-y-4">
-                  <div className="space-y-2"><Label>שם מלא *</Label><Input value={recipientName} onChange={(e) => setRecipientName(e.target.value)} className="text-right h-12 rounded-xl" /></div>
-                  <div className="space-y-2"><Label>טלפון לקבלת קוד אימות *</Label><Input value={recipientPhone} onChange={(e) => setRecipientPhone(e.target.value)} className="text-right h-12 rounded-xl" placeholder="למשל: 0501234567" /></div>
+                  <div className="space-y-2"><Label htmlFor="recipient-name">שם מלא *</Label><Input id="recipient-name" autoComplete="name" value={recipientName} onChange={(e) => setRecipientName(e.target.value)} className="text-right h-12 rounded-xl" /></div>
+                  <div className="space-y-2"><Label htmlFor="recipient-phone">טלפון לקבלת קוד אימות *</Label><Input id="recipient-phone" type="tel" inputMode="tel" autoComplete="tel" dir="ltr" value={recipientPhone} onChange={(e) => setRecipientPhone(e.target.value)} className="text-right h-12 rounded-xl" placeholder="למשל: 0501234567" /></div>
                 </div>
               </Card>
 
@@ -517,8 +524,11 @@ export default function CheckoutPageClient() {
                     <div className="flex items-center gap-4">
                       <Truck className="w-5 h-5 text-primary" />
                       <div className="text-right">
-                        <span className="font-black text-primary block">משלוח</span>
-                        <span className="text-xs text-muted-foreground">עד הבית (+₪{Number(product.delivery_fee || 0).toLocaleString('he-IL')})</span>
+                        <span className="font-black text-primary block">משלוח עד הבית</span>
+                        <span className="text-xs text-muted-foreground">
+                          ₪{Number(product.delivery_fee || 0).toLocaleString('he-IL')}
+                          {product.delivery_time ? ` · זמן אספקה ${product.delivery_time} ימים` : ''}
+                        </span>
                       </div>
                     </div>
                     <RadioGroupItem value="shipping" id="delivery" disabled={!canShip} />
@@ -527,8 +537,8 @@ export default function CheckoutPageClient() {
                     <div className="flex items-center gap-4">
                       <MapPin className="w-5 h-5 text-primary" />
                       <div className="text-right">
-                        <span className="font-black text-primary block">איסוף עצמי</span>
-                        <span className="text-xs text-muted-foreground">בתיאום מול הסופר (חינם)</span>
+                        <span className="font-black text-primary block">איסוף עצמי{product.pickup_address ? ` (${product.pickup_address})` : ''}</span>
+                        <span className="text-xs text-muted-foreground">ללא עלות</span>
                       </div>
                     </div>
                     <RadioGroupItem value="pickup" id="pickup" disabled={!canPickup} />
@@ -549,8 +559,8 @@ export default function CheckoutPageClient() {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label>כתובת מלאה *</Label>
-                      <div className="relative"><Input ref={shippingAddressInputRef} placeholder="רחוב, מספר בית, דירה..." value={recipientAddress} onChange={(e) => setRecipientAddress(e.target.value)} className="text-right pr-10 h-12 rounded-xl" /><MapPin className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" /></div>
+                      <Label htmlFor="recipient-address">כתובת מלאה *</Label>
+                      <div className="relative"><Input id="recipient-address" ref={shippingAddressInputRef} autoComplete="street-address" placeholder="רחוב, מספר בית, דירה..." value={recipientAddress} onChange={(e) => setRecipientAddress(e.target.value)} className="text-right pr-10 h-12 rounded-xl" /><MapPin className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" /></div>
                     </div>
                   </div>
                 )}
@@ -568,28 +578,28 @@ export default function CheckoutPageClient() {
 
                   <div className="space-y-2">
                     <Label htmlFor="sumit-card-number">מספר כרטיס</Label>
-                    <Input id="sumit-card-number" name="cardnumber" type="text" inputMode="numeric" autoComplete="cc-number" maxLength={20} data-og="cardnumber" required className="text-left h-12 rounded-xl" />
+                    <Input id="sumit-card-number" name="cardnumber" type="text" inputMode="numeric" autoComplete="cc-number" dir="ltr" maxLength={20} data-og="cardnumber" required className="text-left h-12 rounded-xl" />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="sumit-expiration-month">חודש</Label>
-                      <Input id="sumit-expiration-month" name="expirationmonth" type="text" inputMode="numeric" autoComplete="cc-exp-month" maxLength={2} data-og="expirationmonth" required className="text-left h-12 rounded-xl" />
+                      <Input id="sumit-expiration-month" name="expirationmonth" type="text" inputMode="numeric" autoComplete="cc-exp-month" dir="ltr" maxLength={2} data-og="expirationmonth" required className="text-left h-12 rounded-xl" />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="sumit-expiration-year">שנה</Label>
-                      <Input id="sumit-expiration-year" name="expirationyear" type="text" inputMode="numeric" autoComplete="cc-exp-year" maxLength={4} data-og="expirationyear" required className="text-left h-12 rounded-xl" />
+                      <Input id="sumit-expiration-year" name="expirationyear" type="text" inputMode="numeric" autoComplete="cc-exp-year" dir="ltr" maxLength={4} data-og="expirationyear" required className="text-left h-12 rounded-xl" />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="sumit-cvv">CVV</Label>
-                      <Input id="sumit-cvv" name="cvv" type="password" inputMode="numeric" autoComplete="cc-csc" maxLength={4} data-og="cvv" required className="text-left h-12 rounded-xl" />
+                      <Input id="sumit-cvv" name="cvv" type="password" inputMode="numeric" autoComplete="cc-csc" dir="ltr" maxLength={4} data-og="cvv" required className="text-left h-12 rounded-xl" />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="sumit-citizen-id">תעודת זהות</Label>
-                      <Input id="sumit-citizen-id" name="citizenid" type="text" inputMode="numeric" maxLength={9} data-og="citizenid" required className="text-left h-12 rounded-xl" />
+                      <Input id="sumit-citizen-id" name="citizenid" type="text" inputMode="numeric" dir="ltr" maxLength={9} data-og="citizenid" required className="text-left h-12 rounded-xl" />
                     </div>
                   </div>
 
@@ -599,21 +609,24 @@ export default function CheckoutPageClient() {
                       <span>{sumitError}</span>
                     </div>
                   ) : (
-                    <div className="text-sm text-muted-foreground font-bold">
-                      {!isSumitReady ? 'מערכת הסליקה נטענת...' : 'פרטי האשראי נשארים בטופס המאובטח של SUMIT.'}
+                    <div className="flex items-center gap-2 rounded-2xl bg-emerald-50 text-emerald-700 px-4 py-3 text-sm font-bold">
+                      <ShieldCheck className="w-4 h-4 shrink-0" />
+                      <span>{!isSumitReady ? 'מערכת הסליקה נטענת...' : 'תשלום מאובטח ומוצפן — פרטי האשראי נשארים בטופס המאובטח של SUMIT.'}</span>
                     </div>
                   )}
                   {chargeError && (
-                    <div className="flex items-start gap-2 rounded-2xl bg-red-50 text-red-600 px-4 py-3 text-sm font-bold mb-4">
+                    <div className="flex items-start gap-2 rounded-2xl bg-destructive/10 text-destructive px-4 py-3 text-sm font-bold mb-4">
                       <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
                       <span>{chargeError}</span>
                     </div>
                   )}
+                  {/* Sticky bar (below) is the mobile CTA so it's always reachable without
+                      scrolling; this stays as the in-flow action on desktop. */}
                   <Button
                     type="button"
                     onClick={handlePayClick}
                     disabled={!isSumitReady || isProcessing}
-                    className="w-full bg-primary text-white hover:bg-primary/90 h-16 rounded-2xl shadow-xl font-black text-xl uppercase tracking-widest gap-3"
+                    className="hidden md:flex w-full bg-primary text-white hover:bg-primary/90 h-16 rounded-2xl shadow-xl font-black text-xl uppercase tracking-widest gap-3"
                   >
                     {isProcessing ? (
                       <>
@@ -640,19 +653,19 @@ export default function CheckoutPageClient() {
                 </div>
                 <div className="space-y-3 border-t pt-4">
                   <div className="flex justify-between text-xs font-bold">
-                    <span>₪{basePrice.toLocaleString('he-IL')}</span>
-                    <span className="text-muted-foreground">מחיר סופר</span>
+                    <span>₪{baseWithVat.toLocaleString('he-IL')}</span>
+                    <span className="text-muted-foreground">סכום ביניים (מוצרים)</span>
                   </div>
-                  <div className="flex justify-between text-xs text-emerald-600 font-bold">
-                    <span>₪{vatAmount.toLocaleString('he-IL')}</span>
-                    <span className="text-muted-foreground">מע"מ (18%)</span>
+                  <div className="flex justify-between text-xs font-bold">
+                    <span className={deliveryChoice === 'pickup' ? 'text-emerald-600' : ''}>
+                      {deliveryChoice === 'shipping'
+                        ? `₪${Number(product.delivery_fee || 0).toLocaleString('he-IL')}`
+                        : deliveryChoice === 'pickup'
+                          ? 'חינם (איסוף עצמי)'
+                          : 'טרם נבחר'}
+                    </span>
+                    <span className="text-muted-foreground">משלוח</span>
                   </div>
-                  {deliveryChoice === 'shipping' && (
-                    <div className="flex justify-between text-xs font-bold">
-                      <span>₪{Number(product.delivery_fee || 0).toLocaleString('he-IL')}</span>
-                      <span className="text-muted-foreground">דמי משלוח</span>
-                    </div>
-                  )}
                   <div className="flex justify-between text-xl font-black border-t pt-3 mt-3">
                     <span className="text-primary">₪{totalPrice.toLocaleString('he-IL')}</span>
                     <span className="text-primary">סה"כ לתשלום</span>
@@ -671,6 +684,33 @@ export default function CheckoutPageClient() {
           </Card>
         )}
       </main>
+
+      {!isSuccess && (
+        <div className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-xl border-t border-primary/8 shadow-[0_-8px_30px_rgba(15,23,42,0.08)] px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] space-y-2">
+          <div className="flex items-center justify-center gap-1.5 text-[11px] font-bold text-emerald-700">
+            <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+            <span>תשלום מאובטח ומוצפן</span>
+          </div>
+          <Button
+            type="button"
+            onClick={handlePayClick}
+            disabled={!isSumitReady || isProcessing}
+            className="w-full bg-primary text-white hover:bg-primary/90 h-14 rounded-2xl shadow-xl font-black text-base uppercase tracking-widest gap-2"
+          >
+            {isProcessing ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                מעבד תשלום...
+              </>
+            ) : (
+              <>
+                <CreditCard className="w-5 h-5" />
+                בצע תשלום - ₪{totalPrice.toLocaleString('he-IL')}
+              </>
+            )}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

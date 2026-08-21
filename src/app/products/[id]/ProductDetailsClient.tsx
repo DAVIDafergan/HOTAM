@@ -536,6 +536,17 @@ export function ProductDetailsClient({
       ? seller.address.split(',').pop()?.trim()
       : seller?.address) ||
     '';
+  // Shown right next to the price so the user knows the shipping/pickup
+  // options and cost before ever reaching checkout — the price above never
+  // includes shipping, regardless of delivery type.
+  const shippingSummaryText = [
+    hasDelivery
+      ? (Number(product.delivery_fee) > 0 ? `משלוח: ₪${product.delivery_fee}` : 'משלוח: חינם')
+      : '',
+    (normalizedDeliveryType === 'pickup' || normalizedDeliveryType === 'both')
+      ? `איסוף עצמי${sellerCity ? ` מ${sellerCity}` : ''}: ללא עלות`
+      : '',
+  ].filter(Boolean).join(' · ');
   const clampZoomLevel = (zoom: number) => Math.min(MAX_IMAGE_ZOOM_LEVEL, Math.max(MIN_IMAGE_ZOOM_LEVEL, Number(zoom.toFixed(2))));
   const updateImageZoom = (zoom: number) => {
     const nextZoom = clampZoomLevel(zoom);
@@ -692,8 +703,14 @@ export function ProductDetailsClient({
                 <span className="text-primary/60 text-2xl md:text-3xl font-bold">₪</span>
               </div>
               <p className="text-xs font-bold text-primary/40 uppercase tracking-[0.15em] -mt-3">
-                {hasDelivery ? 'המחירים כוללים מע"מ ומשלוח' : 'המחירים כוללים מע"מ'}
+                המחירים כוללים מע"מ
               </p>
+              {shippingSummaryText && (
+                <p className="text-sm font-bold text-primary/70 flex items-center justify-end gap-2 -mt-1">
+                  <Truck className="w-4 h-4 text-primary/40 shrink-0" />
+                  {shippingSummaryText}
+                </p>
+              )}
 
               <div className="grid grid-cols-2 gap-3">
                 <section aria-labelledby="delivery-time-label" className="flex flex-col items-end gap-1 rounded-2xl bg-primary/[0.03] p-4 text-right">

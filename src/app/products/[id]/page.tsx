@@ -87,21 +87,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         description: description,
         images: [{ url: imageUrl, width: 800, height: 600, alt: pageTitle }],
         url: `https://www.hotam.shop/products/${id}`,
-        // og:type is set to "product" via `other` below instead of here —
-        // next/metadata's typed openGraph.type union doesn't include
-        // "product", and setting both here and in `other` would emit two
-        // conflicting og:type tags.
+        // og:type "product" + product:price:* are rendered as raw <meta
+        // property="..."> tags directly in the page body (Next.js hoists
+        // them into <head> automatically) instead of here — the `other`
+        // metadata field only emits <meta name="..."> attributes, which
+        // Open Graph/Facebook parsers require to be property="..." and
+        // would otherwise silently ignore.
       },
       twitter: {
         card: 'summary_large_image',
         title: pageTitle,
         description: description,
         images: [imageUrl],
-      },
-      other: {
-        'og:type': 'product',
-        'product:price:amount': String(displayPrice),
-        'product:price:currency': 'ILS',
       },
     };
   } catch (error) {
@@ -126,6 +123,7 @@ export default async function ProductPage({ params }: Props) {
   const productName = fields
     ? `${fields.product_type || 'מוצר קודש'}${fields.sub_type && fields.sub_type !== 'all' ? ` ${fields.sub_type}` : ''}`
     : '';
+  const displayPrice = Number(fields?.price ?? 0) > 0 ? Math.round(Number(fields.price) * VAT_MULTIPLIER) : 0;
   const ratedReviews = (reviews || []).filter((r: any) => Number(r?.rating) > 0);
   const avgRating = ratedReviews.length > 0
     ? ratedReviews.reduce((sum: number, r: any) => sum + Number(r.rating), 0) / ratedReviews.length
@@ -187,6 +185,9 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <>
+      <meta property="og:type" content="product" />
+      <meta property="product:price:amount" content={String(displayPrice)} />
+      <meta property="product:price:currency" content="ILS" />
       {jsonLd && (
         <script
           type="application/ld+json"

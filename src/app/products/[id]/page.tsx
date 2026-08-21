@@ -165,7 +165,14 @@ export default async function ProductPage({ params }: Props) {
     } : {}),
     "offers": {
       "@type": "Offer",
-      "price": Number(fields.price ?? 0),
+      // Pre-existing bug, unrelated to this session's other changes: this
+      // used the raw pre-VAT fields.price (confirmed live — JSON-LD said
+      // ₪270 while the actual page, title, description, and og:price all
+      // correctly showed ₪319, the VAT-inclusive price the customer
+      // actually pays). Rich results showing a price the checkout doesn't
+      // honor is exactly the kind of mismatch Google's structured data
+      // guidelines flag.
+      "price": displayPrice,
       "priceCurrency": "ILS",
       "availability": Number(fields.quantity ?? 0) > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       "url": `https://www.hotam.shop/products/${id}`,

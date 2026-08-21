@@ -25,7 +25,14 @@ import {
   ArrowLeft,
   ShieldCheck,
   Trash2,
-  ZoomIn
+  ZoomIn,
+  PenLine,
+  Award,
+  Ruler,
+  Package,
+  Home,
+  ChevronLeft,
+  MessageSquare
 } from 'lucide-react';
 import Image from '@/components/SmartImage';
 import Link from 'next/link';
@@ -644,6 +651,15 @@ export function ProductDetailsClient({
 
           {/* Product Info */}
           <div className="text-right space-y-6 md:space-y-8 md:sticky md:top-28">
+            <nav aria-label="breadcrumb" className="flex items-center justify-end gap-1.5 text-[11px] font-bold text-muted-foreground flex-wrap">
+              <Link href="/" className="flex items-center gap-1 hover:text-accent-strong transition-colors">
+                <Home className="w-3 h-3" /> דף הבית
+              </Link>
+              <ChevronLeft className="w-3 h-3 shrink-0" />
+              <Link href={`/search?product=${encodeURIComponent(product.product_type)}`} className="hover:text-accent-strong transition-colors">{product.product_type}</Link>
+              <ChevronLeft className="w-3 h-3 shrink-0" />
+              <span aria-current="page" className="text-primary/70">{productDisplayTitle}</span>
+            </nav>
             <div className="space-y-4">
               <div className="flex flex-wrap gap-2 justify-start items-center">
                 <Badge variant="outline" className="border-accent/30 text-accent font-bold text-[11px] py-1 px-3 rounded-full bg-accent/5 whitespace-nowrap">
@@ -719,10 +735,22 @@ export function ProductDetailsClient({
                   </section>
                 )}
               </div>
+
+              <div className="flex flex-wrap items-center justify-end gap-x-5 gap-y-2 pt-1">
+                <span className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground">
+                  <Truck className="w-3.5 h-3.5 text-accent-strong shrink-0" /> משלוח עד הבית
+                </span>
+                <span className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground">
+                  <ShieldCheck className="w-3.5 h-3.5 text-accent-strong shrink-0" /> אבטחת תשלום
+                </span>
+                <span className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground">
+                  <ShieldAlert className="w-3.5 h-3.5 text-accent-strong shrink-0" /> מדיניות החזרה
+                </span>
+              </div>
             </div>
 
             <div className="space-y-3">
-              <h2 className="font-bold text-xs text-primary/40 uppercase tracking-widest flex items-center justify-end gap-2 whitespace-nowrap">
+              <h2 className="font-bold text-xs text-muted-foreground uppercase tracking-widest flex items-center justify-end gap-2 whitespace-nowrap">
                 על כלי הקודש <ScrollText className="w-3.5 h-3.5 shrink-0" />
               </h2>
               <p className="text-primary/75 font-medium text-base leading-relaxed">
@@ -779,13 +807,13 @@ export function ProductDetailsClient({
             </TabsList>
 
             <TabsContent value="specs" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-              <h2 className="font-bold text-xs text-primary/40 uppercase tracking-widest mb-4">מפרט טכני</h2>
-              <div className="grid md:grid-cols-2 gap-x-16 gap-y-1 max-w-3xl">
-                <SpecItem label="סוג כתב ומסורת" value={product.script_type} />
-                <SpecItem label="רמת הידור הלכתית" value={product.script_level} />
-                <SpecItem label="גודל קלף (סנטימטר)" value={product.parchment_size || 'סטנדרט'} />
-                <SpecItem label="רמת הגהה וביקורת" value={product.proofreading_level || 'גברא'} />
-                <SpecItem label="מלאי זמין כעת" value={`${product.quantity} יחידות`} />
+              <h2 className="font-bold text-xs text-muted-foreground uppercase tracking-widest mb-4">מפרט טכני</h2>
+              <div className="grid sm:grid-cols-2 gap-3 max-w-3xl">
+                <SpecItem icon={PenLine} label="סוג כתב ומסורת" value={product.script_type} />
+                <SpecItem icon={Award} label="רמת הידור הלכתית" value={product.script_level} />
+                <SpecItem icon={Ruler} label="גודל קלף (סנטימטר)" value={product.parchment_size || 'סטנדרט'} />
+                <SpecItem icon={ShieldCheck} label="רמת הגהה וביקורת" value={product.proofreading_level || 'גברא'} />
+                <SpecItem icon={Package} label="מלאי זמין כעת" value={`${product.quantity} יחידות`} />
               </div>
             </TabsContent>
 
@@ -948,11 +976,16 @@ export function ProductDetailsClient({
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-20 space-y-6">
-                    <div className="w-20 h-20 bg-muted/30 rounded-full flex items-center justify-center mx-auto">
-                      <Star className="w-10 h-10 text-primary/10" />
+                  <div className="text-center py-16 space-y-4">
+                    <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto">
+                      <Star className="w-8 h-8 text-accent-strong" />
                     </div>
-                    <p className="text-lg font-bold text-muted-foreground/50 italic tracking-tight">טרם נכתבו ביקורות למוצר זה.</p>
+                    <div className="space-y-1">
+                      <p className="text-lg font-black text-primary">היו הראשונים לכתוב ביקורת</p>
+                      <p className="text-sm font-medium text-muted-foreground max-w-sm mx-auto">
+                        שתפו את החוויה שלכם עם כלי הקודש הזה ועזרו לקונים הבאים להחליט.
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
@@ -1149,13 +1182,15 @@ export function ProductDetailsClient({
   );
 }
 
-function SpecItem({ label, value }: { label: string, value: string }) {
+function SpecItem({ label, value, icon: Icon }: { label: string, value: string, icon: React.ElementType }) {
   return (
-    <div className="flex justify-between items-center py-5 border-b border-primary/5 px-2 last:border-0 group hover:bg-primary/5 transition-colors rounded-2xl">
-      <span className="font-black text-primary text-sm md:text-base">{value}</span>
-      <div className="flex items-center gap-3">
-        <span className="text-xs font-medium text-primary/40 uppercase tracking-widest">{label}</span>
-        <div className="w-1.5 h-1.5 rounded-full bg-accent opacity-40" />
+    <div className="flex items-center gap-4 p-4 rounded-lg border divider-gold bg-card hover:bg-accent/5 transition-colors">
+      <div className="shrink-0 w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
+        <Icon className="w-5 h-5 text-accent-strong" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <span className="block text-xs font-medium text-muted-foreground uppercase tracking-widest">{label}</span>
+        <span className="block font-black text-primary text-sm md:text-base truncate">{value}</span>
       </div>
     </div>
   );

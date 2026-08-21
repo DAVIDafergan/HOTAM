@@ -5,27 +5,40 @@
 
 @layer base {
   :root {
-    --background: 42 33% 97%;         /* קלף חמים יותר, פחות אפרפר */
-    --foreground: 222 45% 9%;         /* דיו כמעט-שחור, לא כחול-בהיר */
+    /* Brand palette (spec): ink-black #1C1815, parchment #F5EDE0,
+       brass-gold #B08D57, parchment-brown #7A6F5D, ink-red #8B2E2E.
+       muted-foreground uses 40% lightness instead of the spec's literal
+       42% (#7A6F5D) — verified 4.29:1 against --background, just under
+       WCAG AA's 4.5:1 for body/caption text; 40% clears it (4.63:1)
+       while staying visually indistinguishable from the requested hex. */
+    --background: 37 51% 92%;         /* parchment #F5EDE0 */
+    --foreground: 26 14% 10%;         /* ink-black #1C1815 */
     --card: 0 0% 100%;
-    --card-foreground: 222 45% 9%;
+    --card-foreground: 26 14% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 45% 9%;
-    --primary: 222 55% 14%;           /* דיו עמוק, פחות "טכני" מהכחול הקודם */
-    --primary-foreground: 42 35% 97%;
-    --secondary: 40 28% 91%;
-    --secondary-foreground: 222 55% 14%;
-    --muted: 40 15% 93%;
-    --muted-foreground: 222 12% 38%;
-    --accent: 39 68% 48%;             /* זהב עתיק, פחות צהוב-בהיר מהקודם */
-    --accent-foreground: 222 55% 10%;
-    --accent-strong: 39 68% 34%;      /* גרסה כהה יותר של הזהב, לשימוש כטקסט קריא (עומדת ב-WCAG AA, ~5:1 על רקע בהיר) */
-    --border: 222 18% 87%;
-    --input: 222 18% 87%;
-    --destructive: 0 78% 50%;         /* הוכהה מ-56% ל-50% כדי לעמוד ב-WCAG AA מול --destructive-foreground לבן (היה ~4:1, עכשיו ~4.7:1) */
+    --popover-foreground: 26 14% 10%;
+    --primary: 26 14% 10%;            /* ink-black #1C1815 */
+    --primary-foreground: 37 35% 97%;
+    --secondary: 37 28% 91%;
+    --secondary-foreground: 26 14% 10%;
+    --muted: 37 15% 93%;
+    --muted-foreground: 37 13% 40%;   /* parchment-brown #7A6F5D, WCAG-adjusted (see note above) */
+    --accent: 36 36% 52%;             /* brass-gold #B08D57 */
+    --accent-foreground: 26 14% 10%;
+    --accent-strong: 36 36% 36%;      /* darkened brass-gold for readable text, ~5.7:1 on white / ~4.9:1 on parchment */
+    --border: 26 18% 87%;
+    --input: 26 18% 87%;
+    --destructive: 0 50% 36%;         /* ink-red #8B2E2E — 8.4:1 against white text, well past AA */
     --destructive-foreground: 0 0% 98%;
-    --ring: 39 68% 48%;
-    --radius: 1rem;
+    --ring: 36 36% 52%;
+    /* 4/6/8px across the sm/md/lg scale — the spec's 4-8px radius range,
+       applied via the shared token so every standard rounded-sm/md/lg
+       usage site-wide picks it up automatically. Component-level
+       oversized arbitrary radii (rounded-[2rem] etc., an intentional
+       "premium" treatment used across dashboards) are untouched — a
+       site-wide sweep of those specifically wasn't attempted this pass,
+       see summary. */
+    --radius: 0.5rem;
   }
 }
 
@@ -47,17 +60,34 @@
   input, textarea, select {
     font-size: max(16px, 1rem); /* prevents auto-zoom on iOS */
   }
+  /* Fixed 12/14/16/20/28/40/56px scale (spec — no fluid/arbitrary sizes).
+     Each level steps up exactly one rung between mobile and desktop,
+     drawn from the same six values throughout. */
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline leading-tight;
     text-wrap: balance;
-    letter-spacing: -0.02em;
+    letter-spacing: 0;
   }
-  h1 { font-size: clamp(2.35rem, 4.5vw, 3.75rem); line-height: 1.1; font-weight: 900; }
-  h2 { font-size: clamp(2rem, 3.5vw, 3.05rem); line-height: 1.14; font-weight: 800; }
-  h3 { font-size: clamp(1.5rem, 2.6vw, 2.15rem); line-height: 1.2; font-weight: 800; }
-  h4 { font-size: clamp(1.2rem, 2vw, 1.6rem); line-height: 1.26; font-weight: 700; }
-  h5 { font-size: clamp(1.08rem, 1.55vw, 1.28rem); line-height: 1.3; font-weight: 700; }
-  h6 { font-size: 1rem; line-height: 1.35; font-weight: 700; }
+  h1, h2 {
+    /* Slightly expanded tracking on large display headings only, per
+       spec — the previous site-wide -0.02em (condensed) is dropped for
+       these two levels; smaller headings stay neutral. */
+    letter-spacing: 0.01em;
+  }
+  h1 { font-size: 40px; line-height: 1.1; font-weight: 700; }
+  h2 { font-size: 28px; line-height: 1.15; font-weight: 700; }
+  h3 { font-size: 20px; line-height: 1.2; font-weight: 700; }
+  h4 { font-size: 16px; line-height: 1.3; font-weight: 600; }
+  h5 { font-size: 14px; line-height: 1.35; font-weight: 600; }
+  h6 { font-size: 12px; line-height: 1.4; font-weight: 600; }
+  @media (min-width: 768px) {
+    h1 { font-size: 56px; }
+    h2 { font-size: 40px; }
+    h3 { font-size: 28px; }
+    h4 { font-size: 20px; }
+    h5 { font-size: 16px; }
+    h6 { font-size: 14px; }
+  }
   p {
     @apply leading-relaxed;
     text-wrap: pretty;
@@ -94,11 +124,17 @@
   }
 
   .section-shell {
-    @apply py-10 md:py-32;
+    @apply py-12 md:py-36;
   }
 
   .section-surface {
     @apply bg-white/40 backdrop-blur-sm;
+  }
+
+  /* Thin brass-gold hairline divider, for use instead of heavy borders/
+     shadows where a lighter touch fits (spec: 1px, 20-30% opacity). */
+  .divider-gold {
+    @apply border-accent/25;
   }
 
   a, button, input, textarea, select {

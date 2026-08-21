@@ -12,7 +12,7 @@ export default {
       fontFamily: {
         sans: ['var(--font-assistant)', 'Arial', 'sans-serif'],
         body: ['var(--font-assistant)', 'Arial', 'sans-serif'],
-        headline: ['var(--font-assistant)', 'Arial', 'sans-serif'],
+        headline: ['var(--font-heading)', 'Georgia', 'serif'],
         code: ['monospace'],
       },
       colors: {

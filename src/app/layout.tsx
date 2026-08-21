@@ -4,19 +4,28 @@ import './globals.css';
 import { SupabaseClientProvider } from '@/lib/supabase-hooks';
 import { ClientWrapper } from '@/components/ClientWrapper';
 import { Analytics } from '@vercel/analytics/next';
-import { Assistant } from 'next/font/google';
+import { Assistant, Frank_Ruhl_Libre } from 'next/font/google';
 import { AccessibilityButton } from '@/components/AccessibilityButton';
 import { SplashScreen } from '@/components/SplashScreen';
 
-// Assistant is a geometric, crisp Hebrew font with straight letterform strokes — used
-// site-wide for both headings and body copy, distinguished only by font-weight (see
-// tailwind.config.ts font-headline/font-body).
+// Assistant (geometric sans) is used site-wide for body/UI copy — see
+// tailwind.config.ts font-body/sans.
 const assistant = Assistant({
   subsets: ['hebrew', 'latin'],
   weight: ['400', '500', '600', '700', '800'],
   variable: '--font-assistant',
   display: 'swap',
   fallback: ['Arial', 'sans-serif'],
+});
+
+// Frank Ruhl Libre (Hebrew/Latin serif) is used for h1-h3 headings only —
+// see tailwind.config.ts font-headline and globals.css's h1-h6 rules.
+const frankRuhlLibre = Frank_Ruhl_Libre({
+  subsets: ['hebrew', 'latin'],
+  weight: ['600', '700'],
+  variable: '--font-heading',
+  display: 'swap',
+  fallback: ['Georgia', 'serif'],
 });
 
 export const metadata: Metadata = {
@@ -97,7 +106,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="he" dir="rtl" className={assistant.variable}>
+    <html lang="he" dir="rtl" className={`${assistant.variable} ${frankRuhlLibre.variable}`}>
       <head>
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
         <meta name="apple-mobile-web-app-capable" content="yes" />

@@ -38,12 +38,38 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const scriptType = fields.script_type || '';
     const displayPrice = Number(fields.price ?? 0) > 0 ? Math.round(Number(fields.price) * VAT_MULTIPLIER) : 0;
 
-    const titleBase = `${title}${subType} • ₪${displayPrice.toLocaleString('he-IL')}`;
+    // Descriptive title (product + key specs) instead of a price-led one, so
+    // it reads well for category/attribute searches, not just exact matches.
+    const qualityLabel = fields.script_level ? ` ${fields.script_level}` : '';
+    const scriptLabel = scriptType ? ` בכתב ${scriptType}` : '';
+    const sizeLabel = fields.parchment_size ? ` ${fields.parchment_size} ס"מ` : '';
+    const titleBase = `${title}${subType}${sizeLabel}${scriptLabel}${qualityLabel}`;
     // pageTitle (with the explicit "| חותם" suffix) is only for surfaces that don't
     // apply the root layout's title template (OG/Twitter cards) — the <title> tag
     // itself uses titleBase alone so the template doesn't double up the brand suffix.
     const pageTitle = `${titleBase} | חותם`;
-    const description = fields.description || `רכישת ${title}${subType} מהודר בכתב ${scriptType}, במחיר ₪${displayPrice.toLocaleString('he-IL')} כולל מע"מ, ישירות מסופר סת"ם ירא שמיים.`;
+
+    // Meta description: always deterministic from real fields (name, specs,
+    // price) so every product page hits the ~150-160 char target regardless
+    // of whether the seller wrote their own free-text description — that
+    // real text is appended when there's room, never invented.
+    const MAX_DESCRIPTION_LENGTH = 160;
+    const priceLabel = displayPrice > 0 ? `₪${displayPrice.toLocaleString('he-IL')} כולל מע"מ` : 'מחיר משתלם';
+    const descriptionBase = `${title}${subType}${qualityLabel}${scriptLabel}${sizeLabel ? ` בגודל${sizeLabel}` : ''} במחיר ${priceLabel}, ישירות מסופר סת"ם מוסמך - חותם.`;
+    let description = descriptionBase;
+    if (fields.description) {
+      const available = MAX_DESCRIPTION_LENGTH - descriptionBase.length - 1;
+      if (available > 20) {
+        const sellerText = fields.description.trim();
+        description = `${descriptionBase} ${sellerText.length > available ? `${sellerText.slice(0, available - 1).trimEnd()}…` : sellerText}`;
+      }
+    } else {
+      const closing = ' שקיפות מלאה וכשרות ללא פשרות, ישירות מהסופר.';
+      if ((descriptionBase + closing).length <= MAX_DESCRIPTION_LENGTH) description = descriptionBase + closing;
+    }
+    if (description.length > MAX_DESCRIPTION_LENGTH) {
+      description = `${description.slice(0, MAX_DESCRIPTION_LENGTH - 1).trimEnd()}…`;
+    }
 
     let imageUrl = 'https://github.com/user-attachments/assets/c225c666-5c35-4add-86d2-ed2454e6f368';
     if (Array.isArray(fields.images) && fields.images.length > 0) {
@@ -61,13 +87,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         description: description,
         images: [{ url: imageUrl, width: 800, height: 600, alt: pageTitle }],
         url: `https://www.hotam.shop/products/${id}`,
-        type: 'website'
+        // og:type is set to "product" via `other` below instead of here —
+        // next/metadata's typed openGraph.type union doesn't include
+        // "product", and setting both here and in `other` would emit two
+        // conflicting og:type tags.
       },
       twitter: {
         card: 'summary_large_image',
         title: pageTitle,
         description: description,
         images: [imageUrl],
+      },
+      other: {
+        'og:type': 'product',
+        'product:price:amount': String(displayPrice),
+        'product:price:currency': 'ILS',
       },
     };
   } catch (error) {
@@ -110,6 +144,8 @@ export default async function ProductPage({ params }: Props) {
     "name": productName,
     "description": fields.description || 'מוצר קודש מהודר מחותם',
     "image": Array.isArray(fields.images) && fields.images.length > 0 ? fields.images : undefined,
+    "sku": id,
+    "productID": id,
     "itemCondition": "https://schema.org/NewCondition",
     ...(additionalProperty.length > 0 ? { additionalProperty } : {}),
     ...(seller ? { "brand": { "@type": "Brand", "name": `${seller.first_name} ${seller.last_name}` } } : {}),

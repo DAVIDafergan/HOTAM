@@ -269,7 +269,6 @@ export default function SellerProfile({
     const reviewData = {
       supermarket_id: id,
       buyer_id: userId,
-      user_name: realName,
       buyer_name: realName,
       is_anonymous: reviewIsAnonymous,
       rating: reviewRating,

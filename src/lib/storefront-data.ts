@@ -49,17 +49,18 @@ const PUBLIC_SELLER_FIELDS = [
   'created_at',
 ].join(', ');
 
+// Neither the reviews nor supermarket_reviews table has user_name/updated_at
+// columns (confirmed against docs/supabase-schema.sql and a live PostgREST
+// 400 error) — selecting them made every review fetch fail outright.
 const PUBLIC_PRODUCT_REVIEW_FIELDS = [
   'id',
   'product_id',
   'buyer_id',
   'buyer_name',
-  'user_name',
   'rating',
   'comment',
   'is_anonymous',
   'created_at',
-  'updated_at',
   'profiles(full_name, avatar_url)',
 ].join(', ');
 
@@ -68,12 +69,10 @@ const PUBLIC_SELLER_REVIEW_FIELDS = [
   'supermarket_id',
   'buyer_id',
   'buyer_name',
-  'user_name',
   'rating',
   'comment',
   'is_anonymous',
   'created_at',
-  'updated_at',
   'profiles(full_name, avatar_url)',
 ].join(', ');
 

@@ -75,12 +75,13 @@ const PRODUCT_FALLBACK_FIELDS = [
   'parchment_size',
   'proofreading_level',
 ].join(', ');
+// reviews has no user_name column (confirmed via live PostgREST 400 error) —
+// selecting it made this fallback fetch fail outright.
 const REVIEW_FALLBACK_FIELDS = [
   'id',
   'product_id',
   'buyer_id',
   'buyer_name',
-  'user_name',
   'rating',
   'comment',
   'is_anonymous',
@@ -501,6 +502,16 @@ export function ProductDetailsClient({
   const currentImage = images[selectedImageIdx] || logoImg;
   const displayPrice = Math.round(Number(product.price) * VAT_MULTIPLIER).toLocaleString('he-IL');
   const productDisplayTitle = `${product.product_type}${product.sub_type && product.sub_type !== 'all' ? ` ${product.sub_type}` : ''}`;
+  // Richer image alt text (size + script + quality) instead of just the
+  // product name, so each product photo carries real descriptive/keyword
+  // context for image search — built from the same fields already shown
+  // in the spec tab, not invented.
+  const productAltDescription = [
+    productDisplayTitle,
+    product.parchment_size ? `${product.parchment_size} ס"מ` : '',
+    product.script_type ? `כתב ${product.script_type}` : '',
+    product.script_level || '',
+  ].filter(Boolean).join(' ') + ' - חותם';
   // ספר תורה and ספר הפטרות are both custom/coordinated orders — the buyer never buys
   // instantly or contacts the seller directly; they leave a request that "חותם" staff
   // (not the seller) follow up on, via the same torah_request order flow.
@@ -578,7 +589,7 @@ export function ProductDetailsClient({
                     onClick={() => openImageZoom(i)}
                     className="relative w-full h-full shrink-0 snap-center text-right"
                   >
-                    <Image loader={unsplashLoader} src={img} alt={`${productDisplayTitle} - תמונה ${i + 1} מתוך ${images.length}`} fill priority={i === 0} kind="product" sizes="(max-width: 768px) 100vw, 50vw" className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]" />
+                    <Image loader={unsplashLoader} src={img} alt={`${productAltDescription} - תמונה ${i + 1} מתוך ${images.length}`} fill priority={i === 0} loading={i === 0 ? undefined : 'lazy'} kind="product" sizes="(max-width: 768px) 100vw, 50vw" className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]" />
                   </button>
                 ))}
               </div>
@@ -624,7 +635,7 @@ export function ProductDetailsClient({
                       selectedImageIdx === i ? 'ring-2 ring-primary ring-offset-2' : 'ring-1 ring-primary/10 opacity-70 hover:opacity-100 hover:ring-primary/30'
                     )}
                   >
-                    <Image loader={unsplashLoader} src={img} alt={`תמונה ממוזערת ${i + 1} - ${productDisplayTitle}`} fill kind="product" sizes="80px" className="object-cover" />
+                    <Image loader={unsplashLoader} src={img} alt={`תמונה ממוזערת ${i + 1} - ${productAltDescription}`} fill loading="lazy" kind="product" sizes="80px" className="object-cover" />
                   </button>
                 ))}
               </div>
@@ -649,7 +660,7 @@ export function ProductDetailsClient({
                     <p className="text-sm font-bold text-muted-foreground uppercase tracking-wide">{product.product_type}</p>
                   )}
                   <h1 className="text-4xl md:text-5xl font-headline font-black text-primary leading-[1.1] tracking-tight">
-                    {product.sub_type && product.sub_type !== 'all' ? product.sub_type : product.product_type}
+                    {productDisplayTitle}
                   </h1>
                 </div>
                 <div className="hidden md:flex items-center gap-1.5 shrink-0 pt-1">
@@ -768,6 +779,7 @@ export function ProductDetailsClient({
             </TabsList>
 
             <TabsContent value="specs" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+              <h2 className="font-bold text-xs text-primary/40 uppercase tracking-widest mb-4">מפרט טכני</h2>
               <div className="grid md:grid-cols-2 gap-x-16 gap-y-1 max-w-3xl">
                 <SpecItem label="סוג כתב ומסורת" value={product.script_type} />
                 <SpecItem label="רמת הידור הלכתית" value={product.script_level} />
@@ -1085,7 +1097,7 @@ export function ProductDetailsClient({
               <Image
                 loader={unsplashLoader}
                 src={currentImage}
-                  alt={productDisplayTitle}
+                  alt={productAltDescription}
                 fill
                 className="object-contain transition-transform duration-150"
                 style={{

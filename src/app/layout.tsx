@@ -54,11 +54,19 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      // favicon.ico itself now embeds 16/32/48px (was 16/32 only) — Google's
+      // own guidance wants 48px+, ideally a multiple of 48px, which the old
+      // file didn't provide at any embedded resolution.
       { url: '/favicon.ico', sizes: 'any' },
       { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/icon-48.png', sizes: '48x48', type: 'image/png' },
+      { url: '/icon-96.png', sizes: '96x96', type: 'image/png' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
     ],
     shortcut: '/favicon.ico',
-    apple: '/icon.svg',
+    // Was '/icon.svg' — iOS does not support SVG for home-screen/apple-touch
+    // icons, so this never actually worked; PNG is required.
+    apple: '/apple-icon.png',
   },
   robots: {
     index: true,

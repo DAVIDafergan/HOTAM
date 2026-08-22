@@ -14,6 +14,7 @@ import { HeroAnimation } from '@/components/HeroAnimation';
 import { ScrollFadeIn } from '@/components/ScrollFadeIn';
 import { StaggerGrid, StaggerItem } from '@/components/StaggerGrid';
 import { MotionTap } from '@/components/MotionTap';
+import SignatureInkAnimation from '@/components/SignatureInkAnimationLoader';
 
 const WorkFlow = dynamic(() => import('@/components/WorkFlow').then(mod => mod.WorkFlow), {
   loading: () => <section aria-hidden="true" className="min-h-[680px] w-full bg-gradient-to-b from-primary/10 via-primary/5 to-primary/0 animate-pulse" />,
@@ -54,7 +55,7 @@ export default function Home() {
               <h2 id="about-heading" className="text-[2.35rem] md:text-[3.3rem] font-headline font-black text-primary tracking-tight">
                 חותם – מלאכת שמיים ושקיפות מלאה
               </h2>
-              <div className="w-16 h-1 rounded-full bg-accent mx-auto" />
+              <SignatureInkAnimation />
               <p className="text-lg md:text-[1.35rem] text-primary/70 leading-relaxed font-medium mx-auto max-w-3xl">
                 פלטפורמת חותם נולדה מתוך חזון לחבר בין עולם הסת''ם העתיק לבין הטכנולוגיה המודרנית, תוך שמירה על קדושה וכשרות ללא פשרות. אנו מאפשרים לכם לרכוש כלי קודש ישירות מסופרי סת''ם יראי שמיים, ללא פערי תיווך ובשקיפות מלאה על זהות הכותב, רמת ההידור והנהגת הקדושה שלו.
               </p>

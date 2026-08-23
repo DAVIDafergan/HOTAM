@@ -256,6 +256,26 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
           userMeta.writing_samples,
         );
 
+        // Google/OAuth sign-in never carries an app role (Supabase's signInWithOAuth has no
+        // metadata-injection hook the way email signUp does), so the DB trigger silently
+        // defaults every such account to 'customer'. Every deliberate signup path (email
+        // customer/seller signup, or a Google button that queued an explicit intent) sets
+        // either userMeta.role or one of the localStorage intent flags below — so their
+        // absence, on what is provably this account's very first sign-in ever, means the
+        // user never got to choose. Route them to an explicit picker instead of silently
+        // keeping the trigger's default.
+        const roleFromMetadataTopLevel = userMeta.role as string | undefined;
+        const isFirstEverSignIn = (() => {
+          const createdAtMs = session.user.created_at ? new Date(session.user.created_at).getTime() : null;
+          const lastSignInAtMs = session.user.last_sign_in_at ? new Date(session.user.last_sign_in_at).getTime() : null;
+          if (createdAtMs == null || lastSignInAtMs == null) return false;
+          return Math.abs(lastSignInAtMs - createdAtMs) < 10_000;
+        })();
+        const hasQueuedRoleIntent = Boolean(
+          window.localStorage.getItem('hotam_pending_customer_name') ||
+          window.localStorage.getItem('pendingSellerProfile'),
+        );
+
         const buildSellerPayloadFromMetadata = () => ({
           id: session.user.id,
           email: userEmail,
@@ -348,6 +368,28 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
         };
 
         void (async () => {
+          if (
+            !roleFromMetadataTopLevel &&
+            !hasSellerMetadataHint &&
+            !hasQueuedRoleIntent &&
+            isFirstEverSignIn &&
+            window.location.pathname !== '/onboarding/choose-role'
+          ) {
+            try {
+              const { count: sellerCountForGate } = await client
+                .from('sellers')
+                .select('id', { count: 'exact', head: true })
+                .eq('id', session.user.id);
+              if (!sellerCountForGate) {
+                console.info('[auth] first sign-in with no declared role — routing to role choice', { userId: session.user.id });
+                window.location.assign('/onboarding/choose-role');
+                return;
+              }
+            } catch (err) {
+              console.error('[auth] role-choice gate check error:', err);
+            }
+          }
+
           try {
             await reconcileSellerAccount();
           } catch (err) {

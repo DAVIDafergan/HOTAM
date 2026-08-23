@@ -626,7 +626,7 @@ export default function CheckoutPageClient() {
                     type="button"
                     onClick={handlePayClick}
                     disabled={!isSumitReady || isProcessing}
-                    className="hidden md:flex w-full bg-primary text-white hover:bg-primary/90 h-16 rounded-2xl shadow-xl font-black text-xl uppercase tracking-widest gap-3"
+                    className="hidden md:flex w-full bg-accent text-primary hover:bg-accent/90 h-16 rounded-2xl shadow-xl font-black text-xl uppercase tracking-widest gap-3"
                   >
                     {isProcessing ? (
                       <>
@@ -695,7 +695,7 @@ export default function CheckoutPageClient() {
             type="button"
             onClick={handlePayClick}
             disabled={!isSumitReady || isProcessing}
-            className="w-full bg-primary text-white hover:bg-primary/90 h-14 rounded-2xl shadow-xl font-black text-base uppercase tracking-widest gap-2"
+            className="w-full bg-accent text-primary hover:bg-accent/90 h-14 rounded-2xl shadow-xl font-black text-base uppercase tracking-widest gap-2"
           >
             {isProcessing ? (
               <>

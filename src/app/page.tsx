@@ -88,7 +88,7 @@ export default function Home() {
             <ScrollFadeIn className="mt-8 md:mt-28 text-center">
               <div className="flex flex-col items-center gap-3">
                 <MotionTap className="inline-block">
-                  <Button size="lg" asChild className="rounded-full gap-3 font-bold text-white bg-primary hover:bg-primary/90 focus:ring-4 focus:ring-primary/30 transition-all duration-300 px-12 h-16 shadow-xl">
+                  <Button size="lg" asChild className="rounded-full gap-3 font-bold text-primary bg-accent hover:bg-accent/90 focus:ring-4 focus:ring-accent/30 transition-all duration-300 px-12 h-16 shadow-xl">
                     <Link href="/search?view=all">
                       <Search className="w-5 h-5" />
                       צפה בכל המוצרים באתר

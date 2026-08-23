@@ -265,7 +265,7 @@ export default function RegisterPageClient() {
                     רוצה לרכוש מזוזות, תפילין, ספרי תורה וכלי קודש מסופרים מוסמכים
                   </p>
                 </div>
-                <div className="mt-auto w-full bg-primary/5 hover:bg-primary/10 text-primary font-black text-sm py-3 px-6 rounded-full group-hover:bg-primary group-hover:text-white transition-all">
+                <div className="mt-auto w-full bg-primary/5 hover:bg-primary/10 text-primary font-black text-sm py-3 px-6 rounded-full group-hover:bg-accent group-hover:text-primary transition-all">
                   הרשמה כלקוח
                 </div>
               </button>
@@ -283,7 +283,7 @@ export default function RegisterPageClient() {
                     סופר מוסמך שרוצה למכור את יצירותיו ישירות ללקוחות דרך הפלטפורמה
                   </p>
                 </div>
-                <div className="mt-auto w-full bg-accent/5 hover:bg-accent/10 text-accent font-black text-sm py-3 px-6 rounded-full group-hover:bg-accent group-hover:text-white transition-all">
+                <div className="mt-auto w-full bg-accent/5 hover:bg-accent/10 text-accent font-black text-sm py-3 px-6 rounded-full group-hover:bg-accent group-hover:text-primary transition-all">
                   הרשמה כסופר
                 </div>
               </button>
@@ -505,7 +505,7 @@ export default function RegisterPageClient() {
                     <Button 
                       type="submit" 
                       disabled={loading || isUserLoading}
-                      className="w-full bg-primary hover:bg-primary/90 h-14 text-base font-black uppercase tracking-widest rounded-full shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3"
+                      className="w-full bg-accent hover:bg-accent/90 h-14 text-base font-black uppercase tracking-widest rounded-full shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3"
                     >
                       {loading || isUserLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>צרו חשבון עכשיו <Heart size={18} fill="currentColor" /></>}
                     </Button>
@@ -558,7 +558,7 @@ export default function RegisterPageClient() {
             </div>
           </div>
           <DialogFooter className="p-4 sm:p-6 bg-muted/30 border-t flex flex-col-reverse sm:flex-row gap-3">
-            <Button onClick={handlePasswordReset} disabled={isResetting} className="flex-1 bg-primary text-white h-12 rounded-xl font-black uppercase shadow-lg">
+            <Button onClick={handlePasswordReset} disabled={isResetting} className="flex-1 bg-accent text-primary h-12 rounded-xl font-black uppercase shadow-lg">
               {isResetting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'שלח קישור לאיפוס'}
             </Button>
             <Button variant="ghost" onClick={() => setIsResetDialogOpen(false)} className="h-12 rounded-xl font-black">ביטול</Button>

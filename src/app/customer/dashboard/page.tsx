@@ -437,7 +437,7 @@ export default function CustomerDashboard() {
               <Button
                 onClick={handleCompleteName}
                 disabled={isCompletingName}
-                className="w-full bg-primary text-white rounded-full h-12 font-black uppercase gap-2"
+                className="w-full bg-accent text-primary rounded-full h-12 font-black uppercase gap-2"
               >
                 {isCompletingName ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserCheck className="w-4 h-4" />}
                 שמירה והמשך
@@ -503,7 +503,7 @@ export default function CustomerDashboard() {
               <TabsTrigger
                 key={item.id}
                 value={item.id}
-                className="relative rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg gap-2 text-xs font-black uppercase tracking-wider transition-all py-3 flex flex-col sm:flex-row items-center"
+                className="relative rounded-xl data-[state=active]:bg-accent data-[state=active]:text-primary data-[state=active]:shadow-lg gap-2 text-xs font-black uppercase tracking-wider transition-all py-3 flex flex-col sm:flex-row items-center"
               >
                 {item.icon}
                 <span className="hidden sm:inline">{item.label}</span>
@@ -677,7 +677,7 @@ export default function CustomerDashboard() {
                 </div>
               </div>
               <div className="pt-6 border-t mt-6 flex justify-end">
-                <Button onClick={handleSaveProfile} disabled={isSaving} className="bg-primary text-white rounded-full px-10 h-12 font-black uppercase shadow-lg gap-2 hover:bg-primary/90 transition-all">
+                <Button onClick={handleSaveProfile} disabled={isSaving} className="bg-accent text-primary rounded-full px-10 h-12 font-black uppercase shadow-lg gap-2 hover:bg-accent/90 transition-all">
                   {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} שמור שינויים
                 </Button>
               </div>
@@ -754,7 +754,7 @@ export default function CustomerDashboard() {
              </div>
           </div>
           <DialogFooter className="p-6 bg-muted/30 border-t flex gap-3">
-            <Button onClick={handleManualRating} disabled={isRatingSubmitting} className="flex-1 bg-primary text-white h-12 font-black uppercase">{isRatingSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'שלח ביקורת'}</Button>
+            <Button onClick={handleManualRating} disabled={isRatingSubmitting} className="flex-1 bg-accent text-primary h-12 font-black uppercase">{isRatingSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'שלח ביקורת'}</Button>
             <Button variant="ghost" onClick={() => setRatingOrderId(null)} className="h-12 font-bold">ביטול</Button>
           </DialogFooter>
         </DialogContent>

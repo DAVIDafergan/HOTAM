@@ -134,7 +134,7 @@ export default function DiagnosisPageClient() {
                     {preview ? 'החלף תמונה' : 'בחר תמונה'}
                   </Button>
                   {preview && (
-                    <Button onClick={handleDiagnosis} disabled={loading} className="bg-primary hover:bg-primary/90">
+                    <Button onClick={handleDiagnosis} disabled={loading} className="bg-accent hover:bg-accent/90">
                       {loading ? <><Loader2 className="w-4 h-4 ml-2 animate-spin" /> מעבד...</> : 'אבחן עכשיו'}
                     </Button>
                   )}

@@ -182,7 +182,7 @@ export function AccessibilityButton() {
         <DropdownMenuTrigger asChild>
           <Button 
             size="icon" 
-            className="h-11 w-11 rounded-full bg-primary text-white shadow-2xl transition-transform border-2 border-white/20 animate-in fade-in zoom-in md:h-12 md:w-12"
+            className="h-11 w-11 rounded-full bg-accent text-primary shadow-2xl transition-transform animate-in fade-in zoom-in md:h-12 md:w-12"
             aria-label="תפריט נגישות, ניתן לגרור או להזיז עם מקשי החיצים"
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
@@ -262,11 +262,11 @@ function AccessOption({ label, active, onClick, icon }: any) {
       onClick={onClick}
       className={cn(
         "w-full flex items-center justify-between p-3 rounded-xl transition-all border-2",
-        active ? "bg-primary text-white border-primary shadow-md" : "bg-white border-transparent hover:border-primary/10 text-primary"
+        active ? "bg-accent text-primary border-accent shadow-md" : "bg-white border-transparent hover:border-primary/10 text-primary"
       )}
     >
       <div className="flex items-center gap-3">
-        <div className={cn("p-1.5 rounded-lg", active ? "bg-white/20" : "bg-primary/5")}>
+        <div className={cn("p-1.5 rounded-lg", active ? "bg-white/40" : "bg-primary/5")}>
           {icon}
         </div>
         <span className="text-xs font-bold">{label}</span>

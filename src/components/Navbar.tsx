@@ -287,7 +287,7 @@ export function Navbar() {
                           </>
                         ) : (
                           <div className="mt-4 px-1">
-                            <Button asChild className="w-full bg-primary hover:bg-primary/90 h-14 rounded-2xl shadow-lg font-bold text-sm uppercase tracking-widest gap-2">
+                            <Button asChild className="w-full bg-accent hover:bg-accent/90 h-14 rounded-2xl shadow-lg font-bold text-sm uppercase tracking-widest gap-2">
                               <Link href="/login" onClick={() => setIsOpen(false)}>
                                 <LogIn className="w-4 h-4" /> התחברות למערכת 
                               </Link>
@@ -580,7 +580,7 @@ export function Navbar() {
             )}
 
             {!user && (
-              <Button asChild className="bg-primary text-white hover:bg-primary/95 h-10 w-10 p-0 md:h-10 md:w-auto md:px-7 rounded-full shadow-premium text-xs font-bold gap-2 border border-white/30 shrink-0 transition-transform duration-200 hover:scale-105 active:scale-95">
+              <Button asChild className="bg-accent text-primary hover:bg-accent/90 h-10 w-10 p-0 md:h-10 md:w-auto md:px-7 rounded-full shadow-premium text-xs font-bold gap-2 shrink-0 transition-transform duration-200 hover:scale-105 active:scale-95">
                 <Link href="/login" aria-label="התחברות">
                   <LogIn className="w-4 h-4 md:w-3.5 md:h-3.5" />
                   <span className="hidden md:inline">התחברות</span>
@@ -623,7 +623,7 @@ function MobileNavLink({ href, icon, label, onClick, hasBadge = false, active = 
       <span className={cn("transition-colors", active ? "text-primary" : "group-hover:text-accent")}>{label}</span>
       <span className={cn(
         "p-2.5 rounded-xl transition-all relative shrink-0",
-        active ? "bg-primary text-white shadow-md" : "text-accent bg-accent/10 group-hover:scale-110 group-hover:bg-accent/20"
+        active ? "bg-accent text-primary shadow-md" : "text-accent bg-accent/10 group-hover:scale-110 group-hover:bg-accent/20"
       )}>
         {icon}
         {hasBadge && (

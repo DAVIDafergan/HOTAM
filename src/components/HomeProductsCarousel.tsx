@@ -42,7 +42,7 @@ export async function HomeProductsCarousel() {
 
         <div className="flex justify-center mt-8 md:mt-12">
           <MotionTap className="inline-block">
-            <Button size="lg" asChild className="rounded-full gap-3 font-bold text-white bg-primary hover:bg-primary/90 focus:ring-4 focus:ring-primary/30 transition-all duration-300 px-12 h-16 shadow-xl">
+            <Button size="lg" asChild className="rounded-full gap-3 font-bold text-primary bg-accent hover:bg-accent/90 focus:ring-4 focus:ring-accent/30 transition-all duration-300 px-12 h-16 shadow-xl">
               <Link href="/search?view=all">
                 לכל המוצרים
                 <ArrowLeft className="w-5 h-5" />

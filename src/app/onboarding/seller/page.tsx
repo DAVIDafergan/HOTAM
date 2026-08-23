@@ -584,7 +584,7 @@ export default function SellerOnboarding() {
                 <div
                   className={cn(
                     "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-black transition-all duration-300",
-                    step > meta.id ? "bg-primary text-white" : step === meta.id ? "bg-primary text-white ring-4 ring-primary/15" : "bg-primary/10 text-primary/40"
+                    step > meta.id ? "bg-accent text-primary" : step === meta.id ? "bg-accent text-primary ring-4 ring-accent/25" : "bg-primary/10 text-primary/40"
                   )}
                 >
                   {step > meta.id ? '✓' : meta.id}
@@ -592,7 +592,7 @@ export default function SellerOnboarding() {
                 {idx < STEP_META.length - 1 && (
                   <div className="h-1.5 flex-1 rounded-full bg-primary/10 overflow-hidden">
                     <div
-                      className="h-full bg-primary transition-all duration-500 ease-out"
+                      className="h-full bg-accent transition-all duration-500 ease-out"
                       style={{ width: step > meta.id ? '100%' : '0%' }}
                     />
                   </div>
@@ -986,7 +986,7 @@ export default function SellerOnboarding() {
               {step > 1 ? (
                 <Button variant="ghost" onClick={() => setStep(s => s - 1)} disabled={loading} className="rounded-xl px-8 h-12 font-black text-xs uppercase tracking-widest">חזור</Button>
               ) : <div />}
-              <Button onClick={step === totalSteps ? handleFinalSubmit : nextStep} className="bg-primary hover:bg-primary/90 px-12 h-14 rounded-full font-black text-xs uppercase tracking-[0.2em] shadow-lg transition-all active:scale-95" disabled={loading}>
+              <Button onClick={step === totalSteps ? handleFinalSubmit : nextStep} className="bg-accent hover:bg-accent/90 px-12 h-14 rounded-full font-black text-xs uppercase tracking-[0.2em] shadow-lg transition-all active:scale-95" disabled={loading}>
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (step === totalSteps ? "שלח הרשמה לאישור" : "המשך לשלב הבא")}
               </Button>
             </div>
@@ -1000,7 +1000,7 @@ export default function SellerOnboarding() {
 function GuideStep({ number, title, desc, link }: { number: string, title: string, desc: string, link: string }) {
   return (
     <div className="flex gap-4">
-      <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-black shrink-0 text-sm">{number}</div>
+      <div className="w-8 h-8 rounded-full bg-accent text-primary flex items-center justify-center font-black shrink-0 text-sm">{number}</div>
       <div className="space-y-1 text-right">
         <p className="font-black text-sm text-primary">{title}</p>
         <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>

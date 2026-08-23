@@ -37,7 +37,7 @@ function SuccessContent() {
           </p>
           <Button
             onClick={() => router.push('/customer/dashboard')}
-            className="w-full bg-primary text-white hover:bg-primary/90 h-14 rounded-2xl font-black text-lg"
+            className="w-full bg-accent text-primary hover:bg-accent/90 h-14 rounded-2xl font-black text-lg"
           >
             עבור לאיזור האישי
           </Button>

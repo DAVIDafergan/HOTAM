@@ -799,7 +799,7 @@ export default function AdminDashboard() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Button onClick={exportSellersToExcel} className="h-12 sm:h-14 rounded-2xl px-5 font-black gap-2 bg-primary text-white hover:bg-primary/90 w-full sm:w-auto">
+            <Button onClick={exportSellersToExcel} className="h-12 sm:h-14 rounded-2xl px-5 font-black gap-2 bg-accent text-primary hover:bg-accent/90 w-full sm:w-auto">
               <FileDown className="w-4 h-4" /> ייצוא סופרים לאקסל
             </Button>
           </div>
@@ -838,7 +838,7 @@ export default function AdminDashboard() {
                     value={tab.id}
                     title={tab.label}
                     className={cn(
-                      "w-full flex items-center rounded-2xl h-12 data-[state=active]:bg-primary data-[state=active]:text-white font-black text-[11px] uppercase tracking-widest gap-3 transition-colors",
+                      "w-full flex items-center rounded-2xl h-12 data-[state=active]:bg-accent data-[state=active]:text-primary font-black text-[11px] uppercase tracking-widest gap-3 transition-colors",
                       isSidebarCollapsed ? "justify-center px-0" : "justify-start px-4"
                     )}
                   >
@@ -882,7 +882,7 @@ export default function AdminDashboard() {
                       }}
                       className={cn(
                         "w-full flex items-center justify-between p-4 rounded-2xl transition-all font-black text-sm",
-                        activeTab === tab.id ? "bg-primary text-white shadow-lg" : "text-primary/60 hover:bg-primary/5"
+                        activeTab === tab.id ? "bg-accent text-primary shadow-lg" : "text-primary/60 hover:bg-primary/5"
                       )}
                     >
                       <div className="flex items-center gap-3">
@@ -1420,7 +1420,7 @@ function SalesCards({ orders, sellers, onLinkToTab, page, setPage }: any) {
                 </div>
 
                 <div className="pt-2 flex gap-2">
-                  <Button asChild variant="outline" className="flex-1 h-9 rounded-xl font-black text-[9px] uppercase gap-2 border-primary/5 hover:bg-primary hover:text-white">
+                  <Button asChild variant="outline" className="flex-1 h-9 rounded-xl font-black text-[9px] uppercase gap-2 border-primary/5 hover:bg-accent hover:text-primary">
                     <Link href={`/products/${o.product_id}`}>צפה במוצר</Link>
                   </Button>
                 </div>
@@ -1651,7 +1651,7 @@ function InquiryDetailDialog({ inquiry, onUpdateStatus }: any) {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon" className="h-10 w-10 rounded-full hover:bg-primary hover:text-white transition-all border-primary/5 shadow-sm" aria-label="צפה בפנייה">
+        <Button variant="outline" size="icon" className="h-10 w-10 rounded-full hover:bg-accent hover:text-primary transition-all border-primary/5 shadow-sm" aria-label="צפה בפנייה">
           <Eye className="w-3.5 h-3.5" />
         </Button>
       </DialogTrigger>
@@ -1680,7 +1680,7 @@ function InquiryDetailDialog({ inquiry, onUpdateStatus }: any) {
           </div>
 
           <div className="flex flex-wrap gap-2 pt-2">
-            <Button asChild className="rounded-full h-11 px-6 bg-primary text-white hover:bg-primary/90 gap-2 font-bold text-xs">
+            <Button asChild className="rounded-full h-11 px-6 bg-accent text-primary hover:bg-accent/90 gap-2 font-bold text-xs">
               <a href={`mailto:${inquiry.email}`}><Mail className="w-4 h-4" /> השב באימייל</a>
             </Button>
             {whatsappHref && (
@@ -1770,7 +1770,7 @@ function EditSellerDialog({ scribe, db }: any) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon" className="h-10 w-10 rounded-full hover:bg-primary hover:text-white transition-all border-primary/5 shadow-sm" aria-label="ערוך פרטי סופר">
+        <Button variant="outline" size="icon" className="h-10 w-10 rounded-full hover:bg-accent hover:text-primary transition-all border-primary/5 shadow-sm" aria-label="ערוך פרטי סופר">
           <Pencil className="w-3.5 h-3.5" />
         </Button>
       </DialogTrigger>
@@ -1830,7 +1830,7 @@ function EditSellerDialog({ scribe, db }: any) {
 
         <div className="p-6 border-t bg-muted/20 flex justify-end gap-3 sticky bottom-0">
           <Button variant="outline" onClick={() => setOpen(false)} className="rounded-full h-11 px-6" disabled={isSaving}>ביטול</Button>
-          <Button onClick={handleSave} disabled={isSaving} className="rounded-full h-11 px-8 bg-primary text-white hover:bg-primary/90 gap-2">
+          <Button onClick={handleSave} disabled={isSaving} className="rounded-full h-11 px-8 bg-accent text-primary hover:bg-accent/90 gap-2">
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
             שמור שינויים
           </Button>
@@ -1852,7 +1852,7 @@ function VerifyScribeDialog({ scribe, db }: any) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon" className="h-10 w-10 rounded-full hover:bg-primary hover:text-white transition-all border-primary/5 shadow-sm">
+        <Button variant="outline" size="icon" className="h-10 w-10 rounded-full hover:bg-accent hover:text-primary transition-all border-primary/5 shadow-sm">
           <Eye className="w-3.5 h-3.5" />
         </Button>
       </DialogTrigger>

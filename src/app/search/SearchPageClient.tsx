@@ -759,7 +759,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
           <RotateCcw className="ml-2 h-4 w-4" />
           אפס
         </Button>
-        <Button onClick={() => setIsFilterPanelOpen(false)} className="h-12 rounded-2xl bg-primary text-white font-black shadow-lg">
+        <Button onClick={() => setIsFilterPanelOpen(false)} className="h-12 rounded-2xl bg-accent text-primary font-black shadow-lg">
           הצג {filteredProducts.length} מוצרים
         </Button>
       </div>
@@ -819,7 +819,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
               <p className="text-primary/60 text-lg md:text-xl mb-12 font-medium max-w-2xl mx-auto leading-relaxed">הגדירו את המפרט המדויק וקבלו את כלי הקודש המושלם עבורכם ישירות מהסופר המאומת.</p>
               
               <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
-                <Button onClick={() => setIsFilterPanelOpen(true)} size="lg" className="w-full sm:w-auto bg-primary hover:bg-primary/90 rounded-full px-10 sm:px-16 h-16 sm:h-20 font-black text-base sm:text-lg uppercase tracking-[0.2em] shadow-2xl hover:scale-105 active:scale-95 focus:ring-4 focus:ring-primary/30 transition-all duration-300 group">
+                <Button onClick={() => setIsFilterPanelOpen(true)} size="lg" className="w-full sm:w-auto rounded-full px-10 sm:px-16 h-16 sm:h-20 font-black text-base sm:text-lg uppercase tracking-[0.2em] shadow-2xl hover:scale-105 active:scale-95 focus:ring-4 focus:ring-accent/30 transition-all duration-300 group">
                   <SearchIcon className="ml-4 w-6 h-6 group-hover:rotate-12 transition-transform" /> התחל חיפוש מותאם
                 </Button>
                 <Button onClick={() => setShowResults(true)} variant="outline" size="lg" className="w-full sm:w-auto rounded-full px-8 sm:px-12 h-14 sm:h-20 font-black uppercase text-sm tracking-widest border-primary/10 bg-white shadow-premium hover:border-primary/20 hover:shadow-lg active:scale-95 transition-all duration-300">צפה בכל הקטלוג</Button>
@@ -900,7 +900,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                     aria-label="תצוגת רשת"
                     className={cn(
                       "flex h-11 w-11 items-center justify-center rounded-full transition-all duration-200 active:scale-90",
-                      viewMode === 'grid' ? "bg-primary text-white shadow-sm" : "text-primary/40 hover:bg-primary/5 hover:text-primary"
+                      viewMode === 'grid' ? "bg-accent text-primary shadow-sm" : "text-primary/40 hover:bg-primary/5 hover:text-primary"
                     )}
                   >
                     <LayoutGrid className="h-4 w-4" />
@@ -912,7 +912,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                     aria-label="תצוגת רשימה"
                     className={cn(
                       "flex h-11 w-11 items-center justify-center rounded-full transition-all duration-200 active:scale-90",
-                      viewMode === 'list' ? "bg-primary text-white shadow-sm" : "text-primary/40 hover:bg-primary/5 hover:text-primary"
+                      viewMode === 'list' ? "bg-accent text-primary shadow-sm" : "text-primary/40 hover:bg-primary/5 hover:text-primary"
                     )}
                   >
                     <Rows3 className="h-4 w-4" />
@@ -922,7 +922,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                   <SlidersHorizontal className="ml-1.5 h-3 w-3 text-accent transition-transform duration-300 group-hover:rotate-6" />
                   <span>סינון</span>
                   {activeFiltersCount > 0 && (
-                    <span className="mr-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] text-white">
+                    <span className="mr-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[9px] text-primary">
                       {activeFiltersCount}
                     </span>
                   )}
@@ -983,7 +983,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                       <p className="text-2xl md:text-3xl font-headline font-black text-primary tracking-tight">לא נמצאה התאמה מדויקת</p>
                        <p className="text-primary/60 max-w-sm mx-auto font-medium text-base md:text-lg leading-relaxed">נסו להסיר חלק מהמסננים או לאפס את החיפוש כדי לראות עוד אפשרויות קודש.</p>
                     </div>
-                    <Button variant="outline" onClick={resetFilters} className="rounded-full px-8 md:px-12 h-14 md:h-16 border-2 border-primary/10 text-primary font-black uppercase tracking-widest text-xs md:text-sm hover:bg-primary hover:text-white transition-all shadow-lg">
+                    <Button variant="outline" onClick={resetFilters} className="rounded-full px-8 md:px-12 h-14 md:h-16 border-2 border-primary/10 text-primary font-black uppercase tracking-widest text-xs md:text-sm hover:bg-accent hover:border-accent hover:text-primary transition-all shadow-lg">
                       הצג את כל כלי הקודש באתר
                     </Button>
                   </div>
@@ -995,7 +995,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                   <Button
                     onClick={() => setVisibleCount(prev => prev + PRODUCTS_PAGE_SIZE)}
                     variant="outline"
-                    className="rounded-full px-12 h-14 border-2 border-primary/10 text-primary font-black text-sm hover:bg-primary hover:text-white transition-all shadow-lg gap-3"
+                    className="rounded-full px-12 h-14 border-2 border-primary/10 text-primary font-black text-sm hover:bg-accent hover:border-accent hover:text-primary transition-all shadow-lg gap-3"
                   >
                     <ChevronRight className="w-4 h-4 rotate-[-90deg]" />
                     טען עוד ({filteredProducts.length - visibleCount} נוספים)
@@ -1028,7 +1028,7 @@ function WizardSmallCard({ value, selected, icon, label }: any) {
     )}>
       <div className={cn(
         "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300",
-        selected ? "bg-primary text-white shadow-lg" : "bg-primary/5 text-primary group-hover:bg-accent/10 group-hover:scale-110"
+        selected ? "bg-accent text-primary shadow-lg" : "bg-primary/5 text-primary group-hover:bg-accent/10 group-hover:scale-110"
       )}>
         {React.cloneElement(icon as React.ReactElement<{ className?: string }>, { className: "w-5 h-5" })}
       </div>
@@ -1053,7 +1053,7 @@ function CustomFilterTile({ value, label, active, onClick }: any) {
       <span className={cn("font-bold text-[10px] transition-colors", active ? "text-primary" : "text-primary/50 group-hover:text-primary/70")}>{label}</span>
       <div className={cn(
         "w-3 h-3 rounded-full border-2 transition-all duration-200",
-        active ? "bg-primary border-primary scale-110 shadow-sm" : "border-primary/10 group-hover:border-primary/30"
+        active ? "bg-accent border-accent scale-110 shadow-sm" : "border-primary/10 group-hover:border-primary/30"
       )} />
     </>
   );
@@ -1088,7 +1088,7 @@ function ToolbarChoiceButton({
       onClick={onClick}
       className={cn(
         "flex h-9 min-w-[74px] touch-manipulation items-center justify-center rounded-full px-3 text-[11px] font-black transition-all md:h-8 md:min-w-0 md:text-[10px]",
-        active ? "bg-primary text-white shadow-sm" : "text-primary/55 hover:text-primary",
+        active ? "bg-accent text-primary shadow-sm" : "text-primary/55 hover:text-primary",
       )}
     >
       {children}

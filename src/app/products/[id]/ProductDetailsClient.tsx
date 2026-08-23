@@ -575,7 +575,7 @@ export function ProductDetailsClient({
         <div className="mb-6 mt-4 flex justify-end md:hidden">
           <div className="flex gap-2">
             <Button variant="outline" size="icon" onClick={handleShare} className="rounded-full bg-white border-primary/10 shadow-sm transition-all duration-200 hover:scale-105 active:scale-90"><Share2 className="w-4 h-4" /></Button>
-            <Button variant="outline" size="icon" onClick={handleToggleFavorite} className={cn("rounded-full bg-white border-primary/10 shadow-sm transition-all duration-200 hover:scale-105 active:scale-90", isFavorite ? 'bg-primary text-white border-primary' : '')}><Heart className={cn("w-4 h-4 transition-transform duration-200", isFavorite ? 'fill-current' : '')} /></Button>
+            <Button variant="outline" size="icon" onClick={handleToggleFavorite} className={cn("rounded-full bg-white border-primary/10 shadow-sm transition-all duration-200 hover:scale-105 active:scale-90", isFavorite ? 'bg-accent text-primary border-accent' : '')}><Heart className={cn("w-4 h-4 transition-transform duration-200", isFavorite ? 'fill-current' : '')} /></Button>
           </div>
         </div>
 
@@ -842,7 +842,7 @@ export function ProductDetailsClient({
                         "{seller.notes || 'סופר סת\"ם מוסמך וירא שמיים, כותב בקדושה ובטהרה.'}"
                       </p>
                       <div className="pt-2">
-                        <Button asChild variant="outline" className="rounded-full border-2 border-primary text-primary hover:bg-primary hover:text-white font-black uppercase text-xs h-12 px-10 transition-all shadow-md">
+                        <Button asChild variant="outline" className="rounded-full border-2 border-primary text-primary hover:bg-accent hover:border-accent hover:text-primary font-black uppercase text-xs h-12 px-10 transition-all shadow-md">
                           <Link href={`/sellers/${seller.id}`}>לפרופיל המלא ודוגמאות כתיבה <ArrowLeft className="w-4 h-4 mr-2" /></Link>
                         </Button>
                       </div>
@@ -926,7 +926,7 @@ export function ProductDetailsClient({
                       <Button
                         onClick={handleSubmitProductReview}
                         disabled={!user || isReviewSubmitting || isOwnProductReviewBlocked}
-                        className="w-full bg-primary text-white h-12 font-black rounded-2xl shadow-md"
+                        className="w-full bg-accent text-primary h-12 font-black rounded-2xl shadow-md"
                       >
                         {isReviewSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : getProductReviewSubmitLabel()}
                       </Button>
@@ -1011,7 +1011,7 @@ export function ProductDetailsClient({
                <Button
                 onClick={handlePurchaseClick}
                 disabled={product.quantity <= 0}
-                className="flex-1 bg-primary text-white hover:bg-primary/90 h-14 md:h-16 rounded-2xl font-bold gap-3 shadow-md transition-all duration-200 hover:shadow-lg active:scale-95"
+                className="flex-1 bg-accent text-primary hover:bg-accent/90 h-14 md:h-16 rounded-2xl font-bold gap-3 shadow-md transition-all duration-200 hover:shadow-lg active:scale-95"
                >
                  <ShoppingCart className="w-5 h-5" />
                  <span>רכישה מאובטחת</span>
@@ -1170,7 +1170,7 @@ export function ProductDetailsClient({
             <Button
               onClick={handleCoordinationPhoneSubmit}
               disabled={isProcessingRequest}
-              className="w-full bg-primary text-white h-14 rounded-2xl font-black"
+              className="w-full bg-accent text-primary h-14 rounded-2xl font-black"
             >
               {isProcessingRequest ? <Loader2 className="w-5 h-5 animate-spin" /> : 'שליחת הבקשה'}
             </Button>

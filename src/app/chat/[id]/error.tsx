@@ -26,7 +26,7 @@ export default function ChatError({
         <div className="flex flex-col gap-3">
           <button
             onClick={reset}
-            className="w-full bg-primary text-white rounded-full h-12 font-black text-sm uppercase tracking-widest"
+            className="w-full bg-accent text-primary rounded-full h-12 font-black text-sm uppercase tracking-widest"
           >
             נסה שנית
           </button>

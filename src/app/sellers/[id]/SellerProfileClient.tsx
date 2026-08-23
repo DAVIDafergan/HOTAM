@@ -693,7 +693,7 @@ export default function SellerProfile({
                       <Button
                         onClick={handleSubmitSellerReview}
                         disabled={!user || isReviewSubmitting}
-                        className="w-full bg-primary text-white h-12 font-black rounded-2xl shadow-md"
+                        className="w-full bg-accent text-primary h-12 font-black rounded-2xl shadow-md"
                       >
                         {isReviewSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : getSellerReviewSubmitLabel()}
                       </Button>

@@ -20,7 +20,7 @@ export default function NotFound() {
           <div className="w-16 h-1 bg-accent mx-auto rounded-full" />
         </div>
 
-        <Button asChild className="rounded-full px-12 h-16 bg-primary text-white hover:bg-primary/90 font-black uppercase tracking-[0.2em] shadow-2xl transition-all hover:scale-105 active:scale-95">
+        <Button asChild className="rounded-full px-12 h-16 bg-accent text-primary hover:bg-accent/90 font-black uppercase tracking-[0.2em] shadow-2xl transition-all hover:scale-105 active:scale-95">
           <Link href="/">חזרה לדף הבית</Link>
         </Button>
       </main>

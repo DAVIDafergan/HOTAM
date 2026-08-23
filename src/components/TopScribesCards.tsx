@@ -106,7 +106,7 @@ export function TopScribesCards({ topScribes }: { topScribes: TopScribeCard[] })
                   </div>
                 </div>
                 <div className="mt-4">
-                  <Button variant="outline" className="rounded-full w-full h-10 border-primary/10 text-[9px] font-bold uppercase tracking-wide group-hover:bg-primary group-hover:text-white transition-all">
+                  <Button variant="outline" className="rounded-full w-full h-10 border-primary/10 text-[9px] font-bold uppercase tracking-wide group-hover:bg-accent group-hover:text-primary group-hover:border-accent transition-all">
                     צפה בפרופיל <ArrowLeft className="w-3 h-3 mr-2" />
                   </Button>
                 </div>

@@ -231,7 +231,7 @@ export function HeroAnimation() {
                 <div className={cn(
                   "w-8 h-8 rounded-full flex items-center justify-center font-black text-sm border-2 transition-all duration-500",
                   step === n
-                    ? "bg-primary text-white border-primary shadow-lg scale-110"
+                    ? "bg-accent text-primary border-accent shadow-lg scale-110"
                     : step > n
                     ? "bg-accent/20 text-accent border-accent/30"
                     : "bg-white text-primary/30 border-primary/10"
@@ -315,7 +315,7 @@ export function HeroAnimation() {
                     </div>
                     <button type="button" onClick={() => setQuantity(quantity + 1)} aria-label="הוסף כמות" className="w-10 h-10 rounded-xl border-2 border-primary/15 font-bold hover:bg-white active:scale-90 transition-all text-primary flex items-center justify-center text-lg bg-white shadow-sm">+</button>
                   </div>
-                  <Button onClick={() => setStep(2)} className="bg-primary text-white hover:bg-primary/95 rounded-full px-10 h-12 font-bold uppercase text-xs tracking-[0.2em] shadow-premium transition-all hover:scale-105 active:scale-95 group gap-2">
+                  <Button onClick={() => setStep(2)} className="bg-accent text-primary hover:bg-accent/90 rounded-full px-10 h-12 font-bold uppercase text-xs tracking-[0.2em] shadow-premium transition-all hover:scale-105 active:scale-95 group gap-2">
                     המשך למפרט <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                   </Button>
                 </motion.div>
@@ -395,7 +395,7 @@ export function HeroAnimation() {
                             }}
                             className={cn(
                               "h-14 rounded-2xl border-2 font-bold text-xs transition-all",
-                              megillahRows === r ? "border-primary bg-primary text-white shadow-lg scale-105" : "bg-white/40 border-primary/5 text-primary hover:border-accent/40"
+                              megillahRows === r ? "border-accent bg-accent text-primary shadow-lg scale-105" : "bg-white/40 border-primary/5 text-primary hover:border-accent/40"
                             )}
                           >
                             {r === 'all' ? 'הכל' : r === '42' ? '42 (האר"י)' : r}
@@ -430,7 +430,7 @@ export function HeroAnimation() {
                     <Label className="font-semibold text-xs uppercase text-primary/60 tracking-widest">גודל הקלף (ס"מ)</Label>
                     <div className="grid grid-cols-2 gap-2">
                       {[...getSizesForProduct(selectedProduct, scriptType), 'other'].map(sz => (
-                        <button type="button" key={sz} onClick={() => setScrollSize(sz)} className={cn("h-12 rounded-xl border-2 font-bold text-[11px] transition-all", scrollSize === sz ? "border-primary bg-primary text-white shadow-md" : "bg-white/40 border-primary/5 text-primary hover:border-accent/40")}>{sz === 'other' ? 'שאר הגדלים' : sz}</button>
+                        <button type="button" key={sz} onClick={() => setScrollSize(sz)} className={cn("h-12 rounded-xl border-2 font-bold text-[11px] transition-all", scrollSize === sz ? "border-accent bg-accent text-primary shadow-md" : "bg-white/40 border-primary/5 text-primary hover:border-accent/40")}>{sz === 'other' ? 'שאר הגדלים' : sz}</button>
                       ))}
                     </div>
                   </div>
@@ -439,7 +439,7 @@ export function HeroAnimation() {
             </div>
 
             <div className="flex justify-center pt-4 md:pt-8">
-               <Button onClick={() => setStep(3)} className="bg-primary text-white hover:bg-primary/95 rounded-full px-16 h-12 md:h-14 font-bold uppercase text-sm tracking-[0.2em] shadow-premium transition-all hover:scale-105 active:scale-95 group gap-2">
+               <Button onClick={() => setStep(3)} className="bg-accent text-primary hover:bg-accent/90 rounded-full px-16 h-12 md:h-14 font-bold uppercase text-sm tracking-[0.2em] shadow-premium transition-all hover:scale-105 active:scale-95 group gap-2">
                  המשך למיקום וקבלה <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
                </Button>
              </div>
@@ -609,16 +609,16 @@ export function HeroAnimation() {
                 onClick={() => setIsMobileSearchOpen(true)}
                 whileHover={shouldReduceMotion ? undefined : { scale: 1.02 }}
                 whileTap={shouldReduceMotion ? undefined : { scale: 0.96 }}
-                className="group flex w-full items-center gap-4 rounded-full bg-primary px-5 py-5 text-right shadow-lg"
+                className="group flex w-full items-center gap-4 rounded-full bg-accent px-5 py-5 text-right shadow-lg"
               >
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent text-primary transition-transform group-active:scale-90">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-white transition-transform group-active:scale-90">
                   <Search className="h-6 w-6" />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-lg font-black text-white tracking-tight">
+                  <span className="block truncate text-lg font-black text-primary tracking-tight">
                     {selectedProduct ? `המשך חיפוש: ${selectedProduct}` : 'חפש מוצרי יודאיקה וסת״ם'}
                   </span>
-                  <span className="block truncate text-xs font-bold text-white/70 mt-0.5">
+                  <span className="block truncate text-xs font-bold text-primary/70 mt-0.5">
                     {selectedCity ? `לפי עיר: ${selectedCity}` : 'התחל חיפוש מותאם אישית'}
                   </span>
                 </span>
@@ -696,7 +696,7 @@ function CustomTile({ value, label, active, compact = false, onClick }: any) {
     <>
       {!onClick && <RadioGroupItem value={value} className="hidden" />}
       <span className={cn("font-bold text-primary transition-colors", compact ? "text-xs" : "text-sm", active ? "opacity-100" : "opacity-60 group-hover:opacity-80")}>{label}</span>
-      <div className={cn("w-3.5 h-3.5 rounded-full border-2 transition-all duration-200", active ? "bg-primary border-primary scale-110 shadow-sm" : "border-primary/10 group-hover:border-primary/30")} />
+      <div className={cn("w-3.5 h-3.5 rounded-full border-2 transition-all duration-200", active ? "bg-accent border-accent scale-110 shadow-sm" : "border-primary/10 group-hover:border-primary/30")} />
     </>
   );
 

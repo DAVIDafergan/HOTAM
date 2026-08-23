@@ -131,7 +131,7 @@ export default function ResetPasswordPageClient() {
                     <h2 className="text-xl font-black text-primary">קישור לא תקף</h2>
                     <p className="text-muted-foreground text-sm font-bold">הקישור לאיפוס הסיסמה פג תוקפו או שאינו תקין.<br />אנא בקש קישור חדש דרך דף ההתחברות.</p>
                   </div>
-                  <Button onClick={() => router.push('/login')} className="mt-4 bg-primary text-white h-12 px-8 rounded-xl font-black">
+                  <Button onClick={() => router.push('/login')} className="mt-4 bg-accent text-primary h-12 px-8 rounded-xl font-black">
                     חזרה להתחברות
                   </Button>
                 </div>
@@ -174,7 +174,7 @@ export default function ResetPasswordPageClient() {
                     <Button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full bg-primary hover:bg-primary/90 h-16 text-base font-black uppercase tracking-widest rounded-full shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3"
+                      className="w-full bg-accent hover:bg-accent/90 h-16 text-base font-black uppercase tracking-widest rounded-full shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3"
                     >
                       {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <><KeyRound size={18} /> עדכון סיסמה</>}
                     </Button>
@@ -189,7 +189,7 @@ export default function ResetPasswordPageClient() {
                     <h2 className="text-xl font-black text-primary">הסיסמה עודכנה בהצלחה!</h2>
                     <p className="text-muted-foreground text-sm font-bold">כעת תוכל להתחבר עם הסיסמה החדשה.</p>
                   </div>
-                  <Button onClick={() => router.push('/login')} className="mt-4 bg-primary text-white h-12 px-8 rounded-xl font-black">
+                  <Button onClick={() => router.push('/login')} className="mt-4 bg-accent text-primary h-12 px-8 rounded-xl font-black">
                     מעבר להתחברות
                   </Button>
                 </div>

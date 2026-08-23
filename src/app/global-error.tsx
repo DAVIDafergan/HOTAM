@@ -23,7 +23,7 @@ export default function GlobalError({
           </p>
           <button
             onClick={reset}
-            className="w-full bg-primary text-white rounded-full h-12 font-black text-sm uppercase tracking-widest"
+            className="w-full bg-accent text-primary rounded-full h-12 font-black text-sm uppercase tracking-widest"
           >
             נסה שנית
           </button>

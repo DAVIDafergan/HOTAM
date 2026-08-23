@@ -543,7 +543,7 @@ function ChatContent() {
                 onClick={handleSendMessage}
                 size="icon"
                 disabled={!newMessage.trim()}
-                className="rounded-full h-12 w-12 bg-primary hover:bg-primary/90 shrink-0 shadow-lg transition-all duration-200 hover:scale-105 active:scale-90 disabled:opacity-40 disabled:hover:scale-100"
+                className="rounded-full h-12 w-12 bg-accent hover:bg-accent/90 shrink-0 shadow-lg transition-all duration-200 hover:scale-105 active:scale-90 disabled:opacity-40 disabled:hover:scale-100"
                 aria-label="שלח הודעה"
               >
                 <Send className="w-5 h-5 -translate-x-px" />

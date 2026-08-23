@@ -1082,7 +1082,7 @@ function SellerDashboardContent() {
           {/* Desktop tab bar */}
           <TabsList className="hidden md:flex bg-white/60 backdrop-blur-md p-1.5 rounded-3xl shadow-premium h-16 border">
             {navItems.map((item) => (
-              <TabsTrigger key={item.id} value={item.id} className="flex-1 rounded-2xl data-[state=active]:bg-primary data-[state=active]:text-white gap-2 text-xs font-black uppercase transition-all">
+              <TabsTrigger key={item.id} value={item.id} className="flex-1 rounded-2xl data-[state=active]:bg-accent data-[state=active]:text-primary gap-2 text-xs font-black uppercase transition-all">
                 {item.icon}
                 {item.label}
                 {item.badge ? <Badge className="bg-destructive text-white border-none rounded-full px-1.5 py-0.5 text-[9px] ml-1">{item.badge}</Badge> : null}
@@ -1125,7 +1125,7 @@ function SellerDashboardContent() {
                       onClick={() => { setActiveTab(item.id); setIsMobileNavOpen(false); }}
                       className={cn(
                         "w-full flex items-center justify-between p-4 rounded-2xl transition-all font-black text-sm",
-                        activeTab === item.id ? "bg-primary text-white shadow-lg" : "text-primary/60 hover:bg-primary/5"
+                        activeTab === item.id ? "bg-accent text-primary shadow-lg" : "text-primary/60 hover:bg-primary/5"
                       )}
                     >
                       <div className="flex items-center gap-3">{item.icon}<span>{item.label}</span></div>
@@ -1161,7 +1161,7 @@ function SellerDashboardContent() {
                     </div>
                  </div>
                  <div className="flex gap-2 shrink-0">
-                    <Button variant="outline" size="icon" onClick={() => openEditDialog(p)} className="rounded-full hover:bg-primary hover:text-white transition-all"><Edit className="w-4 h-4" /></Button>
+                    <Button variant="outline" size="icon" onClick={() => openEditDialog(p)} className="rounded-full hover:bg-accent hover:text-primary transition-all"><Edit className="w-4 h-4" /></Button>
                     <Button variant="outline" size="icon" onClick={() => handleDeleteProduct(p.id)} className="text-destructive rounded-full hover:bg-destructive hover:text-white transition-all"><Trash2 className="w-4 h-4" /></Button>
                   </div>
                 </Card>
@@ -1213,7 +1213,7 @@ function SellerDashboardContent() {
                                <p className="text-lg font-black text-primary leading-none">₪{o.amount}</p>
                                <p className="text-[9px] text-muted-foreground font-bold uppercase mt-1">סה"כ בעסקה</p>
                             </div>
-                            <div className={cn("p-2 rounded-full transition-transform", isExpanded ? "rotate-180 bg-primary text-white" : "bg-muted text-primary/40 group-hover:bg-primary group-hover:text-white")}>
+                            <div className={cn("p-2 rounded-full transition-transform", isExpanded ? "rotate-180 bg-accent text-primary" : "bg-muted text-primary/40 group-hover:bg-accent group-hover:text-primary")}>
                                <ChevronDown className="w-4 h-4" />
                             </div>
                          </div>
@@ -1239,7 +1239,7 @@ function SellerDashboardContent() {
                                     </p>
                                   </div>
                                   <div className="pt-4 space-y-2">
-                                    <Button asChild className="bg-primary text-white hover:bg-primary/90 rounded-full px-12 h-14 font-black uppercase tracking-widest shadow-xl gap-3">
+                                    <Button asChild className="bg-accent text-primary hover:bg-accent/90 rounded-full px-12 h-14 font-black uppercase tracking-widest shadow-xl gap-3">
                                       <a href={`https://wa.me/${PLATFORM_WHATSAPP_NUMBER}`} target="_blank" rel="noopener noreferrer">
                                         צרו קשר עם הנהלת האתר
                                       </a>
@@ -1266,7 +1266,7 @@ function SellerDashboardContent() {
                                               <p className="text-[11px] font-bold text-primary/70">הזן קוד אימות מהלקוח לשחרור התשלום:</p>
                                               <div className="flex gap-3">
                                                 <Input placeholder="קוד 6 ספרות" className="text-center font-black h-12 rounded-xl" value={verificationCodes[o.id] || ''} onChange={e => setVerificationCodes({...verificationCodes, [o.id]: e.target.value})} />
-                                                <Button onClick={() => handleVerifyOrder(o)} disabled={isVerifying === o.id || !verificationCodes[o.id]} className="bg-primary text-white h-12 rounded-xl px-8 font-black">אמת קוד</Button>
+                                                <Button onClick={() => handleVerifyOrder(o)} disabled={isVerifying === o.id || !verificationCodes[o.id]} className="bg-accent text-primary h-12 rounded-xl px-8 font-black">אמת קוד</Button>
                                               </div>
                                               <p className="text-[9px] text-muted-foreground italic text-center">הקוד נשלח ללקוח בעת התשלום ומופיע לו בלוח הבקרה.</p>
                                             </>
@@ -1644,7 +1644,7 @@ function SellerDashboardContent() {
                       updateDocumentNonBlocking(sellerRef!, profileData); 
                       setTimeout(() => { setIsSavingProfile(false); toast({ title: "הפרופיל עודכן" }); }, 800); 
                     }} 
-                    className="rounded-full px-16 h-14 bg-primary text-white font-black shadow-xl hover:bg-primary/90 transition-all" 
+                    className="rounded-full px-16 h-14 bg-accent text-primary font-black shadow-xl hover:bg-accent/90 transition-all"
                     disabled={isSavingProfile}
                    >
                      {isSavingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : 'שמור שינויים'}
@@ -1766,7 +1766,7 @@ function SellerDashboardContent() {
                                   onClick={() => setFormSubType(opt)}
                                   className={cn(
                                     "px-4 py-3 rounded-xl border-2 text-xs font-black transition-all",
-                                    formSubType === opt ? "bg-primary text-white border-primary shadow-lg scale-[1.02]" : "bg-white border-primary/5 hover:border-accent/40"
+                                    formSubType === opt ? "bg-accent text-primary border-accent shadow-lg scale-[1.02]" : "bg-white border-primary/5 hover:border-accent/40"
                                   )}
                                 >
                                   {opt}
@@ -1973,7 +1973,7 @@ function SellerDashboardContent() {
                            <button 
                              type="button" 
                              onClick={() => setFormDeliveryType('pickup')} 
-                            className={cn("flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all", formDeliveryType === 'pickup' ? 'bg-primary text-white border-primary shadow-lg' : 'bg-white border-primary/5')}
+                            className={cn("flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all", formDeliveryType === 'pickup' ? 'bg-accent text-primary border-accent shadow-lg' : 'bg-white border-primary/5')}
                           >
                             <MapPin className="w-5 h-5" />
                             <span className="text-[10px] font-black">איסוף עצמי בלבד</span>
@@ -1981,7 +1981,7 @@ function SellerDashboardContent() {
                           <button 
                             type="button" 
                             onClick={() => setFormDeliveryType('shipping')} 
-                            className={cn("flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all", formDeliveryType === 'shipping' ? 'bg-primary text-white border-primary shadow-lg' : 'bg-white border-primary/5')}
+                            className={cn("flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all", formDeliveryType === 'shipping' ? 'bg-accent text-primary border-accent shadow-lg' : 'bg-white border-primary/5')}
                           >
                              <Truck className="w-5 h-5" />
                              <span className="text-[10px] font-black">משלוח עד הבית</span>
@@ -1989,7 +1989,7 @@ function SellerDashboardContent() {
                            <button 
                              type="button" 
                              onClick={() => setFormDeliveryType('both')} 
-                             className={cn("flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all", formDeliveryType === 'both' ? 'bg-primary text-white border-primary shadow-lg' : 'bg-white border-primary/5')}
+                             className={cn("flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all", formDeliveryType === 'both' ? 'bg-accent text-primary border-accent shadow-lg' : 'bg-white border-primary/5')}
                            >
                              <div className="flex items-center gap-1">
                                <MapPin className="w-4 h-4" />
@@ -2011,9 +2011,9 @@ function SellerDashboardContent() {
                                {formDeliveryArea.length > 0 && !formDeliveryArea.includes('כל הארץ') && (
                                  <div className="flex flex-wrap gap-1.5 p-2 bg-primary/5 rounded-xl border border-primary/10 min-h-[40px]">
                                    {formDeliveryArea.map(city => (
-                                     <span key={city} className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary text-white text-[10px] font-black rounded-full">
+                                     <span key={city} className="inline-flex items-center gap-1 px-2.5 py-1 bg-accent text-primary text-[10px] font-black rounded-full">
                                        {city}
-                                       <button type="button" aria-label={`הסר ${city}`} onClick={() => setFormDeliveryArea(prev => prev.filter(c => c !== city))} className="hover:text-accent transition-colors ml-0.5">×</button>
+                                       <button type="button" aria-label={`הסר ${city}`} onClick={() => setFormDeliveryArea(prev => prev.filter(c => c !== city))} className="hover:opacity-60 transition-opacity ml-0.5">×</button>
                                      </span>
                                    ))}
                                  </div>
@@ -2161,7 +2161,7 @@ function SellerDashboardContent() {
               {formStep < totalFormSteps ? (
                 <Button 
                   onClick={() => setFormStep(s => s + 1)} 
-                  className="flex-[2] bg-primary text-white h-14 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg hover:scale-[1.02] transition-transform"
+                  className="flex-[2] bg-accent text-primary h-14 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg hover:scale-[1.02] transition-transform"
                 >
                   המשך לשלב הבא <ChevronLeft className="w-4 h-4 mr-2" />
                 </Button>

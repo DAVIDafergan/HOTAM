@@ -238,7 +238,7 @@ function LoginContent() {
                   <Button 
                     type="submit" 
                     disabled={loading || isUserLoading}
-                    className="w-full bg-primary hover:bg-primary/90 h-12 sm:h-14 text-sm sm:text-base font-black rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2.5"
+                    className="w-full bg-accent hover:bg-accent/90 h-12 sm:h-14 text-sm sm:text-base font-black rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2.5"
                   >
                     {loading || isUserLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>התחברות <LogInIcon size={18} /></>}
                   </Button>
@@ -288,7 +288,7 @@ function LoginContent() {
             </div>
           </div>
           <DialogFooter className="p-4 sm:p-6 bg-muted/30 border-t flex flex-col-reverse sm:flex-row gap-3">
-            <Button onClick={handlePasswordReset} disabled={isResetting} className="flex-1 bg-primary text-white h-11 sm:h-12 rounded-xl font-black shadow-lg">
+            <Button onClick={handlePasswordReset} disabled={isResetting} className="flex-1 bg-accent text-primary h-11 sm:h-12 rounded-xl font-black shadow-lg">
               {isResetting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'שלח קישור לאיפוס'}
             </Button>
             <Button variant="outline" onClick={() => setIsResetDialogOpen(false)} className="h-11 sm:h-12 rounded-xl font-black">ביטול</Button>

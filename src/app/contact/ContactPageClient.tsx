@@ -233,7 +233,7 @@ function ContactFormCard() {
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="w-full sm:w-auto rounded-full h-14 px-12 font-bold uppercase tracking-widest bg-primary text-white hover:bg-primary/90 shadow-xl transition-all hover:scale-[1.02] active:scale-95 gap-2"
+            className="w-full sm:w-auto rounded-full h-14 px-12 font-bold uppercase tracking-widest bg-accent text-primary hover:bg-accent/90 shadow-xl transition-all hover:scale-[1.02] active:scale-95 gap-2"
           >
             {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
             שליחת הפנייה

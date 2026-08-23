@@ -261,33 +261,35 @@ function LoginContent() {
 
       {/* Password Reset Dialog */}
       <Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
-        <DialogContent className="max-w-sm sm:max-w-md rounded-3xl sm:rounded-[2.25rem] p-0 overflow-hidden border-none shadow-2xl bg-white" dir="rtl">
-          <div className="bg-primary p-6 sm:p-8 text-white text-right">
-            <DialogHeader>
-              <DialogTitle className="text-xl sm:text-2xl font-headline font-black flex items-center gap-3">
-                <Mail className="w-5 h-5 sm:w-6 sm:h-6 text-accent" /> איפוס סיסמה
-              </DialogTitle>
-              <DialogDescription className="text-white/60 text-sm mt-1 font-bold">
-                נשלח אליך קישור לאימייל שיאפשר לך לבחור סיסמה חדשה.
-              </DialogDescription>
-            </DialogHeader>
-          </div>
-          <div className="p-5 sm:p-8 space-y-5 text-right">
-            <p className="text-xs sm:text-sm text-muted-foreground font-bold">
-              הזן את כתובת האימייל של החשבון שלך ונשלח אליך קישור מאובטח לאיפוס סיסמה.
-            </p>
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-primary/60">כתובת אימייל</Label>
-              <Input 
-                type="email"
-                value={resetEmail} 
-                onChange={(e) => setResetEmail(e.target.value)} 
-                placeholder="your@email.com" 
-                className="h-11 sm:h-12 rounded-xl text-right font-bold"
-              />
+        <DialogContent className="max-w-sm sm:max-w-md rounded-3xl sm:rounded-[2.25rem] p-0 overflow-hidden border-none shadow-2xl bg-white max-h-[90vh] flex flex-col" dir="rtl">
+          <div className="flex-1 overflow-y-auto min-h-0">
+            <div className="bg-primary p-6 sm:p-8 text-white text-right">
+              <DialogHeader>
+                <DialogTitle className="text-xl sm:text-2xl font-headline font-black flex items-center gap-3">
+                  <Mail className="w-5 h-5 sm:w-6 sm:h-6 text-accent" /> איפוס סיסמה
+                </DialogTitle>
+                <DialogDescription className="text-white/60 text-sm mt-1 font-bold">
+                  נשלח אליך קישור לאימייל שיאפשר לך לבחור סיסמה חדשה.
+                </DialogDescription>
+              </DialogHeader>
+            </div>
+            <div className="p-5 sm:p-8 space-y-5 text-right">
+              <p className="text-xs sm:text-sm text-muted-foreground font-bold">
+                הזן את כתובת האימייל של החשבון שלך ונשלח אליך קישור מאובטח לאיפוס סיסמה.
+              </p>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-primary/60">כתובת אימייל</Label>
+                <Input
+                  type="email"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className="h-11 sm:h-12 rounded-xl text-right font-bold"
+                />
+              </div>
             </div>
           </div>
-          <DialogFooter className="p-4 sm:p-6 bg-muted/30 border-t flex flex-col-reverse sm:flex-row gap-3">
+          <DialogFooter className="p-4 sm:p-6 bg-muted/30 border-t flex flex-col-reverse sm:flex-row gap-3 shrink-0">
             <Button onClick={handlePasswordReset} disabled={isResetting} className="flex-1 bg-accent text-primary h-11 sm:h-12 rounded-xl font-black shadow-lg">
               {isResetting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'שלח קישור לאיפוס'}
             </Button>

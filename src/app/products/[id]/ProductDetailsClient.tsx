@@ -1148,7 +1148,7 @@ export function ProductDetailsClient({
           ספר הפטרות coordination flow (admin has no way to follow up without it), so this
           asks for just that instead of a full form. */}
       <Dialog open={isCoordinationPhoneDialogOpen} onOpenChange={(open) => { if (!isProcessingRequest) setIsCoordinationPhoneDialogOpen(open); }}>
-        <DialogContent className="max-w-sm rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl bg-white" dir="rtl">
+        <DialogContent className="max-w-sm rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl bg-white max-h-[90vh] overflow-y-auto" dir="rtl">
           <div className="p-8 space-y-5 text-right">
             <DialogHeader className="space-y-2 text-right">
               <DialogTitle className="text-xl font-headline font-black text-primary">מספר טלפון ליצירת קשר</DialogTitle>

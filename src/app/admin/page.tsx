@@ -1355,13 +1355,13 @@ function CustomerDetailsDialog({ customer, customerCreatedAt, orders, onDelete, 
               </div>
             )}
           </div>
+        </div>
 
-          {/* Delete button */}
-          <div className="pt-4 border-t flex justify-end">
-            <Button variant="destructive" onClick={onDelete} disabled={isDeleting} className="rounded-full px-6 h-10 text-[10px] font-black uppercase gap-2">
-              {isDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />} מחק לקוח
-            </Button>
-          </div>
+        {/* Delete button — sticky footer so it stays reachable without scrolling past the order list */}
+        <div className="sticky bottom-0 z-40 bg-white p-5 md:p-6 border-t flex justify-end">
+          <Button variant="destructive" onClick={onDelete} disabled={isDeleting} className="rounded-full px-6 h-10 text-[10px] font-black uppercase gap-2">
+            {isDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />} מחק לקוח
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

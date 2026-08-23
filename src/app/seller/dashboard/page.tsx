@@ -1666,23 +1666,25 @@ function SellerDashboardContent() {
         </Tabs>
 
         <Dialog open={isDeleteAccountDialogOpen} onOpenChange={setIsDeleteAccountDialogOpen}>
-          <DialogContent className="rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl max-w-md bg-white text-slate-900" dir="rtl">
-            <div className="bg-red-600 p-8 text-white text-right">
-              <DialogTitle className="text-2xl font-headline font-black">מחיקת חשבון</DialogTitle>
-              <DialogDescription className="text-white/70 mt-1">פעולה זו בלתי הפיכה. כל הנתונים והמודעות שלך יימחקו לצמיתות.</DialogDescription>
-            </div>
-            <div className="p-8 space-y-5 text-right">
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-primary/50">למה אתה רוצה למחוק את החשבון? (אופציונלי)</Label>
-                <Textarea
-                  placeholder="ספר לנו את הסיבה..."
-                  value={deleteAccountReason}
-                  onChange={(e) => setDeleteAccountReason(e.target.value)}
-                  className="rounded-2xl min-h-[80px]"
-                />
+          <DialogContent className="rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl max-w-md bg-white text-slate-900 max-h-[90vh] flex flex-col" dir="rtl">
+            <div className="flex-1 overflow-y-auto min-h-0">
+              <div className="bg-red-600 p-8 text-white text-right">
+                <DialogTitle className="text-2xl font-headline font-black">מחיקת חשבון</DialogTitle>
+                <DialogDescription className="text-white/70 mt-1">פעולה זו בלתי הפיכה. כל הנתונים והמודעות שלך יימחקו לצמיתות.</DialogDescription>
+              </div>
+              <div className="p-8 space-y-5 text-right">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-primary/50">למה אתה רוצה למחוק את החשבון? (אופציונלי)</Label>
+                  <Textarea
+                    placeholder="ספר לנו את הסיבה..."
+                    value={deleteAccountReason}
+                    onChange={(e) => setDeleteAccountReason(e.target.value)}
+                    className="rounded-2xl min-h-[80px]"
+                  />
+                </div>
               </div>
             </div>
-            <DialogFooter className="p-6 bg-muted/30 border-t flex gap-3">
+            <DialogFooter className="p-6 bg-muted/30 border-t flex gap-3 shrink-0">
               <Button
                 variant="destructive"
                 onClick={handleDeleteAccount}

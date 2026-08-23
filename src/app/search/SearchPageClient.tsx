@@ -753,16 +753,20 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
           </Label>
         </div>
       </FilterSection>
+    </div>
+  );
 
-      <div className="grid grid-cols-2 gap-3 pt-2">
-        <Button variant="outline" onClick={resetFilters} className="h-12 rounded-2xl border-primary/10 font-black">
-          <RotateCcw className="ml-2 h-4 w-4" />
-          אפס
-        </Button>
-        <Button onClick={() => setIsFilterPanelOpen(false)} className="h-12 rounded-2xl bg-accent text-primary font-black shadow-lg">
-          הצג {filteredProducts.length} מוצרים
-        </Button>
-      </div>
+  // Kept out of renderFilterContent's scrollable area so these stay visible (sticky
+  // footer bar) instead of scrolling away with the filter list on short viewports.
+  const renderFilterActions = () => (
+    <div className="grid grid-cols-2 gap-3">
+      <Button variant="outline" onClick={resetFilters} className="h-12 rounded-2xl border-primary/10 font-black">
+        <RotateCcw className="ml-2 h-4 w-4" />
+        אפס
+      </Button>
+      <Button onClick={() => setIsFilterPanelOpen(false)} className="h-12 rounded-2xl bg-accent text-primary font-black shadow-lg">
+        הצג {filteredProducts.length} מוצרים
+      </Button>
     </div>
   );
 
@@ -777,8 +781,11 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                 <SheetHeader className="border-b border-primary/10 bg-white px-6 py-5 text-right">
                   <SheetTitle className="font-headline text-2xl font-black text-primary">סינון מותאם</SheetTitle>
                 </SheetHeader>
-                <div className="flex-1 overflow-y-auto px-5 py-5">
+                <div className="flex-1 overflow-y-auto min-h-0 px-5 py-5">
                   {renderFilterContent()}
+                </div>
+                <div className="shrink-0 border-t border-primary/10 bg-white px-5 py-4">
+                  {renderFilterActions()}
                 </div>
               </div>
             </SheetContent>
@@ -786,14 +793,17 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
         ) : (
           <Dialog open={isFilterPanelOpen} onOpenChange={setIsFilterPanelOpen}>
             <DialogContent className="max-h-[92vh] w-[calc(100vw-1rem)] max-w-[95vw] overflow-hidden rounded-[2rem] border-none bg-white p-0 shadow-2xl ring-1 ring-primary/5 sm:max-w-[560px] flex flex-col" dir="rtl">
-              <div className="border-b border-primary/10 bg-primary px-5 py-5 text-right text-white">
+              <div className="shrink-0 border-b border-primary/10 bg-primary px-5 py-5 text-right text-white">
                 <DialogHeader>
                   <DialogTitle className="text-xl font-headline font-black">סינון מתקדם</DialogTitle>
                   <p className="text-xs font-medium text-white/70">מסך מסודר ונוח לנייד עם כל המסננים במקום אחד.</p>
                 </DialogHeader>
               </div>
-              <div className="flex-1 overflow-y-auto px-5 py-5">
+              <div className="flex-1 overflow-y-auto min-h-0 px-5 py-5">
                 {renderFilterContent()}
+              </div>
+              <div className="shrink-0 border-t border-primary/10 bg-white px-5 py-4">
+                {renderFilterActions()}
               </div>
             </DialogContent>
           </Dialog>

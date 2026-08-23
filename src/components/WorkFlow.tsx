@@ -1,8 +1,8 @@
 
 "use client";
 
-import React from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import React, { useEffect, useState } from 'react';
+import { motion, useReducedMotion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import {
   ShieldCheck,
   PenTool,
@@ -12,8 +12,59 @@ import {
 } from 'lucide-react';
 import { EASE } from '@/lib/motion';
 
+// Pointer-driven tilt on the icon medallion only — kept to a few degrees so it reads as
+// "premium depth", not a game-card flip. Gated to fine-pointer/hover-capable devices so it
+// never runs on touch (mobile never gets pointermove without a drag, and there's no hover
+// there anyway), which also keeps it off the CPU-constrained devices that matter most for perf.
+function TiltIcon({ children, enableTilt }: { children: React.ReactNode; enableTilt: boolean }) {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const rotateX = useSpring(useTransform(y, [-0.5, 0.5], [5, -5]), { stiffness: 300, damping: 22 });
+  const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-5, 5]), { stiffness: 300, damping: 22 });
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!enableTilt) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    x.set((e.clientX - rect.left) / rect.width - 0.5);
+    y.set((e.clientY - rect.top) / rect.height - 0.5);
+  };
+  const handlePointerLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.div
+      onPointerMove={handlePointerMove}
+      onPointerLeave={handlePointerLeave}
+      style={{
+        rotateX: enableTilt ? rotateX : 0,
+        rotateY: enableTilt ? rotateY : 0,
+        transformPerspective: 700,
+      }}
+      className="[transform-style:preserve-3d]"
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 export function WorkFlow() {
   const shouldReduceMotion = useReducedMotion();
+  // matchMedia check (not just "is this a touch device") so trackpad/mouse users on
+  // convertibles still get the effect, while touch-only phones/tablets never do.
+  const [enableTilt, setEnableTilt] = useState(false);
+  useEffect(() => {
+    if (shouldReduceMotion) {
+      setEnableTilt(false);
+      return;
+    }
+    const mq = window.matchMedia('(hover: hover) and (pointer: fine)');
+    setEnableTilt(mq.matches);
+    const listener = (e: MediaQueryListEvent) => setEnableTilt(e.matches);
+    mq.addEventListener('change', listener);
+    return () => mq.removeEventListener('change', listener);
+  }, [shouldReduceMotion]);
 
   // Icon micro-animations only loop while their card is actually in view (whileInView +
   // viewport amount 0.6), instead of animating forever in the background; skipped entirely
@@ -143,26 +194,32 @@ export function WorkFlow() {
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-10 md:grid-cols-4 md:gap-6 relative">
+          <div className="grid grid-cols-1 gap-10 md:grid-cols-4 md:gap-6 relative [perspective:1200px]">
             {steps.map((step, index) => (
               <motion.div
                 key={step.id}
-                initial={{ opacity: shouldReduceMotion ? 1 : 0, y: shouldReduceMotion ? 0 : 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{
+                  opacity: shouldReduceMotion ? 1 : 0,
+                  y: shouldReduceMotion ? 0 : 30,
+                  rotateX: shouldReduceMotion ? 0 : -10,
+                }}
+                whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
                 viewport={{ once: true, amount: 0.4 }}
-                transition={{ delay: index * 0.1, duration: 0.45, ease: EASE }}
+                transition={{ delay: index * 0.1, duration: 0.5, ease: EASE }}
                 whileHover={{ y: -4 }}
-                className="flex flex-col items-center text-center space-y-4 md:space-y-8 relative"
+                className="flex flex-col items-center text-center space-y-4 md:space-y-8 relative [transform-style:preserve-3d]"
               >
                 {/* Icon Container */}
                 <div className="relative">
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-                    className="w-16 h-16 md:w-20 md:h-20 bg-white/10 backdrop-blur-2xl border border-white/20 rounded-full flex items-center justify-center shadow-premium relative z-10"
-                  >
-                    {step.animation.icon}
-                  </motion.div>
+                  <TiltIcon enableTilt={enableTilt}>
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+                      className="w-16 h-16 md:w-20 md:h-20 bg-white/10 backdrop-blur-2xl border border-white/20 rounded-full flex items-center justify-center shadow-premium relative z-10 transition-shadow duration-300 hover:shadow-premium-lg"
+                    >
+                      {step.animation.icon}
+                    </motion.div>
+                  </TiltIcon>
 
                   {/* Step Number Badge */}
                   <div className="absolute -top-2 -right-2 w-8 h-8 bg-accent text-primary rounded-full flex items-center justify-center font-black text-xs shadow-lg z-20">

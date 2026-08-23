@@ -699,23 +699,25 @@ export default function CustomerDashboard() {
 
       {/* Delete Account Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl max-w-md bg-white text-slate-900" dir="rtl">
-          <div className="bg-red-600 p-8 text-white text-right">
-            <DialogTitle className="text-2xl font-headline font-black">מחיקת חשבון</DialogTitle>
-            <DialogDescription className="text-white/70 mt-1">פעולה זו בלתי הפיכה. כל הנתונים שלך יימחקו לצמיתות.</DialogDescription>
-          </div>
-          <div className="p-8 space-y-5 text-right">
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-primary/50">למה אתה רוצה למחוק את החשבון? (אופציונלי)</Label>
-              <Textarea
-                placeholder="ספר לנו את הסיבה..."
-                value={deleteReason}
-                onChange={(e) => setDeleteReason(e.target.value)}
-                className="rounded-2xl min-h-[80px]"
-              />
+        <DialogContent className="rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl max-w-md bg-white text-slate-900 max-h-[90vh] flex flex-col" dir="rtl">
+          <div className="flex-1 overflow-y-auto min-h-0">
+            <div className="bg-red-600 p-8 text-white text-right">
+              <DialogTitle className="text-2xl font-headline font-black">מחיקת חשבון</DialogTitle>
+              <DialogDescription className="text-white/70 mt-1">פעולה זו בלתי הפיכה. כל הנתונים שלך יימחקו לצמיתות.</DialogDescription>
+            </div>
+            <div className="p-8 space-y-5 text-right">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-primary/50">למה אתה רוצה למחוק את החשבון? (אופציונלי)</Label>
+                <Textarea
+                  placeholder="ספר לנו את הסיבה..."
+                  value={deleteReason}
+                  onChange={(e) => setDeleteReason(e.target.value)}
+                  className="rounded-2xl min-h-[80px]"
+                />
+              </div>
             </div>
           </div>
-          <DialogFooter className="p-6 bg-muted/30 border-t flex gap-3">
+          <DialogFooter className="p-6 bg-muted/30 border-t flex gap-3 shrink-0">
             <Button
               variant="destructive"
               onClick={handleDeleteAccount}
@@ -734,26 +736,28 @@ export default function CustomerDashboard() {
 
       {/* Rating Dialog */}
       <Dialog open={!!ratingOrderId} onOpenChange={() => setRatingOrderId(null)}>
-        <DialogContent className="rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl max-w-md bg-white text-slate-900" dir="rtl">
-          <div className="bg-primary p-8 text-white text-right">
-            <DialogTitle className="text-2xl font-headline font-black">דרג את החוויה שלך</DialogTitle>
-            <DialogDescription className="text-white/60">המשוב שלך עוזר לסופר וגם ללקוחות הבאים.</DialogDescription>
+        <DialogContent className="rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl max-w-md bg-white text-slate-900 max-h-[90vh] flex flex-col" dir="rtl">
+          <div className="flex-1 overflow-y-auto min-h-0">
+            <div className="bg-primary p-8 text-white text-right">
+              <DialogTitle className="text-2xl font-headline font-black">דרג את החוויה שלך</DialogTitle>
+              <DialogDescription className="text-white/60">המשוב שלך עוזר לסופר וגם ללקוחות הבאים.</DialogDescription>
+            </div>
+            <div className="p-8 space-y-8 text-right">
+               <div className="space-y-4">
+                  <Label className="text-xs font-black uppercase tracking-widest text-primary">איך אתה מדרג את הסופר והמוצר?</Label>
+                  <div className="flex justify-center gap-3">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <button key={s} onClick={() => setScribeRatingVal(s)}><Star className={`w-8 h-8 ${s <= scribeRatingVal ? 'fill-accent text-accent' : 'text-muted-foreground/30'}`} /></button>
+                    ))}
+                  </div>
+               </div>
+               <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-slate-500 mr-1">כתוב ביקורת</Label>
+                  <Textarea placeholder="שתף את חווית השירות והכתיבה..." value={ratingComment} onChange={(e) => setRatingComment(e.target.value)} className="rounded-2xl min-h-[100px]" />
+               </div>
+            </div>
           </div>
-          <div className="p-8 space-y-8 text-right">
-             <div className="space-y-4">
-                <Label className="text-xs font-black uppercase tracking-widest text-primary">איך אתה מדרג את הסופר והמוצר?</Label>
-                <div className="flex justify-center gap-3">
-                  {[1, 2, 3, 4, 5].map((s) => (
-                    <button key={s} onClick={() => setScribeRatingVal(s)}><Star className={`w-8 h-8 ${s <= scribeRatingVal ? 'fill-accent text-accent' : 'text-muted-foreground/30'}`} /></button>
-                  ))}
-                </div>
-             </div>
-             <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase text-slate-500 mr-1">כתוב ביקורת</Label>
-                <Textarea placeholder="שתף את חווית השירות והכתיבה..." value={ratingComment} onChange={(e) => setRatingComment(e.target.value)} className="rounded-2xl min-h-[100px]" />
-             </div>
-          </div>
-          <DialogFooter className="p-6 bg-muted/30 border-t flex gap-3">
+          <DialogFooter className="p-6 bg-muted/30 border-t flex gap-3 shrink-0">
             <Button onClick={handleManualRating} disabled={isRatingSubmitting} className="flex-1 bg-accent text-primary h-12 font-black uppercase">{isRatingSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'שלח ביקורת'}</Button>
             <Button variant="ghost" onClick={() => setRatingOrderId(null)} className="h-12 font-bold">ביטול</Button>
           </DialogFooter>

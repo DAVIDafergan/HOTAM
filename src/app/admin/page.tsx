@@ -54,7 +54,8 @@ import {
   FileDown,
   Pencil,
   Inbox,
-  Send
+  Send,
+  Activity
 } from 'lucide-react';
 import { 
   useUser, 
@@ -85,6 +86,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
 import { calculateCommissionAmount, resolveSellerNet } from '@/lib/commission';
 import { AdminChatsPanel } from '@/components/admin/AdminChatsPanel';
+import { AdminActivityPanel } from '@/components/admin/AdminActivityPanel';
 
 const ITEMS_PER_PAGE = 15;
 
@@ -673,6 +675,7 @@ export default function AdminDashboard() {
     { id: 'reports', label: 'דיווחים', icon: <Flag className="w-4 h-4" /> },
     { id: 'inquiries', label: 'פניות', icon: <Inbox className="w-4 h-4" /> },
     { id: 'chats', label: 'שיחות', icon: <MessageSquare className="w-4 h-4" /> },
+    { id: 'activity', label: 'פעילות', icon: <Activity className="w-4 h-4" /> },
   ] as const;
 
   const exportSellersToExcel = async () => {
@@ -989,6 +992,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="chats">
             <AdminChatsPanel />
+          </TabsContent>
+
+          <TabsContent value="activity">
+            <AdminActivityPanel />
           </TabsContent>
           </div>
         </Tabs>

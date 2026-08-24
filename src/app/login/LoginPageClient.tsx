@@ -118,7 +118,7 @@ function LoginContent() {
     setIsResetting(true);
     try {
       await initiatePasswordReset(auth, resetEmail);
-      toast({ title: "נשלח מייל לאיפוס", description: "בדוק את תיבת הדואר הנכנס שלך להמשך התהליך." });
+      toast({ variant: "success", title: "נשלח מייל לאיפוס", description: "בדוק את תיבת הדואר הנכנס שלך להמשך התהליך." });
       setIsResetDialogOpen(false);
     } catch (error: any) {
       toast({ variant: "destructive", title: "שגיאה", description: "לא ניתן היה לשלוח מייל לאיפוס. וודא שהכתובת נכונה." });

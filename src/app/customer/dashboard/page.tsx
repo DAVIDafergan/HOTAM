@@ -266,7 +266,7 @@ export default function CustomerDashboard() {
     });
     setTimeout(() => {
       setIsSaving(false);
-      toast({ title: "הפרופיל עודכן" });
+      toast({ variant: "success", title: "הפרופיל עודכן" });
     }, 500);
   };
 
@@ -321,7 +321,7 @@ export default function CustomerDashboard() {
     if (typeof window !== 'undefined') {
       window.localStorage.removeItem('hotam_pending_customer_name');
     }
-    toast({ title: 'הפרטים נשמרו בהצלחה' });
+    toast({ variant: "success", title: 'הפרטים נשמרו בהצלחה' });
     setIsCompletingName(false);
   };
 
@@ -391,7 +391,7 @@ export default function CustomerDashboard() {
       setIsRatingSubmitting(false);
       setRatingOrderId(null);
       setRatingComment('');
-      toast({ title: "תודה על הדירוג!" });
+      toast({ variant: "success", title: "תודה על הדירוג!" });
     }, 1000);
   };
 

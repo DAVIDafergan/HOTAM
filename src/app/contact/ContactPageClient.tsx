@@ -153,7 +153,7 @@ function ContactFormCard() {
 
     setIsSubmitted(true);
     setForm({ name: '', email: '', phone: '', message: '' });
-    toast({ title: 'הפנייה נשלחה בהצלחה', description: 'נחזור אליכם בהקדם האפשרי.' });
+    toast({ variant: "success", title: 'הפנייה נשלחה בהצלחה', description: 'נחזור אליכם בהקדם האפשרי.' });
   };
 
   if (isSubmitted) {

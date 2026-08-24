@@ -136,14 +136,14 @@ export function HeroAnimation() {
             // Cascade to nearby cities by default: exact-city matches show first, then
             // remaining results fill in sorted by proximity, instead of a strict match only.
             setIncludeNearbyCities(true);
-            toast({ title: `מיקום זוהה: ${city}` });
+            toast({ variant: "success", title: `מיקום זוהה: ${city}` });
           } else {
             setDetectedCity(null);
             setSelectedCity('');
             toast({ title: "המיקום זוהה", description: "לא הצלחנו לזהות עיר מדויקת. אפשר לבחור עיר ידנית מהרשימה." });
           }
         } catch {
-          toast({ title: "מיקום זוהה" });
+          toast({ variant: "success", title: "מיקום זוהה" });
         }
 
         setIsDetectingLocation(false);

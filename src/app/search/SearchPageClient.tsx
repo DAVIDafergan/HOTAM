@@ -301,7 +301,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
             // Cascade to nearby cities by default so an exact-city match is shown first,
             // then closer cities fill in the rest — rather than a strict, possibly-empty match.
             setIncludeNearbyCities(true);
-            toast({ title: "המיקום זוהה", description: `זוהית ב: ${city}` });
+            toast({ variant: "success", title: "המיקום זוהה", description: `זוהית ב: ${city}` });
           } else {
             setDetectedCity(null);
             setSelectedCity('');

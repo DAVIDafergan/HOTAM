@@ -9,15 +9,17 @@ import {
   ToastTitle,
   ToastViewport,
 } from "@/components/ui/toast"
+import { SuccessCheck } from "@/components/SuccessCheck"
 
 export function Toaster() {
   const { toasts } = useToast()
 
   return (
     <ToastProvider duration={3000}>
-      {toasts.map(function ({ id, title, description, action, ...props }) {
+      {toasts.map(function ({ id, title, description, action, variant, ...props }) {
         return (
-          <Toast key={id} {...props}>
+          <Toast key={id} variant={variant} {...props}>
+            {variant === "success" && <SuccessCheck />}
             <div className="grid gap-1">
               {title && <ToastTitle>{title}</ToastTitle>}
               {description && (

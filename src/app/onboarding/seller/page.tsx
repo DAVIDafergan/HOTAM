@@ -507,7 +507,7 @@ export default function SellerOnboarding() {
         console.info('[seller-onboarding] upgrading existing customer to seller', { userId: user.uid });
         await registerSellerWithSession(user.uid, 'existing-customer-upgrade', user.email);
 
-        toast({ title: 'ההרשמה הסתיימה', description: 'הפרופיל שלך הועבר לאישור מנהל.' });
+        toast({ variant: "success", title: 'ההרשמה הסתיימה', description: 'הפרופיל שלך הועבר לאישור מנהל.' });
         router.push('/seller/dashboard');
         return;
       }
@@ -549,6 +549,7 @@ export default function SellerOnboarding() {
       if (signInError || !signInData.session) {
         console.error('[seller-onboarding] signInWithPassword failed after registration', signInError);
         toast({
+          variant: "success",
           title: 'ההרשמה הסתיימה',
           description: 'הפרופיל שלך הועבר לאישור מנהל. התחבר כדי להמשיך.',
         });
@@ -556,7 +557,7 @@ export default function SellerOnboarding() {
         return;
       }
 
-      toast({ title: 'ההרשמה הסתיימה', description: 'הפרופיל שלך הועבר לאישור מנהל.' });
+      toast({ variant: "success", title: 'ההרשמה הסתיימה', description: 'הפרופיל שלך הועבר לאישור מנהל.' });
       router.push('/seller/dashboard');
     } catch (error: any) {
       setLoading(false);

@@ -325,8 +325,9 @@ export function ProductDetailsClient({
         return;
       }
 
-      toast({ 
-        title: isFavorite ? "הוסר מהמועדפים" : "נוסף למועדפים - תוכלו למצוא אותו באיזור האישי" 
+      toast({
+        variant: "success",
+        title: isFavorite ? "הוסר מהמועדפים" : "נוסף למועדפים - תוכלו למצוא אותו באיזור האישי"
       });
     } finally {
       setIsProcessingFavorite(false);
@@ -380,6 +381,7 @@ export function ProductDetailsClient({
     setIsCoordinationPhoneDialogOpen(false);
     setCoordinationPhoneInput('');
     toast({
+      variant: "success",
       title: "הבקשה נשלחה בהצלחה",
       description: "נציג 'חותם' יחזור אליך בהקדם לתיאום פגישה להתרשמות מהספר."
     });
@@ -416,7 +418,7 @@ export function ProductDetailsClient({
     };
     try {
       if (navigator.share) await navigator.share(shareData);
-      else { await navigator.clipboard.writeText(url); toast({ title: "הקישור הועתק" }); }
+      else { await navigator.clipboard.writeText(url); toast({ variant: "success", title: "הקישור הועתק" }); }
     } catch (err) {}
   };
 
@@ -471,7 +473,7 @@ export function ProductDetailsClient({
       setReviewComment('');
       setReviewRating(5);
       setReviewIsAnonymous(false);
-      toast({ title: 'תודה על הביקורת!' });
+      toast({ variant: "success", title: 'תודה על הביקורת!' });
     }
   };
 
@@ -495,7 +497,7 @@ export function ProductDetailsClient({
       }
 
       setReviews(prev => prev.filter((rev: any) => rev.id !== reviewId));
-      toast({ title: 'הביקורת נמחקה בהצלחה' });
+      toast({ variant: "success", title: 'הביקורת נמחקה בהצלחה' });
     } finally {
       setDeletingReviewId(null);
     }

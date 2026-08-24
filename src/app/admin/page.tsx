@@ -606,7 +606,7 @@ export default function AdminDashboard() {
     setActiveTab('active');
     setSearchTerm('');
     setActivePage(1);
-    toast({ title: "הסופר הועבר לסופרים הפעילים והמאומתים" });
+    toast({ variant: "success", title: "הסופר הועבר לסופרים הפעילים והמאומתים" });
   };
 
   const deleteScribe = async (id: string) => {
@@ -626,7 +626,7 @@ export default function AdminDashboard() {
         toast({ variant: "destructive", title: "מחיקת הדיווח נכשלה", description: error.message });
         return;
       }
-      toast({ title: "הדיווח נמחק" });
+      toast({ variant: "success", title: "הדיווח נמחק" });
     }
   };
 
@@ -637,7 +637,7 @@ export default function AdminDashboard() {
         toast({ variant: "destructive", title: "מחיקת הפנייה נכשלה", description: error.message });
         return;
       }
-      toast({ title: "הפנייה נמחקה" });
+      toast({ variant: "success", title: "הפנייה נמחקה" });
     }
   };
 
@@ -761,7 +761,7 @@ export default function AdminDashboard() {
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
-    toast({ title: 'קובץ Excel מוכן להורדה' });
+    toast({ variant: "success", title: 'קובץ Excel מוכן להורדה' });
   };
 
   if (isUserLoading || isAdminCheckLoading) {
@@ -1763,7 +1763,7 @@ function EditSellerDialog({ scribe, db }: any) {
       return;
     }
 
-    toast({ title: 'פרטי הסופר עודכנו בהצלחה' });
+    toast({ variant: "success", title: 'פרטי הסופר עודכנו בהצלחה' });
     setOpen(false);
   };
 

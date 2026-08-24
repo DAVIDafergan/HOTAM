@@ -231,7 +231,7 @@ export default function SellerProfile({
     }
     setIsReportDialogOpen(false);
     setReportReason('');
-    toast({ title: "הדיווח נשלח בהצלחה", description: "הפנייה הועברה למנהלי המערכת לבדיקה דיסקרטית." });
+    toast({ variant: "success", title: "הדיווח נשלח בהצלחה", description: "הפנייה הועברה למנהלי המערכת לבדיקה דיסקרטית." });
   };
 
   const handleSubmitSellerReview = async () => {
@@ -292,7 +292,7 @@ export default function SellerProfile({
       setReviewComment('');
       setReviewRating(5);
       setReviewIsAnonymous(false);
-      toast({ title: 'תודה על הדירוג!' });
+      toast({ variant: "success", title: 'תודה על הדירוג!' });
     }
   };
 
@@ -316,7 +316,7 @@ export default function SellerProfile({
       }
 
       setReviews(prev => prev.filter((rev: any) => rev.id !== reviewId));
-      toast({ title: 'הביקורת נמחקה בהצלחה' });
+      toast({ variant: "success", title: 'הביקורת נמחקה בהצלחה' });
     } finally {
       setDeletingReviewId(null);
     }

@@ -542,7 +542,7 @@ function SellerDashboardContent() {
           if (!error) {
             console.info('[seller-dashboard] pendingSellerProfile cache applied');
             localStorage.removeItem('pendingSellerProfile');
-            toast({ title: 'הפרופיל הושלם', description: 'כל הפרטים שהזנת בהרשמה נשמרו בהצלחה.' });
+            toast({ variant: "success", title: 'הפרופיל הושלם', description: 'כל הפרטים שהזנת בהרשמה נשמרו בהצלחה.' });
           }
         });
     } catch {
@@ -598,7 +598,7 @@ function SellerDashboardContent() {
         if (response.ok) {
           console.info('[seller-dashboard] fallback seller recovery succeeded');
           window.localStorage.removeItem('pendingSellerProfile');
-          toast({ title: 'הפרופיל הושלם', description: 'כל הפרטים שהזנת בהרשמה נשמרו בהצלחה.' });
+          toast({ variant: "success", title: 'הפרופיל הושלם', description: 'כל הפרטים שהזנת בהרשמה נשמרו בהצלחה.' });
         }
       } catch (err) {
         console.error('[seller-dashboard] pendingSellerProfile fallback error:', err);
@@ -630,7 +630,7 @@ function SellerDashboardContent() {
       sales_count: increment(1)
     });
 
-    setTimeout(() => { setIsVerifying(null); toast({ title: "ההזמנה סומנה כמאומתת." }); }, 1000);
+    setTimeout(() => { setIsVerifying(null); toast({ variant: "success", title: "ההזמנה סומנה כמאומתת." }); }, 1000);
   };
 
   const [uploadProgress, setUploadProgress] = useState<{
@@ -721,7 +721,7 @@ function SellerDashboardContent() {
       setProfileData(prev => ({ ...prev, profile_image: uploadedUrl }));
       if (sellerRef) {
         updateDocumentNonBlocking(sellerRef, { profile_image: uploadedUrl });
-        toast({ title: 'תמונת הפרופיל עודכנה', description: 'התמונה נשמרה בהצלחה.' });
+        toast({ variant: "success", title: 'תמונת הפרופיל עודכנה', description: 'התמונה נשמרה בהצלחה.' });
       }
       if (previousProfileImage && previousProfileImage !== uploadedUrl) {
         void cleanupImages([previousProfileImage]);
@@ -750,7 +750,7 @@ function SellerDashboardContent() {
         setUploadProgress(prev => ({ ...prev, certificate: percent }));
       });
       setProfileData(prev => ({ ...prev, certificate_url: uploadedUrl }));
-      toast({ title: 'התעודה הועלתה', description: 'צילום התעודה נשמר בהצלחה.' });
+      toast({ variant: "success", title: 'התעודה הועלתה', description: 'צילום התעודה נשמר בהצלחה.' });
       if (previousCertificateUrl && previousCertificateUrl !== uploadedUrl) {
         void cleanupImages([previousCertificateUrl]);
       }
@@ -951,7 +951,7 @@ function SellerDashboardContent() {
     
     setIsDialogOpen(false); 
     resetForm();
-    toast({ title: "המוצר עודכן בהצלחה" });
+    toast({ variant: "success", title: "המוצר עודכן בהצלחה" });
   };
 
   const updateStock = (productId: string, diff: number) => {
@@ -1001,7 +1001,7 @@ function SellerDashboardContent() {
     if (deletedProduct?.images?.length) {
       void cleanupImages(deletedProduct.images);
     }
-    toast({ title: 'המוצר נמחק בהצלחה' });
+    toast({ variant: "success", title: 'המוצר נמחק בהצלחה' });
   };
 
   const totalNetEarnings = useMemo(() => orders.filter(o => o.status === 'completed').reduce((acc: number, o: any) => acc + resolveSellerNet(o), 0), [orders]);
@@ -1642,7 +1642,7 @@ function SellerDashboardContent() {
                     onClick={() => { 
                       setIsSavingProfile(true); 
                       updateDocumentNonBlocking(sellerRef!, profileData); 
-                      setTimeout(() => { setIsSavingProfile(false); toast({ title: "הפרופיל עודכן" }); }, 800); 
+                      setTimeout(() => { setIsSavingProfile(false); toast({ variant: "success", title: "הפרופיל עודכן" }); }, 800); 
                     }} 
                     className="rounded-full px-16 h-14 bg-accent text-primary font-black shadow-xl hover:bg-accent/90 transition-all"
                     disabled={isSavingProfile}

@@ -207,7 +207,7 @@ export default function RegisterPageClient() {
     setIsResetting(true);
     try {
       await initiatePasswordReset(auth, resetEmail);
-      toast({ title: "נשלח מייל לאיפוס", description: "בדוק את תיבת הדואר הנכנס שלך להמשך התהליך." });
+      toast({ variant: "success", title: "נשלח מייל לאיפוס", description: "בדוק את תיבת הדואר הנכנס שלך להמשך התהליך." });
       setIsResetDialogOpen(false);
     } catch {
       toast({ variant: "destructive", title: "שגיאה", description: "לא ניתן היה לשלוח מייל לאיפוס. וודא שהכתובת נכונה." });
@@ -226,6 +226,7 @@ export default function RegisterPageClient() {
     try {
       await resendEmailConfirmation(auth, email);
       toast({
+        variant: "success",
         title: "מייל האימות נשלח מחדש",
         description: "בדוק את תיבת הדואר הנכנס שלך (וגם ספאם) להמשך האימות.",
       });

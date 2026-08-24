@@ -48,6 +48,7 @@ export function ProductCard({
     }, { merge: true });
 
     toast({
+      variant: "success",
       title: isFavorite ? "הוסר מהמועדפים" : "נוסף למועדפים - תוכלו למצוא אותו באיזור האישי"
     });
   };

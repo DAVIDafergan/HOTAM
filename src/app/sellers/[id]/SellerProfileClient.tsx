@@ -2,6 +2,8 @@
 "use client";
 
 import { Navbar } from '@/components/Navbar';
+import { SellerProfileSkeleton } from '@/components/SellerProfileSkeleton';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -321,11 +323,7 @@ export default function SellerProfile({
   };
 
   if (isSellerLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-10 h-10 animate-spin text-primary" />
-      </div>
-    );
+    return <SellerProfileSkeleton />;
   }
 
   if (!seller) {
@@ -556,7 +554,17 @@ export default function SellerProfile({
 
                 <TabsContent value="products" className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
                    {isProductsLoading ? (
-                     <div className="flex justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+                       {Array.from({ length: 4 }).map((_, i) => (
+                         <div key={i} className="overflow-hidden rounded-2xl bg-muted/10">
+                           <Skeleton className="h-40 md:h-44 w-full rounded-none" />
+                           <div className="p-5 space-y-2">
+                             <Skeleton className="h-4 w-3/4 rounded" />
+                             <Skeleton className="h-5 w-1/3 rounded" />
+                           </div>
+                         </div>
+                       ))}
+                     </div>
                    ) : products && products.length > 0 ? (
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                        {products.map((p: any) => (

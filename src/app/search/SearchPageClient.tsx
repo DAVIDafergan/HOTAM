@@ -47,6 +47,7 @@ import { useSearchParams } from 'next/navigation';
 import { useSupabaseClient, useCollection, useMemoStable } from '@/lib/supabase-hooks';
 import { collection, query, where, limit } from '@/lib/supabase-compat';
 import { ProductCard, type ProductCardViewMode } from '@/components/ProductCard';
+import { ProductCardSkeletonGrid } from '@/components/ProductCardSkeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -810,14 +811,8 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
         )}
 
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-24 gap-4">
-            <div className="relative w-16 h-16">
-              <Loader2 className="w-16 h-16 animate-spin text-primary/30" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                 <Scroll className="w-6 h-6 text-primary" />
-              </div>
-            </div>
-            <p className="font-headline font-black text-primary/40 text-lg">טוען כלי קודש...</p>
+          <div className="container mx-auto px-4 pt-8 pb-12">
+            <ProductCardSkeletonGrid count={6} />
           </div>
         ) : !showResults ? (
           <div className="container mx-auto px-4 pt-12 pb-12">

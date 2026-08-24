@@ -613,7 +613,7 @@ export function HeroAnimation() {
 
           <motion.div variants={shouldReduceMotion ? undefined : heroItemVariants} className="space-y-3 md:space-y-5">
             <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-headline font-black text-primary leading-[1.08] tracking-tighter">
-              קדושה <span className="text-accent underline decoration-accent/20 underline-offset-8">בכל תג</span>
+              קדושה <span className="text-accent-strong underline decoration-accent/20 underline-offset-8">בכל תג</span>
             </h1>
             <p className="text-base font-bold text-primary/70 md:hidden">
               מצאו את הסופר המושלם עבורכם – בכמה קליקים בלבד

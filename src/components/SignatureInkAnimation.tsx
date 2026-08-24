@@ -11,7 +11,7 @@ const INK_COLOR = '#1C1815';
 // matching that composited tone keeps the canvas from reading as a floating
 // grey box against its surroundings.
 const PARCHMENT_COLOR = '#F9F4EA';
-const GOLD_COLOR = '#B08D57';
+const GOLD_COLOR = '#BE892D'; // matches --accent (see globals.css)
 const ANIMATION_DURATION_SECONDS = 2.4;
 const CURVE_POINT_COUNT = 140;
 

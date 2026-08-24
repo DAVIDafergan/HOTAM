@@ -6,7 +6,8 @@
 @layer base {
   :root {
     /* Brand palette (spec): ink-black #1C1815, parchment #F5EDE0,
-       brass-gold #B08D57, parchment-brown #7A6F5D, ink-red #8B2E2E.
+       brass-gold #B08D57 (superseded — see --accent below), parchment-brown
+       #7A6F5D, ink-red #8B2E2E.
        muted-foreground uses 40% lightness instead of the spec's literal
        42% (#7A6F5D) — verified 4.29:1 against --background, just under
        WCAG AA's 4.5:1 for body/caption text; 40% clears it (4.63:1)
@@ -23,14 +24,22 @@
     --secondary-foreground: 26 14% 10%;
     --muted: 37 15% 93%;
     --muted-foreground: 37 13% 40%;   /* parchment-brown #7A6F5D, WCAG-adjusted (see note above) */
-    --accent: 36 36% 52%;             /* brass-gold #B08D57 */
+    /* "Vivid Gold" refresh (2026-08): same hue family as the original brass-gold, saturation
+       raised 36%→62% — the 36% original tested as "dusty/muted" against the brand's own
+       bar. --accent (button/background use, paired with ink text) verified 5.71:1 against
+       --foreground; --accent-strong (text-on-light use, e.g. hero accent word, spec
+       labels — those specific spots were previously wired to plain --accent and failed
+       WCAG AA at ~2.9-3.0:1) verified 5.27-5.34:1 against parchment/white/card
+       backgrounds — both comfortably clear the 4.5:1 text minimum, not just the 3:1 large-
+       text/UI-component one. */
+    --accent: 38 62% 46%;             /* vivid gold #BE892D */
     --accent-foreground: 26 14% 10%;
-    --accent-strong: 36 36% 36%;      /* darkened brass-gold for readable text, ~5.7:1 on white / ~4.9:1 on parchment */
+    --accent-strong: 38 62% 33%;      /* darkened vivid gold for readable text, ~5.3:1 on parchment/white */
     --border: 26 18% 87%;
     --input: 26 18% 87%;
     --destructive: 0 50% 36%;         /* ink-red #8B2E2E — 8.4:1 against white text, well past AA */
     --destructive-foreground: 0 0% 98%;
-    --ring: 36 36% 52%;
+    --ring: 38 62% 46%;
     /* 4/6/8px across the sm/md/lg scale — the spec's 4-8px radius range,
        applied via the shared token so every standard rounded-sm/md/lg
        usage site-wide picks it up automatically. Component-level

@@ -662,7 +662,7 @@ export function ProductDetailsClient({
             </nav>
             <div className="space-y-4">
               <div className="flex flex-wrap gap-2 justify-start items-center">
-                <Badge variant="outline" className="border-accent/30 text-accent font-bold text-[11px] py-1 px-3 rounded-full bg-accent/5 whitespace-nowrap">
+                <Badge variant="outline" className="border-accent/30 text-accent-strong font-bold text-[11px] py-1 px-3 rounded-full bg-accent/5 whitespace-nowrap">
                   {product.script_level}
                 </Badge>
                 <Badge variant="outline" className="border-emerald-200 bg-emerald-50/60 text-emerald-700 font-bold text-[11px] py-1 px-3 rounded-full whitespace-nowrap">
@@ -723,7 +723,7 @@ export function ProductDetailsClient({
                   <section aria-labelledby="delivery-fee-label" className="flex flex-col items-end gap-1 rounded-2xl bg-primary/[0.03] p-4 text-right">
                     <Truck className="w-4 h-4 text-primary/30 mb-1" />
                     <span id="delivery-fee-label" className="text-[11px] font-bold text-primary/40 uppercase tracking-wide whitespace-nowrap">עלות משלוח</span>
-                    <span className="text-sm font-black text-emerald-600 leading-none whitespace-nowrap">
+                    <span className="text-sm font-black text-emerald-700 leading-none whitespace-nowrap">
                       {Number(product.delivery_fee) > 0 ? `₪${product.delivery_fee}` : 'משלוח חינם'}
                     </span>
                   </section>
@@ -731,7 +731,7 @@ export function ProductDetailsClient({
                   <section aria-labelledby="stock-status-label" className="flex flex-col items-end gap-1 rounded-2xl bg-primary/[0.03] p-4 text-right">
                     <CheckCircle2 className="w-4 h-4 text-emerald-500 mb-1" />
                     <span id="stock-status-label" className="text-[11px] font-bold text-primary/40 uppercase tracking-wide whitespace-nowrap">זמינות</span>
-                    <span className="text-sm font-black text-emerald-600 leading-none whitespace-nowrap">{product.quantity > 0 ? 'במלאי' : 'אזל זמנית'}</span>
+                    <span className="text-sm font-black text-emerald-700 leading-none whitespace-nowrap">{product.quantity > 0 ? 'במלאי' : 'אזל זמנית'}</span>
                   </section>
                 )}
               </div>

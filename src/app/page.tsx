@@ -24,7 +24,10 @@ import SignatureInkAnimation from '@/components/SignatureInkAnimationLoader';
 export const revalidate = 300;
 
 const WorkFlow = dynamic(() => import('@/components/WorkFlow').then(mod => mod.WorkFlow), {
-  loading: () => <section aria-hidden="true" className="min-h-[680px] w-full bg-gradient-to-b from-primary/10 via-primary/5 to-primary/0 animate-pulse" />,
+  // Mobile stacks the 4 steps vertically (~1310px) instead of 4 flat columns (~660px on
+  // desktop) — a single min-height was only ever right for one breakpoint, causing a large
+  // shift when the real section swapped in on the other.
+  loading: () => <section aria-hidden="true" className="min-h-[1310px] md:min-h-[680px] w-full bg-gradient-to-b from-primary/10 via-primary/5 to-primary/0 animate-pulse" />,
 });
 
 const HomeProductsCarousel = dynamic(

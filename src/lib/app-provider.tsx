@@ -13,6 +13,7 @@ import type { SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js
 import { ErrorBoundaryListener } from '@/components/ErrorBoundaryListener';
 import { useDoc } from '@/lib/use-doc';
 import { doc } from '@/lib/supabase-compat';
+import { logEvent } from '@/lib/log-event';
 
 // ─── Auth-compatible user shape ───────────────────────────────────────────────
 
@@ -181,6 +182,14 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
       }
       setIsUserLoading(false);
       setUserError(null);
+
+      // Only a real sign-in, never INITIAL_SESSION (a page load restoring an existing
+      // session) — otherwise every refresh/navigation for an already-logged-in user would
+      // count as a fresh login. Centralized here rather than at each individual sign-in
+      // call site so it covers every method (email/password, Google) in one place.
+      if (_event === 'SIGNED_IN' && session?.user && typeof window !== 'undefined') {
+        logEvent('user_signed_in');
+      }
 
       // After sign-in/session restore, reconcile role/profile state.
       if ((_event === 'SIGNED_IN' || _event === 'INITIAL_SESSION') && session?.user && typeof window !== 'undefined') {

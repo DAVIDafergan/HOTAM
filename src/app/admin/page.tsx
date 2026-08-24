@@ -668,18 +668,44 @@ export default function AdminDashboard() {
     }
   };
 
-  const adminTabItems = [
-    { id: 'overview', label: 'סקירה כללית', icon: <LayoutDashboard className="w-4 h-4" /> },
-    { id: 'pending', label: 'ממתינים לאישור', icon: <Clock className="w-4 h-4" /> },
-    { id: 'active', label: 'סופרים פעילים', icon: <CheckCircle2 className="w-4 h-4" /> },
-    { id: 'customers', label: 'לקוחות', icon: <UserRound className="w-4 h-4" /> },
-    { id: 'sales', label: 'יומן מכירות', icon: <History className="w-4 h-4" /> },
-    { id: 'torah', label: 'ספרי תורה', icon: <Scroll className="w-4 h-4" /> },
-    { id: 'reports', label: 'דיווחים', icon: <Flag className="w-4 h-4" /> },
-    { id: 'inquiries', label: 'פניות', icon: <Inbox className="w-4 h-4" /> },
-    { id: 'chats', label: 'שיחות', icon: <MessageSquare className="w-4 h-4" /> },
-    { id: 'activity', label: 'פעילות', icon: <Activity className="w-4 h-4" /> },
-  ] as const;
+  // Grouped so the sidebar reads as a hierarchy (overview → user management → sales →
+  // communication/moderation) instead of one flat list of 10 items — adminTabItems below
+  // stays a flat derived list for the places that just need lookup-by-id (mobile header,
+  // the "which tab is active" checks).
+  const adminTabGroups: { label: string; items: { id: string; label: string; icon: React.ReactNode }[] }[] = [
+    {
+      label: 'סקירה',
+      items: [
+        { id: 'overview', label: 'סקירה כללית', icon: <LayoutDashboard className="w-4 h-4" /> },
+        { id: 'activity', label: 'פעילות', icon: <Activity className="w-4 h-4" /> },
+      ],
+    },
+    {
+      label: 'ניהול משתמשים',
+      items: [
+        { id: 'pending', label: 'ממתינים לאישור', icon: <Clock className="w-4 h-4" /> },
+        { id: 'active', label: 'סופרים פעילים', icon: <CheckCircle2 className="w-4 h-4" /> },
+        { id: 'customers', label: 'לקוחות', icon: <UserRound className="w-4 h-4" /> },
+      ],
+    },
+    {
+      label: 'מכירות',
+      items: [
+        { id: 'sales', label: 'יומן מכירות', icon: <History className="w-4 h-4" /> },
+        { id: 'torah', label: 'ספרי תורה', icon: <Scroll className="w-4 h-4" /> },
+      ],
+    },
+    {
+      label: 'תקשורת ובקרה',
+      items: [
+        { id: 'chats', label: 'שיחות', icon: <MessageSquare className="w-4 h-4" /> },
+        { id: 'reports', label: 'דיווחים', icon: <Flag className="w-4 h-4" /> },
+        { id: 'inquiries', label: 'פניות', icon: <Inbox className="w-4 h-4" /> },
+      ],
+    },
+  ];
+
+  const adminTabItems = adminTabGroups.flatMap((g) => g.items);
 
   const exportSellersToExcel = async () => {
     const { data, error } = await db
@@ -839,20 +865,29 @@ export default function AdminDashboard() {
               >
                 {isSidebarCollapsed ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
               </button>
-              <TabsList className="flex flex-col bg-transparent p-0 h-auto gap-1 w-full">
-                {adminTabItems.map((tab) => (
-                  <TabsTrigger
-                    key={tab.id}
-                    value={tab.id}
-                    title={tab.label}
-                    className={cn(
-                      "w-full flex items-center rounded-2xl h-12 data-[state=active]:bg-accent data-[state=active]:text-primary font-black text-[11px] uppercase tracking-widest gap-3 transition-colors",
-                      isSidebarCollapsed ? "justify-center px-0" : "justify-start px-4"
+              <TabsList className="flex flex-col bg-transparent p-0 h-auto gap-4 w-full">
+                {adminTabGroups.map((group) => (
+                  <div key={group.label} className="w-full space-y-1">
+                    {!isSidebarCollapsed && (
+                      <p className="px-4 pb-1 text-[9px] font-black uppercase tracking-widest text-primary/35">
+                        {group.label}
+                      </p>
                     )}
-                  >
-                    {tab.icon}
-                    {!isSidebarCollapsed && <span className="truncate">{tab.label}</span>}
-                  </TabsTrigger>
+                    {group.items.map((tab) => (
+                      <TabsTrigger
+                        key={tab.id}
+                        value={tab.id}
+                        title={tab.label}
+                        className={cn(
+                          "w-full flex items-center rounded-2xl h-12 data-[state=active]:bg-accent data-[state=active]:text-primary font-black text-[11px] uppercase tracking-widest gap-3 transition-colors",
+                          isSidebarCollapsed ? "justify-center px-0" : "justify-start px-4"
+                        )}
+                      >
+                        {tab.icon}
+                        {!isSidebarCollapsed && <span className="truncate">{tab.label}</span>}
+                      </TabsTrigger>
+                    ))}
+                  </div>
                 ))}
               </TabsList>
             </div>
@@ -880,25 +915,30 @@ export default function AdminDashboard() {
                   </h2>
                   <p className="text-white/60 text-xs font-bold mt-1">שליטה נוחה גם מהנייד</p>
                 </div>
-                <div className="p-4 space-y-2 mt-2">
-                  {adminTabItems.map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => {
-                        setActiveTab(tab.id);
-                        setIsMobileNavOpen(false);
-                      }}
-                      className={cn(
-                        "w-full flex items-center justify-between p-4 rounded-2xl transition-all font-black text-sm",
-                        activeTab === tab.id ? "bg-accent text-primary shadow-lg" : "text-primary/60 hover:bg-primary/5"
-                      )}
-                    >
-                      <div className="flex items-center gap-3">
-                        {tab.icon}
-                        <span>{tab.label}</span>
-                      </div>
-                      <ChevronLeft className="w-4 h-4 opacity-30" />
-                    </button>
+                <div className="p-4 space-y-5 mt-2">
+                  {adminTabGroups.map((group) => (
+                    <div key={group.label} className="space-y-1.5">
+                      <p className="px-4 text-[9px] font-black uppercase tracking-widest text-primary/35">{group.label}</p>
+                      {group.items.map((tab) => (
+                        <button
+                          key={tab.id}
+                          onClick={() => {
+                            setActiveTab(tab.id);
+                            setIsMobileNavOpen(false);
+                          }}
+                          className={cn(
+                            "w-full flex items-center justify-between p-4 rounded-2xl transition-all font-black text-sm",
+                            activeTab === tab.id ? "bg-accent text-primary shadow-lg" : "text-primary/60 hover:bg-primary/5"
+                          )}
+                        >
+                          <div className="flex items-center gap-3">
+                            {tab.icon}
+                            <span>{tab.label}</span>
+                          </div>
+                          <ChevronLeft className="w-4 h-4 opacity-30" />
+                        </button>
+                      ))}
+                    </div>
                   ))}
                 </div>
               </SheetContent>

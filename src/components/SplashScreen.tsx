@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 
 // Total time the splash blocks interaction with the site. Scaled down from an earlier 4s
 // design (0.375x) — every delay/duration below keeps the same relative choreography, just
@@ -15,6 +16,7 @@ const PARCHMENT_TEXTURE_DATA_URL =
 
 export function SplashScreen() {
   const shouldReduceMotion = useReducedMotion();
+  const pathname = usePathname();
   const [isVisible, setIsVisible] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
 
@@ -23,7 +25,13 @@ export function SplashScreen() {
     const hasSeenSplash = sessionStorage.getItem('hotam_splash_seen');
     if (hasSeenSplash) return;
 
+    // Only a first visit landing on the homepage gets the brand moment. Someone arriving
+    // deep-linked (a shared product/search URL, a Google result) is the most motivated kind
+    // of visitor — delaying the content they specifically came for with a branding animation
+    // is a net loss, not a nice touch. Mark this session's splash as "seen" either way, so
+    // navigating to '/' later in the same session doesn't trigger it mid-browsing either.
     sessionStorage.setItem('hotam_splash_seen', 'true');
+    if (pathname !== '/') return;
 
     // Respect the OS-level motion preference — skip straight to the site, no delay at all.
     if (shouldReduceMotion) return;

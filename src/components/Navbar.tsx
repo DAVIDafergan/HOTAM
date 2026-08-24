@@ -196,7 +196,7 @@ export function Navbar() {
                 variant="ghost" 
                 size="icon" 
                 onClick={() => router.back()} 
-                className="rounded-full h-10 w-10 bg-white/55 border border-white/45 shadow-premium hover:bg-white/80 text-primary transition-all active:scale-90 shrink-0"
+                className="rounded-full h-11 w-11 bg-white/55 border border-white/45 shadow-premium hover:bg-white/80 text-primary transition-all active:scale-90 shrink-0"
                 aria-label="חזור לדף הקודם"
               >
                 <ChevronRight className="w-6 h-6" />
@@ -580,7 +580,7 @@ export function Navbar() {
             )}
 
             {!user && (
-              <Button asChild className="bg-accent text-primary hover:bg-accent/90 h-10 w-10 p-0 md:h-10 md:w-auto md:px-7 rounded-full shadow-premium text-xs font-bold gap-2 shrink-0 transition-transform duration-200 hover:scale-105 active:scale-95">
+              <Button asChild className="bg-accent text-primary hover:bg-accent/90 h-11 w-11 p-0 md:h-11 md:w-auto md:px-7 rounded-full shadow-premium text-xs font-bold gap-2 shrink-0 transition-transform duration-200 hover:scale-105 active:scale-95">
                 <Link href="/login" aria-label="התחברות">
                   <LogIn className="w-4 h-4 md:w-3.5 md:h-3.5" />
                   <span className="hidden md:inline">התחברות</span>

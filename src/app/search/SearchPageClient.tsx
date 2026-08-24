@@ -923,7 +923,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                     <Rows3 className="h-4 w-4" />
                   </button>
                 </div>
-                <Button variant="outline" onClick={() => setIsFilterPanelOpen(true)} className="group h-10 rounded-full border border-primary/10 bg-white px-4 text-[11px] font-black text-primary shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:bg-primary/[0.03] hover:text-primary hover:shadow-md active:scale-95">
+                <Button variant="outline" onClick={() => setIsFilterPanelOpen(true)} className="group h-11 rounded-full border border-primary/10 bg-white px-4 text-[11px] font-black text-primary shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:bg-primary/[0.03] hover:text-primary hover:shadow-md active:scale-95">
                   <SlidersHorizontal className="ml-1.5 h-3 w-3 text-accent transition-transform duration-300 group-hover:rotate-6" />
                   <span>סינון</span>
                   {activeFiltersCount > 0 && (
@@ -1092,7 +1092,7 @@ function ToolbarChoiceButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex h-9 min-w-[74px] touch-manipulation items-center justify-center rounded-full px-3 text-[11px] font-black transition-all md:h-8 md:min-w-0 md:text-[10px]",
+        "flex h-11 min-w-[74px] touch-manipulation items-center justify-center rounded-full px-3 text-[11px] font-black transition-all md:h-8 md:min-w-0 md:text-[10px]",
         active ? "bg-accent text-primary shadow-sm" : "text-primary/55 hover:text-primary",
       )}
     >

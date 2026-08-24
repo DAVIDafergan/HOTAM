@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useLayoutEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from '@/components/SmartImage';
 import { Button } from '@/components/ui/button';
@@ -50,11 +50,34 @@ const heroItemVariants = {
 
 const MotionButton = motion.create(Button);
 
+const DESKTOP_MEDIA_QUERY = '(min-width: 768px)';
+
+// The desktop wizard card and the mobile Sheet share one `wizardSteps` JSX tree (same
+// component-scoped state) so the two surfaces never drift — but that means the desktop
+// copy used to always mount/hydrate even on mobile, just CSS-hidden (`hidden md:block`),
+// wasting a non-trivial chunk of hydration cost on every mobile load.
+// useLayoutEffect (not useEffect) resolves the real viewport synchronously before the
+// browser paints anything, so SSR/first-paint always shows the placeholder, then swaps to
+// the real content pre-paint — no visible flash, no hydration-mismatch warning (hydration
+// reconciles against the placeholder first; the swap is a later, pre-paint update).
+function useIsDesktopViewport(): boolean | null {
+  const [isDesktop, setIsDesktop] = useState<boolean | null>(null);
+  useLayoutEffect(() => {
+    const mql = window.matchMedia(DESKTOP_MEDIA_QUERY);
+    setIsDesktop(mql.matches);
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    mql.addEventListener('change', handler);
+    return () => mql.removeEventListener('change', handler);
+  }, []);
+  return isDesktop;
+}
+
 export function HeroAnimation() {
   const router = useRouter();
   const { toast } = useToast();
   const heroImg = PlaceHolderImages.find(img => img.id === 'hero-bg');
   const shouldReduceMotion = useReducedMotion();
+  const isDesktop = useIsDesktopViewport();
 
   // Wizard States
   const [step, setStep] = useState(1);
@@ -599,7 +622,11 @@ export function HeroAnimation() {
 
           <motion.div variants={shouldReduceMotion ? undefined : heroItemVariants} className="w-full flex flex-col items-center gap-6 md:gap-14">
             <div className="hidden md:block w-full max-w-3xl bg-white/78 backdrop-blur-xl border border-white/90 rounded-2xl sm:rounded-3xl md:rounded-[3.2rem] p-4 sm:p-6 md:p-8 lg:p-12 shadow-premium-lg relative ring-1 ring-primary/10">
-              {wizardSteps}
+              {/* isDesktop resolves (useLayoutEffect, pre-paint) before this can ever be seen —
+                  on mobile it stays a cheap empty shell instead of mounting/hydrating the full
+                  wizard behind `hidden`. The `hidden md:block` above is still what actually
+                  controls visibility; this only controls what's mounted underneath it. */}
+              {isDesktop === true ? wizardSteps : <div className="min-h-[420px]" aria-hidden="true" />}
             </div>
 
             {/* Mobile: a single high-converting CTA replaces the full wizard by default */}

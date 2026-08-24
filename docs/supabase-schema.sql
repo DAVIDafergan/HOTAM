@@ -34,6 +34,7 @@ DROP TABLE IF EXISTS public.supermarket_reviews   CASCADE;
 DROP TABLE IF EXISTS public.reviews               CASCADE;
 DROP TABLE IF EXISTS public.reports               CASCADE;
 DROP TABLE IF EXISTS public.contact_messages      CASCADE;
+DROP TABLE IF EXISTS public.activity_events       CASCADE;
 DROP TABLE IF EXISTS public.orders    CASCADE;
 DROP TABLE IF EXISTS public.products  CASCADE;
 DROP TABLE IF EXISTS public.chats     CASCADE;
@@ -320,6 +321,22 @@ CREATE TABLE IF NOT EXISTS public.contact_messages (
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- ── activity_events ──────────────────────────────────────────────────────────
+-- General-purpose event log backing the admin activity timeline and the
+-- seller-onboarding funnel (see docs/add-activity-events-migration.sql for
+-- the full rationale). Written only via /api/log-event using the
+-- service-role key — no anon/authenticated INSERT policy on purpose.
+CREATE TABLE IF NOT EXISTS public.activity_events (
+  id           UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  actor_id     UUID        REFERENCES auth.users(id) ON DELETE SET NULL,
+  actor_role   TEXT        CHECK (actor_role IN ('customer', 'seller', 'admin', 'anonymous')),
+  session_id   TEXT,
+  event_type   TEXT        NOT NULL,
+  event_data   JSONB       NOT NULL DEFAULT '{}',
+  ip_address   TEXT
+);
+
 -- =============================================================================
 -- INDEXES
 -- =============================================================================
@@ -347,6 +364,10 @@ CREATE INDEX IF NOT EXISTS idx_sellers_is_approved    ON public.sellers (is_appr
 CREATE INDEX IF NOT EXISTS idx_password_reset_log_email_created_at ON public.password_reset_log (email, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_email_rate_limit_log_user_sent_at ON public.email_rate_limit_log (user_id, sent_at);
 CREATE INDEX IF NOT EXISTS idx_contact_messages_status_created_at ON public.contact_messages (status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_activity_events_actor_created_at ON public.activity_events (actor_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_activity_events_session_id ON public.activity_events (session_id) WHERE session_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_activity_events_type_created_at ON public.activity_events (event_type, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_activity_events_created_at ON public.activity_events (created_at DESC);
 
 -- =============================================================================
 -- ROW-LEVEL SECURITY (RLS)
@@ -366,6 +387,7 @@ ALTER TABLE public.reports               ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.password_reset_log    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.email_rate_limit_log  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contact_messages      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.activity_events       ENABLE ROW LEVEL SECURITY;
 
 -- ── Admin helper (SECURITY DEFINER avoids infinite recursion when policies
 --    on other tables query the admins table, which itself has policies) ────────
@@ -572,6 +594,12 @@ CREATE POLICY "contact_messages_public_insert" ON public.contact_messages
   FOR INSERT TO anon, authenticated WITH CHECK (true);
 CREATE POLICY "contact_messages_admin_all"     ON public.contact_messages
   FOR ALL USING (public.is_admin());
+
+-- ── activity_events policies ─────────────────────────────────────────────────
+-- Admin read-only. No anon/authenticated INSERT policy — all writes go
+-- through /api/log-event using the service-role key, which bypasses RLS.
+CREATE POLICY "activity_events_admin_read" ON public.activity_events
+  FOR SELECT USING (public.is_admin());
 
 -- ── password_reset_log policies ────────────────────────────────────────────────
 CREATE POLICY "password_reset_log_service_role_all" ON public.password_reset_log

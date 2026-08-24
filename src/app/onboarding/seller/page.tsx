@@ -45,6 +45,7 @@ import {
 import { cn } from "@/lib/utils";
 import { getCityFromAddressComponents, loadGoogleMapsPlacesScript } from '@/lib/google-maps';
 import { cleanupImageAssetsViaApi, uploadImageViaApi } from '@/lib/image-upload';
+import { logEvent } from '@/lib/log-event';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -126,6 +127,16 @@ export default function SellerOnboarding() {
   const db = useSupabaseClient();
   const { user } = useUser();
   const { toast } = useToast();
+
+  // Funnel tracking: this fires on mount (step 1) and every subsequent step change, which is
+  // the only trace anyone abandoning before the final step leaves today — nextStep() advancing
+  // `step` via pure client state has never written anything to the database. See
+  // docs/add-activity-events-migration.sql for why this needed a new table rather than
+  // reusing an existing one.
+  useEffect(() => {
+    logEvent('seller_onboarding_step_viewed', { step, total_steps: totalSteps });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
 
   const certInputRef = useRef<HTMLInputElement>(null);
   const samplesInputRef = useRef<HTMLInputElement>(null);
@@ -507,6 +518,7 @@ export default function SellerOnboarding() {
         console.info('[seller-onboarding] upgrading existing customer to seller', { userId: user.uid });
         await registerSellerWithSession(user.uid, 'existing-customer-upgrade', user.email);
 
+        logEvent('seller_onboarding_completed', { path: 'existing_customer_upgrade' });
         toast({ variant: "success", title: 'ההרשמה הסתיימה', description: 'הפרופיל שלך הועבר לאישור מנהל.' });
         router.push('/seller/dashboard');
         return;
@@ -548,6 +560,7 @@ export default function SellerOnboarding() {
 
       if (signInError || !signInData.session) {
         console.error('[seller-onboarding] signInWithPassword failed after registration', signInError);
+        logEvent('seller_onboarding_completed', { path: 'new_signup_no_session' });
         toast({
           variant: "success",
           title: 'ההרשמה הסתיימה',
@@ -557,6 +570,7 @@ export default function SellerOnboarding() {
         return;
       }
 
+      logEvent('seller_onboarding_completed', { path: 'new_signup' });
       toast({ variant: "success", title: 'ההרשמה הסתיימה', description: 'הפרופיל שלך הועבר לאישור מנהל.' });
       router.push('/seller/dashboard');
     } catch (error: any) {

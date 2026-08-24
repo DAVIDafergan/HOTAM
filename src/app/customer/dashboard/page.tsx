@@ -51,6 +51,7 @@ import { Textarea } from '@/components/ui/textarea';
 import unsplashLoader from '@/lib/unsplashLoader';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { loadGoogleMapsPlacesScript } from '@/lib/google-maps';
+import { logEvent } from '@/lib/log-event';
 
 const orderStatusLabels: Record<string, string> = {
   torah_request: 'בקשת תיאום',
@@ -266,6 +267,7 @@ export default function CustomerDashboard() {
     });
     setTimeout(() => {
       setIsSaving(false);
+      logEvent('customer_profile_updated');
       toast({ variant: "success", title: "הפרופיל עודכן" });
     }, 500);
   };

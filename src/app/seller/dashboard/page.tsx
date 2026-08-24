@@ -92,6 +92,7 @@ import { useRouter } from 'next/navigation';
 import { getCityFromAddressComponents, loadGoogleMapsPlacesScript } from '@/lib/google-maps';
 import { TORAH_DELIVERY_TIME_OPTIONS } from '@/lib/torah-delivery-time';
 import { PLATFORM_WHATSAPP_NUMBER, PLATFORM_WHATSAPP_DISPLAY } from '@/lib/constants';
+import { logEvent } from '@/lib/log-event';
 
 const PRODUCT_SUBTYPES: Record<string, string[]> = {
   'מזוזה': ['קלף', 'קלף + בית'],
@@ -949,8 +950,9 @@ function SellerDashboardContent() {
       }
     }
     
-    setIsDialogOpen(false); 
+    setIsDialogOpen(false);
     resetForm();
+    logEvent(editingProduct ? 'product_updated' : 'product_created', { product_id: editingProduct?.id ?? null });
     toast({ variant: "success", title: "המוצר עודכן בהצלחה" });
   };
 
@@ -1001,6 +1003,7 @@ function SellerDashboardContent() {
     if (deletedProduct?.images?.length) {
       void cleanupImages(deletedProduct.images);
     }
+    logEvent('product_deleted', { product_id: productId });
     toast({ variant: "success", title: 'המוצר נמחק בהצלחה' });
   };
 

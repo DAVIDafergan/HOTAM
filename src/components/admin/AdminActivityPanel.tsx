@@ -180,7 +180,7 @@ export function AdminActivityPanel() {
   );
 }
 
-function FunnelSummary({ db }: { db: ReturnType<typeof useSupabaseClient> }) {
+export function FunnelSummary({ db }: { db: ReturnType<typeof useSupabaseClient> }) {
   const [counts, setCounts] = useState<number[] | null>(null);
 
   useEffect(() => {

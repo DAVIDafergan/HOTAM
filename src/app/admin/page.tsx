@@ -55,7 +55,8 @@ import {
   Pencil,
   Inbox,
   Send,
-  Activity
+  Activity,
+  LayoutDashboard
 } from 'lucide-react';
 import { 
   useUser, 
@@ -87,6 +88,7 @@ import { cn } from '@/lib/utils';
 import { calculateCommissionAmount, resolveSellerNet } from '@/lib/commission';
 import { AdminChatsPanel } from '@/components/admin/AdminChatsPanel';
 import { AdminActivityPanel } from '@/components/admin/AdminActivityPanel';
+import { AdminOverviewPanel } from '@/components/admin/AdminOverviewPanel';
 
 const ITEMS_PER_PAGE = 15;
 
@@ -102,7 +104,7 @@ export default function AdminDashboard() {
   const router = useRouter();
   const { toast } = useToast();
   
-  const [activeTab, setActiveTab] = useState('pending');
+  const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
   const [salesStatusFilter, setSalesStatusFilter] = useState<'all' | 'completed' | 'pending'>('all');
   
@@ -667,6 +669,7 @@ export default function AdminDashboard() {
   };
 
   const adminTabItems = [
+    { id: 'overview', label: 'סקירה כללית', icon: <LayoutDashboard className="w-4 h-4" /> },
     { id: 'pending', label: 'ממתינים לאישור', icon: <Clock className="w-4 h-4" /> },
     { id: 'active', label: 'סופרים פעילים', icon: <CheckCircle2 className="w-4 h-4" /> },
     { id: 'customers', label: 'לקוחות', icon: <UserRound className="w-4 h-4" /> },
@@ -903,8 +906,12 @@ export default function AdminDashboard() {
           </div>
 
           <div className="flex-1 min-w-0 space-y-8">
+          <TabsContent value="overview">
+            <AdminOverviewPanel />
+          </TabsContent>
+
           <TabsContent value="pending">
-            <ScribeTable 
+            <ScribeTable
               scribes={filteredSellersPending} 
               onApprove={approveScribe} 
               onDelete={deleteScribe} 

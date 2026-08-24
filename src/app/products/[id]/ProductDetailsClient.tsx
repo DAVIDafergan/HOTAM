@@ -48,6 +48,7 @@ import {
   DialogTitle
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { logEvent } from '@/lib/log-event';
 import unsplashLoader from '@/lib/unsplashLoader';
 import { cn } from '@/lib/utils';
 import { getTorahDeliveryTimeLabel } from '@/lib/torah-delivery-time';
@@ -119,6 +120,14 @@ export function ProductDetailsClient({
   const [isProcessingFavorite, setIsProcessingFavorite] = useState(false);
   const [isCoordinationPhoneDialogOpen, setIsCoordinationPhoneDialogOpen] = useState(false);
   const [coordinationPhoneInput, setCoordinationPhoneInput] = useState('');
+
+  // Feeds the admin overview's "most-viewed products" — nothing measured product views at
+  // all before this. One event per page load, not per re-render (productId only changes on
+  // an actual navigation to a different product).
+  useEffect(() => {
+    if (!productId) return;
+    logEvent('product_viewed', { product_id: productId });
+  }, [productId]);
 
   const logoImg = PlaceHolderImages.find(img => img.id === 'site-logo')?.imageUrl || 'https://picsum.photos/seed/hotam-logo/400/400';
 

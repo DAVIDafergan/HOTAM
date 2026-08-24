@@ -182,6 +182,42 @@ export const getPublicSellerReviews = cache(async (sellerId: string): Promise<an
   }
 });
 
+/** Fetch the newest in-stock products for the homepage carousel — public, no per-user data. */
+export const getHomeProducts = cache(async (limit: number): Promise<any[]> => {
+  try {
+    const client = getPublicSupabaseClient();
+    if (!client) return [];
+
+    const { data, error } = await client
+      .from('products')
+      .select('*')
+      .gt('quantity', 0)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error || !data) return [];
+    return data as any[];
+  } catch (error) {
+    console.error('[storefront] home products fetch error:', error);
+    return [];
+  }
+});
+
+/** Fetch the top-rated scribes for the homepage — public, no per-user data. */
+export const getTopScribes = cache(async (limit: number): Promise<any[]> => {
+  try {
+    const client = getPublicSupabaseClient();
+    if (!client) return [];
+
+    const { data, error } = await client.rpc('get_top_scribes', { limit_count: limit });
+    if (error || !data) return [];
+    return data as any[];
+  } catch (error) {
+    console.error('[storefront] top scribes fetch error:', error);
+    return [];
+  }
+});
+
 /** Fetch the seller page payload in parallel so the route can render from the server. */
 export async function getPublicSellerPageData(id: string) {
   const [seller, products, reviews] = await Promise.all([

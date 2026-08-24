@@ -16,6 +16,13 @@ import { StaggerGrid, StaggerItem } from '@/components/StaggerGrid';
 import { MotionTap } from '@/components/MotionTap';
 import SignatureInkAnimation from '@/components/SignatureInkAnimationLoader';
 
+// The route no longer touches cookies() anywhere in its render tree (product/scribe data is
+// fetched with the public anon client in storefront-data.ts; the one per-user bit — whether to
+// show the seller-signup CTA — resolves client-side in SellerJoinCta). That makes it eligible
+// for ISR instead of forced per-request dynamic rendering; 5 minutes keeps new products/prices
+// reasonably fresh without hitting the DB on every request.
+export const revalidate = 300;
+
 const WorkFlow = dynamic(() => import('@/components/WorkFlow').then(mod => mod.WorkFlow), {
   loading: () => <section aria-hidden="true" className="min-h-[680px] w-full bg-gradient-to-b from-primary/10 via-primary/5 to-primary/0 animate-pulse" />,
 });

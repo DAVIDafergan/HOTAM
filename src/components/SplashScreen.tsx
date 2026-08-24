@@ -47,7 +47,7 @@ export function SplashScreen() {
           initial={{ opacity: 1 }}
           exit={{ opacity: 0, scale: 1.05 }}
           transition={{ duration: 0.45, ease: [0.43, 0.13, 0.23, 0.96] }}
-          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#FDFCF0]"
+          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#FDFCF0] pointer-events-none"
         >
           {/* Parchment Texture Overlay */}
           <div className="absolute inset-0 opacity-40 pointer-events-none"
@@ -102,16 +102,6 @@ export function SplashScreen() {
                   transition={{ duration: 0.56, ease: "easeInOut", delay: 0.56 }}
                 />
               </svg>
-
-              {/* Gold Glow */}
-              <motion.div
-                className="absolute inset-0 bg-accent/25 blur-[70px] -z-10 rounded-full"
-                animate={{
-                  scale: [1, 1.3, 1],
-                  opacity: [0.3, 0.6, 0.3]
-                }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-              />
             </motion.div>
 
             <motion.div
@@ -133,16 +123,6 @@ export function SplashScreen() {
                 מלאכת שמיים וקדושה
               </p>
             </motion.div>
-          </div>
-
-          {/* Elegant Progress Line */}
-          <div className="absolute bottom-16 left-1/2 -translate-x-1/2 w-56 h-[1.5px] bg-primary/5 rounded-full overflow-hidden">
-            <motion.div
-              initial={{ left: "-100%" }}
-              animate={{ left: "100%" }}
-              transition={{ duration: 0.94, repeat: Infinity, ease: "linear" }}
-              className="absolute top-0 bottom-0 w-1/2 bg-accent/30"
-            />
           </div>
         </motion.div>
       )}

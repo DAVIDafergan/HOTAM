@@ -3,21 +3,12 @@ import { ArrowLeft, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProductCard } from '@/components/ProductCard';
 import { MotionTap } from '@/components/MotionTap';
-import { createSupabaseServerClient } from '@/lib/supabase-server';
+import { getHomeProducts } from '@/lib/storefront-data';
 
 const PRODUCTS_LIMIT = 10;
 
 export async function HomeProductsCarousel() {
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) return null;
-
-  const { data: products } = await supabase
-    .from('products')
-    .select('*')
-    .gt('quantity', 0)
-    .order('created_at', { ascending: false })
-    .limit(PRODUCTS_LIMIT);
-
+  const products = await getHomeProducts(PRODUCTS_LIMIT);
   if (!products || products.length === 0) return null;
 
   return (

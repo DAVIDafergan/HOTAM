@@ -84,6 +84,7 @@ import unsplashLoader from '@/lib/unsplashLoader';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
 import { calculateCommissionAmount, resolveSellerNet } from '@/lib/commission';
+import { AdminChatsPanel } from '@/components/admin/AdminChatsPanel';
 
 const ITEMS_PER_PAGE = 15;
 
@@ -671,6 +672,7 @@ export default function AdminDashboard() {
     { id: 'torah', label: 'ספרי תורה', icon: <Scroll className="w-4 h-4" /> },
     { id: 'reports', label: 'דיווחים', icon: <Flag className="w-4 h-4" /> },
     { id: 'inquiries', label: 'פניות', icon: <Inbox className="w-4 h-4" /> },
+    { id: 'chats', label: 'שיחות', icon: <MessageSquare className="w-4 h-4" /> },
   ] as const;
 
   const exportSellersToExcel = async () => {
@@ -983,6 +985,10 @@ export default function AdminDashboard() {
               page={inquiriesPage}
               setPage={setInquiriesPage}
             />
+          </TabsContent>
+
+          <TabsContent value="chats">
+            <AdminChatsPanel />
           </TabsContent>
           </div>
         </Tabs>

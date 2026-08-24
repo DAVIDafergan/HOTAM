@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 import { 
   Accessibility, 
   RotateCcw,
@@ -27,6 +28,11 @@ const ACCESSIBILITY_BUTTON_PADDING_PX = 16;
 const ACCESSIBILITY_DEFAULT_BOTTOM_OFFSET_PX = 88;
 const ACCESSIBILITY_DRAG_THRESHOLD_PX = 4;
 const ACCESSIBILITY_KEYBOARD_NUDGE_PX = 24;
+// Breathing room above a page-level sticky bottom bar (checkout/purchase footers
+// tag themselves with data-sticky-footer) so the button's resting spot clears it
+// instead of the plain fixed offset above, which was only tall enough for the
+// shortest of those footers.
+const ACCESSIBILITY_STICKY_FOOTER_GAP_PX = 16;
 
 function exceedsDragThreshold(deltaX: number, deltaY: number) {
   return (deltaX * deltaX) + (deltaY * deltaY) > ACCESSIBILITY_DRAG_THRESHOLD_PX * ACCESSIBILITY_DRAG_THRESHOLD_PX;
@@ -76,6 +82,8 @@ export function AccessibilityButton() {
     
   }, [fontSize, highContrast, grayscale, readableFont, highlightLinks]);
 
+  const pathname = usePathname();
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     let frameId = 0;
@@ -83,9 +91,15 @@ export function AccessibilityButton() {
     const syncToViewport = () => {
       if (frameId) cancelAnimationFrame(frameId);
       frameId = requestAnimationFrame(() => {
+        const stickyFooter = document.querySelector<HTMLElement>('[data-sticky-footer]');
+        const stickyFooterHeight = stickyFooter ? stickyFooter.getBoundingClientRect().height : 0;
+        const bottomOffset = stickyFooterHeight > 0
+          ? Math.max(ACCESSIBILITY_DEFAULT_BOTTOM_OFFSET_PX, stickyFooterHeight + ACCESSIBILITY_STICKY_FOOTER_GAP_PX)
+          : ACCESSIBILITY_DEFAULT_BOTTOM_OFFSET_PX;
+
         setPosition(prev => {
           if (prev.y === 0) {
-            return clampPosition(prev.x, window.innerHeight - ACCESSIBILITY_DEFAULT_BOTTOM_OFFSET_PX);
+            return clampPosition(prev.x, window.innerHeight - bottomOffset);
           }
           return clampPosition(prev.x, prev.y);
         });
@@ -94,11 +108,24 @@ export function AccessibilityButton() {
 
     syncToViewport();
     window.addEventListener('resize', syncToViewport, { passive: true });
+
+    // The button lives in the root layout and survives client-side navigation, so a
+    // page's sticky footer (product/checkout) can appear, resize, or disappear without
+    // a window resize event — watch for that directly instead of only re-checking on
+    // route change.
+    const resizeObserver = new ResizeObserver(syncToViewport);
+    const mutationObserver = new MutationObserver(syncToViewport);
+    mutationObserver.observe(document.body, { childList: true, subtree: true });
+    const stickyFooterEl = document.querySelector('[data-sticky-footer]');
+    if (stickyFooterEl) resizeObserver.observe(stickyFooterEl);
+
     return () => {
       if (frameId) cancelAnimationFrame(frameId);
       window.removeEventListener('resize', syncToViewport);
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
     };
-  }, []);
+  }, [pathname]);
 
   const reset = () => {
     setFontSize(100);

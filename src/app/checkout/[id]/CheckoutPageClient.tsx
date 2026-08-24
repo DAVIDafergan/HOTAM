@@ -686,7 +686,7 @@ export default function CheckoutPageClient() {
       </main>
 
       {!isSuccess && (
-        <div className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-xl border-t border-primary/8 shadow-[0_-8px_30px_rgba(15,23,42,0.08)] px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] space-y-2">
+        <div data-sticky-footer className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-xl border-t border-primary/8 shadow-[0_-8px_30px_rgba(15,23,42,0.08)] px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] space-y-2">
           <div className="flex items-center justify-center gap-1.5 text-[11px] font-bold text-emerald-700">
             <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
             <span>תשלום מאובטח ומוצפן</span>

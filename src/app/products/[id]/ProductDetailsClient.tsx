@@ -820,31 +820,51 @@ export function ProductDetailsClient({
             <TabsContent value="seller" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
               <div className="max-w-3xl">
                 {seller ? (
-                  <div className="flex flex-col md:flex-row items-center gap-10">
-                    <div className="relative w-28 h-28 md:w-32 md:h-32 rounded-full overflow-hidden shrink-0 bg-muted flex items-center justify-center ring-1 ring-primary/10">
-                      {seller.profile_image ? (
-                        <Image src={seller.profile_image} alt="Scribe" fill kind="avatar" sizes="96px" className="object-cover" />
-                      ) : (
-                        <UserRound className="w-12 h-12 text-primary/10" />
-                      )}
-                    </div>
-                    <div className="flex-1 space-y-5 text-center md:text-right">
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-center md:justify-end gap-2 min-w-0">
-                          <h2 className="text-xl md:text-3xl font-headline font-black text-primary tracking-tight whitespace-nowrap truncate min-w-0">{seller.first_name} {seller.last_name}</h2>
-                          <Badge className="bg-emerald-50 text-emerald-600 border-none font-bold text-[11px] uppercase px-3 py-1 shrink-0">סופר מאומת</Badge>
-                        </div>
-                        <p className="text-muted-foreground text-sm font-bold flex items-center justify-center md:justify-end gap-2">
-                          {sellerCity || 'לא צוין'} <MapPin className="w-4 h-4 text-accent" />
-                        </p>
+                  <div className="rounded-[2rem] md:rounded-[2.5rem] bg-white border border-primary/10 shadow-premium p-6 md:p-10">
+                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8">
+                      <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden shrink-0 ring-2 ring-accent/15 shadow-md">
+                        {seller.profile_image ? (
+                          <Image src={seller.profile_image} alt="" fill kind="avatar" sizes="112px" className="object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-primary/10 to-accent/15 flex items-center justify-center">
+                            <span className="text-3xl font-headline font-black text-primary/50">
+                              {`${seller.first_name?.[0] ?? ''}${seller.last_name?.[0] ?? ''}` || <UserRound className="w-10 h-10 text-primary/20" />}
+                            </span>
+                          </div>
+                        )}
+                        {seller.is_approved && (
+                          <div className="absolute -bottom-0.5 -right-0.5 bg-accent text-primary p-1.5 rounded-full shadow-md border-2 border-white">
+                            <ShieldCheck className="w-4 h-4" />
+                          </div>
+                        )}
                       </div>
-                      <p className="text-base md:text-lg italic leading-relaxed text-primary/70 max-w-2xl mx-auto md:mr-0">
-                        "{seller.notes || 'סופר סת\"ם מוסמך וירא שמיים, כותב בקדושה ובטהרה.'}"
-                      </p>
-                      <div className="pt-2">
-                        <Button asChild variant="outline" className="rounded-full border-2 border-primary text-primary hover:bg-accent hover:border-accent hover:text-primary font-black uppercase text-xs h-12 px-10 transition-all shadow-md">
-                          <Link href={`/sellers/${seller.id}`}>לפרופיל המלא ודוגמאות כתיבה <ArrowLeft className="w-4 h-4 mr-2" /></Link>
-                        </Button>
+
+                      <div className="flex-1 min-w-0 space-y-4 text-center sm:text-right">
+                        <div className="space-y-1.5">
+                          <h2 className="text-2xl sm:text-3xl font-headline font-black text-primary tracking-tight truncate">
+                            {seller.first_name} {seller.last_name}
+                          </h2>
+                          <div className="flex items-center justify-center sm:justify-start gap-3 flex-wrap">
+                            {seller.is_approved && (
+                              <span className="text-[10px] font-black text-accent-strong uppercase tracking-widest">סופר מאומת</span>
+                            )}
+                            <p className="text-muted-foreground text-sm font-bold flex items-center gap-1.5">
+                              <MapPin className="w-3.5 h-3.5 text-accent" /> {sellerCity || 'לא צוין'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <blockquote className="border-r-2 border-accent/40 pr-4 py-0.5 text-center sm:text-right">
+                          <p className="text-base sm:text-lg italic leading-relaxed text-primary/70">
+                            {seller.notes || 'סופר סת"ם מוסמך וירא שמיים, כותב בקדושה ובטהרה.'}
+                          </p>
+                        </blockquote>
+
+                        <div className="pt-2 flex justify-center sm:justify-start">
+                          <Button asChild variant="outline" className="rounded-full border-2 border-primary text-primary hover:bg-accent hover:border-accent hover:text-primary font-black uppercase text-xs h-12 px-10 transition-all shadow-md">
+                            <Link href={`/sellers/${seller.id}`}>לפרופיל המלא ודוגמאות כתיבה <ArrowLeft className="w-4 h-4 mr-2" /></Link>
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -995,7 +1015,7 @@ export function ProductDetailsClient({
       </main>
 
       {/* Floating Action Bar - Optimized for Mobile */}
-      <div className="fixed bottom-0 left-0 right-0 z-[100] bg-white/95 backdrop-blur-2xl border-t border-primary/8 h-20 sm:h-24 md:h-28 shadow-[0_-8px_30px_rgba(15,23,42,0.06)]">
+      <div data-sticky-footer className="fixed bottom-0 left-0 right-0 z-[100] bg-white/95 backdrop-blur-2xl border-t border-primary/8 h-20 sm:h-24 md:h-28 shadow-[0_-8px_30px_rgba(15,23,42,0.06)]">
         <div className="container mx-auto px-3 sm:px-4 h-full flex items-center justify-between gap-3 md:gap-4 max-w-6xl">
           <div className="flex-1 flex gap-2.5 md:gap-4">
              {isCoordinationOnlyProduct ? (

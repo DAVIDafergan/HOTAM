@@ -27,7 +27,7 @@ export default function Loading() {
         </div>
       </main>
 
-      <div className="fixed bottom-0 left-0 right-0 z-[100] bg-white/95 backdrop-blur-2xl border-t border-primary/8 h-20 sm:h-24 md:h-28 shadow-[0_-8px_30px_rgba(15,23,42,0.06)]">
+      <div data-sticky-footer className="fixed bottom-0 left-0 right-0 z-[100] bg-white/95 backdrop-blur-2xl border-t border-primary/8 h-20 sm:h-24 md:h-28 shadow-[0_-8px_30px_rgba(15,23,42,0.06)]">
         <div className="container mx-auto px-3 sm:px-4 h-full flex items-center gap-3 md:gap-4 max-w-6xl">
           <div className="flex-1 flex gap-2.5 md:gap-4">
             <Skeleton className="flex-1 h-14 md:h-16 rounded-2xl" />

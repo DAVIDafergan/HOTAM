@@ -16,7 +16,10 @@ const ToastViewport = React.forwardRef<
   <ToastPrimitives.Viewport
     ref={ref}
     className={cn(
-      "fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]",
+      // Above every Dialog/Sheet overlay (z-[150]) and the accessibility button (z-[200]) —
+      // a toast fired while a modal is open (e.g. this component's own success feedback,
+      // triggered from inside a filter/edit dialog) must not render behind the overlay.
+      "fixed top-0 z-[210] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]",
       className
     )}
     {...props}

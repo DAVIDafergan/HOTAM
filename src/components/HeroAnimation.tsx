@@ -568,6 +568,7 @@ export function HeroAnimation() {
             src={heroImg.imageUrl}
             alt=""
             fill
+            loading="eager"
             kind="hero"
             sizes="100vw"
             className="object-cover object-center opacity-10 pointer-events-none w-full h-full"

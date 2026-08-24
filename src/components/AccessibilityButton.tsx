@@ -93,8 +93,14 @@ export function AccessibilityButton() {
       frameId = requestAnimationFrame(() => {
         const stickyFooter = document.querySelector<HTMLElement>('[data-sticky-footer]');
         const stickyFooterHeight = stickyFooter ? stickyFooter.getBoundingClientRect().height : 0;
+        // bottomOffset is the CSS `top` distance from the viewport's bottom edge — it has to
+        // clear the footer's height *plus* the button's own height, or the button's bottom
+        // edge (top + SIZE) still lands inside the footer's band.
         const bottomOffset = stickyFooterHeight > 0
-          ? Math.max(ACCESSIBILITY_DEFAULT_BOTTOM_OFFSET_PX, stickyFooterHeight + ACCESSIBILITY_STICKY_FOOTER_GAP_PX)
+          ? Math.max(
+              ACCESSIBILITY_DEFAULT_BOTTOM_OFFSET_PX,
+              stickyFooterHeight + ACCESSIBILITY_STICKY_FOOTER_GAP_PX + ACCESSIBILITY_BUTTON_SIZE_PX,
+            )
           : ACCESSIBILITY_DEFAULT_BOTTOM_OFFSET_PX;
 
         setPosition(prev => {

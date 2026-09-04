@@ -66,7 +66,7 @@ export async function uploadImageAssetViaApi(
 ) {
   validateUploadFile(file);
   const originalContentType = getImageMimeType(file);
-  if (!originalContentType) throw new Error('סוג קובץ לא נתמך.');
+  if (!originalContentType) throw new Error('סוג הקובץ אינו נתמך. ניתן להעלות תמונות בפורמט JPG, PNG, WEBP, GIF, AVIF או HEIC (עד 15MB).');
 
   // HEIC/HEIF (the default iPhone photo format) can't be rendered by any browser and
   // must be converted server-side via Cloudinary — without it configured we'd upload

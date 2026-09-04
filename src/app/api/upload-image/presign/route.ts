@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
   try {
     const ip = getClientIp(req);
     if (!checkRateLimit(ip, { key: 'upload:presign', maxRequests: 20, windowMs: 60_000 })) {
-      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+      return NextResponse.json({ error: 'יותר מדי בקשות העלאה. נא להמתין דקה ולנסות שוב.' }, { status: 429 });
     }
 
     const authHeader = req.headers.get('Authorization');
@@ -34,26 +34,26 @@ export async function POST(req: NextRequest) {
     const { fileName, contentType, fileSize, keyPrefix } = await req.json();
 
     if (!isOnboarding) {
-      if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      if (!token) return NextResponse.json({ error: 'ההתחברות נדרשת מחדש. נא לרענן את הדף ולנסות שוב.' }, { status: 401 });
       const serviceClient = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!,
         { auth: { persistSession: false } }
       );
       const { data: { user }, error } = await serviceClient.auth.getUser(token);
-      if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      if (error || !user) return NextResponse.json({ error: 'ההתחברות נדרשת מחדש. נא לרענן את הדף ולנסות שוב.' }, { status: 401 });
     } else {
       // Onboarding uploads are unauthenticated but must go to a sandboxed prefix
       if (keyPrefix && keyPrefix !== 'onboarding') {
-        return NextResponse.json({ error: 'Invalid upload context' }, { status: 403 });
+        return NextResponse.json({ error: 'בקשת העלאה לא תקינה. נא לרענן את הדף ולנסות שוב.' }, { status: 403 });
       }
     }
 
     if (!ALLOWED_TYPES.has(contentType)) {
-      return NextResponse.json({ error: 'Unsupported file type' }, { status: 400 });
+      return NextResponse.json({ error: 'סוג הקובץ אינו נתמך. ניתן להעלות תמונות בפורמט JPG, PNG, WEBP, GIF, AVIF או HEIC.' }, { status: 400 });
     }
     if (!fileSize || fileSize > MAX_SIZE) {
-      return NextResponse.json({ error: 'File too large (max 15MB)' }, { status: 400 });
+      return NextResponse.json({ error: 'הקובץ גדול מדי. ניתן להעלות עד 15MB.' }, { status: 400 });
     }
     // HEIC/HEIF can't be rendered by browsers and requires Cloudinary to convert it
     // after upload — without it configured, don't let the file land in S3 unusably.
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
 
     if (!region || !accessKeyId || !secretAccessKey || !bucket) {
       console.error('[presign] Missing AWS environment variables');
-      return NextResponse.json({ error: 'Upload service is not configured' }, { status: 503 });
+      return NextResponse.json({ error: 'שירות ההעלאה אינו זמין כרגע. נא לנסות שוב מאוחר יותר.' }, { status: 503 });
     }
 
     const s3 = new S3Client({
@@ -95,6 +95,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ presignedUrl, publicUrl, key });
   } catch (err) {
     console.error('[presign] error:', err);
-    return NextResponse.json({ error: 'Failed to generate upload URL' }, { status: 500 });
+    return NextResponse.json({ error: 'לא ניתן היה להתחיל את ההעלאה. נא לנסות שוב.' }, { status: 500 });
   }
 }

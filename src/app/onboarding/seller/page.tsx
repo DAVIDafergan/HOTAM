@@ -12,6 +12,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   User,
   Shield,
@@ -34,6 +35,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth, useUser, useSupabaseClient } from '@/lib/supabase-hooks';
 import { useToast } from '@/hooks/use-toast';
 import Image from '@/components/SmartImage';
+import { SuccessCheck } from '@/components/SuccessCheck';
 import Link from 'next/link';
 import {
   Dialog,
@@ -99,6 +101,14 @@ function validateOnboardingField(
   }
 }
 
+// A closed list covers the overwhelming majority of sellers and removes both typing and
+// typos on a field that has to match bank records exactly for payouts to land correctly.
+const ISRAELI_BANKS = [
+  'בנק לאומי', 'בנק הפועלים', 'בנק דיסקונט', 'בנק מזרחי טפחות', 'הבנק הבינלאומי',
+  'בנק יהב', 'בנק מסד', 'בנק ירושלים', 'בנק אוצר החייל', 'One Zero',
+];
+const OTHER_BANK_VALUE = '__other__';
+
 function isPdfUrl(url: string): boolean {
   return /\.pdf(\?|#|$)/i.test(url);
 }
@@ -132,6 +142,10 @@ export default function SellerOnboarding() {
   const [showPassword, setShowPassword] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  // Set on a successful submit instead of redirecting immediately — the confirmation screen
+  // this renders needs to stay on screen until the user themselves chooses to move on, not
+  // disappear under an automatic navigation before they've had a chance to read it.
+  const [completedRedirectTo, setCompletedRedirectTo] = useState<string | null>(null);
   const totalSteps = STEP_META.length;
   const router = useRouter();
   const auth = useAuth();
@@ -150,6 +164,7 @@ export default function SellerOnboarding() {
   }, [step]);
 
   const certInputRef = useRef<HTMLInputElement>(null);
+  const certCameraInputRef = useRef<HTMLInputElement>(null);
   const samplesInputRef = useRef<HTMLInputElement>(null);
   const cityInputRef = useRef<HTMLInputElement>(null);
   const addressInputRef = useRef<HTMLInputElement>(null);
@@ -266,6 +281,9 @@ export default function SellerOnboarding() {
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string | undefined>>({});
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
+  const [customBankMode, setCustomBankMode] = useState(false);
+  const isKnownBank = ISRAELI_BANKS.includes(formData.bankName);
+  const showCustomBankInput = customBankMode || (!!formData.bankName && !isKnownBank);
 
   const updateFieldWithValidation = (field: string, value: any) => {
     updateField(field, value);
@@ -613,7 +631,7 @@ export default function SellerOnboarding() {
         logEvent('seller_onboarding_completed', { path: 'existing_customer_upgrade' });
         clearDraft();
         toast({ variant: "success", title: 'ההרשמה הסתיימה', description: 'הפרופיל שלך הועבר לאישור מנהל.' });
-        router.push('/seller/dashboard');
+        setCompletedRedirectTo('/seller/dashboard');
         return;
       }
 
@@ -660,14 +678,14 @@ export default function SellerOnboarding() {
           title: 'ההרשמה הסתיימה',
           description: 'הפרופיל שלך הועבר לאישור מנהל. התחבר כדי להמשיך.',
         });
-        router.push('/login');
+        setCompletedRedirectTo('/login');
         return;
       }
 
       logEvent('seller_onboarding_completed', { path: 'new_signup' });
       clearDraft();
       toast({ variant: "success", title: 'ההרשמה הסתיימה', description: 'הפרופיל שלך הועבר לאישור מנהל.' });
-      router.push('/seller/dashboard');
+      setCompletedRedirectTo('/seller/dashboard');
     } catch (error: any) {
       setLoading(false);
       console.error('[seller-onboarding] unexpected error', error);
@@ -678,6 +696,28 @@ export default function SellerOnboarding() {
       });
     }
   };
+
+  if (completedRedirectTo) {
+    return (
+      <div className="min-h-screen bg-background" dir="rtl">
+        <Navbar />
+        <div className="container mx-auto px-4 py-12 max-w-lg pt-28">
+          <Card className="shadow-premium border-none rounded-[2.5rem] overflow-hidden bg-white p-10 text-center space-y-6">
+            <SuccessCheck className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-accent mx-auto" />
+            <div className="space-y-3">
+              <h1 className="text-2xl font-headline font-black text-primary">ההרשמה נשלחה בהצלחה!</h1>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                הפרטים שלך התקבלו ועברו לבדיקת צוות "חותם". נבדוק את הפרופיל שלך ונחזור אליך בהקדם האפשרי בהתאם לפרטי הקשר שהזנת.
+              </p>
+            </div>
+            <Button onClick={() => router.push(completedRedirectTo)} className="w-full h-12 rounded-full font-black text-base">
+              {completedRedirectTo === '/login' ? 'המשך להתחברות' : 'המשך לאזור האישי'}
+            </Button>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   const currentStepMeta = STEP_META[step - 1];
   const StepIcon = currentStepMeta.icon;
@@ -767,12 +807,12 @@ export default function SellerOnboarding() {
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>עיר *</Label>
-                      <Input ref={cityInputRef} value={formData.city} onChange={(e) => updateFieldWithValidation('city', e.target.value)} onBlur={() => handleFieldBlur('city')} required className={cn("text-slate-900 rounded-xl h-12", fieldErrors.city && "border-destructive")} />
+                      <Input ref={cityInputRef} value={formData.city} onChange={(e) => updateFieldWithValidation('city', e.target.value)} onBlur={() => handleFieldBlur('city')} autoComplete="address-level2" required className={cn("text-slate-900 rounded-xl h-12", fieldErrors.city && "border-destructive")} />
                       <FieldError message={fieldErrors.city} />
                     </div>
                     <div className="space-y-2">
                       <Label>כתובת *</Label>
-                      <Input ref={addressInputRef} value={formData.address} onChange={(e) => updateFieldWithValidation('address', e.target.value)} onBlur={() => handleFieldBlur('address')} required className={cn("text-slate-900 rounded-xl h-12", fieldErrors.address && "border-destructive")} />
+                      <Input ref={addressInputRef} value={formData.address} onChange={(e) => updateFieldWithValidation('address', e.target.value)} onBlur={() => handleFieldBlur('address')} autoComplete="street-address" required className={cn("text-slate-900 rounded-xl h-12", fieldErrors.address && "border-destructive")} />
                       <FieldError message={fieldErrors.address} />
                     </div>
                   </div>
@@ -842,7 +882,37 @@ export default function SellerOnboarding() {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="space-y-2">
                         <Label className="text-[10px] font-bold">שם הבנק</Label>
-                        <Input value={formData.bankName} onChange={(e) => updateFieldWithValidation('bankName', e.target.value)} onBlur={() => handleFieldBlur('bankName')} placeholder="למשל: לאומי" className={cn("text-slate-900 rounded-xl h-12", fieldErrors.bankName && "border-destructive")} />
+                        <Select
+                          value={showCustomBankInput ? OTHER_BANK_VALUE : formData.bankName}
+                          onValueChange={(v) => {
+                            if (v === OTHER_BANK_VALUE) {
+                              setCustomBankMode(true);
+                              updateFieldWithValidation('bankName', '');
+                            } else {
+                              setCustomBankMode(false);
+                              updateFieldWithValidation('bankName', v);
+                            }
+                          }}
+                        >
+                          <SelectTrigger className={cn("text-slate-900 rounded-xl h-12", fieldErrors.bankName && "border-destructive")}>
+                            <SelectValue placeholder="בחר/י בנק..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {ISRAELI_BANKS.map((bank) => (
+                              <SelectItem key={bank} value={bank}>{bank}</SelectItem>
+                            ))}
+                            <SelectItem value={OTHER_BANK_VALUE}>בנק אחר...</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {showCustomBankInput && (
+                          <Input
+                            value={formData.bankName}
+                            onChange={(e) => updateFieldWithValidation('bankName', e.target.value)}
+                            onBlur={() => handleFieldBlur('bankName')}
+                            placeholder="שם הבנק..."
+                            className={cn("text-slate-900 rounded-xl h-12 mt-2", fieldErrors.bankName && "border-destructive")}
+                          />
+                        )}
                         <FieldError message={fieldErrors.bankName} />
                       </div>
                       <div className="space-y-2">
@@ -966,7 +1036,7 @@ export default function SellerOnboarding() {
                   <div className="grid md:grid-cols-2 gap-8">
                     <div className="space-y-2">
                       <Label className="font-bold">שנות ניסיון במלאכת הקודש *</Label>
-                      <Input type="number" value={formData.experienceYears} onChange={(e) => updateFieldWithValidation('experienceYears', e.target.value)} onBlur={() => handleFieldBlur('experienceYears')} required className={cn("text-slate-900 rounded-xl h-12", fieldErrors.experienceYears && "border-destructive")} />
+                      <Input type="number" inputMode="numeric" value={formData.experienceYears} onChange={(e) => updateFieldWithValidation('experienceYears', e.target.value)} onBlur={() => handleFieldBlur('experienceYears')} required className={cn("text-slate-900 rounded-xl h-12", fieldErrors.experienceYears && "border-destructive")} />
                       <FieldError message={fieldErrors.experienceYears} />
                     </div>
                     <div className="space-y-2">
@@ -1056,14 +1126,20 @@ export default function SellerOnboarding() {
                             )}
                           </div>
                         ) : (
-                          <button type="button" onClick={() => certInputRef.current?.click()} className="w-full cursor-pointer py-10 flex flex-col items-center text-accent-strong hover:opacity-80 transition-opacity">
-                            <div className="flex gap-4 mb-2">
-                              <ImageIcon className="w-10 h-10" />
-                              <Camera className="w-10 h-10" />
-                            </div>
-                            <span className="font-black text-xs uppercase tracking-widest">לחץ להעלאת צילום התעודה או קובץ PDF</span>
-                          </button>
+                          <div className="w-full py-6 flex flex-col sm:flex-row items-stretch justify-center gap-3">
+                            <button type="button" onClick={() => certCameraInputRef.current?.click()} className="flex-1 cursor-pointer rounded-2xl border-2 border-accent/30 bg-white py-6 flex flex-col items-center gap-2 text-accent-strong hover:bg-accent/5 transition-colors">
+                              <Camera className="w-8 h-8" />
+                              <span className="font-black text-xs uppercase tracking-widest">צלם עכשיו</span>
+                            </button>
+                            <button type="button" onClick={() => certInputRef.current?.click()} className="flex-1 cursor-pointer rounded-2xl border-2 border-accent/30 bg-white py-6 flex flex-col items-center gap-2 text-accent-strong hover:bg-accent/5 transition-colors">
+                              <ImageIcon className="w-8 h-8" />
+                              <span className="font-black text-xs uppercase tracking-widest">העלה תמונה או PDF</span>
+                            </button>
+                          </div>
                         )}
+                        {/* Separate capture-only input: `capture` opens the device camera directly instead of the
+                            gallery/file picker, and only makes sense for a fresh photo — not for a picked PDF. */}
+                        <input type="file" ref={certCameraInputRef} onChange={(e) => handleFileUpload(e, 'cert')} className="hidden" accept="image/*" capture="environment" />
                         <input type="file" ref={certInputRef} onChange={(e) => handleFileUpload(e, 'cert')} className="hidden" accept="image/*,application/pdf" />
                       </div>
                     </div>

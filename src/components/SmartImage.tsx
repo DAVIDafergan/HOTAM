@@ -38,11 +38,21 @@ export default function SmartImage({
 }: SmartImageProps) {
   const [failed, setFailed] = useState(false);
   const [fastPathFailed, setFastPathFailed] = useState(false);
+  // Last-resort tier: if every Cloudinary-based attempt fails — the deterministic fast-path
+  // guess 404s (mirror hasn't landed yet) AND the on-demand image/fetch transform also fails
+  // (e.g. this Cloudinary account doesn't have remote-fetch delivery enabled for this domain,
+  // a common default-security gotcha that doesn't show up until Cloudinary env vars are
+  // actually set) — fall through to Next's own built-in image optimizer with no custom loader
+  // at all. That only depends on the source being reachable and its host being listed in
+  // next.config.ts's remotePatterns, not on any third-party account setting, so a freshly
+  // uploaded image never has to dead-end as "can't display this image".
+  const [rawFallback, setRawFallback] = useState(false);
 
   // A new src (e.g. the same slot reused for a different item) deserves a fresh try.
   useEffect(() => {
     setFailed(false);
     setFastPathFailed(false);
+    setRawFallback(false);
   }, [src]);
 
   const stringSrc = typeof src === 'string' ? src : '';
@@ -50,23 +60,29 @@ export default function SmartImage({
   const resolvedBlurDataUrl = blurDataURL || getImageBlurDataUrl(kind);
   const resolvedPlaceholder = placeholder || (stringSrc && !stringSrc.startsWith('data:') ? 'blur' : undefined);
 
+  // The unsplash loader isn't part of the Cloudinary chain the raw-fallback tier exists for,
+  // so it's excluded from that retry (nothing to fall back from).
+  const isUnsplash = isUnsplashUrl(stringSrc);
+
   // Every upload gets mirrored to a permanent, publicly-cached Cloudinary asset in the
   // background (see /api/upload-image/complete) — but the raw S3/CloudFront URL is what
   // stays stored on the product/seller row. Rebuild that asset's URL deterministically (no
   // lookup) and try it first; a 404 (mirror not landed yet, or never will) falls back to the
   // slower but always-correct on-demand `image/fetch` transform.
-  const canTryFastPath = !fastPathFailed && isCloudinaryConfigured() && isS3Url(stringSrc);
+  const canTryFastPath = !fastPathFailed && !rawFallback && isCloudinaryConfigured() && isS3Url(stringSrc);
 
   const resolvedLoader =
     typeof src !== 'string'
       ? undefined
-      : isUnsplashUrl(stringSrc)
-        ? loader || unsplashLoader
-        : canTryFastPath
-          ? ((loaderFnParams: ImageLoaderProps) =>
-              buildCloudinaryFastUploadUrl(loaderFnParams.src, { kind, width: loaderFnParams.width, quality: loaderFnParams.quality }) ||
-              smartImageLoader({ ...loaderFnParams, kind }))
-          : ((loaderFnParams: ImageLoaderProps) => smartImageLoader({ ...loaderFnParams, kind }));
+      : rawFallback && !isUnsplash
+        ? undefined
+        : isUnsplash
+          ? loader || unsplashLoader
+          : canTryFastPath
+            ? ((loaderFnParams: ImageLoaderProps) =>
+                buildCloudinaryFastUploadUrl(loaderFnParams.src, { kind, width: loaderFnParams.width, quality: loaderFnParams.quality }) ||
+                smartImageLoader({ ...loaderFnParams, kind }))
+            : ((loaderFnParams: ImageLoaderProps) => smartImageLoader({ ...loaderFnParams, kind }));
 
   if (failed) {
     const altText = typeof alt === 'string' && alt ? alt : 'לא ניתן להציג תמונה';
@@ -89,10 +105,10 @@ export default function SmartImage({
 
   return (
     <NextImage
-      // Force a clean remount when we drop from the fast path to the fallback loader —
-      // Next/Image doesn't reliably re-resolve its internal src/srcSet from a loader
-      // identity change alone, so a fresh element guarantees the retry actually fires.
-      key={canTryFastPath ? 'fast' : 'fallback'}
+      // Force a clean remount on every tier change — Next/Image doesn't reliably re-resolve
+      // its internal src/srcSet from a loader identity change alone, so a fresh element
+      // guarantees each retry actually fires.
+      key={rawFallback && !isUnsplash ? 'raw' : canTryFastPath ? 'fast' : 'fallback'}
       {...props}
       src={src}
       alt={alt}
@@ -106,6 +122,10 @@ export default function SmartImage({
       onError={(event) => {
         if (canTryFastPath) {
           setFastPathFailed(true);
+          return;
+        }
+        if (!isUnsplash && !rawFallback) {
+          setRawFallback(true);
           return;
         }
         setFailed(true);

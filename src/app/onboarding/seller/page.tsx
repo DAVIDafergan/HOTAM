@@ -27,7 +27,8 @@ import {
   ExternalLink,
   BookOpen,
   Info,
-  UploadCloud
+  UploadCloud,
+  FileText
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth, useUser, useSupabaseClient } from '@/lib/supabase-hooks';
@@ -96,6 +97,10 @@ function validateOnboardingField(
     default:
       return undefined;
   }
+}
+
+function isPdfUrl(url: string): boolean {
+  return /\.pdf(\?|#|$)/i.test(url);
 }
 
 function FieldError({ message }: { message?: string }) {
@@ -377,6 +382,10 @@ export default function SellerOnboarding() {
   // instantly, independent of upload/network timing — no more waiting on a network
   // round trip before the user sees anything.
   const [certLocalPreview, setCertLocalPreview] = useState<string | null>(null);
+  // A blob: URL carries no file extension, so whether the in-flight local preview is a PDF
+  // (can't be rendered via <Image>, unlike every other accepted certificate format) has to be
+  // tracked separately from the URL itself.
+  const [certLocalIsPdf, setCertLocalIsPdf] = useState(false);
   const [samplesLocalPreviews, setSamplesLocalPreviews] = useState<string[]>([]);
 
   const uploadImage = async (
@@ -402,7 +411,9 @@ export default function SellerOnboarding() {
       if (!firstFile) return;
       const previousCertificateUrl = formData.certificateUrl;
       const localUrl = URL.createObjectURL(firstFile);
+      const isPdf = firstFile.type === 'application/pdf' || firstFile.name.toLowerCase().endsWith('.pdf');
       setCertLocalPreview(localUrl);
+      setCertLocalIsPdf(isPdf);
       setUploadProgress(prev => ({ ...prev, cert: 0 }));
 
       try {
@@ -421,6 +432,7 @@ export default function SellerOnboarding() {
         setUploadProgress(prev => ({ ...prev, cert: null }));
         URL.revokeObjectURL(localUrl);
         setCertLocalPreview(null);
+        setCertLocalIsPdf(false);
       }
       return;
     }
@@ -1012,7 +1024,24 @@ export default function SellerOnboarding() {
                         {(formData.certificateUrl || certLocalPreview) ? (
                           <div className="relative w-full h-40 rounded-xl overflow-hidden border bg-white shadow-sm">
                             {formData.certificateUrl ? (
-                              <Image src={formData.certificateUrl} alt="תעודת הסופר" fill kind="certificate" sizes="(max-width: 768px) 100vw, 720px" className="object-contain" />
+                              isPdfUrl(formData.certificateUrl) ? (
+                                <a
+                                  href={formData.certificateUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-primary hover:bg-primary/5 transition-colors"
+                                >
+                                  <FileText className="w-10 h-10 text-accent-strong" />
+                                  <span className="text-xs font-black">קובץ PDF הועלה — לחץ/י לצפייה</span>
+                                </a>
+                              ) : (
+                                <Image src={formData.certificateUrl} alt="תעודת הסופר" fill kind="certificate" sizes="(max-width: 768px) 100vw, 720px" className="object-contain" />
+                              )
+                            ) : certLocalIsPdf ? (
+                              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-primary">
+                                <FileText className="w-10 h-10 text-accent-strong" />
+                                <span className="text-xs font-black">מעלה קובץ PDF...</span>
+                              </div>
                             ) : (
                               <Image src={certLocalPreview!} alt="תעודת הסופר" fill kind="certificate" sizes="(max-width: 768px) 100vw, 720px" className="object-contain" unoptimized />
                             )}
@@ -1032,10 +1061,10 @@ export default function SellerOnboarding() {
                               <ImageIcon className="w-10 h-10" />
                               <Camera className="w-10 h-10" />
                             </div>
-                            <span className="font-black text-xs uppercase tracking-widest">לחץ להעלאת צילום התעודה</span>
+                            <span className="font-black text-xs uppercase tracking-widest">לחץ להעלאת צילום התעודה או קובץ PDF</span>
                           </button>
                         )}
-                        <input type="file" ref={certInputRef} onChange={(e) => handleFileUpload(e, 'cert')} className="hidden" accept="image/*" />
+                        <input type="file" ref={certInputRef} onChange={(e) => handleFileUpload(e, 'cert')} className="hidden" accept="image/*,application/pdf" />
                       </div>
                     </div>
                   )}

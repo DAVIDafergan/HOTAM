@@ -4,6 +4,7 @@ import { compressImageFile } from '@/lib/image-compression';
 import { isCloudinaryConfigured, type ImageAssetKind } from '@/lib/cloudinary-shared';
 
 const HEIC_TYPES = new Set(['image/heic', 'image/heif']);
+const PDF_TYPE = 'application/pdf';
 
 const ALLOWED_IMAGE_TYPES = new Set([
   'image/jpeg',
@@ -25,14 +26,18 @@ const MIME_BY_EXT: Record<string, string> = {
   avif: 'image/avif',
   heic: 'image/heic',
   heif: 'image/heif',
+  pdf: 'application/pdf',
 };
 
-function getImageMimeType(file: File): string | null {
-  if (file.type && ALLOWED_IMAGE_TYPES.has(file.type)) return file.type;
+// PDF is only ever accepted for the certificate slot — scribe certificates are commonly
+// issued as scans/exports, unlike writing samples, which must be photos of live handwriting.
+function getUploadMimeType(file: File, allowPdf: boolean): string | null {
+  const allowedSet = allowPdf ? new Set([...ALLOWED_IMAGE_TYPES, PDF_TYPE]) : ALLOWED_IMAGE_TYPES;
+  if (file.type && allowedSet.has(file.type)) return file.type;
   const ext = file.name.split('.').pop()?.toLowerCase();
   if (!ext) return null;
   const inferredType = MIME_BY_EXT[ext];
-  return inferredType && ALLOWED_IMAGE_TYPES.has(inferredType) ? inferredType : null;
+  return inferredType && allowedSet.has(inferredType) ? inferredType : null;
 }
 
 function validateUploadFile(file: File): void {
@@ -64,9 +69,17 @@ export async function uploadImageAssetViaApi(
     onProgress?: (percent: number) => void;
   }
 ) {
+  const allowPdf = options?.assetKind === 'certificate';
+
   validateUploadFile(file);
-  const originalContentType = getImageMimeType(file);
-  if (!originalContentType) throw new Error('סוג הקובץ אינו נתמך. ניתן להעלות תמונות בפורמט JPG, PNG, WEBP, GIF, AVIF או HEIC (עד 15MB).');
+  const originalContentType = getUploadMimeType(file, allowPdf);
+  if (!originalContentType) {
+    throw new Error(
+      allowPdf
+        ? 'סוג הקובץ אינו נתמך. ניתן להעלות תמונה (JPG, PNG, WEBP, GIF, AVIF, HEIC) או קובץ PDF, עד 15MB.'
+        : 'סוג הקובץ אינו נתמך. ניתן להעלות תמונות בפורמט JPG, PNG, WEBP, GIF, AVIF או HEIC (עד 15MB).'
+    );
+  }
 
   // HEIC/HEIF (the default iPhone photo format) can't be rendered by any browser and
   // must be converted server-side via Cloudinary — without it configured we'd upload
@@ -76,8 +89,9 @@ export async function uploadImageAssetViaApi(
   }
 
   // Compress on the client before it ever leaves the device — cuts upload time and storage costs.
+  // compressImageFile already no-ops for non-image types, so a PDF passes through untouched.
   const uploadFile = await compressImageFile(file);
-  const contentType = getImageMimeType(uploadFile) || originalContentType;
+  const contentType = getUploadMimeType(uploadFile, allowPdf) || originalContentType;
 
   let authToken: string | undefined;
   if (options?.client) {

@@ -14,6 +14,9 @@ const ALLOWED_TYPES = new Set([
   'image/avif',
   'image/heic',
   'image/heif',
+  // Certificates (the only asset kind this applies to — enforced client-side in
+  // src/lib/image-upload.ts) are commonly issued as PDF scans, not just photos.
+  'application/pdf',
 ]);
 const HEIC_TYPES = new Set(['image/heic', 'image/heif']);
 const MAX_SIZE = 15 * 1024 * 1024;

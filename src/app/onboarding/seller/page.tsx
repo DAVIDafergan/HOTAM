@@ -27,7 +27,8 @@ import {
   ExternalLink,
   BookOpen,
   Info,
-  UploadCloud
+  UploadCloud,
+  FileText
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth, useUser, useSupabaseClient } from '@/lib/supabase-hooks';
@@ -48,6 +49,12 @@ import { cleanupImageAssetsViaApi, uploadImageViaApi } from '@/lib/image-upload'
 import { logEvent } from '@/lib/log-event';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Persisted to localStorage (not sessionStorage/memory) specifically so the draft survives
+// the browser/tab being fully closed, not just a reload — that's the abandonment case this
+// exists for. The password is deliberately never included in what gets saved.
+const DRAFT_STORAGE_KEY = 'hotam_seller_onboarding_draft_v1';
+const DRAFT_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 14; // 14 days — older drafts are discarded rather than resurrected
 
 function validateOnboardingField(
   field: string,
@@ -90,6 +97,10 @@ function validateOnboardingField(
     default:
       return undefined;
   }
+}
+
+function isPdfUrl(url: string): boolean {
+  return /\.pdf(\?|#|$)/i.test(url);
 }
 
 function FieldError({ message }: { message?: string }) {
@@ -178,6 +189,80 @@ export default function SellerOnboarding() {
   const updateField = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+
+  const clearDraft = () => {
+    if (typeof window === 'undefined') return;
+    try {
+      window.localStorage.removeItem(DRAFT_STORAGE_KEY);
+    } catch {
+      // best-effort only
+    }
+  };
+
+  // Restore a saved draft once, on first mount. Runs before the autosave effect below so it
+  // never clobbers what it's about to read.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = window.localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      if (!draft || typeof draft !== 'object' || typeof draft.savedAt !== 'number') {
+        clearDraft();
+        return;
+      }
+      if (Date.now() - draft.savedAt > DRAFT_MAX_AGE_MS) {
+        clearDraft();
+        return;
+      }
+      if (draft.formData && typeof draft.formData === 'object') {
+        setFormData(prev => ({ ...prev, ...draft.formData, password: '' }));
+      }
+      if (typeof draft.step === 'number' && draft.step >= 1 && draft.step <= STEP_META.length) {
+        setStep(draft.step);
+      }
+      if (typeof draft.termsAccepted === 'boolean') {
+        setTermsAccepted(draft.termsAccepted);
+      }
+      toast({ title: 'שוחזרה טיוטה שמורה', description: 'המשכנו מהמקום שבו הפסקת למלא את הטופס. אפשר להמשיך או להתחיל מחדש.' });
+    } catch {
+      clearDraft();
+    }
+    // Intentionally runs once on mount only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Autosave the in-progress form to localStorage (not just React state) so the data survives
+  // the tab/browser being closed entirely, not only a reload. Debounced so fast typing doesn't
+  // hit localStorage on every keystroke. Skips saving an untouched, still-empty form so a bare
+  // visit to the page doesn't create a draft (and doesn't trigger the restored-draft toast later).
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const meaningfulFields: (keyof typeof formData)[] = [
+      'firstName', 'lastName', 'email', 'phone', 'city', 'address',
+      'businessId', 'businessName', 'bankName', 'bankAccountNumber', 'notes', 'certificateUrl',
+    ];
+    const hasContent = step > 1
+      || formData.writingSamples.length > 0
+      || meaningfulFields.some((field) => Boolean(formData[field]));
+    if (!hasContent) return;
+
+    const timeoutId = window.setTimeout(() => {
+      try {
+        const { password: _password, ...persistable } = formData;
+        window.localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({
+          savedAt: Date.now(),
+          step,
+          termsAccepted,
+          formData: persistable,
+        }));
+      } catch {
+        // localStorage unavailable (private browsing / quota) — draft save is best-effort only
+      }
+    }, 500);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [formData, step, termsAccepted]);
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string | undefined>>({});
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
@@ -297,6 +382,10 @@ export default function SellerOnboarding() {
   // instantly, independent of upload/network timing — no more waiting on a network
   // round trip before the user sees anything.
   const [certLocalPreview, setCertLocalPreview] = useState<string | null>(null);
+  // A blob: URL carries no file extension, so whether the in-flight local preview is a PDF
+  // (can't be rendered via <Image>, unlike every other accepted certificate format) has to be
+  // tracked separately from the URL itself.
+  const [certLocalIsPdf, setCertLocalIsPdf] = useState(false);
   const [samplesLocalPreviews, setSamplesLocalPreviews] = useState<string[]>([]);
 
   const uploadImage = async (
@@ -322,7 +411,9 @@ export default function SellerOnboarding() {
       if (!firstFile) return;
       const previousCertificateUrl = formData.certificateUrl;
       const localUrl = URL.createObjectURL(firstFile);
+      const isPdf = firstFile.type === 'application/pdf' || firstFile.name.toLowerCase().endsWith('.pdf');
       setCertLocalPreview(localUrl);
+      setCertLocalIsPdf(isPdf);
       setUploadProgress(prev => ({ ...prev, cert: 0 }));
 
       try {
@@ -341,6 +432,7 @@ export default function SellerOnboarding() {
         setUploadProgress(prev => ({ ...prev, cert: null }));
         URL.revokeObjectURL(localUrl);
         setCertLocalPreview(null);
+        setCertLocalIsPdf(false);
       }
       return;
     }
@@ -519,6 +611,7 @@ export default function SellerOnboarding() {
         await registerSellerWithSession(user.uid, 'existing-customer-upgrade', user.email);
 
         logEvent('seller_onboarding_completed', { path: 'existing_customer_upgrade' });
+        clearDraft();
         toast({ variant: "success", title: 'ההרשמה הסתיימה', description: 'הפרופיל שלך הועבר לאישור מנהל.' });
         router.push('/seller/dashboard');
         return;
@@ -561,6 +654,7 @@ export default function SellerOnboarding() {
       if (signInError || !signInData.session) {
         console.error('[seller-onboarding] signInWithPassword failed after registration', signInError);
         logEvent('seller_onboarding_completed', { path: 'new_signup_no_session' });
+        clearDraft();
         toast({
           variant: "success",
           title: 'ההרשמה הסתיימה',
@@ -571,6 +665,7 @@ export default function SellerOnboarding() {
       }
 
       logEvent('seller_onboarding_completed', { path: 'new_signup' });
+      clearDraft();
       toast({ variant: "success", title: 'ההרשמה הסתיימה', description: 'הפרופיל שלך הועבר לאישור מנהל.' });
       router.push('/seller/dashboard');
     } catch (error: any) {
@@ -815,7 +910,7 @@ export default function SellerOnboarding() {
 
                   <div className="grid md:grid-cols-2 gap-8">
                     <div className="space-y-4">
-                      <Label className="font-bold">לימוד תורה קבוע *</Label>
+                      <Label className="font-bold">לימוד תורה קבוע <span className="font-normal text-muted-foreground text-xs">(אופציונלי)</span></Label>
                       <RadioGroup value={formData.torahStudyFrequency} onValueChange={(v) => updateField('torahStudyFrequency', v)} className="flex flex-col gap-2">
                         {[
                           { value: 'fixed', id: 't1', label: 'קובע עיתים' },
@@ -838,7 +933,7 @@ export default function SellerOnboarding() {
                     </div>
 
                     <div className="space-y-4">
-                      <Label className="font-bold">מנהג טבילה *</Label>
+                      <Label className="font-bold">מנהג טבילה <span className="font-normal text-muted-foreground text-xs">(אופציונלי)</span></Label>
                       <RadioGroup value={formData.mikvehFrequency} onValueChange={(v) => updateField('mikvehFrequency', v)} className="flex flex-col gap-2">
                         {[
                           { value: 'ezra', id: 'm1', label: 'טבילת עזרא' },
@@ -875,7 +970,7 @@ export default function SellerOnboarding() {
                       <FieldError message={fieldErrors.experienceYears} />
                     </div>
                     <div className="space-y-2">
-                      <Label className="font-bold">רמת הידור ממוצעת *</Label>
+                      <Label className="font-bold">רמת הידור ממוצעת <span className="font-normal text-muted-foreground text-xs">(אופציונלי)</span></Label>
                       <RadioGroup value={formData.scriptLevel} onValueChange={(v) => updateField('scriptLevel', v)} className="grid grid-cols-2 gap-2 mt-2">
                         {[
                           { value: 'כשר', id: 'ls', label: 'כשר', labelClass: '' },
@@ -929,7 +1024,24 @@ export default function SellerOnboarding() {
                         {(formData.certificateUrl || certLocalPreview) ? (
                           <div className="relative w-full h-40 rounded-xl overflow-hidden border bg-white shadow-sm">
                             {formData.certificateUrl ? (
-                              <Image src={formData.certificateUrl} alt="תעודת הסופר" fill kind="certificate" sizes="(max-width: 768px) 100vw, 720px" className="object-contain" />
+                              isPdfUrl(formData.certificateUrl) ? (
+                                <a
+                                  href={formData.certificateUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-primary hover:bg-primary/5 transition-colors"
+                                >
+                                  <FileText className="w-10 h-10 text-accent-strong" />
+                                  <span className="text-xs font-black">קובץ PDF הועלה — לחץ/י לצפייה</span>
+                                </a>
+                              ) : (
+                                <Image src={formData.certificateUrl} alt="תעודת הסופר" fill kind="certificate" sizes="(max-width: 768px) 100vw, 720px" className="object-contain" />
+                              )
+                            ) : certLocalIsPdf ? (
+                              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-primary">
+                                <FileText className="w-10 h-10 text-accent-strong" />
+                                <span className="text-xs font-black">מעלה קובץ PDF...</span>
+                              </div>
                             ) : (
                               <Image src={certLocalPreview!} alt="תעודת הסופר" fill kind="certificate" sizes="(max-width: 768px) 100vw, 720px" className="object-contain" unoptimized />
                             )}
@@ -949,10 +1061,10 @@ export default function SellerOnboarding() {
                               <ImageIcon className="w-10 h-10" />
                               <Camera className="w-10 h-10" />
                             </div>
-                            <span className="font-black text-xs uppercase tracking-widest">לחץ להעלאת צילום התעודה</span>
+                            <span className="font-black text-xs uppercase tracking-widest">לחץ להעלאת צילום התעודה או קובץ PDF</span>
                           </button>
                         )}
-                        <input type="file" ref={certInputRef} onChange={(e) => handleFileUpload(e, 'cert')} className="hidden" accept="image/*" />
+                        <input type="file" ref={certInputRef} onChange={(e) => handleFileUpload(e, 'cert')} className="hidden" accept="image/*,application/pdf" />
                       </div>
                     </div>
                   )}

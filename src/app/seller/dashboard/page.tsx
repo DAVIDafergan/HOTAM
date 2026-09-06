@@ -64,7 +64,8 @@ import {
   Phone,
   Landmark,
   IdCard,
-  ExternalLink
+  ExternalLink,
+  FileText
 } from 'lucide-react';
 import Image from '@/components/SmartImage';
 import { 
@@ -136,6 +137,10 @@ const PRODUCT_TIPS: Record<string, ProductTip[]> = {
 };
 
 const PRODUCT_TIP_ICONS = { camera: Camera, lightbulb: Lightbulb, sparkles: Sparkles } as const;
+
+function isPdfUrl(url: string): boolean {
+  return /\.pdf(\?|#|$)/i.test(url);
+}
 
 function ProductTipCard({ tip, compact = false }: { tip: ProductTip; compact?: boolean }) {
   const Icon = PRODUCT_TIP_ICONS[tip.icon];
@@ -646,6 +651,10 @@ function SellerDashboardContent() {
   const [productLocalPreviews, setProductLocalPreviews] = useState<string[]>([]);
   const [profileLocalPreview, setProfileLocalPreview] = useState<string | null>(null);
   const [certLocalPreview, setCertLocalPreview] = useState<string | null>(null);
+  // A blob: URL carries no file extension, so whether the in-flight local preview is a PDF
+  // (can't be rendered via <Image>, unlike every other accepted certificate format) has to be
+  // tracked separately from the URL itself.
+  const [certLocalIsPdf, setCertLocalIsPdf] = useState(false);
   const [samplesLocalPreviews, setSamplesLocalPreviews] = useState<string[]>([]);
 
   const uploadImage = async (
@@ -744,6 +753,7 @@ function SellerDashboardContent() {
     if (!file) return;
     const localUrl = URL.createObjectURL(file);
     setCertLocalPreview(localUrl);
+    setCertLocalIsPdf(file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'));
     try {
       const previousCertificateUrl = profileData.certificate_url;
       setUploadProgress(prev => ({ ...prev, certificate: 0 }));
@@ -763,6 +773,7 @@ function SellerDashboardContent() {
       setUploadProgress(prev => ({ ...prev, certificate: null }));
       URL.revokeObjectURL(localUrl);
       setCertLocalPreview(null);
+      setCertLocalIsPdf(false);
     }
   };
 
@@ -1436,7 +1447,24 @@ function SellerDashboardContent() {
                               {(profileData.certificate_url || certLocalPreview) ? (
                                 <div className="relative w-full h-40 rounded-xl overflow-hidden border bg-white shadow-sm">
                                   {profileData.certificate_url ? (
-                                    <Image src={profileData.certificate_url} alt="Cert" fill kind="certificate" sizes="(max-width: 768px) 100vw, 720px" className="object-contain" />
+                                    isPdfUrl(profileData.certificate_url) ? (
+                                      <a
+                                        href={profileData.certificate_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-primary hover:bg-primary/5 transition-colors"
+                                      >
+                                        <FileText className="w-10 h-10 text-accent-strong" />
+                                        <span className="text-xs font-black">קובץ PDF הועלה — לחץ/י לצפייה</span>
+                                      </a>
+                                    ) : (
+                                      <Image src={profileData.certificate_url} alt="Cert" fill kind="certificate" sizes="(max-width: 768px) 100vw, 720px" className="object-contain" />
+                                    )
+                                  ) : certLocalIsPdf ? (
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-primary">
+                                      <FileText className="w-10 h-10 text-accent-strong" />
+                                      <span className="text-xs font-black">מעלה קובץ PDF...</span>
+                                    </div>
                                   ) : (
                                     <Image src={certLocalPreview!} alt="Cert" fill kind="certificate" sizes="(max-width: 768px) 100vw, 720px" className="object-contain" unoptimized />
                                   )}
@@ -1456,10 +1484,10 @@ function SellerDashboardContent() {
                                     <ImageIcon className="w-10 h-10" />
                                     <Camera className="w-10 h-10" />
                                   </div>
-                                  <span className="font-black text-xs uppercase tracking-widest">לחץ להעלאת צילום התעודה</span>
+                                  <span className="font-black text-xs uppercase tracking-widest">לחץ להעלאת צילום התעודה או קובץ PDF</span>
                                 </button>
                               )}
-                              <input type="file" ref={certInputRef} onChange={handleCertificateUpload} className="hidden" accept="image/*" />
+                              <input type="file" ref={certInputRef} onChange={handleCertificateUpload} className="hidden" accept="image/*,application/pdf" />
                             </div>
                           )}
                         </div>

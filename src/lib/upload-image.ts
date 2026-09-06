@@ -84,7 +84,7 @@ export async function uploadImageDirect(
 
   if (!presignRes.ok) {
     const err = await presignRes.json().catch(() => ({}));
-    throw new Error((err as { error?: string })?.error || 'Failed to get upload URL');
+    throw new Error((err as { error?: string })?.error || 'לא ניתן היה להתחיל את ההעלאה. נא לנסות שוב.');
   }
 
   const { presignedUrl, publicUrl, key } = await presignRes.json();

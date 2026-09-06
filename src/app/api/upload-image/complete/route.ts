@@ -43,11 +43,11 @@ export async function POST(req: NextRequest) {
     const contentType = typeof body?.contentType === 'string' ? body.contentType.trim().toLowerCase() : '';
 
     if (!publicUrl || !key) {
-      return NextResponse.json({ error: 'Missing upload payload' }, { status: 400 });
+      return NextResponse.json({ error: 'העלאת התמונה נכשלה. נא לנסות שוב.' }, { status: 400 });
     }
 
     if (buildPublicImageUrl(key) !== publicUrl) {
-      return NextResponse.json({ error: 'Invalid upload reference' }, { status: 400 });
+      return NextResponse.json({ error: 'העלאת התמונה נכשלה. נא לנסות שוב.' }, { status: 400 });
     }
 
     const kind = inferImageKind(assetKind, key.split('/')[0], isOnboarding ? 'certificate' : 'product');
@@ -193,9 +193,9 @@ export async function POST(req: NextRequest) {
     return response;
   } catch (error) {
     if (error instanceof Error && error.message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'ההתחברות נדרשת מחדש. נא לרענן את הדף ולנסות שוב.' }, { status: 401 });
     }
     console.error('[upload-image-complete] error', error);
-    return NextResponse.json({ error: 'Failed to finalize upload' }, { status: 500 });
+    return NextResponse.json({ error: 'העלאת התמונה נכשלה. נא לנסות שוב.' }, { status: 500 });
   }
 }

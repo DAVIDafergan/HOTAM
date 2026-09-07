@@ -128,9 +128,13 @@ function getTransformConfig(kind: ImageAssetKind, width?: number, quality?: numb
         quality: resolvedQuality || 'auto:good',
       };
     case 'certificate':
+      // `fit` scales the whole image to within bounds without cropping, so there's nothing
+      // for gravity to focus on — Cloudinary rejects `gravity: 'auto'` paired with `crop: 'fit'`
+      // outright ("Auto gravity can only be used with crop, fill, thumb, lfill, fill_pad, auto,
+      // auto_pad"), which made every certificate image fail to render (confirmed via a direct
+      // request to the fetch URL: HTTP 400, x-cld-error: exactly that message).
       return {
         crop: 'fit',
-        gravity: 'auto',
         width: resolvedWidth,
         quality: resolvedQuality || 'auto:best',
         background: 'white',

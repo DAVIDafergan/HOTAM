@@ -40,6 +40,14 @@ function getUploadMimeType(file: File, allowPdf: boolean): string | null {
   return inferredType && allowedSet.has(inferredType) ? inferredType : null;
 }
 
+// No browser can decode raw HEIC/HEIF bytes in an <img>/<canvas> — used to skip the doomed
+// local blob-URL preview attempt while the real file is still uploading/converting server-side.
+export function isHeicFile(file: File): boolean {
+  if (HEIC_TYPES.has(file.type)) return true;
+  const ext = file.name.split('.').pop()?.toLowerCase();
+  return ext === 'heic' || ext === 'heif';
+}
+
 function validateUploadFile(file: File): void {
   if (!(file instanceof File)) throw new Error('קובץ לא תקין.');
   if (!file.name?.trim()) throw new Error('שם קובץ לא תקין.');

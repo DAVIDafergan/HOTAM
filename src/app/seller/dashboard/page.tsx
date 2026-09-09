@@ -83,7 +83,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescri
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
 import { getCommissionRate, getSellerPayoutRate, resolveSellerNet } from '@/lib/commission';
-import { cleanupImageAssetsViaApi, uploadImageViaApi } from '@/lib/image-upload';
+import { cleanupImageAssetsViaApi, isHeicFile, uploadImageViaApi } from '@/lib/image-upload';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -655,6 +655,10 @@ function SellerDashboardContent() {
   // (can't be rendered via <Image>, unlike every other accepted certificate format) has to be
   // tracked separately from the URL itself.
   const [certLocalIsPdf, setCertLocalIsPdf] = useState(false);
+  // Same problem for HEIC/HEIF (the default iPhone photo format): no browser can decode it in
+  // an <img>, so the blob: URL preview would show a broken-image placeholder for the whole
+  // upload — even though the upload itself succeeds and the server-converted result renders fine.
+  const [certLocalIsHeic, setCertLocalIsHeic] = useState(false);
   const [samplesLocalPreviews, setSamplesLocalPreviews] = useState<string[]>([]);
 
   const uploadImage = async (
@@ -752,8 +756,10 @@ function SellerDashboardContent() {
     const file = e.target.files?.[0];
     if (!file) return;
     const localUrl = URL.createObjectURL(file);
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
     setCertLocalPreview(localUrl);
-    setCertLocalIsPdf(file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'));
+    setCertLocalIsPdf(isPdf);
+    setCertLocalIsHeic(!isPdf && isHeicFile(file));
     try {
       const previousCertificateUrl = profileData.certificate_url;
       setUploadProgress(prev => ({ ...prev, certificate: 0 }));
@@ -774,6 +780,7 @@ function SellerDashboardContent() {
       URL.revokeObjectURL(localUrl);
       setCertLocalPreview(null);
       setCertLocalIsPdf(false);
+      setCertLocalIsHeic(false);
     }
   };
 
@@ -1464,6 +1471,14 @@ function SellerDashboardContent() {
                                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-primary">
                                       <FileText className="w-10 h-10 text-accent-strong" />
                                       <span className="text-xs font-black">מעלה קובץ PDF...</span>
+                                    </div>
+                                  ) : certLocalIsHeic ? (
+                                    // Browsers can't decode HEIC/HEIF in an <img>, so the raw blob: URL would
+                                    // always render as a broken image here — show a neutral placeholder
+                                    // instead until the server hands back a converted, displayable URL.
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-primary">
+                                      <ImageIcon className="w-10 h-10 text-accent-strong" />
+                                      <span className="text-xs font-black">ממיר תמונה לתצוגה...</span>
                                     </div>
                                   ) : (
                                     <Image src={certLocalPreview!} alt="Cert" fill kind="certificate" sizes="(max-width: 768px) 100vw, 720px" className="object-contain" unoptimized />

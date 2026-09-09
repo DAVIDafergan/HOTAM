@@ -319,7 +319,7 @@ export function buildCloudinaryImageUrl(
     // We must insert transformations BEFORE the version, not after /upload/
     // Regex: captures optional existing transforms (group 1) and the version+slash (group 2)
     return src.replace(
-      //image/upload/((?:[a-z][a-z0-9_]*_[^/,]+,?)*/?)((vd+/)?)/,
+      /\/image\/upload\/((?:[a-z][a-z0-9_]*_[^/,]+,?)*\/?)((v\d+\/)?)/,
       (_, _existingTransforms, versionSegment) =>
         `/image/upload/${transformation}/${versionSegment}`
     );

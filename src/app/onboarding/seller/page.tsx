@@ -47,7 +47,7 @@ import {
 } from '@/components/ui/dialog';
 import { cn } from "@/lib/utils";
 import { getCityFromAddressComponents, loadGoogleMapsPlacesScript } from '@/lib/google-maps';
-import { cleanupImageAssetsViaApi, uploadImageViaApi } from '@/lib/image-upload';
+import { cleanupImageAssetsViaApi, isHeicFile, uploadImageViaApi } from '@/lib/image-upload';
 import { logEvent } from '@/lib/log-event';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -404,6 +404,10 @@ export default function SellerOnboarding() {
   // (can't be rendered via <Image>, unlike every other accepted certificate format) has to be
   // tracked separately from the URL itself.
   const [certLocalIsPdf, setCertLocalIsPdf] = useState(false);
+  // Same problem for HEIC/HEIF (the default iPhone photo format): no browser can decode it in
+  // an <img>, so the blob: URL preview would show a broken-image placeholder for the whole
+  // upload — even though the upload itself succeeds and the server-converted result renders fine.
+  const [certLocalIsHeic, setCertLocalIsHeic] = useState(false);
   const [samplesLocalPreviews, setSamplesLocalPreviews] = useState<string[]>([]);
 
   const uploadImage = async (
@@ -432,6 +436,7 @@ export default function SellerOnboarding() {
       const isPdf = firstFile.type === 'application/pdf' || firstFile.name.toLowerCase().endsWith('.pdf');
       setCertLocalPreview(localUrl);
       setCertLocalIsPdf(isPdf);
+      setCertLocalIsHeic(!isPdf && isHeicFile(firstFile));
       setUploadProgress(prev => ({ ...prev, cert: 0 }));
 
       try {
@@ -451,6 +456,7 @@ export default function SellerOnboarding() {
         URL.revokeObjectURL(localUrl);
         setCertLocalPreview(null);
         setCertLocalIsPdf(false);
+        setCertLocalIsHeic(false);
       }
       return;
     }
@@ -1111,6 +1117,14 @@ export default function SellerOnboarding() {
                               <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-primary">
                                 <FileText className="w-10 h-10 text-accent-strong" />
                                 <span className="text-xs font-black">מעלה קובץ PDF...</span>
+                              </div>
+                            ) : certLocalIsHeic ? (
+                              // Browsers can't decode HEIC/HEIF in an <img>, so the raw blob: URL would
+                              // always render as a broken image here — show a neutral placeholder
+                              // instead until the server hands back a converted, displayable URL.
+                              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-primary">
+                                <ImageIcon className="w-10 h-10 text-accent-strong" />
+                                <span className="text-xs font-black">ממיר תמונה לתצוגה...</span>
                               </div>
                             ) : (
                               <Image src={certLocalPreview!} alt="תעודת הסופר" fill kind="certificate" sizes="(max-width: 768px) 100vw, 720px" className="object-contain" unoptimized />

@@ -203,26 +203,40 @@ export const getHomeProducts = cache(async (limit: number): Promise<any[]> => {
   }
 });
 
+// Server-only client for the homepage scribes list: the live DB restricts anon reads of
+// some seller columns (sales_count etc.), so a direct anon query came back empty. Only
+// public-safe columns are ever selected with it.
+const serviceSupabaseClient =
+  supabaseUrl && process.env.SUPABASE_SERVICE_ROLE_KEY
+    ? createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      })
+    : null;
+
+const TOP_SCRIBES_RPC_FALLBACK_LIMIT = 200;
+
 /**
  * Fetch every approved scribe for the homepage, best sellers first (then rating,
- * then experience). Queried directly rather than via the get_top_scribes RPC,
- * which only returned a top-N and predates the sellers.city column.
+ * then experience), including their city. Falls back to the get_top_scribes RPC
+ * if the direct query fails, so the section never silently disappears.
  */
 export const getTopScribes = cache(async (): Promise<any[]> => {
   try {
-    const client = getPublicSupabaseClient();
+    const client = serviceSupabaseClient ?? getPublicSupabaseClient();
     if (!client) return [];
 
     const { data: sellers, error } = await client
       .from('sellers')
       .select('id, first_name, last_name, profile_image, city, address, experience_years, sales_count')
       .eq('is_approved', true);
-    if (error || !sellers || sellers.length === 0) return [];
+    if (error) throw error;
+    if (!sellers || sellers.length === 0) return getTopScribesViaRpc();
 
-    const { data: reviews } = await client
+    const { data: reviews, error: reviewsError } = await client
       .from('reviews')
       .select('seller_id, rating')
       .in('seller_id', sellers.map((s: any) => s.id));
+    if (reviewsError) console.error('[storefront] top scribes reviews fetch error:', reviewsError.message);
 
     const ratingBySeller = new Map<string, { sum: number; count: number }>();
     for (const r of reviews || []) {
@@ -232,8 +246,8 @@ export const getTopScribes = cache(async (): Promise<any[]> => {
       ratingBySeller.set(r.seller_id, agg);
     }
 
-    return sellers
-      .map((s: any) => {
+    return sortScribes(
+      sellers.map((s: any) => {
         const agg = ratingBySeller.get(s.id);
         return {
           ...s,
@@ -242,16 +256,36 @@ export const getTopScribes = cache(async (): Promise<any[]> => {
           review_count: agg?.count || 0,
         };
       })
-      .sort((a: any, b: any) =>
-        b.sales_count - a.sales_count ||
-        b.avg_rating - a.avg_rating ||
-        Number(b.experience_years || 0) - Number(a.experience_years || 0)
-      );
-  } catch (error) {
-    console.error('[storefront] top scribes fetch error:', error);
-    return [];
+    );
+  } catch (error: any) {
+    console.error('[storefront] top scribes fetch error, falling back to RPC:', error?.message ?? error);
+    return getTopScribesViaRpc();
   }
 });
+
+async function getTopScribesViaRpc(): Promise<any[]> {
+  try {
+    const client = getPublicSupabaseClient();
+    if (!client) return [];
+    const { data, error } = await client.rpc('get_top_scribes', { limit_count: TOP_SCRIBES_RPC_FALLBACK_LIMIT });
+    if (error || !data) {
+      if (error) console.error('[storefront] get_top_scribes RPC error:', error.message);
+      return [];
+    }
+    return sortScribes(data as any[]);
+  } catch (error) {
+    console.error('[storefront] get_top_scribes RPC error:', error);
+    return [];
+  }
+}
+
+function sortScribes(scribes: any[]): any[] {
+  return [...scribes].sort((a, b) =>
+    Number(b.sales_count || 0) - Number(a.sales_count || 0) ||
+    Number(b.avg_rating || 0) - Number(a.avg_rating || 0) ||
+    Number(b.experience_years || 0) - Number(a.experience_years || 0)
+  );
+}
 
 /** Fetch the seller page payload in parallel so the route can render from the server. */
 export async function getPublicSellerPageData(id: string) {

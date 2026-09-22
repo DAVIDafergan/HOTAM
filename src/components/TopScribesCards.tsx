@@ -94,7 +94,7 @@ export function TopScribesCards({ topScribes }: { topScribes: TopScribeCard[] })
                 <div className="flex items-center justify-center gap-3 border-t pt-4">
                   <div className="text-right">
                     <p className="text-[8px] font-semibold text-muted-foreground uppercase tracking-tighter">ניסיון</p>
-                    <p className="text-xs font-black text-primary tabular-nums">{scribe.experience_years}ש'</p>
+                    <p className="text-xs font-black text-primary tabular-nums">{scribe.experience_years != null ? `${scribe.experience_years}ש'` : '—'}</p>
                   </div>
                   <div className="w-px h-5 bg-muted" />
                   <div className="text-right">

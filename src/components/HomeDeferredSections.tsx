@@ -5,13 +5,12 @@ import { TopScribesCards, type TopScribeCard } from '@/components/TopScribesCard
 import { ScrollFadeIn } from '@/components/ScrollFadeIn';
 import { SellerJoinCta } from '@/components/SellerJoinCta';
 
-const TOP_SCRIBES_LIMIT = 5;
-const TOP_SCRIBES_SECTION_TITLE = `${TOP_SCRIBES_LIMIT} סופרים מובילים`;
+const TOP_SCRIBES_SECTION_TITLE = 'הסופרים שלנו';
 
 type TopScribeRpcRow = TopScribeCard;
 
 export async function HomeDeferredSections() {
-  const topScribesData = await getTopScribes(TOP_SCRIBES_LIMIT);
+  const topScribesData = await getTopScribes();
   const topScribes: TopScribeCard[] = (topScribesData || []).map((scribe: TopScribeRpcRow) => ({
     ...scribe,
     avg_rating: Number(scribe.avg_rating || 0),

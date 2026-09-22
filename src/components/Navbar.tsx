@@ -55,7 +55,8 @@ import {
   useDoc,
   updateDocumentNonBlocking
 } from '@/lib/supabase-hooks';
-import { doc, collection, query, where } from '@/lib/supabase-compat';
+import { doc, collection, query, where, selectColumns } from '@/lib/supabase-compat';
+import { SELLER_ORDER_COLUMNS } from '@/lib/constants';
 import { useRouter, usePathname } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -137,7 +138,8 @@ export function Navbar() {
     return query(
       collection(db, 'orders'),
       where('seller_id', '==', user.uid),
-      where('is_seen_by_seller', '==', false)
+      where('is_seen_by_seller', '==', false),
+      selectColumns(SELLER_ORDER_COLUMNS)
     );
   }, [db, isSeller, user?.uid, mounted, isProfileLoading]);
   const { data: sellerOrders } = useCollection<any>(sellerOrdersQuery);

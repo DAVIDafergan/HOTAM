@@ -203,15 +203,50 @@ export const getHomeProducts = cache(async (limit: number): Promise<any[]> => {
   }
 });
 
-/** Fetch the top-rated scribes for the homepage — public, no per-user data. */
-export const getTopScribes = cache(async (limit: number): Promise<any[]> => {
+/**
+ * Fetch every approved scribe for the homepage, best sellers first (then rating,
+ * then experience). Queried directly rather than via the get_top_scribes RPC,
+ * which only returned a top-N and predates the sellers.city column.
+ */
+export const getTopScribes = cache(async (): Promise<any[]> => {
   try {
     const client = getPublicSupabaseClient();
     if (!client) return [];
 
-    const { data, error } = await client.rpc('get_top_scribes', { limit_count: limit });
-    if (error || !data) return [];
-    return data as any[];
+    const { data: sellers, error } = await client
+      .from('sellers')
+      .select('id, first_name, last_name, profile_image, city, address, experience_years, sales_count')
+      .eq('is_approved', true);
+    if (error || !sellers || sellers.length === 0) return [];
+
+    const { data: reviews } = await client
+      .from('reviews')
+      .select('seller_id, rating')
+      .in('seller_id', sellers.map((s: any) => s.id));
+
+    const ratingBySeller = new Map<string, { sum: number; count: number }>();
+    for (const r of reviews || []) {
+      const agg = ratingBySeller.get(r.seller_id) || { sum: 0, count: 0 };
+      agg.sum += Number(r.rating) || 0;
+      agg.count += 1;
+      ratingBySeller.set(r.seller_id, agg);
+    }
+
+    return sellers
+      .map((s: any) => {
+        const agg = ratingBySeller.get(s.id);
+        return {
+          ...s,
+          sales_count: Number(s.sales_count || 0),
+          avg_rating: agg ? agg.sum / agg.count : 0,
+          review_count: agg?.count || 0,
+        };
+      })
+      .sort((a: any, b: any) =>
+        b.sales_count - a.sales_count ||
+        b.avg_rating - a.avg_rating ||
+        Number(b.experience_years || 0) - Number(a.experience_years || 0)
+      );
   } catch (error) {
     console.error('[storefront] top scribes fetch error:', error);
     return [];

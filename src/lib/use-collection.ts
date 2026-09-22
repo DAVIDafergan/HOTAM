@@ -126,7 +126,7 @@ export function useCollection<T = any>(
     const fetchData = async () => {
       try {
         const builder = applyFilters(
-          queryRef.current!.client.from(queryRef.current!.table).select('*'),
+          queryRef.current!.client.from(queryRef.current!.table).select(queryRef.current!.columns ?? '*'),
           queryRef.current!,
         );
         const { data: rows, error: qError } = await (builder as any);

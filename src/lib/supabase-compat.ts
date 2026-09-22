@@ -27,6 +27,8 @@ export interface SupabaseQuery {
   filters: FilterItem[];
   ordering?: { column: string; ascending: boolean };
   limitCount?: number;
+  /** PostgREST column list; defaults to '*' */
+  columns?: string;
   /** Path string used for error messages */
   path: string;
 }
@@ -163,6 +165,15 @@ export function limit(n: number): QueryConstraint {
   return {
     apply(q: SupabaseQuery) {
       q.limitCount = n;
+    },
+  };
+}
+
+/** Restricts the columns a query() fetches (default '*') */
+export function selectColumns(columns: string): QueryConstraint {
+  return {
+    apply(q: SupabaseQuery) {
+      q.columns = columns;
     },
   };
 }

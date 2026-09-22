@@ -76,7 +76,7 @@ import {
   useMemoStable,
   updateDocumentNonBlocking
 } from '@/lib/supabase-hooks';
-import { collection, query, where, doc, increment } from '@/lib/supabase-compat';
+import { collection, query, where, doc, increment, selectColumns } from '@/lib/supabase-compat';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
@@ -92,7 +92,7 @@ import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { getCityFromAddressComponents, loadGoogleMapsPlacesScript } from '@/lib/google-maps';
 import { TORAH_DELIVERY_TIME_OPTIONS } from '@/lib/torah-delivery-time';
-import { PLATFORM_WHATSAPP_NUMBER, PLATFORM_WHATSAPP_DISPLAY } from '@/lib/constants';
+import { PLATFORM_WHATSAPP_NUMBER, PLATFORM_WHATSAPP_DISPLAY, SELLER_ORDER_COLUMNS } from '@/lib/constants';
 import { logEvent } from '@/lib/log-event';
 
 const PRODUCT_SUBTYPES: Record<string, string[]> = {
@@ -242,7 +242,7 @@ function SellerDashboardContent() {
 
   const ordersQuery = useMemoStable(() => {
     if (!canLoadData) return null;
-    return query(collection(db, 'orders'), where('seller_id', '==', user.uid));
+    return query(collection(db, 'orders'), where('seller_id', '==', user.uid), selectColumns(SELLER_ORDER_COLUMNS));
   }, [db, user?.uid, canLoadData]);
   const { data: ordersData, isLoading: isOrdersLoading } = useCollection<any>(ordersQuery);
   const orders = (ordersData || []).filter((o: any) => o.status !== 'pending_payment').sort((a: any, b: any) => {
@@ -620,23 +620,34 @@ function SellerDashboardContent() {
     }
   }, [searchParams]);
 
-  const handleVerifyOrder = (order: any) => {
-    const inputCode = verificationCodes[order.id];
-    if (!inputCode || inputCode !== order.verification_code) {
-      toast({ variant: "destructive", title: "קוד שגוי", description: "הקוד אינו תואם." });
-      return;
-    }
+  // Completion runs server-side: status/completed_at/seller_net and sales_count are
+  // frozen for sellers by RLS, so a client write would leave the order stuck on 'paid'.
+  const handleVerifyOrder = async (order: any) => {
+    const inputCode = (verificationCodes[order.id] || '').trim();
+    if (!inputCode) return;
     setIsVerifying(order.id);
-    updateDocumentNonBlocking(doc(db, 'orders', order.id), {
-      verified_by_seller: true,
-      is_seen_by_seller: true
-    });
-
-    updateDocumentNonBlocking(doc(db, 'sellers', user!.uid), {
-      sales_count: increment(1)
-    });
-
-    setTimeout(() => { setIsVerifying(null); toast({ variant: "success", title: "ההזמנה סומנה כמאומתת." }); }, 1000);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) throw new Error('No session');
+      const res = await fetch('/api/orders/verify-delivery', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: order.id, code: inputCode }),
+      });
+      if (res.status === 400) {
+        toast({ variant: "destructive", title: "קוד שגוי", description: "הקוד אינו תואם." });
+        return;
+      }
+      if (!res.ok) throw new Error(`verify-delivery failed: ${res.status}`);
+      setVerificationCodes(prev => ({ ...prev, [order.id]: '' }));
+      toast({ variant: "success", title: "העסקה הושלמה", description: "המסירה אומתה והמכירה נרשמה." });
+    } catch (err) {
+      console.error('[verify-delivery]', err);
+      toast({ variant: "destructive", title: "שגיאה באימות המסירה", description: "אנא נסה שנית." });
+    } finally {
+      setIsVerifying(null);
+    }
   };
 
   const [uploadProgress, setUploadProgress] = useState<{

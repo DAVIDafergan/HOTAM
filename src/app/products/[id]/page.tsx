@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { ProductDetailsClient } from './ProductDetailsClient';
-import { getPublicProductById, getPublicProductReviews, getPublicSellerById } from '@/lib/storefront-data';
+import { getPublicProductById, getPublicProductReviews, getPublicSellerById, getPublicSellerReviews } from '@/lib/storefront-data';
 
 const VAT_MULTIPLIER = 1.18;
 
@@ -117,7 +117,13 @@ export default async function ProductPage({ params }: Props) {
   const fields = await fieldsPromise;
   if (!fields) notFound();
   const sellerPromise = fields?.seller_id ? getPublicSellerById(fields.seller_id) : Promise.resolve(null);
-  const [seller, reviews] = await Promise.all([sellerPromise, reviewsPromise]);
+  const sellerReviewsPromise = fields?.seller_id ? getPublicSellerReviews(fields.seller_id) : Promise.resolve([]);
+  const [seller, reviews, sellerReviews] = await Promise.all([sellerPromise, reviewsPromise, sellerReviewsPromise]);
+  // Scribe rating for the seller card — same definition as the profile page and homepage card.
+  const sellerRatings = (sellerReviews || []).map((r: any) => Number(r?.rating)).filter((n: number) => Number.isFinite(n) && n > 0);
+  const sellerRating = sellerRatings.length > 0
+    ? { avg: sellerRatings.reduce((a: number, n: number) => a + n, 0) / sellerRatings.length, count: sellerRatings.length }
+    : null;
   
   // Dynamic JSON-LD for Search Engine Rich Results
   const productName = fields
@@ -212,6 +218,7 @@ export default async function ProductPage({ params }: Props) {
         initialProduct={fields}
         initialSeller={seller}
         initialReviews={reviews}
+        sellerRating={sellerRating}
       />
     </>
   );

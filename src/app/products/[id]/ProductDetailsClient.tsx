@@ -32,7 +32,9 @@ import {
   Package,
   Home,
   ChevronLeft,
-  MessageSquare
+  MessageSquare,
+  BadgeCheck,
+  Store
 } from 'lucide-react';
 import Image from '@/components/SmartImage';
 import Link from 'next/link';
@@ -105,11 +107,13 @@ export function ProductDetailsClient({
   initialProduct = null,
   initialSeller = null,
   initialReviews = [],
+  sellerRating = null,
 }: {
   productId: string;
   initialProduct?: any | null;
   initialSeller?: any | null;
   initialReviews?: any[];
+  sellerRating?: { avg: number; count: number } | null;
 }) {
   const { user, profile } = useApp();
   const db = useSupabaseClient();
@@ -117,6 +121,12 @@ export function ProductDetailsClient({
   const pathname = usePathname();
   const { toast } = useToast();
   const [selectedImageIdx, setSelectedImageIdx] = useState(0);
+  const [detailsTab, setDetailsTab] = useState('specs');
+  const detailsSectionRef = useRef<HTMLDivElement | null>(null);
+  const openDetailsTab = (tab: string) => {
+    setDetailsTab(tab);
+    detailsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
   const [isProcessingRequest, setIsProcessingRequest] = useState(false);
   const [isProcessingFavorite, setIsProcessingFavorite] = useState(false);
   const [isCoordinationPhoneDialogOpen, setIsCoordinationPhoneDialogOpen] = useState(false);
@@ -545,6 +555,15 @@ export function ProductDetailsClient({
     return 'both';
   })();
   const hasDelivery = normalizedDeliveryType === 'delivery' || normalizedDeliveryType === 'both';
+  const hasPickup = normalizedDeliveryType === 'pickup' || normalizedDeliveryType === 'both';
+  const isInStock = Number(product.quantity) > 0;
+  const productRatings = (reviews || []).map((r: any) => Number(r.rating)).filter((n: number) => Number.isFinite(n) && n > 0);
+  const productRatingAvg = productRatings.length > 0 ? productRatings.reduce((a: number, n: number) => a + n, 0) / productRatings.length : 0;
+  const ratingDistribution = [5, 4, 3, 2, 1].map((star) => ({
+    star,
+    count: productRatings.filter((n: number) => Math.round(n) === star).length,
+  }));
+  const sellerFullName = seller ? `${seller.first_name || ''} ${seller.last_name || ''}`.trim() : '';
   const deliveryAreaText = (Array.isArray(product.delivery_area) ? product.delivery_area : [product.delivery_area])
     .filter(Boolean)
     .join(', ');
@@ -679,10 +698,16 @@ export function ProductDetailsClient({
                 <Badge variant="outline" className="border-accent/30 text-accent-strong font-bold text-[11px] py-1 px-3 rounded-full bg-accent/5 whitespace-nowrap">
                   {product.script_level}
                 </Badge>
-                <Badge variant="outline" className="border-emerald-200 bg-emerald-50/60 text-emerald-700 font-bold text-[11px] py-1 px-3 rounded-full whitespace-nowrap">
-                  <CheckCircle2 className="w-3 h-3 ml-1.5" />
-                  זמין במלאי ({product.quantity})
-                </Badge>
+                {isInStock ? (
+                  <Badge variant="outline" className="border-emerald-200 bg-emerald-50/60 text-emerald-700 font-bold text-[11px] py-1 px-3 rounded-full whitespace-nowrap">
+                    <CheckCircle2 className="w-3 h-3 ml-1.5" />
+                    זמין במלאי ({product.quantity})
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="border-rose-200 bg-rose-50/60 text-rose-700 font-bold text-[11px] py-1 px-3 rounded-full whitespace-nowrap">
+                    אזל מהמלאי
+                  </Badge>
+                )}
               </div>
               <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1">
@@ -692,6 +717,22 @@ export function ProductDetailsClient({
                   <h1 className="text-4xl md:text-5xl font-headline font-black text-primary leading-[1.1] tracking-tight">
                     {productDisplayTitle}
                   </h1>
+                  <button
+                    type="button"
+                    onClick={() => openDetailsTab('reviews')}
+                    className="mt-2 inline-flex items-center gap-1.5 rounded-full py-1 text-sm font-bold text-primary/70 transition-colors hover:text-accent-strong"
+                  >
+                    <span className="flex items-center gap-0.5" aria-hidden="true">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star key={s} className={cn("h-4 w-4", s <= Math.round(productRatingAvg) ? 'fill-accent text-accent' : 'text-primary/15')} />
+                      ))}
+                    </span>
+                    {productRatings.length > 0 ? (
+                      <span>{productRatingAvg.toFixed(1)} · {productRatings.length} ביקורות</span>
+                    ) : (
+                      <span className="text-primary/45">עדיין אין ביקורות — היו הראשונים</span>
+                    )}
+                  </button>
                 </div>
                 <div className="hidden md:flex items-center gap-1.5 shrink-0 pt-1">
                   <button
@@ -752,7 +793,11 @@ export function ProductDetailsClient({
 
               <div className="flex flex-wrap items-center justify-end gap-x-5 gap-y-2 pt-1">
                 <span className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground">
-                  <Truck className="w-3.5 h-3.5 text-accent-strong shrink-0" /> משלוח עד הבית
+                  {hasDelivery ? (
+                    <><Truck className="w-3.5 h-3.5 text-accent-strong shrink-0" /> משלוח עד הבית</>
+                  ) : (
+                    <><Store className="w-3.5 h-3.5 text-accent-strong shrink-0" /> איסוף עצמי</>
+                  )}
                 </span>
                 <span className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground">
                   <ShieldCheck className="w-3.5 h-3.5 text-accent-strong shrink-0" /> אבטחת תשלום
@@ -762,6 +807,42 @@ export function ProductDetailsClient({
                 </span>
               </div>
             </div>
+
+            {/* Seller "post author" card — who wrote this, at a glance */}
+            {seller && (
+              <Link
+                href={`/sellers/${seller.id}`}
+                className="group flex items-center gap-4 rounded-[1.75rem] border border-primary/5 bg-white p-4 shadow-premium transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full bg-muted ring-2 ring-accent/30 flex items-center justify-center">
+                  {seller.profile_image ? (
+                    <Image src={seller.profile_image} alt={sellerFullName || 'סופר'} fill kind="avatar" sizes="56px" className="object-cover" />
+                  ) : (
+                    <UserRound className="h-6 w-6 text-primary/25" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1 text-right">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-primary/35">נכתב על ידי</p>
+                  <p className="flex items-center gap-1 text-base font-black text-primary">
+                    <span className="truncate">{sellerFullName || 'סופר סת״ם'}</span>
+                    {seller.is_approved && <BadgeCheck className="h-4 w-4 shrink-0 fill-accent text-white" aria-label="סופר מאומת" />}
+                  </p>
+                  <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] font-bold text-muted-foreground">
+                    {sellerCity && (
+                      <span className="flex items-center gap-1"><MapPin className="h-3 w-3 text-accent" />{sellerCity}</span>
+                    )}
+                    <span className="flex items-center gap-1">
+                      <Star className="h-3 w-3 fill-accent text-accent" />
+                      {sellerRating ? `${sellerRating.avg.toFixed(1)} (${sellerRating.count})` : 'סופר חדש'}
+                    </span>
+                  </div>
+                </div>
+                <span className="inline-flex h-10 shrink-0 items-center gap-1 rounded-full bg-primary px-4 text-[11px] font-bold text-primary-foreground transition-colors group-hover:bg-accent group-hover:text-primary">
+                  לפרופיל
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                </span>
+              </Link>
+            )}
 
             <div className="space-y-3">
               <h2 className="font-bold text-xs text-muted-foreground uppercase tracking-widest flex items-center justify-end gap-2 whitespace-nowrap">
@@ -812,12 +893,12 @@ export function ProductDetailsClient({
         </div>
 
         {/* Technical Details Tabs */}
-        <div className="mt-16 md:mt-28">
-          <Tabs defaultValue="specs" className="text-right">
-            <TabsList className="w-full flex bg-transparent p-0 h-auto border-b border-primary/8 rounded-none mb-10 justify-start gap-8">
-             <TabsTrigger value="specs" className="flex-none px-0 pb-4 text-sm font-bold text-primary/40 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] whitespace-nowrap">מפרט טכני</TabsTrigger>
-             <TabsTrigger value="seller" className="flex-none px-0 pb-4 text-sm font-bold text-primary/40 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] whitespace-nowrap">הסופר הכותב</TabsTrigger>
-             <TabsTrigger value="reviews" className="flex-none px-0 pb-4 text-sm font-bold text-primary/40 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] whitespace-nowrap">ביקורות ({(reviews || []).length})</TabsTrigger>
+        <div ref={detailsSectionRef} className="mt-16 md:mt-28 scroll-mt-28">
+          <Tabs value={detailsTab} onValueChange={setDetailsTab} className="text-right">
+            <TabsList className="mb-10 inline-flex h-auto w-full max-w-full justify-start gap-1 overflow-x-auto rounded-full border border-primary/5 bg-white p-1.5 shadow-premium sm:w-auto">
+             <TabsTrigger value="specs" className="flex-none rounded-full px-5 py-2.5 text-sm font-bold text-primary/50 transition-all duration-300 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md whitespace-nowrap">מפרט טכני</TabsTrigger>
+             <TabsTrigger value="seller" className="flex-none rounded-full px-5 py-2.5 text-sm font-bold text-primary/50 transition-all duration-300 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md whitespace-nowrap">הסופר הכותב</TabsTrigger>
+             <TabsTrigger value="reviews" className="flex-none rounded-full px-5 py-2.5 text-sm font-bold text-primary/50 transition-all duration-300 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md whitespace-nowrap">ביקורות ({(reviews || []).length})</TabsTrigger>
             </TabsList>
 
             <TabsContent value="specs" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -892,6 +973,31 @@ export function ProductDetailsClient({
 
             <TabsContent value="reviews" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
               <div className="max-w-3xl">
+                {productRatings.length > 0 && (
+                  <div className="mb-8 flex flex-col items-center gap-6 rounded-[1.75rem] border border-primary/5 bg-white p-6 shadow-premium sm:flex-row sm:items-center">
+                    <div className="shrink-0 text-center">
+                      <p className="text-5xl font-black tabular-nums tracking-tight text-primary">{productRatingAvg.toFixed(1)}</p>
+                      <div className="mt-1 flex justify-center gap-0.5">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <Star key={s} className={cn("h-4 w-4", s <= Math.round(productRatingAvg) ? 'fill-accent text-accent' : 'text-primary/15')} />
+                        ))}
+                      </div>
+                      <p className="mt-1 text-xs font-bold text-muted-foreground">{productRatings.length} ביקורות</p>
+                    </div>
+                    <div className="w-full flex-1 space-y-1.5">
+                      {ratingDistribution.map(({ star, count }) => (
+                        <div key={star} className="flex items-center gap-2 text-xs font-bold text-primary/60">
+                          <span className="w-3 tabular-nums">{star}</span>
+                          <Star className="h-3 w-3 shrink-0 fill-accent text-accent" />
+                          <div className="h-2 flex-1 overflow-hidden rounded-full bg-primary/[0.06]">
+                            <div className="h-full rounded-full bg-accent" style={{ width: `${(count / productRatings.length) * 100}%` }} />
+                          </div>
+                          <span className="w-6 text-left tabular-nums text-primary/40">{count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div className="flex justify-between items-center mb-5">
                   <div className="flex items-center gap-2">
                     <Button
@@ -983,7 +1089,7 @@ export function ProductDetailsClient({
                             <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">{rev.created_at ? new Date(rev.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
                             <p className="font-semibold text-primary text-xs">{rev.is_anonymous ? 'אנונימי' : (rev.buyer_name || 'משתמש')}</p>
                           </div>
-                          <div className="bg-muted/15 rounded-2xl px-4 py-3 text-right">
+                          <div className="rounded-2xl border border-primary/5 bg-white px-4 py-3 text-right shadow-sm">
                             <div className="flex justify-end gap-0.5 mb-2">
                               {[1, 2, 3, 4, 5].map(s => (
                                 <Star key={s} className={cn("w-3 h-3", s <= (Number(rev.rating) || 0) ? 'fill-accent text-accent' : 'text-muted-foreground/20')} />
@@ -1216,10 +1322,10 @@ export function ProductDetailsClient({
   );
 }
 
-function SpecItem({ label, value, icon: Icon }: { label: string, value: string, icon: React.ElementType }) {
+function SpecItem({ label, value, icon: Icon }: { label: string, value: string, icon: React.ComponentType<{ className?: string }> }) {
   return (
-    <div className="flex items-center gap-4 p-4 rounded-lg border divider-gold bg-card hover:bg-accent/5 transition-colors">
-      <div className="shrink-0 w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
+    <div className="flex items-center gap-4 rounded-2xl border border-primary/5 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-premium">
+      <div className="shrink-0 w-11 h-11 rounded-full bg-accent/10 flex items-center justify-center">
         <Icon className="w-5 h-5 text-accent-strong" />
       </div>
       <div className="min-w-0 flex-1">

@@ -230,7 +230,17 @@ export const getHomeProducts = cache(async (limit: number): Promise<any[]> => {
       .limit(limit);
 
     if (error || !data) return [];
-    return data as any[];
+
+    // Attach the public seller fields the card shows in its "post" header.
+    const sellerIds = Array.from(new Set((data as any[]).map((p) => p.seller_id).filter(Boolean)));
+    if (sellerIds.length === 0) return data as any[];
+    const { data: sellers, error: sellersError } = await client
+      .from('sellers')
+      .select('id, first_name, last_name, profile_image, city')
+      .in('id', sellerIds);
+    if (sellersError) console.error('[storefront] home product sellers fetch error:', sellersError.message);
+    const sellerById = new Map((sellers || []).map((s: any) => [s.id, s]));
+    return (data as any[]).map((p) => ({ ...p, seller: sellerById.get(p.seller_id) ?? null }));
   } catch (error) {
     console.error('[storefront] home products fetch error:', error);
     return [];

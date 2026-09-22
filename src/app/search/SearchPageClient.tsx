@@ -972,7 +972,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: shouldReduceMotion ? 0 : Math.min(i, 6) * 0.04, duration: shouldReduceMotion ? 0.1 : 0.25 }}
                   >
-                    <ProductCard product={p} distanceKm={includeNearbyCities && selectedCity ? nearbyDistanceMap[p.id] : undefined} priority={i === 0} viewMode={viewMode} />
+                    <ProductCard product={p} seller={sellerById.get(p.seller_id) as any} distanceKm={includeNearbyCities && selectedCity ? nearbyDistanceMap[p.id] : undefined} priority={i === 0} viewMode={viewMode} />
                   </motion.div>
                 ))}
                 

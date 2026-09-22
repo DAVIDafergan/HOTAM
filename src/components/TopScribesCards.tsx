@@ -14,15 +14,11 @@ import {
 import { motion, useReducedMotion } from 'framer-motion';
 import { EASE } from '@/lib/motion';
 
-const cardContainerVariants = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.08 } },
-};
-
-const cardItemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: EASE } },
-};
+// Each card reveals itself when it scrolls into view. A single container-level
+// whileInView (amount 0.2) never fires once the list is taller than ~5 viewports,
+// leaving every card stuck at opacity 0 — invisible but still clickable.
+const CARD_STAGGER_SECONDS = 0.08;
+const CARDS_PER_ROW_FOR_STAGGER = 5;
 
 export type TopScribeCard = {
   id: string;
@@ -54,14 +50,10 @@ export function TopScribesCards({ topScribes }: { topScribes: TopScribeCard[] })
   const shouldReduceMotion = useReducedMotion();
 
   return (
-    <motion.div
-      variants={shouldReduceMotion ? undefined : cardContainerVariants}
-      initial={shouldReduceMotion ? undefined : "hidden"}
-      whileInView={shouldReduceMotion ? undefined : "visible"}
-      viewport={{ once: true, amount: 0.2 }}
+    <div
       className="flex flex-row gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 -mx-4 px-4 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 sm:gap-6 md:gap-7 sm:overflow-visible sm:snap-none sm:mx-0 sm:px-0 sm:pb-0"
     >
-      {topScribes.map((scribe) => {
+      {topScribes.map((scribe, index) => {
         const displayName = `${scribe.first_name || ''} ${scribe.last_name || ''}`.trim();
         const avg = scribe.review_count > 0 ? Number(scribe.avg_rating).toFixed(1) : '—';
         const cityLabel = scribe.city?.trim() || extractCity(scribe.address);
@@ -69,7 +61,10 @@ export function TopScribesCards({ topScribes }: { topScribes: TopScribeCard[] })
         return (
           <motion.div
             key={scribe.id}
-            variants={shouldReduceMotion ? undefined : cardItemVariants}
+            initial={shouldReduceMotion ? undefined : { opacity: 0, y: 20 }}
+            whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.1 }}
+            transition={{ duration: 0.4, ease: EASE, delay: (index % CARDS_PER_ROW_FOR_STAGGER) * CARD_STAGGER_SECONDS }}
             className="w-[78%] shrink-0 snap-center sm:w-auto"
           >
             <Link href={`/sellers/${scribe.id}`}>
@@ -115,6 +110,6 @@ export function TopScribesCards({ topScribes }: { topScribes: TopScribeCard[] })
           </motion.div>
         );
       })}
-    </motion.div>
+    </div>
   );
 }

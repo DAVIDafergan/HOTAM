@@ -58,6 +58,22 @@ const PUBLIC_PRODUCT_REVIEW_FIELDS = [
   'buyer_id',
   'buyer_name',
   'rating',
+  'product_rating',
+  'comment',
+  'is_anonymous',
+  'created_at',
+  'profiles(full_name, avatar_url)',
+].join(', ');
+
+// Post-purchase reviews (reviews.order_id set) rate the scribe in `rating` and the
+// product in `product_rating`; product-page reviews set both to the product rating.
+const ORDER_SCRIBE_REVIEW_FIELDS = [
+  'id',
+  'order_id',
+  'seller_id',
+  'buyer_id',
+  'buyer_name',
+  'rating',
   'comment',
   'is_anonymous',
   'created_at',
@@ -156,7 +172,11 @@ export const getPublicProductReviews = cache(async (productId: string): Promise<
       .eq('product_id', productId);
 
     if (error || !data) return [];
-    return data.map(normalizeReviewWithProfile);
+    // Show the product rating, not the scribe rating a post-purchase review also carries.
+    return data.map((review: any) => ({
+      ...normalizeReviewWithProfile(review),
+      rating: Number(review.product_rating) || review.rating,
+    }));
   } catch (error) {
     console.error('[storefront] product reviews fetch error:', error);
     return [];
@@ -169,13 +189,27 @@ export const getPublicSellerReviews = cache(async (sellerId: string): Promise<an
     const client = getPublicSupabaseClient();
     if (!client) return [];
 
-    const { data, error } = await client
-      .from('supermarket_reviews')
-      .select(PUBLIC_SELLER_REVIEW_FIELDS as any)
-      .eq('supermarket_id', sellerId);
+    // A scribe's rating = ratings given on their profile page + scribe ratings given
+    // after a completed purchase. Product-page ratings rate the product, not the scribe.
+    const [profileReviews, orderReviews] = await Promise.all([
+      client
+        .from('supermarket_reviews')
+        .select(PUBLIC_SELLER_REVIEW_FIELDS as any)
+        .eq('supermarket_id', sellerId),
+      client
+        .from('reviews')
+        .select(ORDER_SCRIBE_REVIEW_FIELDS as any)
+        .eq('seller_id', sellerId)
+        .not('order_id', 'is', null),
+    ]);
 
-    if (error || !data) return [];
-    return data.map(normalizeReviewWithProfile);
+    if (profileReviews.error) console.error('[storefront] seller profile reviews fetch error:', profileReviews.error.message);
+    if (orderReviews.error) console.error('[storefront] seller order reviews fetch error:', orderReviews.error.message);
+
+    return [
+      ...(profileReviews.data || []).map((review: any) => ({ ...normalizeReviewWithProfile(review), source: 'profile' })),
+      ...(orderReviews.data || []).map((review: any) => ({ ...normalizeReviewWithProfile(review), source: 'order' })),
+    ];
   } catch (error) {
     console.error('[storefront] seller reviews fetch error:', error);
     return [];
@@ -232,11 +266,11 @@ export const getTopScribes = cache(async (): Promise<any[]> => {
     if (error) throw error;
     if (!sellers || sellers.length === 0) return getTopScribesViaRpc();
 
-    // A scribe is rated in two places: order/product reviews (reviews.seller_id) and
-    // direct ratings on their profile page (supermarket_reviews.supermarket_id) — count both.
+    // Same definition as the scribe's profile page: profile ratings + post-purchase scribe
+    // ratings (reviews with an order_id). Product-page reviews rate the product, so skip them.
     const sellerIds = sellers.map((s: any) => s.id);
     const [orderReviews, profileReviews] = await Promise.all([
-      client.from('reviews').select('seller_id, rating').in('seller_id', sellerIds),
+      client.from('reviews').select('seller_id, rating').in('seller_id', sellerIds).not('order_id', 'is', null),
       client.from('supermarket_reviews').select('supermarket_id, rating').in('supermarket_id', sellerIds),
     ]);
     if (orderReviews.error) console.error('[storefront] top scribes reviews fetch error:', orderReviews.error.message);

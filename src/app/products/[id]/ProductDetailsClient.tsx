@@ -91,6 +91,7 @@ const REVIEW_FALLBACK_FIELDS = [
   'buyer_id',
   'buyer_name',
   'rating',
+  'product_rating',
   'comment',
   'is_anonymous',
   'created_at',
@@ -247,6 +248,8 @@ export function ProductDetailsClient({
               const profile = Array.isArray(review?.profiles) ? review.profiles[0] : review?.profiles;
               return {
                 ...review,
+                // Post-purchase reviews carry the scribe rating in `rating`; show the product's.
+                rating: Number(review?.product_rating) || review?.rating,
                 buyer_name: profile?.full_name || review?.buyer_name || 'משתמש',
                 reviewer_image: profile?.avatar_url || null,
               };
@@ -983,7 +986,7 @@ export function ProductDetailsClient({
                           <div className="bg-muted/15 rounded-2xl px-4 py-3 text-right">
                             <div className="flex justify-end gap-0.5 mb-2">
                               {[1, 2, 3, 4, 5].map(s => (
-                                <Star key={s} className={cn("w-3 h-3", s <= (rev.rating || 5) ? 'fill-accent text-accent' : 'text-muted-foreground/20')} />
+                                <Star key={s} className={cn("w-3 h-3", s <= (Number(rev.rating) || 0) ? 'fill-accent text-accent' : 'text-muted-foreground/20')} />
                               ))}
                             </div>
                             <p className="text-xs text-primary/70 leading-relaxed font-medium">{rev.comment}</p>

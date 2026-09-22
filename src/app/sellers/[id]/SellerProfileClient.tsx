@@ -131,10 +131,17 @@ export default function SellerProfile({
         setIsProductsLoading(true);
       }
 
-      const [sellerResult, productsResult, reviewsResult] = await Promise.all([
+      // Scribe rating = profile-page ratings + post-purchase scribe ratings (reviews with
+      // an order_id) — same definition as getPublicSellerReviews and the homepage card.
+      const [sellerResult, productsResult, reviewsResult, orderReviewsResult] = await Promise.all([
         supabase.from('sellers').select('*').eq('id', id).maybeSingle(),
         supabase.from('products').select('*').eq('seller_id', id),
         supabase.from('supermarket_reviews').select('*, profiles(full_name, avatar_url)').eq('supermarket_id', id),
+        supabase
+          .from('reviews')
+          .select('id, order_id, seller_id, buyer_id, buyer_name, rating, comment, is_anonymous, created_at, profiles(full_name, avatar_url)')
+          .eq('seller_id', id)
+          .not('order_id', 'is', null),
       ]);
 
       if (isCancelled) return;
@@ -146,7 +153,13 @@ export default function SellerProfile({
       else setProducts(productsResult.data || []);
 
       if (reviewsResult.error) console.error('[supermarket_reviews] fetch error:', reviewsResult.error.message);
-      else setReviews((reviewsResult.data ?? []).map(normalizeSellerReview));
+      if (orderReviewsResult.error) console.error('[reviews] order reviews fetch error:', orderReviewsResult.error.message);
+      if (!reviewsResult.error || !orderReviewsResult.error) {
+        setReviews([
+          ...(reviewsResult.data ?? []).map((review: any) => ({ ...normalizeSellerReview(review), source: 'profile' })),
+          ...(orderReviewsResult.data ?? []).map((review: any) => ({ ...normalizeSellerReview(review), source: 'order' })),
+        ]);
+      }
 
       setIsSellerLoading(false);
       setIsProductsLoading(false);
@@ -158,10 +171,10 @@ export default function SellerProfile({
   }, [hasServerData, id]);
 
   const averageRating = useMemo(() => {
-    const revs = reviews || [];
-    if (revs.length === 0) return 0;
-    const sum = revs.reduce((acc: number, r: any) => acc + Number(r.rating || 5), 0);
-    return sum / revs.length;
+    // Ignore rows without a valid rating instead of counting them as 5 stars.
+    const ratings = (reviews || []).map((r: any) => Number(r.rating)).filter((n: number) => Number.isFinite(n) && n > 0);
+    if (ratings.length === 0) return 0;
+    return ratings.reduce((acc: number, n: number) => acc + n, 0) / ratings.length;
   }, [reviews]);
 
   const isOwnSellerReviewBlocked = Boolean(user && user.role === 'seller' && user.uid === id);
@@ -287,7 +300,7 @@ export default function SellerProfile({
       toast({ variant: 'destructive', title: 'שגיאה בשמירת הדירוג', description: 'אנא נסה שנית.' });
     } else {
       const reviewerImage = profileRow?.avatar_url || null;
-      setReviews(prev => [...prev, { ...inserted, buyer_name: realName, reviewer_image: reviewerImage }]);
+      setReviews(prev => [...prev, { ...inserted, buyer_name: realName, reviewer_image: reviewerImage, source: 'profile' }]);
       router.refresh();
       setReviewComment('');
       setReviewRating(5);
@@ -296,7 +309,7 @@ export default function SellerProfile({
     }
   };
 
-  const handleDeleteSellerReview = async (reviewId: string) => {
+  const handleDeleteSellerReview = async (reviewId: string, source?: string) => {
     if (!user) {
       router.push('/login?redirect=' + encodeURIComponent(pathname));
       return;
@@ -304,7 +317,7 @@ export default function SellerProfile({
     setDeletingReviewId(reviewId);
     try {
       const { error, count } = await supabase
-        .from('supermarket_reviews')
+        .from(source === 'order' ? 'reviews' : 'supermarket_reviews')
         .delete({ count: 'exact' })
         .eq('id', reviewId)
         .eq('buyer_id', user.uid);
@@ -724,7 +737,7 @@ export default function SellerProfile({
                           </div>
                           <div className="bg-muted/15 rounded-2xl px-4 py-3 text-right">
                             <div className="flex items-center justify-end gap-0.5 mb-2">
-                              {[1, 2, 3, 4, 5].map(s => <Star key={s} className={`w-3 h-3 ${s <= (rev.rating || 5) ? 'fill-accent text-accent' : 'text-muted-foreground/20'}`} />)}
+                              {[1, 2, 3, 4, 5].map(s => <Star key={s} className={`w-3 h-3 ${s <= (Number(rev.rating) || 0) ? 'fill-accent text-accent' : 'text-muted-foreground/20'}`} />)}
                             </div>
                             <p className="text-xs text-primary/70 leading-relaxed">{rev.comment}</p>
                           </div>
@@ -733,7 +746,7 @@ export default function SellerProfile({
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleDeleteSellerReview(rev.id)}
+                                onClick={() => handleDeleteSellerReview(rev.id, rev.source)}
                                 disabled={deletingReviewId === rev.id}
                                 className="h-6 px-2 text-[10px] text-destructive/50 hover:text-destructive hover:bg-destructive/5 gap-1 rounded-full"
                               >

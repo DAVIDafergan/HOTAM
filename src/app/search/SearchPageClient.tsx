@@ -173,7 +173,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
     const totals = new Map<string, number>();
     (allReviews || []).forEach((review: any) => {
       if (!review?.product_id) return;
-      totals.set(review.product_id, (totals.get(review.product_id) || 0) + Number(review.rating || 5));
+      totals.set(review.product_id, (totals.get(review.product_id) || 0) + (Number(review.product_rating) || Number(review.rating) || 0));
     });
     return totals;
   }, [allReviews]);

@@ -1901,12 +1901,22 @@ function EditSellerDialog({ scribe, db }: any) {
 }
 
 function VerifyScribeDialog({ scribe, db }: any) {
-  const reviewsQuery = useMemoStable(() => query(collection(db, 'reviews'), where('seller_id', '==', scribe.id)), [db, scribe.id]);
-  const { data: reviews } = useCollection<any>(reviewsQuery);
+  // Scribe rating = profile-page ratings + post-purchase scribe ratings (reviews with an
+  // order_id) — same definition as the public profile and homepage card. Product-page
+  // reviews rate the product, so they're excluded.
+  const orderReviewsQuery = useMemoStable(() => query(collection(db, 'reviews'), where('seller_id', '==', scribe.id)), [db, scribe.id]);
+  const { data: orderReviewsData } = useCollection<any>(orderReviewsQuery);
+  const profileReviewsQuery = useMemoStable(() => query(collection(db, 'supermarket_reviews'), where('supermarket_id', '==', scribe.id)), [db, scribe.id]);
+  const { data: profileReviewsData } = useCollection<any>(profileReviewsQuery);
+  const reviews = useMemo(
+    () => [...(orderReviewsData || []).filter((r: any) => r.order_id), ...(profileReviewsData || [])],
+    [orderReviewsData, profileReviewsData]
+  );
 
   const averageRating = useMemo(() => {
-    if (!reviews || reviews.length === 0) return 0;
-    return reviews.reduce((acc: number, r: any) => acc + (r.rating || 0), 0) / reviews.length;
+    const ratings = reviews.map((r: any) => Number(r.rating)).filter((n: number) => Number.isFinite(n) && n > 0);
+    if (ratings.length === 0) return 0;
+    return ratings.reduce((acc: number, n: number) => acc + n, 0) / ratings.length;
   }, [reviews]);
 
   return (

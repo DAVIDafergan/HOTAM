@@ -227,7 +227,7 @@ export const getTopScribes = cache(async (): Promise<any[]> => {
 
     const { data: sellers, error } = await client
       .from('sellers')
-      .select('id, first_name, last_name, profile_image, city, address, experience_years, sales_count')
+      .select('id, first_name, last_name, profile_image, city, address, experience_years, sales_count, script_level, writing_samples')
       .eq('is_approved', true);
     if (error) throw error;
     if (!sellers || sellers.length === 0) return getTopScribesViaRpc();

@@ -232,19 +232,27 @@ export const getTopScribes = cache(async (): Promise<any[]> => {
     if (error) throw error;
     if (!sellers || sellers.length === 0) return getTopScribesViaRpc();
 
-    const { data: reviews, error: reviewsError } = await client
-      .from('reviews')
-      .select('seller_id, rating')
-      .in('seller_id', sellers.map((s: any) => s.id));
-    if (reviewsError) console.error('[storefront] top scribes reviews fetch error:', reviewsError.message);
+    // A scribe is rated in two places: order/product reviews (reviews.seller_id) and
+    // direct ratings on their profile page (supermarket_reviews.supermarket_id) — count both.
+    const sellerIds = sellers.map((s: any) => s.id);
+    const [orderReviews, profileReviews] = await Promise.all([
+      client.from('reviews').select('seller_id, rating').in('seller_id', sellerIds),
+      client.from('supermarket_reviews').select('supermarket_id, rating').in('supermarket_id', sellerIds),
+    ]);
+    if (orderReviews.error) console.error('[storefront] top scribes reviews fetch error:', orderReviews.error.message);
+    if (profileReviews.error) console.error('[storefront] top scribes supermarket_reviews fetch error:', profileReviews.error.message);
 
     const ratingBySeller = new Map<string, { sum: number; count: number }>();
-    for (const r of reviews || []) {
-      const agg = ratingBySeller.get(r.seller_id) || { sum: 0, count: 0 };
-      agg.sum += Number(r.rating) || 0;
+    const addRating = (sellerId: string, rating: unknown) => {
+      const value = Number(rating);
+      if (!sellerId || !Number.isFinite(value) || value <= 0) return;
+      const agg = ratingBySeller.get(sellerId) || { sum: 0, count: 0 };
+      agg.sum += value;
       agg.count += 1;
-      ratingBySeller.set(r.seller_id, agg);
-    }
+      ratingBySeller.set(sellerId, agg);
+    };
+    for (const r of orderReviews.data || []) addRating(r.seller_id, r.rating);
+    for (const r of profileReviews.data || []) addRating(r.supermarket_id, r.rating);
 
     return sortScribes(
       sellers.map((s: any) => {

@@ -684,7 +684,7 @@ export function ProductDetailsClient({
 
           {/* Product Info */}
           <div className="text-right space-y-6 md:space-y-8 md:sticky md:top-28">
-            <nav aria-label="breadcrumb" className="flex items-center justify-end gap-1.5 text-[11px] font-bold text-muted-foreground flex-wrap">
+            <nav aria-label="breadcrumb" className="flex items-center justify-start gap-1.5 text-[11px] font-bold text-muted-foreground flex-wrap">
               <Link href="/" className="flex items-center gap-1 hover:text-accent-strong transition-colors">
                 <Home className="w-3 h-3" /> דף הבית
               </Link>
@@ -758,7 +758,7 @@ export function ProductDetailsClient({
 
             {/* Price — clean, no decorative card chrome */}
             <div className="space-y-5 border-y border-primary/8 py-6">
-              <div className="flex items-baseline justify-end gap-1.5">
+              <div className="flex items-baseline justify-start gap-1.5">
                 <span className="text-primary text-5xl md:text-6xl font-black tabular-nums tracking-tighter">{displayPrice}</span>
                 <span className="text-primary/60 text-2xl md:text-3xl font-bold">₪</span>
               </div>
@@ -767,7 +767,7 @@ export function ProductDetailsClient({
               </p>
 
               <div className="grid grid-cols-2 gap-3">
-                <section aria-labelledby="delivery-time-label" className="flex flex-col items-end gap-1 rounded-2xl bg-primary/[0.03] p-4 text-right">
+                <section aria-labelledby="delivery-time-label" className="flex flex-col items-start gap-1 rounded-2xl bg-primary/[0.03] p-4 text-right">
                   <Clock className="w-4 h-4 text-primary/30 mb-1" />
                   <span id="delivery-time-label" className="text-[11px] font-bold text-primary/40 uppercase tracking-wide whitespace-nowrap">זמן אספקה</span>
                   <span className="text-sm font-black text-primary leading-none whitespace-nowrap">
@@ -775,7 +775,7 @@ export function ProductDetailsClient({
                   </span>
                 </section>
                 {hasDelivery ? (
-                  <section aria-labelledby="delivery-fee-label" className="flex flex-col items-end gap-1 rounded-2xl bg-primary/[0.03] p-4 text-right">
+                  <section aria-labelledby="delivery-fee-label" className="flex flex-col items-start gap-1 rounded-2xl bg-primary/[0.03] p-4 text-right">
                     <Truck className="w-4 h-4 text-primary/30 mb-1" />
                     <span id="delivery-fee-label" className="text-[11px] font-bold text-primary/40 uppercase tracking-wide whitespace-nowrap">עלות משלוח</span>
                     <span className="text-sm font-black text-emerald-700 leading-none whitespace-nowrap">
@@ -783,7 +783,7 @@ export function ProductDetailsClient({
                     </span>
                   </section>
                 ) : (
-                  <section aria-labelledby="stock-status-label" className="flex flex-col items-end gap-1 rounded-2xl bg-primary/[0.03] p-4 text-right">
+                  <section aria-labelledby="stock-status-label" className="flex flex-col items-start gap-1 rounded-2xl bg-primary/[0.03] p-4 text-right">
                     <CheckCircle2 className="w-4 h-4 text-emerald-500 mb-1" />
                     <span id="stock-status-label" className="text-[11px] font-bold text-primary/40 uppercase tracking-wide whitespace-nowrap">זמינות</span>
                     <span className="text-sm font-black text-emerald-700 leading-none whitespace-nowrap">{product.quantity > 0 ? 'במלאי' : 'אזל זמנית'}</span>
@@ -791,7 +791,7 @@ export function ProductDetailsClient({
                 )}
               </div>
 
-              <div className="flex flex-wrap items-center justify-end gap-x-5 gap-y-2 pt-1">
+              <div className="flex flex-wrap items-center justify-start gap-x-5 gap-y-2 pt-1">
                 <span className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground">
                   {hasDelivery ? (
                     <><Truck className="w-3.5 h-3.5 text-accent-strong shrink-0" /> משלוח עד הבית</>
@@ -845,8 +845,8 @@ export function ProductDetailsClient({
             )}
 
             <div className="space-y-3">
-              <h2 className="font-bold text-xs text-muted-foreground uppercase tracking-widest flex items-center justify-end gap-2 whitespace-nowrap">
-                על כלי הקודש <ScrollText className="w-3.5 h-3.5 shrink-0" />
+              <h2 className="font-bold text-xs text-muted-foreground uppercase tracking-widest flex items-center justify-start gap-2 whitespace-nowrap">
+                <ScrollText className="w-3.5 h-3.5 shrink-0" /> על כלי הקודש
               </h2>
               <p className="text-primary/75 font-medium text-base leading-relaxed">
                 {product.description}
@@ -857,11 +857,11 @@ export function ProductDetailsClient({
               <div className="space-y-4 rounded-[1.75rem] bg-primary/[0.025] p-5">
                 {(normalizedDeliveryType === 'delivery' || normalizedDeliveryType === 'both') && (
                   <div className="space-y-2.5">
-                    <div className="flex items-center justify-end gap-2">
-                      <span className="text-[11px] font-bold text-primary/50 uppercase tracking-widest">ערים זמינות למשלוח</span>
+                    <div className="flex items-center justify-start gap-2">
                       <Truck className="w-3.5 h-3.5 text-primary/30" />
+                      <span className="text-[11px] font-bold text-primary/50 uppercase tracking-widest">ערים זמינות למשלוח</span>
                     </div>
-                    <div className="flex flex-wrap gap-1.5 justify-end">
+                    <div className="flex flex-wrap gap-1.5 justify-start">
                       {deliveryAreaText ? (
                         deliveryAreaText.split(', ').filter(Boolean).map((city: string) => (
                           <Badge key={city} variant="outline" className="bg-transparent text-primary/70 border-primary/15 font-medium text-[11px] px-3 py-1 rounded-full">
@@ -878,9 +878,9 @@ export function ProductDetailsClient({
                 )}
                 {(normalizedDeliveryType === 'pickup' || normalizedDeliveryType === 'both') && (
                   <div className={cn("space-y-1", (normalizedDeliveryType === 'both') && "pt-3 border-t border-primary/5")}>
-                    <div className="flex items-center justify-end gap-2">
-                      <span className="text-sm font-bold text-primary/80">איסוף עצמי מ{sellerCity || 'עיר הסופר'}</span>
+                    <div className="flex items-center justify-start gap-2">
                       <MapPin className="w-3.5 h-3.5 text-primary/30 shrink-0" />
+                      <span className="text-sm font-bold text-primary/80">איסוף עצמי מ{sellerCity || 'עיר הסופר'}</span>
                     </div>
                     {pickupAddress && (
                       <p className="text-xs text-primary/45 font-medium text-right">{pickupAddress}</p>
@@ -894,7 +894,7 @@ export function ProductDetailsClient({
 
         {/* Technical Details Tabs */}
         <div ref={detailsSectionRef} className="mt-16 md:mt-28 scroll-mt-28">
-          <Tabs value={detailsTab} onValueChange={setDetailsTab} className="text-right">
+          <Tabs value={detailsTab} onValueChange={setDetailsTab} dir="rtl" className="text-right">
             <TabsList className="mb-10 inline-flex h-auto w-full max-w-full justify-start gap-1 overflow-x-auto rounded-full border border-primary/5 bg-white p-1.5 shadow-premium sm:w-auto">
              <TabsTrigger value="specs" className="flex-none rounded-full px-5 py-2.5 text-sm font-bold text-primary/50 transition-all duration-300 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md whitespace-nowrap">מפרט טכני</TabsTrigger>
              <TabsTrigger value="seller" className="flex-none rounded-full px-5 py-2.5 text-sm font-bold text-primary/50 transition-all duration-300 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md whitespace-nowrap">הסופר הכותב</TabsTrigger>
@@ -999,6 +999,7 @@ export function ProductDetailsClient({
                   </div>
                 )}
                 <div className="flex justify-between items-center mb-5">
+                  <h3 className="text-sm font-black text-primary/60 uppercase tracking-widest">ביקורות לקוחות</h3>
                   <div className="flex items-center gap-2">
                     <Button
                       type="button"
@@ -1017,7 +1018,6 @@ export function ProductDetailsClient({
                       הוותיקות ביותר
                     </Button>
                   </div>
-                  <h3 className="text-sm font-black text-primary/60 uppercase tracking-widest">ביקורות לקוחות</h3>
                 </div>
 
                 <div className="mb-8 rounded-[1.75rem] border border-primary/10 bg-primary/[0.02] p-5 md:p-6 space-y-4 text-right">
@@ -1077,7 +1077,7 @@ export function ProductDetailsClient({
                 {sortedProductReviews.length > 0 ? (
                   <div className="grid gap-6">
                     {sortedProductReviews.map((rev: any) => (
-                      <div key={rev.id} className="flex flex-row-reverse items-start gap-3">
+                      <div key={rev.id} className="flex items-start gap-3">
                         <Avatar className="h-8 w-8 border border-primary/10 flex-shrink-0">
                           {!rev.is_anonymous && <AvatarImage src={rev.reviewer_image || undefined} />}
                           <AvatarFallback className="bg-primary/5 text-primary font-black text-xs">
@@ -1086,11 +1086,11 @@ export function ProductDetailsClient({
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-baseline justify-between mb-1">
-                            <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">{rev.created_at ? new Date(rev.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
                             <p className="font-semibold text-primary text-xs">{rev.is_anonymous ? 'אנונימי' : (rev.buyer_name || 'משתמש')}</p>
+                            <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">{rev.created_at ? new Date(rev.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
                           </div>
                           <div className="rounded-2xl border border-primary/5 bg-white px-4 py-3 text-right shadow-sm">
-                            <div className="flex justify-end gap-0.5 mb-2">
+                            <div className="flex justify-start gap-0.5 mb-2">
                               {[1, 2, 3, 4, 5].map(s => (
                                 <Star key={s} className={cn("w-3 h-3", s <= (Number(rev.rating) || 0) ? 'fill-accent text-accent' : 'text-muted-foreground/20')} />
                               ))}
@@ -1098,7 +1098,7 @@ export function ProductDetailsClient({
                             <p className="text-xs text-primary/70 leading-relaxed font-medium">{rev.comment}</p>
                           </div>
                           {user?.uid === rev.buyer_id && (
-                            <div className="flex justify-end mt-1">
+                            <div className="flex justify-start mt-1">
                               <Button
                                 variant="ghost"
                                 size="sm"

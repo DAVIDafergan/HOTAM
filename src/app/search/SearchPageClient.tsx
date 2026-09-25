@@ -52,6 +52,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { JUDAICA_CATEGORIES, SEASONAL_BADGE_LABEL, isSeasonalCategory } from '@/lib/product-catalog';
+import { useOutOfSeason } from '@/hooks/use-out-of-season';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { TorahExpertBanner } from '@/components/TorahExpertBanner';
 import { CitySelect } from '@/components/CitySelect';
@@ -66,7 +68,8 @@ import {
   UNKNOWN_CITY_LABEL,
 } from '@/lib/location-utils';
 
-type ProductType = 'מזוזה' | 'תפילין' | 'מגילה' | 'ספר תורה' | 'מוצרי יודאיקה שונים' | '';
+// Scribal categories or any Judaica category from src/lib/product-catalog.ts.
+type ProductType = string;
 type ShippingPreference = 'all' | 'shipping' | 'pickup';
 
 const PRICE_THRESHOLD_FOR_ROUNDING = 1000;
@@ -117,6 +120,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
 
   // Filter States
   const [selectedProduct, setSelectedProduct] = useState<ProductType>('');
+  const outOfSeason = useOutOfSeason();
   const [subType, setSubType] = useState('all');
   const [scriptType, setScriptType] = useState('all');
   const [qualityLevel, setQualityLevel] = useState('all');
@@ -604,7 +608,27 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
             <WizardSmallCard value="תפילין" selected={selectedProduct === 'תפילין'} icon={<Package className="w-5 h-5" />} label="תפילין" />
             <WizardSmallCard value="מגילה" selected={selectedProduct === 'מגילה'} icon={<Crown className="w-5 h-5" />} label="מגילה" />
             <WizardSmallCard value="ספר תורה" selected={selectedProduct === 'ספר תורה'} icon={<BookOpen className="w-5 h-5" />} label="ספר תורה" />
-            <WizardSmallCard value="מוצרי יודאיקה שונים" selected={selectedProduct === 'מוצרי יודאיקה שונים'} icon={<Palette className="w-5 h-5" />} label="יודאיקה" />
+            <WizardSmallCard value="מוצרי יודאיקה שונים" selected={selectedProduct === 'מוצרי יודאיקה שונים'} icon={<Palette className="w-5 h-5" />} label="מוצרי קלף" />
+          </div>
+          <p className="pt-4 pb-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">יודאיקה</p>
+          <div className="flex flex-wrap gap-2">
+            {JUDAICA_CATEGORIES.map((category) => (
+              <Label
+                key={category.value}
+                className={cn(
+                  "flex cursor-pointer items-center gap-1.5 rounded-full border-2 px-3.5 py-2 text-[11px] font-black transition-all",
+                  selectedProduct === category.value
+                    ? "border-primary bg-primary/5 text-primary shadow-md"
+                    : "border-primary/5 bg-white text-primary/60 hover:border-accent/30 hover:text-primary"
+                )}
+              >
+                {category.value}
+                {outOfSeason && isSeasonalCategory(category.value) && (
+                  <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-800">{SEASONAL_BADGE_LABEL}</span>
+                )}
+                <RadioGroupItem value={category.value} className="hidden" />
+              </Label>
+            ))}
           </div>
         </RadioGroup>
       </FilterSection>

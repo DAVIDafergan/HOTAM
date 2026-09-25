@@ -53,6 +53,7 @@ import { useToast } from '@/hooks/use-toast';
 import { logEvent } from '@/lib/log-event';
 import unsplashLoader from '@/lib/unsplashLoader';
 import { cn } from '@/lib/utils';
+import { useOutOfSeason } from '@/hooks/use-out-of-season';
 import { getTorahDeliveryTimeLabel } from '@/lib/torah-delivery-time';
 import { PROFILE_NOT_FOUND_CODE } from '@/lib/supabase-errors';
 import { Textarea } from '@/components/ui/textarea';
@@ -60,6 +61,9 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
+import {
+  SEASONAL_BADGE_LABEL, describeJudaicaAttributes, getJudaicaCategory, isSeasonalCategory,
+} from '@/lib/product-catalog';
 
 const MIN_IMAGE_ZOOM_LEVEL = 1;
 const MAX_IMAGE_ZOOM_LEVEL = 4;
@@ -121,6 +125,7 @@ export function ProductDetailsClient({
   const pathname = usePathname();
   const { toast } = useToast();
   const [selectedImageIdx, setSelectedImageIdx] = useState(0);
+  const outOfSeason = useOutOfSeason();
   const [detailsTab, setDetailsTab] = useState('specs');
   const detailsSectionRef = useRef<HTMLDivElement | null>(null);
   const openDetailsTab = (tab: string) => {
@@ -564,6 +569,9 @@ export function ProductDetailsClient({
     count: productRatings.filter((n: number) => Math.round(n) === star).length,
   }));
   const sellerFullName = seller ? `${seller.first_name || ''} ${seller.last_name || ''}`.trim() : '';
+  const judaicaCategory = getJudaicaCategory(product.product_type);
+  const judaicaSpecRows = judaicaCategory ? describeJudaicaAttributes(judaicaCategory, product.attributes || {}) : [];
+  const showSeasonalBadge = outOfSeason && isSeasonalCategory(product.product_type);
   const deliveryAreaText = (Array.isArray(product.delivery_area) ? product.delivery_area : [product.delivery_area])
     .filter(Boolean)
     .join(', ');
@@ -644,11 +652,13 @@ export function ProductDetailsClient({
                   <span>הגדלה</span>
                 </div>
               </div>
-              <div className="absolute top-4 right-4 hidden md:block">
-                <Badge className="bg-white/90 backdrop-blur-md text-primary border-none px-4 py-1.5 rounded-full font-bold text-[11px] uppercase shadow-sm">
-                  {product.script_level}
-                </Badge>
-              </div>
+              {product.script_level && (
+                <div className="absolute top-4 right-4 hidden md:block">
+                  <Badge className="bg-white/90 backdrop-blur-md text-primary border-none px-4 py-1.5 rounded-full font-bold text-[11px] uppercase shadow-sm">
+                    {product.script_level}
+                  </Badge>
+                </div>
+              )}
               {images.length > 1 && (
                 <div className="absolute bottom-3 inset-x-0 flex justify-center gap-1.5 pointer-events-none">
                   {images.map((_: string, i: number) => (
@@ -695,9 +705,16 @@ export function ProductDetailsClient({
             </nav>
             <div className="space-y-4">
               <div className="flex flex-wrap gap-2 justify-start items-center">
-                <Badge variant="outline" className="border-accent/30 text-accent-strong font-bold text-[11px] py-1 px-3 rounded-full bg-accent/5 whitespace-nowrap">
-                  {product.script_level}
-                </Badge>
+                {product.script_level && (
+                  <Badge variant="outline" className="border-accent/30 text-accent-strong font-bold text-[11px] py-1 px-3 rounded-full bg-accent/5 whitespace-nowrap">
+                    {product.script_level}
+                  </Badge>
+                )}
+                {showSeasonalBadge && (
+                  <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800 font-bold text-[11px] py-1 px-3 rounded-full whitespace-nowrap">
+                    {SEASONAL_BADGE_LABEL}
+                  </Badge>
+                )}
                 {isInStock ? (
                   <Badge variant="outline" className="border-emerald-200 bg-emerald-50/60 text-emerald-700 font-bold text-[11px] py-1 px-3 rounded-full whitespace-nowrap">
                     <CheckCircle2 className="w-3 h-3 ml-1.5" />
@@ -808,6 +825,16 @@ export function ProductDetailsClient({
               </div>
             </div>
 
+            {judaicaCategory?.notice && (
+              <div className="flex items-start gap-3 rounded-[1.5rem] border-2 border-amber-200 bg-amber-50 p-4" role="note" data-product-notice>
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+                <p className="text-sm font-bold leading-relaxed text-amber-900">
+                  {judaicaCategory.notice.text}{' '}
+                  <Link href={judaicaCategory.notice.href} className="underline decoration-amber-500 underline-offset-2">{judaicaCategory.notice.linkLabel}</Link>
+                </p>
+              </div>
+            )}
+
             {/* Seller "post author" card — who wrote this, at a glance */}
             {seller && (
               <Link
@@ -822,7 +849,7 @@ export function ProductDetailsClient({
                   )}
                 </div>
                 <div className="min-w-0 flex-1 text-right">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-primary/35">נכתב על ידי</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-primary/35">{judaicaCategory ? 'נמכר על ידי' : 'נכתב על ידי'}</p>
                   <p className="flex items-center gap-1 text-base font-black text-primary">
                     <span className="truncate">{sellerFullName || 'סופר סת״ם'}</span>
                     {seller.is_approved && <BadgeCheck className="h-4 w-4 shrink-0 fill-accent text-white" aria-label="סופר מאומת" />}
@@ -846,7 +873,7 @@ export function ProductDetailsClient({
 
             <div className="space-y-3">
               <h2 className="font-bold text-xs text-muted-foreground uppercase tracking-widest flex items-center justify-start gap-2 whitespace-nowrap">
-                <ScrollText className="w-3.5 h-3.5 shrink-0" /> על כלי הקודש
+                <ScrollText className="w-3.5 h-3.5 shrink-0" /> {judaicaCategory ? 'על המוצר' : 'על כלי הקודש'}
               </h2>
               <p className="text-primary/75 font-medium text-base leading-relaxed">
                 {product.description}
@@ -897,12 +924,21 @@ export function ProductDetailsClient({
           <Tabs value={detailsTab} onValueChange={setDetailsTab} dir="rtl" className="text-right">
             <TabsList className="mb-10 inline-flex h-auto w-full max-w-full justify-start gap-1 overflow-x-auto rounded-full border border-primary/5 bg-white p-1.5 shadow-premium sm:w-auto">
              <TabsTrigger value="specs" className="flex-none rounded-full px-5 py-2.5 text-sm font-bold text-primary/50 transition-all duration-300 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md whitespace-nowrap">מפרט טכני</TabsTrigger>
-             <TabsTrigger value="seller" className="flex-none rounded-full px-5 py-2.5 text-sm font-bold text-primary/50 transition-all duration-300 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md whitespace-nowrap">הסופר הכותב</TabsTrigger>
+             <TabsTrigger value="seller" className="flex-none rounded-full px-5 py-2.5 text-sm font-bold text-primary/50 transition-all duration-300 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md whitespace-nowrap">{judaicaCategory ? 'המוכר' : 'הסופר הכותב'}</TabsTrigger>
              <TabsTrigger value="reviews" className="flex-none rounded-full px-5 py-2.5 text-sm font-bold text-primary/50 transition-all duration-300 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md whitespace-nowrap">ביקורות ({(reviews || []).length})</TabsTrigger>
             </TabsList>
 
             <TabsContent value="specs" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
               <h2 className="font-bold text-xs text-muted-foreground uppercase tracking-widest mb-4">מפרט טכני</h2>
+              {judaicaCategory ? (
+                <div className="grid sm:grid-cols-2 gap-3 max-w-3xl" data-judaica-specs>
+                  {product.sub_type && <SpecItem icon={Package} label="סוג" value={product.sub_type} />}
+                  {judaicaSpecRows.map(([label, value]) => (
+                    <SpecItem key={label} icon={CheckCircle2} label={label} value={value} />
+                  ))}
+                  <SpecItem icon={Package} label="מלאי זמין כעת" value={`${product.quantity} יחידות`} />
+                </div>
+              ) : (
               <div className="grid sm:grid-cols-2 gap-3 max-w-3xl">
                 <SpecItem icon={PenLine} label="סוג כתב ומסורת" value={product.script_type} />
                 <SpecItem icon={Award} label="רמת הידור הלכתית" value={product.script_level} />
@@ -910,6 +946,7 @@ export function ProductDetailsClient({
                 <SpecItem icon={ShieldCheck} label="רמת הגהה וביקורת" value={product.proofreading_level || 'גברא'} />
                 <SpecItem icon={Package} label="מלאי זמין כעת" value={`${product.quantity} יחידות`} />
               </div>
+              )}
             </TabsContent>
 
             <TabsContent value="seller" className="animate-in fade-in slide-in-from-bottom-2 duration-500">

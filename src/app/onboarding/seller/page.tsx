@@ -29,7 +29,11 @@ import {
   BookOpen,
   Info,
   UploadCloud,
-  FileText
+  FileText,
+  PenLine,
+  ShoppingBag,
+  Check,
+  ArrowRight
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth, useUser, useSupabaseClient } from '@/lib/supabase-hooks';
@@ -49,6 +53,7 @@ import { cn } from "@/lib/utils";
 import { getCityFromAddressComponents, loadGoogleMapsPlacesScript } from '@/lib/google-maps';
 import { cleanupImageAssetsViaApi, isHeicFile, uploadImageViaApi } from '@/lib/image-upload';
 import { logEvent } from '@/lib/log-event';
+import { resolveSellerType, type SellerType } from '@/lib/product-catalog';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -129,6 +134,33 @@ const STEP_META = [
   { id: 4, title: 'העלאת קבצים', description: 'תעודה ודוגמאות כתיבה חיות', icon: UploadCloud },
 ] as const;
 
+// Which of the steps above each path walks through. A Judaica seller skips the halachic
+// verification (steps 3-4); a Judaica seller upgrading to סופר סת"ם does ONLY those — the
+// same full verification a new scribe goes through, not a shortened one.
+type OnboardingPath = SellerType | 'stam_upgrade';
+const PATH_STEPS: Record<OnboardingPath, number[]> = {
+  stam_scribe: [1, 2, 3, 4],
+  judaica_seller: [1, 2],
+  stam_upgrade: [3, 4],
+};
+
+function getStepMeta(stepId: number, path: OnboardingPath) {
+  const meta = STEP_META[stepId - 1];
+  if (path === 'judaica_seller' && stepId === 1) {
+    return { ...meta, title: 'פרטים אישיים וכתובת העסק', description: 'מי אתה ומאיפה העסק פועל' };
+  }
+  if (path === 'judaica_seller' && stepId === 2) {
+    return { ...meta, title: 'חשבון, עסק ותשלום', description: 'פרטי התחברות, פרטי העסק וחשבון לקבלת תשלומים' };
+  }
+  return meta;
+}
+
+const PATH_TITLES: Record<OnboardingPath, string> = {
+  stam_scribe: 'הרשמה כסופר סת"ם',
+  judaica_seller: 'הרשמה כמוכר יודאיקה',
+  stam_upgrade: 'שדרוג לסופר סת"ם מוסמך',
+};
+
 const stepMotionProps = {
   initial: { opacity: 0, x: 24 },
   animate: { opacity: 1, x: 0 },
@@ -138,6 +170,11 @@ const stepMotionProps = {
 
 export default function SellerOnboarding() {
   const [step, setStep] = useState(1);
+  // null until the seller picks a type on the choice screen (skipped in upgrade mode).
+  const [sellerType, setSellerType] = useState<SellerType | null>(null);
+  // /onboarding/seller?upgrade=stam — an existing Judaica seller requesting verification.
+  const [isUpgradeMode, setIsUpgradeMode] = useState(false);
+  const [upgradeBlockedReason, setUpgradeBlockedReason] = useState<'login' | 'not-judaica' | 'pending' | null>(null);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
@@ -146,11 +183,15 @@ export default function SellerOnboarding() {
   // this renders needs to stay on screen until the user themselves chooses to move on, not
   // disappear under an automatic navigation before they've had a chance to read it.
   const [completedRedirectTo, setCompletedRedirectTo] = useState<string | null>(null);
-  const totalSteps = STEP_META.length;
+  const path: OnboardingPath = isUpgradeMode ? 'stam_upgrade' : (sellerType ?? 'stam_scribe');
+  const activeSteps = PATH_STEPS[path];
+  const stepIndex = Math.max(0, activeSteps.indexOf(step));
+  const totalSteps = activeSteps.length;
+  const isLastStep = stepIndex === totalSteps - 1;
   const router = useRouter();
   const auth = useAuth();
   const db = useSupabaseClient();
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const { toast } = useToast();
 
   // Funnel tracking: this fires on mount (step 1) and every subsequent step change, which is
@@ -159,9 +200,38 @@ export default function SellerOnboarding() {
   // docs/add-activity-events-migration.sql for why this needed a new table rather than
   // reusing an existing one.
   useEffect(() => {
-    logEvent('seller_onboarding_step_viewed', { step, total_steps: totalSteps });
+    if (!sellerType && !isUpgradeMode) return;
+    logEvent('seller_onboarding_step_viewed', { step, total_steps: totalSteps, path });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step]);
+  }, [step, sellerType, isUpgradeMode]);
+
+  // Upgrade mode is read from the URL on mount (window, not useSearchParams, so this client
+  // page doesn't need a Suspense boundary for static rendering).
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (new URLSearchParams(window.location.search).get('upgrade') === 'stam') {
+      setIsUpgradeMode(true);
+      setStep(PATH_STEPS.stam_upgrade[0]);
+    }
+  }, []);
+
+  // Upgrade is only for a logged-in Judaica seller without a request already pending.
+  useEffect(() => {
+    if (!isUpgradeMode || isUserLoading) return;
+    if (!user?.uid) { setUpgradeBlockedReason('login'); return; }
+    let cancelled = false;
+    db.from('sellers')
+      .select('seller_type, stam_upgrade_status')
+      .eq('id', user.uid)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return;
+        if (!data || resolveSellerType(data.seller_type) !== 'judaica_seller') setUpgradeBlockedReason('not-judaica');
+        else if (data.stam_upgrade_status === 'pending') setUpgradeBlockedReason('pending');
+        else setUpgradeBlockedReason(null);
+      });
+    return () => { cancelled = true; };
+  }, [isUpgradeMode, isUserLoading, user?.uid, db]);
 
   const certInputRef = useRef<HTMLInputElement>(null);
   const certCameraInputRef = useRef<HTMLInputElement>(null);
@@ -233,7 +303,14 @@ export default function SellerOnboarding() {
       if (draft.formData && typeof draft.formData === 'object') {
         setFormData(prev => ({ ...prev, ...draft.formData, password: '' }));
       }
-      if (typeof draft.step === 'number' && draft.step >= 1 && draft.step <= STEP_META.length) {
+      if (new URLSearchParams(window.location.search).get('upgrade') === 'stam') return;
+      const draftType: SellerType | null =
+        draft.sellerType === 'judaica_seller' || draft.sellerType === 'stam_scribe' ? draft.sellerType : null;
+      if (draftType) setSellerType(draftType);
+      if (
+        typeof draft.step === 'number'
+        && PATH_STEPS[draftType ?? 'stam_scribe'].includes(draft.step)
+      ) {
         setStep(draft.step);
       }
       if (typeof draft.termsAccepted === 'boolean') {
@@ -257,6 +334,7 @@ export default function SellerOnboarding() {
       'firstName', 'lastName', 'email', 'phone', 'city', 'address',
       'businessId', 'businessName', 'bankName', 'bankAccountNumber', 'notes', 'certificateUrl',
     ];
+    if (isUpgradeMode) return;
     const hasContent = step > 1
       || formData.writingSamples.length > 0
       || meaningfulFields.some((field) => Boolean(formData[field]));
@@ -268,6 +346,7 @@ export default function SellerOnboarding() {
         window.localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({
           savedAt: Date.now(),
           step,
+          sellerType,
           termsAccepted,
           formData: persistable,
         }));
@@ -277,7 +356,7 @@ export default function SellerOnboarding() {
     }, 500);
 
     return () => window.clearTimeout(timeoutId);
-  }, [formData, step, termsAccepted]);
+  }, [formData, step, termsAccepted, sellerType, isUpgradeMode]);
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string | undefined>>({});
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
@@ -500,7 +579,7 @@ export default function SellerOnboarding() {
 
   const validateStep = () => {
     if (step === 1) {
-      const stepFields = ['firstName', 'lastName', 'phone', 'age', 'city', 'address'];
+      const stepFields = ['firstName', 'lastName', 'phone', ...(path === 'stam_scribe' ? ['age'] : []), 'city', 'address'];
       const nextErrors: Record<string, string | undefined> = {};
       stepFields.forEach((field) => {
         nextErrors[field] = validateOnboardingField(field, String((formData as any)[field] ?? ''), { isExistingCustomer });
@@ -542,6 +621,10 @@ export default function SellerOnboarding() {
         return false;
       }
     }
+    if (step === 2 && path === 'judaica_seller' && !termsAccepted) {
+      toast({ variant: "destructive", title: "נדרש אישור תנאי שימוש", description: "עליך לאשר את תנאי השימוש ומדיניות הפרטיות כדי להמשיך." });
+      return false;
+    }
     if (step === 4) {
       if ((formData.hasScribeCertificate === 'valid' || formData.hasScribeCertificate === 'expired') && !formData.certificateUrl) {
         toast({ variant: "destructive", title: "חסר צילום תעודה", description: "עליך להעלות צילום או קובץ של תעודת הסופר שלך." });
@@ -566,8 +649,56 @@ export default function SellerOnboarding() {
   };
 
   const nextStep = () => {
-    if (validateStep()) setStep(s => Math.min(s + 1, totalSteps));
+    if (validateStep()) setStep(activeSteps[Math.min(stepIndex + 1, totalSteps - 1)]);
     else scrollToFirstError();
+  };
+
+  const prevStep = () => setStep(activeSteps[Math.max(stepIndex - 1, 0)]);
+
+  const chooseSellerType = (type: SellerType) => {
+    setSellerType(type);
+    setStep(PATH_STEPS[type][0]);
+    logEvent('seller_onboarding_type_chosen', { seller_type: type });
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Upgrade request: only the professional fields, reviewed by an admin. The seller's
+  // type doesn't change until that approval.
+  const handleUpgradeSubmit = async () => {
+    if (!validateStep()) { scrollToFirstError(); return; }
+    setLoading(true);
+    try {
+      const { data: { session } } = await db.auth.getSession();
+      const token = session?.access_token;
+      if (!token) throw new Error('No session');
+      const res = await fetch('/api/seller/request-stam-upgrade', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          has_scribe_certificate: formData.hasScribeCertificate,
+          certificate_url: formData.certificateUrl,
+          torah_study_frequency: formData.torahStudyFrequency,
+          mikveh_frequency: formData.mikvehFrequency,
+          notes: formData.notes,
+          experience_years: formData.experienceYears,
+          script_level: formData.scriptLevel,
+          script_types: formData.scriptTypes,
+          writing_samples: formData.writingSamples,
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(typeof body.error === 'string' ? body.error : `request failed (${res.status})`);
+      }
+      logEvent('seller_stam_upgrade_requested', {});
+      toast({ variant: 'success', title: 'בקשת השדרוג נשלחה', description: 'הבקשה הועברה לאישור מנהל.' });
+      setCompletedRedirectTo('/seller/dashboard');
+    } catch (error: any) {
+      console.error('[stam-upgrade] request failed', error);
+      toast({ variant: 'destructive', title: 'שליחת הבקשה נכשלה', description: error?.message || 'אנא נסה שוב.' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleFinalSubmit = async () => {
@@ -575,21 +706,12 @@ export default function SellerOnboarding() {
     setLoading(true);
 
     try {
-      // Build the full seller profile payload up-front.
-      const profilePayload = {
-        first_name: formData.firstName,
-        last_name: formData.lastName,
-        phone: formData.phone,
-        city: formData.city,
-        address: formData.address,
+      // Build the full seller profile payload up-front. A Judaica seller skips the halachic
+      // verification, so none of those fields are sent for them.
+      const isJudaica = sellerType === 'judaica_seller';
+      const professionalPayload = isJudaica ? {} : {
         age: Number(formData.age),
         marital_status: formData.maritalStatus,
-        business_type: formData.businessType,
-        business_id: formData.businessId,
-        business_name: formData.businessName,
-        bank_name: formData.bankName,
-        bank_branch: formData.bankBranch,
-        bank_account_number: formData.bankAccountNumber,
         has_scribe_certificate: formData.hasScribeCertificate,
         certificate_url: formData.certificateUrl,
         torah_study_frequency: formData.torahStudyFrequency,
@@ -599,6 +721,22 @@ export default function SellerOnboarding() {
         script_level: formData.scriptLevel,
         script_types: formData.scriptTypes,
         writing_samples: formData.writingSamples,
+      };
+      const profilePayload = {
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        phone: formData.phone,
+        city: formData.city,
+        address: formData.address,
+        business_type: formData.businessType,
+        business_id: formData.businessId,
+        business_name: formData.businessName,
+        bank_name: formData.bankName,
+        bank_branch: formData.bankBranch,
+        bank_account_number: formData.bankAccountNumber,
+        ...professionalPayload,
+        // The server decides the final type (see /api/register-seller); this is a request.
+        requested_seller_type: sellerType ?? 'stam_scribe',
         is_approved: false,
         favorite_product_ids: [],
         is_email_verified: false,
@@ -711,9 +849,11 @@ export default function SellerOnboarding() {
           <Card className="shadow-premium border-none rounded-[2.5rem] overflow-hidden bg-white p-10 text-center space-y-6">
             <SuccessCheck className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-accent mx-auto" />
             <div className="space-y-3">
-              <h1 className="text-2xl font-headline font-black text-primary">ההרשמה נשלחה בהצלחה!</h1>
+              <h1 className="text-2xl font-headline font-black text-primary">{isUpgradeMode ? 'בקשת השדרוג נשלחה!' : 'ההרשמה נשלחה בהצלחה!'}</h1>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                הפרטים שלך התקבלו ועברו לבדיקת צוות "חותם". נבדוק את הפרופיל שלך ונחזור אליך בהקדם האפשרי בהתאם לפרטי הקשר שהזנת.
+                {isUpgradeMode
+                  ? 'הפרטים והקבצים שלך הועברו לאימות צוות "חותם". בזמן הבדיקה מוצרי היודאיקה שלך ממשיכים להימכר כרגיל, ולאחר האישור תוכל להוסיף גם כתבי קודש.'
+                  : 'הפרטים שלך התקבלו ועברו לבדיקת צוות "חותם". נבדוק את הפרופיל שלך ונחזור אליך בהקדם האפשרי בהתאם לפרטי הקשר שהזנת.'}
               </p>
             </div>
             <Button onClick={() => router.push(completedRedirectTo)} className="w-full h-12 rounded-full font-black text-base">
@@ -725,7 +865,32 @@ export default function SellerOnboarding() {
     );
   }
 
-  const currentStepMeta = STEP_META[step - 1];
+  if (isUpgradeMode && upgradeBlockedReason) {
+    const blocked = {
+      login: { title: 'יש להתחבר קודם', text: 'השדרוג לסופר סת"ם זמין למוכרי יודאיקה רשומים. התחבר לחשבון שלך כדי להמשיך.', href: '/login?redirect=' + encodeURIComponent('/onboarding/seller?upgrade=stam'), cta: 'להתחברות' },
+      'not-judaica': { title: 'השדרוג אינו רלוונטי לחשבון זה', text: 'שדרוג לסופר סת"ם מיועד למוכרי יודאיקה. חשבון סופר סת"ם כבר כולל את כל ההרשאות.', href: '/seller/dashboard', cta: 'לאזור האישי' },
+      pending: { title: 'בקשת השדרוג כבר בבדיקה', text: 'הבקשה שלך ממתינה לאישור צוות "חותם". מוצרי היודאיקה שלך ממשיכים להימכר כרגיל בינתיים.', href: '/seller/dashboard', cta: 'לאזור האישי' },
+    }[upgradeBlockedReason];
+    return (
+      <div className="min-h-screen bg-background" dir="rtl">
+        <Navbar />
+        <div className="container mx-auto px-4 py-12 max-w-lg pt-28">
+          <Card className="shadow-premium border-none rounded-[2.5rem] bg-white p-10 text-center space-y-5">
+            <Info className="mx-auto h-12 w-12 text-accent-strong" />
+            <h1 className="text-2xl font-headline font-black text-primary">{blocked.title}</h1>
+            <p className="text-sm text-muted-foreground leading-relaxed">{blocked.text}</p>
+            <Button asChild className="w-full h-12 rounded-full font-black"><Link href={blocked.href}>{blocked.cta}</Link></Button>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isUpgradeMode && !sellerType) {
+    return <SellerTypeChoice onChoose={chooseSellerType} />;
+  }
+
+  const currentStepMeta = getStepMeta(step, path);
   const StepIcon = currentStepMeta.icon;
 
   return (
@@ -733,30 +898,30 @@ export default function SellerOnboarding() {
       <Navbar />
       <div className="container mx-auto px-4 py-12 max-w-3xl pt-28">
         <div className="mb-12 text-center space-y-4">
-          <h1 className="text-4xl font-headline font-black text-primary">הרשמה כסופר מוסמך</h1>
+          <h1 className="text-3xl md:text-4xl font-headline font-black text-primary">{PATH_TITLES[path]}</h1>
           <div className="flex items-center justify-center gap-2 max-w-md mx-auto">
-            {STEP_META.map((meta, idx) => (
-              <div key={meta.id} className="flex-1 flex items-center gap-2">
+            {activeSteps.map((stepId, idx) => (
+              <div key={stepId} className={cn("flex items-center gap-2", idx < totalSteps - 1 && "flex-1")}>
                 <div
                   className={cn(
                     "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-black transition-all duration-300",
-                    step > meta.id ? "bg-accent text-primary" : step === meta.id ? "bg-accent text-primary ring-4 ring-accent/25" : "bg-primary/10 text-primary/40"
+                    stepIndex > idx ? "bg-accent text-primary" : stepIndex === idx ? "bg-accent text-primary ring-4 ring-accent/25" : "bg-primary/10 text-primary/40"
                   )}
                 >
-                  {step > meta.id ? '✓' : meta.id}
+                  {stepIndex > idx ? '✓' : idx + 1}
                 </div>
-                {idx < STEP_META.length - 1 && (
+                {idx < totalSteps - 1 && (
                   <div className="h-1.5 flex-1 rounded-full bg-primary/10 overflow-hidden">
                     <div
                       className="h-full bg-accent transition-all duration-500 ease-out"
-                      style={{ width: step > meta.id ? '100%' : '0%' }}
+                      style={{ width: stepIndex > idx ? '100%' : '0%' }}
                     />
                   </div>
                 )}
               </div>
             ))}
           </div>
-          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">שלב {step} מתוך {totalSteps}</p>
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">שלב {stepIndex + 1} מתוך {totalSteps}</p>
         </div>
 
         <Card className="shadow-premium border-none rounded-[2.5rem] overflow-hidden bg-white">
@@ -770,9 +935,9 @@ export default function SellerOnboarding() {
                 exit={{ opacity: 0, y: 8 }}
                 transition={{ duration: 0.2 }}
               >
-                <CardTitle className="text-2xl font-headline font-black flex items-center justify-end gap-3 relative z-10">
-                  {currentStepMeta.title}
+                <CardTitle className="text-2xl font-headline font-black flex items-center justify-start gap-3 relative z-10">
                   <StepIcon className="w-8 h-8 text-accent" />
+                  {currentStepMeta.title}
                 </CardTitle>
                 <CardDescription className="text-white/60 font-medium italic relative z-10 mt-1">
                   {currentStepMeta.description}
@@ -804,11 +969,13 @@ export default function SellerOnboarding() {
                       <Input type="tel" inputMode="tel" autoComplete="tel" value={formData.phone} onChange={(e) => updateFieldWithValidation('phone', e.target.value)} onBlur={() => handleFieldBlur('phone')} placeholder="05X-XXXXXXX" required className={cn("text-slate-900 rounded-xl h-12", fieldErrors.phone && "border-destructive")} />
                       <FieldError message={fieldErrors.phone} />
                     </div>
-                    <div className="space-y-2">
-                      <Label>גיל *</Label>
-                      <Input type="number" inputMode="numeric" value={formData.age} onChange={(e) => updateFieldWithValidation('age', e.target.value)} onBlur={() => handleFieldBlur('age')} required className={cn("text-slate-900 rounded-xl h-12", fieldErrors.age && "border-destructive")} />
-                      <FieldError message={fieldErrors.age} />
-                    </div>
+                    {path === 'stam_scribe' && (
+                      <div className="space-y-2">
+                        <Label>גיל *</Label>
+                        <Input type="number" inputMode="numeric" value={formData.age} onChange={(e) => updateFieldWithValidation('age', e.target.value)} onBlur={() => handleFieldBlur('age')} required className={cn("text-slate-900 rounded-xl h-12", fieldErrors.age && "border-destructive")} />
+                        <FieldError message={fieldErrors.age} />
+                      </div>
+                    )}
                   </div>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -817,7 +984,7 @@ export default function SellerOnboarding() {
                       <FieldError message={fieldErrors.city} />
                     </div>
                     <div className="space-y-2">
-                      <Label>כתובת *</Label>
+                      <Label>{path === 'judaica_seller' ? 'כתובת העסק *' : 'כתובת *'}</Label>
                       <Input ref={addressInputRef} value={formData.address} onChange={(e) => updateFieldWithValidation('address', e.target.value)} onBlur={() => handleFieldBlur('address')} autoComplete="street-address" required className={cn("text-slate-900 rounded-xl h-12", fieldErrors.address && "border-destructive")} />
                       <FieldError message={fieldErrors.address} />
                     </div>
@@ -951,6 +1118,15 @@ export default function SellerOnboarding() {
                       </div>
                     )}
                   </div>
+
+                  {path === 'judaica_seller' && (
+                    <div className="flex items-start gap-3 p-5 bg-primary/5 rounded-2xl border border-primary/10 min-h-[48px]">
+                      <Checkbox id="terms-judaica" checked={termsAccepted} onCheckedChange={(v) => setTermsAccepted(!!v)} className="mt-1 h-5 w-5" />
+                      <Label htmlFor="terms-judaica" className="text-[11px] font-bold leading-relaxed cursor-pointer">
+                        אני מצהיר כי כל הפרטים שהזנתי נכונים, וידוע לי שכמוכר יודאיקה אינני רשאי למכור כתבי קודש (מזוזה, תפילין, ספר תורה, מגילה). אני מאשר את <Link href="/terms" target="_blank" className="underline font-black text-primary hover:text-primary/70">תנאי השימוש ומדיניות הפרטיות</Link> של הפלטפורמה.
+                      </Label>
+                    </div>
+                  )}
                 </motion.div>
               )}
 
@@ -1199,16 +1375,89 @@ export default function SellerOnboarding() {
               )}
             </AnimatePresence>
 
-            <div className="flex justify-between pt-8 border-t mt-8">
-              {step > 1 ? (
-                <Button variant="ghost" onClick={() => setStep(s => s - 1)} disabled={loading} className="rounded-xl px-8 h-12 font-black text-xs uppercase tracking-widest">חזור</Button>
+            <div className="flex justify-between gap-3 pt-8 border-t mt-8">
+              {stepIndex > 0 ? (
+                <Button variant="ghost" onClick={prevStep} disabled={loading} className="rounded-xl px-8 h-12 font-black text-xs uppercase tracking-widest">חזור</Button>
+              ) : !isUpgradeMode ? (
+                <Button variant="ghost" onClick={() => setSellerType(null)} disabled={loading} className="rounded-xl px-4 h-12 font-bold text-xs gap-1.5">
+                  <ArrowRight className="w-4 h-4" /> שינוי סוג מוכר
+                </Button>
               ) : <div />}
-              <Button onClick={step === totalSteps ? handleFinalSubmit : nextStep} className="bg-accent hover:bg-accent/90 px-12 h-14 rounded-full font-black text-xs uppercase tracking-[0.2em] shadow-lg transition-all active:scale-95" disabled={loading}>
-                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (step === totalSteps ? "שלח הרשמה לאישור" : "המשך לשלב הבא")}
+              <Button
+                onClick={isLastStep ? (isUpgradeMode ? handleUpgradeSubmit : handleFinalSubmit) : nextStep}
+                className="bg-accent hover:bg-accent/90 px-8 md:px-12 h-14 rounded-full font-black text-xs uppercase tracking-[0.2em] shadow-lg transition-all active:scale-95"
+                disabled={loading}
+              >
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (isLastStep ? (isUpgradeMode ? "שלח בקשת שדרוג" : "שלח הרשמה לאישור") : "המשך לשלב הבא")}
               </Button>
             </div>
           </CardContent>
         </Card>
+      </div>
+    </div>
+  );
+}
+
+const SELLER_TYPE_OPTIONS: {
+  type: SellerType; title: string; text: string; icon: typeof PenLine; highlights: string[]; cta: string;
+}[] = [
+  {
+    type: 'stam_scribe',
+    title: 'סופר סת"ם',
+    icon: PenLine,
+    text: 'אתה כותב וסופר תשמיש קדושה - מזוזות, תפילין, ספרי תורה, מגילות. תעבור תהליך אימות הלכתי הכולל בדיקת תעודות ורקע מקצועי. לאחר האישור תוכל למכור גם כתבי קודש וגם מוצרי יודאיקה.',
+    highlights: ['כתבי קודש + יודאיקה', 'אימות הלכתי מלא', '4 שלבים'],
+    cta: 'הרשמה כסופר סת"ם',
+  },
+  {
+    type: 'judaica_seller',
+    title: 'מוכר יודאיקה',
+    icon: ShoppingBag,
+    text: "אתה מוכר מוצרי דת ומצווה - טליתות, חנוכיות, ארבעת המינים ואביזרים נלווים. הרשמה מהירה ללא תהליך אימות הלכתי. שים לב: אינך יכול למכור כתבי קודש (מזוזה, תפילין, ספר תורה, מגילה) - אלו דורשים אישור כסופר סת''ם.",
+    highlights: ['מוצרי יודאיקה בלבד', 'ללא אימות הלכתי', '2 שלבים'],
+    cta: 'הרשמה כמוכר יודאיקה',
+  },
+];
+
+function SellerTypeChoice({ onChoose }: { onChoose: (type: SellerType) => void }) {
+  return (
+    <div className="min-h-screen bg-background" dir="rtl">
+      <Navbar />
+      <div className="container mx-auto max-w-4xl px-4 pb-16 pt-28">
+        <div className="mb-10 space-y-3 text-center">
+          <h1 className="font-headline text-3xl font-black text-primary md:text-4xl">הצטרפות כמוכר בחותם</h1>
+          <p className="text-sm font-medium text-muted-foreground md:text-base">בחר את סוג החשבון שמתאים לך — אפשר לשדרג מיודאיקה לסופר סת״ם בהמשך.</p>
+        </div>
+        <div className="grid gap-5 md:grid-cols-2">
+          {SELLER_TYPE_OPTIONS.map((option) => {
+            const Icon = option.icon;
+            return (
+              <button
+                key={option.type}
+                type="button"
+                onClick={() => onChoose(option.type)}
+                data-seller-type={option.type}
+                className="group flex h-full flex-col rounded-[2rem] border-2 border-primary/5 bg-white p-6 text-right shadow-premium transition-all duration-300 hover:-translate-y-1 hover:border-accent hover:shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent md:p-8"
+              >
+                <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/15 text-accent-strong transition-colors group-hover:bg-accent group-hover:text-primary">
+                  <Icon className="h-7 w-7" />
+                </span>
+                <h2 className="mt-5 font-headline text-2xl font-black text-primary">{option.title}</h2>
+                <p className="mt-3 flex-1 text-sm font-medium leading-relaxed text-primary/70">{option.text}</p>
+                <ul className="mt-5 flex flex-wrap gap-2">
+                  {option.highlights.map((h) => (
+                    <li key={h} className="flex items-center gap-1 rounded-full bg-[#F8F9FA] px-3 py-1 text-[11px] font-bold text-primary/70">
+                      <Check className="h-3 w-3 text-accent-strong" /> {h}
+                    </li>
+                  ))}
+                </ul>
+                <span className="mt-6 inline-flex h-12 items-center justify-center rounded-full bg-primary px-6 text-sm font-bold text-primary-foreground transition-colors group-hover:bg-accent group-hover:text-primary">
+                  {option.cta}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

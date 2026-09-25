@@ -9,6 +9,10 @@ import { useApp, useSupabaseClient, setDocumentNonBlocking } from '@/lib/supabas
 import { doc, arrayUnion, arrayRemove } from '@/lib/supabase-compat';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { useOutOfSeason } from '@/hooks/use-out-of-season';
+import {
+  SEASONAL_BADGE_LABEL, describeJudaicaAttributes, getJudaicaCategory, isSeasonalCategory,
+} from '@/lib/product-catalog';
 
 export type ProductCardViewMode = 'grid' | 'list';
 
@@ -82,11 +86,16 @@ export function ProductCard({
   const sellerName = seller ? `${seller.first_name || ''} ${seller.last_name || ''}`.trim() : '';
   const delivery = getDeliveryLabel(product.delivery_type);
   const DeliveryIcon = delivery.icon;
-  const specChips = [
-    product.script_type,
-    product.proofreading_level ? `הגהה ${product.proofreading_level}` : null,
-    product.parchment_size ? `${product.parchment_size} ס״מ` : null,
-  ].filter(Boolean) as string[];
+  const judaicaCategory = getJudaicaCategory(product.product_type);
+  const specChips = (judaicaCategory
+    ? describeJudaicaAttributes(judaicaCategory, product.attributes || {}).map(([, value]) => value).slice(0, 3)
+    : [
+        product.script_type,
+        product.proofreading_level ? `הגהה ${product.proofreading_level}` : null,
+        product.parchment_size ? `${product.parchment_size} ס״מ` : null,
+      ]).filter(Boolean) as string[];
+  const outOfSeason = useOutOfSeason();
+  const showSeasonalBadge = outOfSeason && isSeasonalCategory(product.product_type);
 
   const prefetchProductPage = () => {
     router.prefetch(productHref);
@@ -207,9 +216,16 @@ export function ProductCard({
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/35 to-transparent" />
           {favoriteButton}
           {product.product_type && (
-            <span className="absolute right-3 top-3 z-10 max-w-[60%] truncate rounded-full bg-white/85 px-2.5 py-1 text-[10px] font-bold text-primary backdrop-blur-md">
-              {product.product_type}
-            </span>
+            <div className="absolute right-3 top-3 z-10 flex max-w-[65%] flex-col items-start gap-1">
+              <span className="max-w-full truncate rounded-full bg-white/85 px-2.5 py-1 text-[10px] font-bold text-primary backdrop-blur-md">
+                {product.product_type}
+              </span>
+              {showSeasonalBadge && (
+                <span className="max-w-full truncate rounded-full bg-amber-100/95 px-2.5 py-1 text-[10px] font-bold text-amber-800">
+                  {SEASONAL_BADGE_LABEL}
+                </span>
+              )}
+            </div>
           )}
           <div className="absolute inset-x-3 bottom-3 z-10 flex items-center justify-between gap-2">
             <span className="flex items-center gap-1 rounded-full bg-white/85 px-2.5 py-1 text-[10px] font-semibold text-primary/80 backdrop-blur-md">

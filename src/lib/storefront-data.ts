@@ -35,7 +35,13 @@ const PUBLIC_PRODUCT_FIELDS = [
   'parchment_size',
   'proofreading_level',
   'created_at',
+  'attributes',
 ].join(', ');
+
+// Before docs/add-seller-types-migration.sql runs, products.attributes doesn't exist yet;
+// fall back to the old column list rather than failing every product read.
+const PUBLIC_PRODUCT_FIELDS_LEGACY = PUBLIC_PRODUCT_FIELDS.replace(', attributes', '');
+const isMissingAttributesColumn = (error: { message?: string } | null) => Boolean(error?.message?.includes('attributes'));
 
 const PUBLIC_SELLER_FIELDS = [
   'id',
@@ -107,11 +113,14 @@ export const getPublicProductById = cache(async (id: string): Promise<any | null
     const client = getPublicSupabaseClient();
     if (!client) return null;
 
-    const { data, error } = await client
+    let { data, error } = await client
       .from('products')
       .select(PUBLIC_PRODUCT_FIELDS as any)
       .eq('id', id)
       .maybeSingle();
+    if (isMissingAttributesColumn(error)) {
+      ({ data, error } = await client.from('products').select(PUBLIC_PRODUCT_FIELDS_LEGACY as any).eq('id', id).maybeSingle());
+    }
 
     if (error || !data) return null;
     return data as any;
@@ -147,10 +156,13 @@ export const getPublicSellerProducts = cache(async (sellerId: string): Promise<a
     const client = getPublicSupabaseClient();
     if (!client) return [];
 
-    const { data, error } = await client
+    let { data, error } = await client
       .from('products')
       .select(PUBLIC_PRODUCT_FIELDS as any)
       .eq('seller_id', sellerId);
+    if (isMissingAttributesColumn(error)) {
+      ({ data, error } = await client.from('products').select(PUBLIC_PRODUCT_FIELDS_LEGACY as any).eq('seller_id', sellerId));
+    }
 
     if (error || !data) return [];
     return (data ?? []) as any[];
@@ -269,10 +281,17 @@ export const getTopScribes = cache(async (): Promise<any[]> => {
     const client = serviceSupabaseClient ?? getPublicSupabaseClient();
     if (!client) return [];
 
-    const { data: sellers, error } = await client
+    // Only סופרי סת"ם belong in "our scribes" — Judaica sellers aren't scribes. Before the
+    // seller-types migration the column doesn't exist (42703), so fall back to all approved.
+    const scribeFields = 'id, first_name, last_name, profile_image, city, address, experience_years, sales_count, script_level, writing_samples';
+    let { data: sellers, error } = await client
       .from('sellers')
-      .select('id, first_name, last_name, profile_image, city, address, experience_years, sales_count, script_level, writing_samples')
-      .eq('is_approved', true);
+      .select(scribeFields)
+      .eq('is_approved', true)
+      .eq('seller_type', 'stam_scribe');
+    if (error?.code === '42703') {
+      ({ data: sellers, error } = await client.from('sellers').select(scribeFields).eq('is_approved', true));
+    }
     if (error) throw error;
     if (!sellers || sellers.length === 0) return getTopScribesViaRpc();
 

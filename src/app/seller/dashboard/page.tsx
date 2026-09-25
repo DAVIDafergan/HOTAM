@@ -42,6 +42,7 @@ import {
   Star,
   UserRound,
   Clock,
+  Award,
   ShieldCheck,
   Banknote,
   ShoppingBag,
@@ -82,6 +83,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
+import { useOutOfSeason } from '@/hooks/use-out-of-season';
 import { getCommissionRate, getSellerPayoutRate, resolveSellerNet } from '@/lib/commission';
 import { cleanupImageAssetsViaApi, isHeicFile, uploadImageViaApi } from '@/lib/image-upload';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -94,6 +96,11 @@ import { getCityFromAddressComponents, loadGoogleMapsPlacesScript } from '@/lib/
 import { TORAH_DELIVERY_TIME_OPTIONS } from '@/lib/torah-delivery-time';
 import { PLATFORM_WHATSAPP_NUMBER, PLATFORM_WHATSAPP_DISPLAY, SELLER_ORDER_COLUMNS } from '@/lib/constants';
 import { logEvent } from '@/lib/log-event';
+import {
+  JUDAICA_CATEGORIES, SEASONAL_BADGE_LABEL, STAM_PRODUCT_LABELS, STAM_PRODUCT_TYPES,
+  SELLER_TYPE_LABELS, findMissingJudaicaField, getJudaicaCategory, isStamProductType, normalizeJudaicaAttributes,
+  resolveSellerType, isSeasonalCategory, type ProductAttributes,
+} from '@/lib/product-catalog';
 
 const PRODUCT_SUBTYPES: Record<string, string[]> = {
   'מזוזה': ['קלף', 'קלף + בית'],
@@ -202,6 +209,9 @@ function SellerDashboardContent() {
     return doc(db, 'sellers', user.uid);
   }, [db, user?.uid]);
   const { data: seller, isLoading: isSellerLoading } = useDoc<any>(sellerRef);
+  const sellerType = resolveSellerType(seller?.seller_type);
+  const isStamSeller = sellerType === 'stam_scribe';
+  const stamUpgradeStatus: string = seller?.stam_upgrade_status || 'none';
 
   // Route guard — redirect non-sellers and unauthenticated users.
   useEffect(() => {
@@ -291,6 +301,11 @@ function SellerDashboardContent() {
   const [verificationCodes, setVerificationCodes] = useState<Record<string, string>>({});
   const [isVerifying, setIsVerifying] = useState<string | null>(null);
 
+  // 'stam' | 'judaica' — a סופר סת"ם picks which kind of product first; a Judaica seller is
+  // always 'judaica' (scribal categories aren't offered at all).
+  const [productKind, setProductKind] = useState<'stam' | 'judaica' | null>(null);
+  const outOfSeason = useOutOfSeason();
+  const [formAttributes, setFormAttributes] = useState<ProductAttributes>({});
   const [formType, setFormType] = useState('');
   const [formSubType, setFormSubType] = useState('');
   const [formDescription, setFormDescription] = useState('');
@@ -837,6 +852,8 @@ function SellerDashboardContent() {
   const openEditDialog = (p: any) => {
     setProductPublishError(null);
     setEditingProduct(p);
+    setProductKind(isStamProductType(p.product_type) ? 'stam' : 'judaica');
+    setFormAttributes(p.attributes && typeof p.attributes === 'object' ? p.attributes : {});
     setFormType(p.product_type || '');
     setFormSubType(p.sub_type || '');
     setFormDescription(p.description || '');
@@ -869,6 +886,8 @@ function SellerDashboardContent() {
   const resetForm = () => {
     setProductPublishError(null);
     setEditingProduct(null);
+    setProductKind(isStamSeller ? null : 'judaica');
+    setFormAttributes({});
     setFormType(''); setFormSubType(''); setFormDescription(''); setFormQuantity(1);
     setFormScript(''); setFormQuality(''); setFormPrice(''); setFormImages([]);
     setFormParchmentSize(''); setFormProofreading(''); setFormDeliveryTime('3');
@@ -903,12 +922,19 @@ function SellerDashboardContent() {
 
   const validateProductForm = (): ProductPublishValidationIssue | null => {
     if (!formType) return { title: "חסר סוג מוצר", description: "כדי לפרסם מוצר יש לבחור סוג מוצר.", step: 1 };
+    const judaicaCategory = getJudaicaCategory(formType);
+    if (judaicaCategory) {
+      if (judaicaCategory.subtypes && !formSubType) return { title: "חסר סוג", description: "כדי לפרסם מוצר יש לבחור את סוג המוצר.", step: 1 };
+      const missing = findMissingJudaicaField(judaicaCategory, formAttributes);
+      if (missing) return { title: `חסר: ${missing}`, description: `כדי לפרסם מוצר יש למלא את השדה "${missing}".`, step: 2 };
+    } else {
     if (!formSubType) return { title: "חסר תת-סוג", description: "כדי לפרסם מוצר יש לבחור תת-סוג או דגם.", step: 1 };
     if (!formScript) return { title: "חסר סוג כתב", description: "כדי לפרסם מוצר יש לבחור סוג כתב.", step: 2 };
     if (!formQuality) return { title: "חסרה רמת הידור", description: "כדי לפרסם מוצר יש לבחור רמת הידור.", step: 2 };
     if (!formProofreading) return { title: "חסרה רמת הגהה", description: "כדי לפרסם מוצר יש לבחור רמת הגהה שבוצעה.", step: 2 };
     if (formType === 'מגילה' && (!megRows || !megHeight)) return { title: "חסר גודל מגילה", description: "כדי לפרסם מגילה יש לבחור גם מספר שורות וגם גובה קלף.", step: 2 };
     if (formType !== 'מגילה' && !formParchmentSize.trim()) return { title: "חסר גודל קלף", description: "כדי לפרסם מוצר יש למלא גודל קלף או בתים.", step: 2 };
+    }
     if (formPrice === '' || Number(formPrice) <= 0) return { title: "מחיר לא תקין", description: "כדי לפרסם מוצר יש להזין מחיר גדול מ-0.", step: 3 };
     if (formQuantity < 1) return { title: "כמות לא תקינה", description: "כדי לפרסם מוצר יש להזין כמות של לפחות 1.", step: 3 };
     if (!formDeliveryTime) return { title: "חסר זמן אספקה", description: "כדי לפרסם מוצר יש לבחור זמן אספקה.", step: 3 };
@@ -944,6 +970,8 @@ function SellerDashboardContent() {
     setProductPublishError(null);
 
     const finalSize = formType === 'מגילה' ? `${megRows} שורות, ${megHeight}` : formParchmentSize;
+    const judaicaCategory = getJudaicaCategory(formType);
+    const isJudaicaProduct = Boolean(judaicaCategory);
 
     const data = {
       seller_id: user.uid,
@@ -951,12 +979,14 @@ function SellerDashboardContent() {
       sub_type: formSubType,
       description: formDescription,
       quantity: formQuantity,
-      script_type: formScript,
-      script_level: formQuality,
+      // Scribal-only fields are left empty on Judaica products; their details live in attributes.
+      script_type: isJudaicaProduct ? null : formScript,
+      script_level: isJudaicaProduct ? null : formQuality,
       price: Number(formPrice),
       images: formImages,
-      parchment_size: finalSize,
-      proofreading_level: formProofreading,
+      parchment_size: isJudaicaProduct ? null : finalSize,
+      proofreading_level: isJudaicaProduct ? null : formProofreading,
+      attributes: judaicaCategory ? normalizeJudaicaAttributes(judaicaCategory, formAttributes) : {},
       delivery_time: formDeliveryTime,
       delivery_type: formDeliveryType,
       pickup_address: formDeliveryType === 'shipping' ? '' : formPickupAddress.trim(),
@@ -964,14 +994,26 @@ function SellerDashboardContent() {
       delivery_area: formDeliveryArea,
     };
 
+    // The database rejects scribal products from a non-scribe (STAM_PRODUCT_REQUIRES_STAM_SCRIBE);
+    // surface that as a clear message instead of the raw error.
+    const describeProductError = (message: string) =>
+      message.includes('STAM_PRODUCT_REQUIRES_STAM_SCRIBE')
+        ? 'רק סופר סת"ם מאומת יכול לפרסם כתבי קודש.'
+        : message;
+
     if (editingProduct) {
-      updateDocumentNonBlocking(doc(db, 'products', editingProduct.id), data);
+      const { error } = await supabase.from('products').update(data).eq('id', editingProduct.id);
+      if (error) {
+        console.error("Supabase update error:", error);
+        toast({ variant: "destructive", title: "שגיאה בעדכון המוצר", description: describeProductError(error.message) });
+        return;
+      }
       setProductsData(prev => prev.map(p => p.id === editingProduct.id ? { ...p, ...data } : p));
     } else {
       const { data: insertedProduct, error } = await supabase.from('products').insert([data]).select('*').single();
       if (error) {
         console.error("Supabase insert error:", error);
-        toast({ variant: "destructive", title: "שגיאה בהוספת המוצר", description: error.message });
+        toast({ variant: "destructive", title: "שגיאה בהוספת המוצר", description: describeProductError(error.message) });
         return;
       }
       if (insertedProduct) {
@@ -1087,9 +1129,9 @@ function SellerDashboardContent() {
             <div>
               <p className="text-xs font-bold text-white/60 uppercase tracking-widest mb-0.5">לוח בקרה</p>
               <h1 className="text-2xl md:text-3xl font-headline font-black tracking-tight">שלום, {seller?.first_name} 👋</h1>
-              <div className="flex items-center gap-2 text-emerald-300 font-bold text-xs mt-1">
+              <div className="flex items-center gap-2 text-emerald-300 font-bold text-xs mt-1" data-seller-type-badge={sellerType}>
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>סופר מאומת</span>
+                <span>{isStamSeller ? 'סופר סת"ם מאומת' : `${SELLER_TYPE_LABELS[sellerType]} מאושר`}</span>
               </div>
             </div>
           </div>
@@ -1101,6 +1143,47 @@ function SellerDashboardContent() {
           </Button>
         </div>
       </div>
+
+      {/* ── Upgrade to סופר סת"ם — Judaica sellers only ─────────────────── */}
+      {!isStamSeller && (
+        <div
+          data-stam-upgrade-status={stamUpgradeStatus}
+          className={cn(
+            "flex flex-col gap-4 rounded-[2rem] border p-5 shadow-premium md:flex-row md:items-center md:p-6",
+            stamUpgradeStatus === 'pending' ? "border-amber-200 bg-amber-50/70" : "border-accent/30 bg-white"
+          )}
+        >
+          <span className={cn(
+            "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl",
+            stamUpgradeStatus === 'pending' ? "bg-amber-100 text-amber-700" : "bg-accent/15 text-accent-strong"
+          )}>
+            {stamUpgradeStatus === 'pending' ? <Clock className="h-6 w-6" /> : <Award className="h-6 w-6" />}
+          </span>
+          <div className="flex-1 text-right">
+            {stamUpgradeStatus === 'pending' ? (
+              <>
+                <p className="font-black text-primary">בקשת השדרוג לסופר סת"ם בבדיקה</p>
+                <p className="mt-0.5 text-xs font-medium text-muted-foreground">צוות "חותם" בודק את התעודות והרקע המקצועי שלך. בינתיים מוצרי היודאיקה שלך ממשיכים להימכר כרגיל.</p>
+              </>
+            ) : stamUpgradeStatus === 'rejected' ? (
+              <>
+                <p className="font-black text-primary">בקשת השדרוג לא אושרה</p>
+                <p className="mt-0.5 text-xs font-medium text-muted-foreground">אפשר להגיש בקשה חדשה עם פרטים ומסמכים מעודכנים, או לפנות אלינו לבירור.</p>
+              </>
+            ) : (
+              <>
+                <p className="font-black text-primary">שדרוג ל"סופר סת"ם מוסמך"</p>
+                <p className="mt-0.5 text-xs font-medium text-muted-foreground">כותב סת"ם? עבור את תהליך האימות ההלכתי המלא (תעודות ורקע מקצועי) ותוכל למכור גם מזוזות, תפילין, מגילות וספרי תורה.</p>
+              </>
+            )}
+          </div>
+          {stamUpgradeStatus !== 'pending' && (
+            <Button asChild className="h-12 shrink-0 rounded-2xl bg-primary px-6 font-black text-primary-foreground hover:bg-accent hover:text-primary">
+              <Link href="/onboarding/seller?upgrade=stam">{stamUpgradeStatus === 'rejected' ? 'הגשת בקשה חדשה' : 'לשדרוג לסופר סת"ם'}</Link>
+            </Button>
+          )}
+        </div>
+      )}
 
       {/* ── Quick Stats ───────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
@@ -1182,7 +1265,11 @@ function SellerDashboardContent() {
                  <div className="w-20 h-20 bg-muted rounded-2xl shrink-0 overflow-hidden relative border"><Image src={p.images?.[0] || logoImg} alt="product" fill kind="product" sizes="80px" className="object-cover" /></div>
                  <div className="flex-1 text-right w-full">
                     <p className="font-black text-lg text-primary">{p.product_type}</p>
-                    <p className="text-[10px] text-muted-foreground font-bold">{p.script_type} | {p.script_level}</p>
+                    <p className="text-[10px] text-muted-foreground font-bold">
+                      {isStamProductType(p.product_type)
+                        ? `${p.script_type || ''} | ${p.script_level || ''}`
+                        : [p.sub_type, ...Object.values(p.attributes || {}).filter((v) => typeof v === 'string')].filter(Boolean).slice(0, 3).join(' | ')}
+                    </p>
                     <div className="flex items-center justify-end gap-3 mt-2">
                        <Badge variant="secondary" className="font-black text-xs">₪{Number(p.price || 0).toLocaleString('he-IL')}</Badge>
                        <div className="flex items-center bg-muted/30 rounded-full px-2 py-1 gap-2 border">
@@ -1782,8 +1869,41 @@ function SellerDashboardContent() {
                 {formStep === 1 && (
                   <motion.div key="step1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6 text-right">
                     <div className="space-y-5">
+                      {/* A סופר סת"ם chooses the product kind first; a Judaica seller never sees scribal categories. */}
+                      {isStamSeller && !editingProduct && (
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-black uppercase text-primary/40 tracking-wider">איזה סוג מוצר אתה מוסיף? *</Label>
+                          <div className="grid grid-cols-2 gap-3">
+                            {([
+                              { kind: 'stam', title: 'כתב קודש (סת"ם)', sub: 'מזוזה, תפילין, מגילה, ספר תורה' },
+                              { kind: 'judaica', title: 'מוצר יודאיקה', sub: 'טלית, חנוכיה, ארבעת המינים...' },
+                            ] as const).map((option) => (
+                              <button
+                                key={option.kind}
+                                type="button"
+                                data-product-kind={option.kind}
+                                onClick={() => {
+                                  if (productKind === option.kind) return;
+                                  setProductKind(option.kind);
+                                  setFormType(''); setFormSubType(''); setFormAttributes({});
+                                  setFormParchmentSize(''); setMegRows(''); setMegHeight('');
+                                }}
+                                className={cn(
+                                  "rounded-2xl border-2 p-4 text-right transition-all",
+                                  productKind === option.kind ? "border-accent bg-accent/10 shadow-md" : "border-primary/5 bg-white hover:border-accent/40"
+                                )}
+                              >
+                                <p className="text-sm font-black text-primary">{option.title}</p>
+                                <p className="mt-1 text-[11px] font-medium text-muted-foreground">{option.sub}</p>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {productKind && (
                       <div className="space-y-2">
-                        <Label className="text-[10px] font-black uppercase text-primary/40 tracking-wider">סוג המוצר *</Label>
+                        <Label className="text-[10px] font-black uppercase text-primary/40 tracking-wider">{productKind === 'judaica' ? 'קטגוריה *' : 'סוג המוצר *'}</Label>
                         <div className="relative">
                            <Select value={formType} onValueChange={v => {
                              setFormType(v);
@@ -1803,17 +1923,50 @@ function SellerDashboardContent() {
                               <SelectValue placeholder="בחר סוג כלי קודש..." />
                             </SelectTrigger>
                             <SelectContent className="rounded-2xl shadow-2xl">
-                              <SelectItem value="מזוזה" className="font-bold py-3">מזוזה</SelectItem>
-                              <SelectItem value="תפילין" className="font-bold py-3">תפילין</SelectItem>
-                              <SelectItem value="מגילה" className="font-bold py-3">מגילה</SelectItem>
-                              <SelectItem value="ספר תורה" className="font-bold py-3">ספר תורה</SelectItem>
-                              <SelectItem value="מוצרי יודאיקה שונים" className="font-bold py-3">מוצר יודאיקה</SelectItem>
+                              {productKind === 'judaica'
+                                ? JUDAICA_CATEGORIES.map((category) => (
+                                    <SelectItem key={category.value} value={category.value} className="font-bold py-3">
+                                      {category.value}
+                                      {outOfSeason && isSeasonalCategory(category.value) && (
+                                        <span className="mr-2 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">{SEASONAL_BADGE_LABEL}</span>
+                                      )}
+                                    </SelectItem>
+                                  ))
+                                : STAM_PRODUCT_TYPES.map((type) => (
+                                    <SelectItem key={type} value={type} className="font-bold py-3">{STAM_PRODUCT_LABELS[type]}</SelectItem>
+                                  ))}
                             </SelectContent>
                           </Select>
                         </div>
                       </div>
+                      )}
 
-                      {formType !== '' && (
+                      {getJudaicaCategory(formType)?.subtypes && (
+                        <div className="space-y-3 animate-in slide-in-from-top-2">
+                          <Label className="text-[10px] font-black uppercase text-primary/40 tracking-wider">מה אתה מוכר? *</Label>
+                          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                            {getJudaicaCategory(formType)!.subtypes!.map(opt => (
+                              <button
+                                key={opt}
+                                type="button"
+                                onClick={() => setFormSubType(opt)}
+                                className={cn(
+                                  "px-4 py-3 rounded-xl border-2 text-xs font-black transition-all",
+                                  formSubType === opt ? "bg-accent text-primary border-accent shadow-lg scale-[1.02]" : "bg-white border-primary/5 hover:border-accent/40"
+                                )}
+                              >
+                                {opt}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {getJudaicaCategory(formType)?.notice && (
+                        <JudaicaNotice notice={getJudaicaCategory(formType)!.notice!} />
+                      )}
+
+                      {formType !== '' && isStamProductType(formType) && (
                         <div className="space-y-3 animate-in slide-in-from-top-2">
                           <Label className="text-[10px] font-black uppercase text-primary/40 tracking-wider">תת-סוג / דגם *</Label>
                           {PRODUCT_SUBTYPES[formType] ? (
@@ -1864,6 +2017,14 @@ function SellerDashboardContent() {
 
                 {formStep === 2 && (
                   <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6 text-right">
+                    {getJudaicaCategory(formType) ? (
+                      <JudaicaAttributeFields
+                        category={getJudaicaCategory(formType)!}
+                        values={formAttributes}
+                        onChange={(key, value) => setFormAttributes(prev => ({ ...prev, [key]: value }))}
+                      />
+                    ) : (
+                    <>
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black uppercase text-primary/40 tracking-wider">סוג כתב (מסורת) *</Label>
@@ -1943,6 +2104,8 @@ function SellerDashboardContent() {
                           <Maximize2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary/20" />
                         </div>
                       </div>
+                    )}
+                    </>
                     )}
                   </motion.div>
                 )}
@@ -2235,6 +2398,114 @@ function SellerDashboardContent() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+    </div>
+  );
+}
+
+// Renders a Judaica category's own fields (material, size, nusach...) from product-catalog.
+function JudaicaAttributeFields({
+  category, values, onChange,
+}: {
+  category: NonNullable<ReturnType<typeof getJudaicaCategory>>;
+  values: ProductAttributes;
+  onChange: (key: string, value: string | string[] | boolean) => void;
+}) {
+  return (
+    <div className="grid gap-5 md:grid-cols-2" data-judaica-fields={category.value}>
+      {category.fields.map((field) => {
+        const label = (
+          <Label className="text-[10px] font-black uppercase text-primary/40 tracking-wider">
+            {field.label}{'required' in field && field.required ? ' *' : ''}
+          </Label>
+        );
+        if (field.type === 'select') {
+          return (
+            <div key={field.key} className="space-y-2">
+              {label}
+              <Select value={String(values[field.key] ?? '')} onValueChange={(v) => onChange(field.key, v)}>
+                <SelectTrigger className="h-14 rounded-2xl border-2 border-primary/5 text-right font-bold"><SelectValue placeholder="בחר..." /></SelectTrigger>
+                <SelectContent className="rounded-2xl shadow-xl">
+                  {field.options.map((opt) => <SelectItem key={opt} value={opt} className="font-bold py-3">{opt}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          );
+        }
+        if (field.type === 'multiselect') {
+          const selected = Array.isArray(values[field.key]) ? (values[field.key] as string[]) : [];
+          return (
+            <div key={field.key} className="space-y-2 md:col-span-2">
+              {label}
+              <div className="flex flex-wrap gap-2">
+                {field.options.map((opt) => {
+                  const isOn = selected.includes(opt);
+                  return (
+                    <button
+                      key={opt}
+                      type="button"
+                      aria-pressed={isOn}
+                      onClick={() => onChange(field.key, isOn ? selected.filter((o) => o !== opt) : [...selected, opt])}
+                      className={cn(
+                        "rounded-full border-2 px-4 py-2 text-xs font-black transition-all",
+                        isOn ? "border-accent bg-accent text-primary" : "border-primary/5 bg-white hover:border-accent/40"
+                      )}
+                    >
+                      {opt}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        }
+        if (field.type === 'toggle') {
+          const isOn = values[field.key] === true;
+          return (
+            <div key={field.key} className="space-y-2">
+              {label}
+              <div className="grid grid-cols-2 gap-2">
+                {[{ on: true, text: field.onLabel }, { on: false, text: field.offLabel }].map((opt) => (
+                  <button
+                    key={opt.text}
+                    type="button"
+                    onClick={() => onChange(field.key, opt.on)}
+                    className={cn(
+                      "h-14 rounded-2xl border-2 text-xs font-black transition-all",
+                      (values[field.key] === undefined ? !opt.on : isOn === opt.on) ? "border-accent bg-accent text-primary" : "border-primary/5 bg-white hover:border-accent/40"
+                    )}
+                  >
+                    {opt.text}
+                  </button>
+                ))}
+              </div>
+            </div>
+          );
+        }
+        return (
+          <div key={field.key} className="space-y-2">
+            {label}
+            <Input
+              value={String(values[field.key] ?? '')}
+              onChange={(e) => onChange(field.key, e.target.value)}
+              placeholder={field.placeholder}
+              className="h-14 rounded-2xl border-2 border-primary/5 bg-slate-50/50 font-bold"
+            />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// Fixed, non-removable notice (e.g. בית מזוזה = case only, no parchment).
+function JudaicaNotice({ notice }: { notice: { text: string; linkLabel: string; href: string } }) {
+  return (
+    <div className="flex items-start gap-3 rounded-2xl border-2 border-amber-200 bg-amber-50 p-4 text-right" role="note">
+      <Info className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+      <p className="text-xs font-bold leading-relaxed text-amber-900">
+        {notice.text}{' '}
+        <Link href={notice.href} target="_blank" className="underline decoration-amber-500 underline-offset-2">{notice.linkLabel}</Link>
+      </p>
     </div>
   );
 }

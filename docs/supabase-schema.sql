@@ -86,6 +86,13 @@ CREATE TABLE IF NOT EXISTS public.sellers (
   writing_samples      TEXT[]        NOT NULL DEFAULT '{}',
   profile_image        TEXT,
   is_approved          BOOLEAN       NOT NULL DEFAULT FALSE,
+  -- 'stam_scribe' (scribal + Judaica) | 'judaica_seller' (Judaica only).
+  -- See docs/add-seller-types-migration.sql.
+  seller_type          TEXT          NOT NULL DEFAULT 'stam_scribe'
+                         CHECK (seller_type IN ('stam_scribe', 'judaica_seller')),
+  stam_upgrade_status  TEXT          NOT NULL DEFAULT 'none'
+                         CHECK (stam_upgrade_status IN ('none', 'pending', 'approved', 'rejected')),
+  stam_upgrade_requested_at TIMESTAMPTZ,
   sales_count          INTEGER       NOT NULL DEFAULT 0,
   notification_email   BOOLEAN       NOT NULL DEFAULT TRUE,
   notification_sms     BOOLEAN       NOT NULL DEFAULT TRUE,
@@ -178,6 +185,8 @@ CREATE TABLE IF NOT EXISTS public.products (
   pickup_address     TEXT,
   delivery_fee       NUMERIC(10,2),
   delivery_area      TEXT[]      NOT NULL DEFAULT '{}',
+  -- Per-category fields for Judaica products (src/lib/product-catalog.ts).
+  attributes         JSONB       NOT NULL DEFAULT '{}'::jsonb,
   created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at         TIMESTAMPTZ
 );
@@ -361,6 +370,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_supermarket_reviews_one_per_seller_per_buy
 CREATE INDEX IF NOT EXISTS idx_chats_participants     ON public.chats USING GIN (participants);
 CREATE INDEX IF NOT EXISTS idx_chats_unread_state     ON public.chats USING GIN (unread_state);
 CREATE INDEX IF NOT EXISTS idx_sellers_is_approved    ON public.sellers (is_approved);
+CREATE INDEX IF NOT EXISTS idx_sellers_stam_upgrade_status
+  ON public.sellers (stam_upgrade_status) WHERE stam_upgrade_status = 'pending';
 CREATE INDEX IF NOT EXISTS idx_password_reset_log_email_created_at ON public.password_reset_log (email, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_email_rate_limit_log_user_sent_at ON public.email_rate_limit_log (user_id, sent_at);
 CREATE INDEX IF NOT EXISTS idx_contact_messages_status_created_at ON public.contact_messages (status, created_at DESC);
@@ -427,6 +438,9 @@ CREATE POLICY "sellers_own_update" ON public.sellers
       AND sales_count = (SELECT s.sales_count FROM public.sellers s WHERE s.id = sellers.id)
       AND welcome_email_sent = (SELECT s.welcome_email_sent FROM public.sellers s WHERE s.id = sellers.id)
       AND created_at = (SELECT s.created_at FROM public.sellers s WHERE s.id = sellers.id)
+      AND seller_type = (SELECT s.seller_type FROM public.sellers s WHERE s.id = sellers.id)
+      AND stam_upgrade_status = (SELECT s.stam_upgrade_status FROM public.sellers s WHERE s.id = sellers.id)
+      AND stam_upgrade_requested_at IS NOT DISTINCT FROM (SELECT s.stam_upgrade_requested_at FROM public.sellers s WHERE s.id = sellers.id)
     )
   );
 CREATE POLICY "sellers_admin_all"  ON public.sellers FOR ALL USING (public.is_admin());
@@ -887,6 +901,34 @@ $$;
 --   'admin'  → public.admins
 --   default  → public.customers
 -- =============================================================================
+
+-- ── Seller-type enforcement: scribal products only from a stam_scribe ─────────
+-- Keep the list in sync with STAM_PRODUCT_TYPES in src/lib/product-catalog.ts.
+CREATE OR REPLACE FUNCTION public.enforce_product_seller_type()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_seller_type TEXT;
+BEGIN
+  IF NEW.product_type IN ('מזוזה', 'תפילין', 'מגילה', 'ספר תורה', 'מוצרי יודאיקה שונים') THEN
+    SELECT seller_type INTO v_seller_type FROM public.sellers WHERE id = NEW.seller_id;
+    IF v_seller_type IS DISTINCT FROM 'stam_scribe' THEN
+      RAISE EXCEPTION 'STAM_PRODUCT_REQUIRES_STAM_SCRIBE'
+        USING ERRCODE = '42501',
+              DETAIL = 'Only a verified סופר סת"ם (seller_type = stam_scribe) can list scribal products.';
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_enforce_product_seller_type ON public.products;
+CREATE TRIGGER trg_enforce_product_seller_type
+  BEFORE INSERT OR UPDATE OF product_type, seller_id ON public.products
+  FOR EACH ROW EXECUTE FUNCTION public.enforce_product_seller_type();
 
 DROP FUNCTION IF EXISTS public.handle_new_user() CASCADE;
 

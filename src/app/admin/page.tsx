@@ -29,6 +29,7 @@ import {
   Search,
   UserCheck,
   ShieldCheck,
+  Award,
   UserRound,
   Scroll,
   History,
@@ -85,6 +86,7 @@ import { useRouter } from 'next/navigation';
 import unsplashLoader from '@/lib/unsplashLoader';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
+import { SELLER_TYPE_LABELS, resolveSellerType } from '@/lib/product-catalog';
 import { calculateCommissionAmount, resolveSellerNet } from '@/lib/commission';
 import { AdminChatsPanel } from '@/components/admin/AdminChatsPanel';
 import { AdminActivityPanel } from '@/components/admin/AdminActivityPanel';
@@ -131,6 +133,8 @@ export default function AdminDashboard() {
   const [isSellersLoading, setIsSellersLoading] = useState(false);
   const [isCustomersLoading, setIsCustomersLoading] = useState(false);
   const [refreshTick, setRefreshTick] = useState(0);
+  // Judaica sellers who asked to be verified as סופר סת"ם (stam_upgrade_status = 'pending').
+  const [stamUpgradeRequests, setStamUpgradeRequests] = useState<any[]>([]);
 
   const adminRef = useMemoStable(() => {
     if (!user) return null;
@@ -222,6 +226,55 @@ export default function AdminDashboard() {
       cancelled = true;
     };
   }, [db, sellersQuery]);
+
+  useEffect(() => {
+    if (!canLoadData) return;
+    let cancelled = false;
+    db.from('sellers')
+      .select('*')
+      .eq('stam_upgrade_status', 'pending')
+      .order('stam_upgrade_requested_at', { ascending: true })
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        // Before the seller-types migration the column doesn't exist — just show none.
+        setStamUpgradeRequests(error ? [] : (data || []).map((s: any) => ({ ...s, id: String(s.id) })));
+      });
+    return () => { cancelled = true; };
+  }, [db, canLoadData, refreshTick]);
+
+  const resolveStamUpgrade = async (seller: any, approve: boolean) => {
+    const { error, count } = await db
+      .from('sellers')
+      .update(
+        approve
+          ? { seller_type: 'stam_scribe', stam_upgrade_status: 'approved', updated_at: new Date().toISOString() }
+          : { stam_upgrade_status: 'rejected', updated_at: new Date().toISOString() },
+        { count: 'exact' },
+      )
+      .eq('id', seller.id)
+      .eq('stam_upgrade_status', 'pending');
+    if (error || !count) {
+      toast({ variant: 'destructive', title: 'העדכון נכשל', description: error?.message || 'הבקשה כבר טופלה או לא נמצאה.' });
+      return;
+    }
+    setStamUpgradeRequests(prev => prev.filter((s) => s.id !== seller.id));
+    toast({ variant: 'success', title: approve ? 'השדרוג אושר — המוכר הוא כעת סופר סת"ם' : 'בקשת השדרוג נדחתה' });
+
+    if (seller.email) {
+      const { data: { session } } = await db.auth.getSession();
+      await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token}` },
+        body: JSON.stringify({
+          to: seller.email,
+          subject: approve ? '🎉 אושרת כסופר סת"ם באתר חותם' : 'עדכון לגבי בקשת השדרוג שלך באתר חותם',
+          text: approve
+            ? `שלום ${seller.first_name}, בקשת השדרוג שלך אושרה. מעכשיו תוכל להוסיף באזור האישי גם כתבי קודש (מזוזה, תפילין, מגילה, ספר תורה) לצד מוצרי היודאיקה שלך.`
+            : `שלום ${seller.first_name}, לאחר בדיקה, בקשת השדרוג לסופר סת"ם לא אושרה בשלב זה. מוצרי היודאיקה שלך ממשיכים להימכר כרגיל, ותוכל להגיש בקשה חדשה מהאזור האישי או לפנות אלינו לבירור.`,
+        }),
+      }).catch((err) => console.error('[stam-upgrade] email failed', err));
+    }
+  };
 
   const customersQuery = useMemoStable(() => ({
     canLoadData,
@@ -360,21 +413,6 @@ export default function AdminDashboard() {
   }, [db, canLoadData]);
   const { data: allInquiries } = useCollection<any>(inquiriesQuery);
 
-  const stats = useMemo(() => {
-    const s = activeSellers;
-    const c = customersData;
-    const o = visibleOrders.filter((x: any) => x.status === 'completed');
-    const totalVolume = o.reduce((acc: number, x: any) => acc + Number(x.amount || 0), 0);
-    const siteEarnings = o.reduce((acc: number, x: any) => acc + calculateCommissionAmount(Number(x.amount || 0), x.product_name), 0);
-    
-    return {
-      totalScribes: activeSellersCount || s.filter(x => x.is_approved).length,
-      totalCustomers: allCustomersCount || c.length,
-      productsSold: o.length,
-      totalVolume: totalVolume,
-      siteEarnings,
-    };
-  }, [activeSellers, customersData, visibleOrders, activeSellersCount, allCustomersCount]);
 
   // Filtering Logic
   const filteredSellersPending = useMemo(() => pendingSellers, [pendingSellers]);
@@ -611,7 +649,7 @@ export default function AdminDashboard() {
     setActiveTab('active');
     setSearchTerm('');
     setActivePage(1);
-    toast({ variant: "success", title: "הסופר הועבר לסופרים הפעילים והמאומתים" });
+    toast({ variant: "success", title: "המוכר אושר והועבר לרשימת המוכרים הפעילים" });
   };
 
   const deleteScribe = async (id: string) => {
@@ -672,6 +710,14 @@ export default function AdminDashboard() {
   // communication/moderation) instead of one flat list of 10 items — adminTabItems below
   // stays a flat derived list for the places that just need lookup-by-id (mobile header,
   // the "which tab is active" checks).
+  // Counts shown as badges on the nav so open work is visible from any tab.
+  const newInquiriesCount = (allInquiries || []).filter((m: any) => (m.status || 'new') === 'new').length;
+  const tabBadges: Record<string, number> = {
+    pending: pendingSellersTotal + stamUpgradeRequests.length,
+    inquiries: newInquiriesCount,
+    reports: (allReports || []).length,
+  };
+
   const adminTabGroups: { label: string; items: { id: string; label: string; icon: React.ReactNode }[] }[] = [
     {
       label: 'סקירה',
@@ -811,14 +857,14 @@ export default function AdminDashboard() {
       <Navbar />
       
       <main className="container mx-auto px-4 py-8 md:py-12 max-w-7xl flex-1">
-        <div className="flex flex-col xl:flex-row xl:items-end justify-between mb-6 gap-4 xl:gap-6">
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between mb-8 gap-4 xl:gap-6">
           <div className="text-start w-full xl:w-auto">
              <div className="flex items-center gap-3 mb-2">
                 <div className="bg-primary/5 p-3 rounded-2xl">
                   <ShieldCheck className="w-8 h-8 text-primary" />
                 </div>
                  <div>
-                  <h1 className="text-4xl font-headline font-black text-primary tracking-tight">ניהול מערכת HOTAM</h1>
+                  <h1 className="text-2xl md:text-3xl font-headline font-black text-primary tracking-tight">ניהול מערכת HOTAM</h1>
                   <p className="text-muted-foreground font-medium">פיקוח על כשרות, אימות סופרים וניטור פיננסי</p>
                 </div>
              </div>
@@ -839,13 +885,6 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-12">
-          <StatCard label="מחזור עסקאות" value={`₪${stats.totalVolume.toLocaleString()}`} icon={<TrendingUp />} color="bg-primary" />
-          <StatCard label="רווח אתר" value={`₪${stats.siteEarnings.toLocaleString()}`} icon={<Banknote />} color="bg-emerald-50 text-emerald-600" highlight />
-          <StatCard label="סופרים פעילים" value={stats.totalScribes} icon={<Users />} color="bg-accent" />
-          <StatCard label="לקוחות רשומים" value={stats.totalCustomers} icon={<UserRound />} color="bg-blue-500" />
-          <StatCard label="מוצרים שנמכרו" value={stats.productsSold} icon={<ShoppingBag />} color="bg-orange-500" />
-        </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="md:flex md:flex-row-reverse md:items-start md:gap-6">
           {/* Desktop-only vertical sidebar, right-aligned (RTL). Collapses to icon-only via
@@ -883,8 +922,18 @@ export default function AdminDashboard() {
                           isSidebarCollapsed ? "justify-center px-0" : "justify-start px-4"
                         )}
                       >
-                        {tab.icon}
-                        {!isSidebarCollapsed && <span className="truncate">{tab.label}</span>}
+                        <span className="relative shrink-0">
+                          {tab.icon}
+                          {isSidebarCollapsed && tabBadges[tab.id] > 0 && (
+                            <span className="absolute -right-1.5 -top-1.5 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-white" />
+                          )}
+                        </span>
+                        {!isSidebarCollapsed && <span className="flex-1 truncate text-start">{tab.label}</span>}
+                        {!isSidebarCollapsed && tabBadges[tab.id] > 0 && (
+                          <span className="min-w-5 rounded-full bg-destructive px-1.5 py-0.5 text-center text-[10px] font-black leading-none text-white tabular-nums">
+                            {tabBadges[tab.id]}
+                          </span>
+                        )}
                       </TabsTrigger>
                     ))}
                   </div>
@@ -934,6 +983,11 @@ export default function AdminDashboard() {
                           <div className="flex items-center gap-3">
                             {tab.icon}
                             <span>{tab.label}</span>
+                            {tabBadges[tab.id] > 0 && (
+                              <span className="min-w-5 rounded-full bg-destructive px-1.5 py-0.5 text-center text-[10px] font-black leading-none text-white tabular-nums">
+                                {tabBadges[tab.id]}
+                              </span>
+                            )}
                           </div>
                           <ChevronLeft className="w-4 h-4 opacity-30" />
                         </button>
@@ -947,10 +1001,13 @@ export default function AdminDashboard() {
 
           <div className="flex-1 min-w-0 space-y-8">
           <TabsContent value="overview">
-            <AdminOverviewPanel />
+            <AdminOverviewPanel onNavigate={setActiveTab} />
           </TabsContent>
 
           <TabsContent value="pending">
+            {stamUpgradeRequests.length > 0 && (
+              <StamUpgradeRequests requests={stamUpgradeRequests} db={db} onResolve={resolveStamUpgrade} />
+            )}
             <ScribeTable
               scribes={filteredSellersPending} 
               onApprove={approveScribe} 
@@ -1051,18 +1108,71 @@ export default function AdminDashboard() {
   );
 }
 
-function StatCard({ label, value, icon, color, highlight = false }: any) {
+function SellerTypeBadge({ seller }: { seller: any }) {
+  const type = resolveSellerType(seller?.seller_type);
   return (
-    <Card className={`group border-none shadow-premium rounded-[2rem] overflow-hidden bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${highlight ? 'ring-2 ring-emerald-500/20' : ''}`}>
-      <CardContent className="p-5 flex items-center justify-between">
-        <div className="text-right">
-          <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1">{label}</p>
-          <p className="text-2xl font-black text-primary tabular-nums">{value}</p>
-        </div>
-        <div className={`p-3 rounded-2xl shadow-lg text-white transition-transform duration-300 group-hover:scale-110 ${color}`}>
-          {icon}
-        </div>
-      </CardContent>
+    <span
+      data-admin-seller-type={type}
+      className={cn(
+        "mb-1 inline-block rounded-full px-2 py-0.5 text-[9px] font-black",
+        type === 'stam_scribe' ? "bg-accent/15 text-accent-strong" : "bg-sky-50 text-sky-700",
+      )}
+    >
+      {SELLER_TYPE_LABELS[type]}
+    </span>
+  );
+}
+
+// Judaica sellers requesting verification as סופר סת"ם. Approving flips seller_type to
+// stam_scribe; rejecting leaves them a Judaica seller (their listings are never affected).
+function StamUpgradeRequests({ requests, db, onResolve }: { requests: any[]; db: any; onResolve: (seller: any, approve: boolean) => void }) {
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const handle = async (seller: any, approve: boolean) => {
+    setBusyId(seller.id);
+    try { await onResolve(seller, approve); } finally { setBusyId(null); }
+  };
+  return (
+    <Card dir="rtl" className="mb-6 rounded-[2rem] border border-accent/30 bg-white p-5 text-right shadow-premium md:p-6" data-stam-upgrade-requests>
+      <h3 className="flex items-center gap-2 text-base font-black text-primary">
+        <Award className="h-5 w-5 text-accent-strong" /> בקשות שדרוג לסופר סת"ם ({requests.length})
+      </h3>
+      <p className="mt-1 text-xs font-medium text-muted-foreground">מוכרי יודאיקה שביקשו אימות הלכתי מלא. מוצרי היודאיקה שלהם ממשיכים להימכר בזמן הבדיקה.</p>
+      <div className="mt-4 space-y-3">
+        {requests.map((seller) => (
+          <div key={seller.id} className="flex flex-col gap-3 rounded-2xl border border-primary/5 bg-[#FAFAF8] p-4 md:flex-row md:items-center">
+            <div className="min-w-0 flex-1 text-right">
+              <p className="font-black text-primary">{seller.first_name} {seller.last_name}</p>
+              <p className="text-[11px] font-bold text-muted-foreground" dir="ltr">{seller.email}</p>
+              <p className="mt-1 text-[11px] font-medium text-primary/60">
+                {seller.experience_years != null ? `${seller.experience_years} שנות ניסיון` : 'ניסיון לא צוין'}
+                {' · '}
+                {Array.isArray(seller.writing_samples) ? `${seller.writing_samples.length} דוגמאות כתיבה` : 'אין דוגמאות'}
+                {' · '}
+                {seller.certificate_url ? 'תעודה הועלתה' : 'ללא תעודה'}
+                {seller.stam_upgrade_requested_at ? ` · נשלח ${new Date(seller.stam_upgrade_requested_at).toLocaleDateString('he-IL')}` : ''}
+              </p>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <VerifyScribeDialog scribe={seller} db={db} />
+              <Button
+                onClick={() => handle(seller, true)}
+                disabled={busyId === seller.id}
+                className="h-9 rounded-full bg-emerald-500 px-5 text-[11px] font-black text-white hover:bg-emerald-600"
+              >
+                אשר שדרוג
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => handle(seller, false)}
+                disabled={busyId === seller.id}
+                className="h-9 rounded-full px-5 text-[11px] font-black text-destructive hover:bg-destructive/5"
+              >
+                דחה
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
     </Card>
   );
 }
@@ -1122,6 +1232,7 @@ function ScribeTable({ scribes, onApprove, onDelete, isLoading, orders, totalCou
                           {scribe.first_name} {scribe.last_name}
                           {scribe.is_approved && <CheckCircle2 className="w-3 h-3 text-emerald-500" />}
                         </p>
+                        <SellerTypeBadge seller={scribe} />
                         <p className="text-[8px] text-muted-foreground font-bold font-mono bg-muted/50 px-2 py-0.5 rounded w-fit">ID: {scribe.id?.slice(0, 12)}</p>
                       </div>
                     </div>
@@ -1145,9 +1256,13 @@ function ScribeTable({ scribes, onApprove, onDelete, isLoading, orders, totalCou
                       <VerifyScribeDialog scribe={scribe} db={db} />
                       <EditSellerDialog scribe={scribe} db={db} />
                       {!scribe.is_approved ? (
-                        <Button onClick={() => onApprove(scribe.id)} className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-full px-5 h-8 text-[9px] font-black uppercase tracking-widest">אשר סופר</Button>
+                        <Button onClick={() => onApprove(scribe.id)} className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-full px-5 h-8 text-[9px] font-black uppercase tracking-widest">
+                          {resolveSellerType(scribe.seller_type) === 'judaica_seller' ? 'אשר מוכר' : 'אשר סופר'}
+                        </Button>
                       ) : (
-                        <Badge className="bg-emerald-50 text-emerald-700 border-none px-4 py-1 text-[8px] font-black uppercase tracking-widest">סופר פעיל ומאומת</Badge>
+                        <Badge className="bg-emerald-50 text-emerald-700 border-none px-4 py-1 text-[8px] font-black uppercase tracking-widest">
+                          {resolveSellerType(scribe.seller_type) === 'judaica_seller' ? 'מוכר פעיל' : 'סופר פעיל ומאומת'}
+                        </Badge>
                       )}
                       <Button variant="ghost" size="icon" onClick={() => onDelete(scribe.id)} className="h-10 w-10 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive"><Trash2 className="w-3.5 h-3.5" /></Button>
                     </div>

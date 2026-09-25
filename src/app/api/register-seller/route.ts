@@ -2,6 +2,30 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
+// Fields a client must never set on a seller row. seller_type is decided below from the
+// requested type + the row's approval state; the upgrade fields only change via
+// /api/seller/request-stam-upgrade (seller) or the admin dashboard.
+const SERVER_ONLY_SELLER_FIELDS = [
+  'is_approved', 'welcome_email_sent', 'is_email_verified', 'recovery_source', 'sales_count',
+  'seller_type', 'requested_seller_type', 'stam_upgrade_status', 'stam_upgrade_requested_at',
+] as const;
+
+function stripServerOnlyFields<T extends Record<string, any>>(fields: T): Partial<T> {
+  const safe: Record<string, any> = { ...fields };
+  for (const key of SERVER_ONLY_SELLER_FIELDS) delete safe[key];
+  return safe as Partial<T>;
+}
+
+function normalizeRequestedSellerType(value: unknown): 'stam_scribe' | 'judaica_seller' {
+  return value === 'judaica_seller' ? 'judaica_seller' : 'stam_scribe';
+}
+
+// Pre-migration databases don't have seller_type yet — retry without it instead of failing
+// the whole registration (see docs/add-seller-types-migration.sql).
+function isMissingSellerTypeColumn(error: { message?: string } | null | undefined) {
+  return Boolean(error?.message?.includes('seller_type'));
+}
+
 export async function POST(req: Request) {
   try {
     const ip = getClientIp(req);
@@ -36,15 +60,11 @@ export async function POST(req: Request) {
 
       const normalizedEmail = String(email).trim().toLowerCase();
 
-      // Strip server-only fields so the client cannot forge them.
-      const {
-        is_approved: _ia,
-        welcome_email_sent: _wes,
-        is_email_verified: _iev,
-        recovery_source: _rs,
-        id: _id,
-        ...safeFields
-      } = sellerFields;
+      // Strip server-only fields so the client cannot forge them. A brand-new seller is
+      // always unapproved, so honouring the requested type is safe: an admin still has to
+      // approve the account before anything can be sold.
+      const requestedSellerType = normalizeRequestedSellerType(sellerFields.requested_seller_type);
+      const { id: _id, ...safeFields } = stripServerOnlyFields(sellerFields);
 
       const { data: createData, error: createError } =
         await serviceClient.auth.admin.createUser({
@@ -75,19 +95,21 @@ export async function POST(req: Request) {
 
       // Upsert the full seller profile.  The DB trigger already created a minimal
       // row; this call enriches it with all onboarding form data.
-      const { error: dbError } = await serviceClient
+      const newSellerRow = {
+        ...safeFields,
+        id: newUser.id,
+        email: newUser.email,
+        is_approved: false,
+        is_email_verified: true,
+        updated_at: new Date().toISOString(),
+      };
+      let { error: dbError } = await serviceClient
         .from('sellers')
-        .upsert(
-          {
-            ...safeFields,
-            id: newUser.id,
-            email: newUser.email,
-            is_approved: false,
-            is_email_verified: true,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: 'id' },
-        );
+        .upsert({ ...newSellerRow, seller_type: requestedSellerType }, { onConflict: 'id' });
+      if (isMissingSellerTypeColumn(dbError)) {
+        console.warn('[register-seller] seller_type column missing (migration not run), retrying without it');
+        ({ error: dbError } = await serviceClient.from('sellers').upsert(newSellerRow, { onConflict: 'id' }));
+      }
 
       if (dbError) {
         // Rollback: delete the auth user to leave no orphan behind.
@@ -143,24 +165,52 @@ export async function POST(req: Request) {
     });
 
     // Strip fields that must only be set server-side — never allow client to overwrite them.
-    const {
-      is_approved: _isApproved,
-      welcome_email_sent: _welcomeEmailSent,
-      is_email_verified: _isEmailVerified,
-      recovery_source: _recoverySource,
-      ...safeSellerData
-    } = sellerData;
+    const safeSellerData = stripServerOnlyFields(sellerData);
 
-    const basePayload = {
-      ...safeSellerData,
+    // The seller type may only be chosen while the account is still an unapproved applicant
+    // (customer→seller upgrade, or recovering an unfinished signup). An approved seller can
+    // never change type here — a Judaica seller becomes a scribe only via admin approval of
+    // an upgrade request.
+    const { data: existingSeller } = await serviceClient
+      .from('sellers')
+      .select('*')
+      .eq('id', user.id)
+      .maybeSingle();
+    const canChooseSellerType = !existingSeller || existingSeller.is_approved !== true;
+
+    // Automatic recovery calls (app-provider on sign-in/page load, dashboard fallback) rebuild
+    // the payload from sign-up-time auth metadata. Against an EXISTING row they must only fill
+    // in empty fields — never overwrite — or every later change (profile edits, a stam-upgrade
+    // request's certificate/samples) would be reverted on the next page load. Only the
+    // deliberate customer→seller upgrade from the onboarding form writes its values as given.
+    const isDeliberateSubmission = recoverySource === 'existing-customer-upgrade';
+    const isEmptyValue = (value: unknown) =>
+      value === null || value === undefined || value === '' || (Array.isArray(value) && value.length === 0);
+    const profileFields: Record<string, any> = existingSeller && !isDeliberateSubmission
+      ? Object.fromEntries(
+          Object.entries(safeSellerData).filter(([key]) => key !== 'id' && isEmptyValue((existingSeller as any)[key])),
+        )
+      : safeSellerData;
+
+    const basePayload: Record<string, any> = {
+      ...profileFields,
       id: user.id,
       email: user.email ?? safeSellerData.email,
       is_email_verified: isEmailVerified,
+      ...(canChooseSellerType && (!existingSeller || isDeliberateSubmission)
+        ? { seller_type: normalizeRequestedSellerType(sellerData.requested_seller_type) }
+        : {}),
     };
 
     let { error: dbError } = await serviceClient
       .from('sellers')
       .upsert(basePayload, { onConflict: 'id' });
+
+    if (isMissingSellerTypeColumn(dbError)) {
+      console.warn('[register-seller] seller_type column missing (migration not run), retrying without it');
+      delete basePayload.seller_type;
+      ({ error: dbError } = await serviceClient.from('sellers').upsert(basePayload, { onConflict: 'id' }));
+    }
 
     if (dbError?.message?.includes('is_email_verified')) {
       console.warn('[register-seller] is_email_verified column missing, retrying without it');

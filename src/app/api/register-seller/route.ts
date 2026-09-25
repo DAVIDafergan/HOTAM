@@ -151,8 +151,28 @@ export async function POST(req: Request) {
       ...safeSellerData
     } = sellerData;
 
+    // Automatic recovery calls (app-provider on sign-in/page load, dashboard fallback) rebuild
+    // the payload from sign-up-time auth metadata. Against an EXISTING row they must only fill
+    // in empty fields — never overwrite — or every later change (profile edits, uploaded
+    // certificate / writing samples, bank details) is reverted, or wiped to null for sellers
+    // whose auth metadata never held those fields (customer→seller upgrades, Google sign-ups).
+    // Only the deliberate customer→seller submission from the onboarding form writes as given.
+    const { data: existingSeller } = await serviceClient
+      .from('sellers')
+      .select('*')
+      .eq('id', user.id)
+      .maybeSingle();
+    const isDeliberateSubmission = recoverySource === 'existing-customer-upgrade';
+    const isEmptyValue = (value: unknown) =>
+      value === null || value === undefined || value === '' || (Array.isArray(value) && value.length === 0);
+    const profileFields: Record<string, any> = existingSeller && !isDeliberateSubmission
+      ? Object.fromEntries(
+          Object.entries(safeSellerData).filter(([key]) => key !== 'id' && isEmptyValue((existingSeller as any)[key])),
+        )
+      : safeSellerData;
+
     const basePayload = {
-      ...safeSellerData,
+      ...profileFields,
       id: user.id,
       email: user.email ?? safeSellerData.email,
       is_email_verified: isEmailVerified,
@@ -168,7 +188,7 @@ export async function POST(req: Request) {
         .from('sellers')
         .upsert(
           {
-            ...safeSellerData,
+            ...profileFields,
             id: user.id,
             email: user.email ?? safeSellerData.email,
           },

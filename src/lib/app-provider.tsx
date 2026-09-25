@@ -333,6 +333,13 @@ export const AppProvider: React.FC<ProviderProps> = ({ children, client }) => {
             shouldBeSeller,
           });
 
+          // Nothing to reconcile: the seller row exists and there's no stray customers row.
+          // (Re-sending sign-up metadata here used to overwrite later profile changes on every
+          // page load; the server now only fills empty fields, but skip the call entirely.)
+          if (sellerCount > 0 && customerCount === 0 && !window.localStorage.getItem('pendingSellerProfile')) {
+            return;
+          }
+
           if (!shouldBeSeller) {
             // One final check: if a customers row exists but auth metadata says
             // seller, the DB trigger misfired. Recover.

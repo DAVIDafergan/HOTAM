@@ -214,16 +214,11 @@ export async function POST(req: Request) {
 
     if (dbError?.message?.includes('is_email_verified')) {
       console.warn('[register-seller] is_email_verified column missing, retrying without it');
+      // Same payload minus is_email_verified — keeps the fill-only guard and seller_type rules.
+      const { is_email_verified: _isEmailVerified, ...retryPayload } = basePayload;
       const retry = await serviceClient
         .from('sellers')
-        .upsert(
-          {
-            ...safeSellerData,
-            id: user.id,
-            email: user.email ?? safeSellerData.email,
-          },
-          { onConflict: 'id' },
-        );
+        .upsert(retryPayload, { onConflict: 'id' });
       dbError = retry.error;
     }
 

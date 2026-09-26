@@ -35,9 +35,14 @@
 --      'stam_scribe'. Products are written straight through PostgREST (there
 --      is no app API route in between), so enforcing it in the database is
 --      what makes a direct API call unable to bypass the UI restriction.
---   5. RLS: a seller can no longer change their own seller_type or upgrade
---      status (only an admin / the service-role API can), and sales_count
---      stays frozen as before.
+--   5. RLS: re-creates sellers_own_update so a seller can no longer change
+--      their own seller_type / upgrade status, nor is_approved, sales_count,
+--      email, welcome_email_sent or created_at. NOTE: production's policy
+--      (checked 2026-09-27) was just `auth.uid() = id OR is_admin()` with no
+--      column restrictions — so this also CLOSES an existing hole where a
+--      seller could self-approve or forge sales_count via the REST API.
+--      No site code writes those columns from the browser (admin writes pass
+--      is_admin(); the rest go through service-role API routes).
 -- =============================================================================
 
 -- ── 1+2. sellers columns ──────────────────────────────────────────────────────

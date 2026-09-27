@@ -449,7 +449,9 @@ CREATE POLICY "customers_own_update" ON public.customers FOR UPDATE
 CREATE POLICY "customers_admin_all"  ON public.customers FOR ALL USING (public.is_admin());
 
 -- ── admins policies ───────────────────────────────────────────────────────────
-CREATE POLICY "admins_admin_read"  ON public.admins FOR SELECT USING (public.is_admin());
+-- Admins read the list; a user may read only their own row (admin detection).
+-- See docs/security-phase-a-migration.sql.
+CREATE POLICY "admins_self_read"   ON public.admins FOR SELECT USING (id = auth.uid() OR public.is_admin());
 CREATE POLICY "admins_own_write"   ON public.admins FOR ALL USING (public.is_admin());
 
 -- ── products policies ─────────────────────────────────────────────────────────
@@ -667,16 +669,9 @@ CREATE POLICY "messages_participant_insert" ON public.messages FOR INSERT
         AND auth.uid()::TEXT = ANY(chats.participants)
     )
   );
--- Allow the recipient (a chat participant who is not the sender) to mark is_read = true
-CREATE POLICY "messages_recipient_update_read" ON public.messages FOR UPDATE
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.chats
-      WHERE chats.id = messages.chat_id
-        AND auth.uid()::TEXT = ANY(chats.participants)
-        AND auth.uid()::TEXT != messages.sender_id
-    )
-  );
+-- NOTE: production has no UPDATE policy on messages (so the chat page's
+-- "mark as read" is a no-op there). A recipient-only is_read update needs a
+-- column guard (it must not allow editing text) — tracked for Phase B.
 CREATE POLICY "messages_admin_all"          ON public.messages FOR ALL USING (public.is_admin());
 
 -- ── profiles policies ─────────────────────────────────────────────────────────
@@ -687,23 +682,37 @@ CREATE POLICY "profiles_admin_all"    ON public.profiles FOR ALL USING (public.i
 
 -- ── reviews policies ──────────────────────────────────────────────────────────
 CREATE POLICY "Allow public read"  ON public.reviews FOR SELECT USING (true);
--- Any authenticated user can insert a review; buyer_id must match their uid.
-CREATE POLICY "reviews_any_user_insert" ON public.reviews FOR INSERT
-  WITH CHECK (auth.uid() IS NOT NULL AND auth.uid()::TEXT = buyer_id);
-CREATE POLICY "reviews_user_delete_own" ON public.reviews FOR DELETE
-  USING (auth.uid() IS NOT NULL AND auth.uid()::TEXT = buyer_id);
+-- Own name only; a review tied to an order must be the reviewer's own
+-- COMPLETED order with that seller (docs/security-phase-a-migration.sql).
+CREATE POLICY "reviews_buyer_insert" ON public.reviews FOR INSERT
+  WITH CHECK (
+    auth.uid()::text = buyer_id
+    AND (
+      order_id IS NULL
+      OR EXISTS (
+        SELECT 1 FROM public.orders o
+        WHERE o.id = reviews.order_id
+          AND o.buyer_id = auth.uid()::text
+          AND o.seller_id = reviews.seller_id
+          AND o.status = 'completed'
+      )
+    )
+  );
+CREATE POLICY "reviews_buyer_delete" ON public.reviews FOR DELETE
+  USING (auth.uid()::text = buyer_id);
 CREATE POLICY "reviews_admin_all"    ON public.reviews FOR ALL USING (public.is_admin());
 
 -- ── supermarket_reviews policies ──────────────────────────────────────────────
 CREATE POLICY "supermarket_reviews_public_read"  ON public.supermarket_reviews FOR SELECT USING (true);
-CREATE POLICY "supermarket_reviews_user_insert"  ON public.supermarket_reviews FOR INSERT
-  WITH CHECK (auth.uid() IS NOT NULL AND auth.uid()::TEXT = buyer_id);
+CREATE POLICY "supermarket_reviews_own_insert"  ON public.supermarket_reviews FOR INSERT
+  WITH CHECK (auth.uid()::text = buyer_id AND buyer_id <> supermarket_id);
 CREATE POLICY "supermarket_reviews_user_delete_own" ON public.supermarket_reviews FOR DELETE
   USING (auth.uid() IS NOT NULL AND auth.uid()::TEXT = buyer_id);
 CREATE POLICY "supermarket_reviews_admin_all"    ON public.supermarket_reviews FOR ALL USING (public.is_admin());
 
 -- ── reports policies ──────────────────────────────────────────────────────────
-CREATE POLICY "Allow public read"       ON public.reports FOR SELECT USING (true);
+CREATE POLICY "reports_reporter_read"   ON public.reports FOR SELECT
+  USING (auth.uid()::text = reporter_id OR public.is_admin());
 CREATE POLICY "reports_reporter_insert" ON public.reports FOR INSERT
   WITH CHECK (auth.uid()::TEXT = reporter_id);
 CREATE POLICY "reports_admin_all"       ON public.reports FOR ALL USING (public.is_admin());

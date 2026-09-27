@@ -98,7 +98,7 @@ import { TORAH_DELIVERY_TIME_OPTIONS } from '@/lib/torah-delivery-time';
 import { PLATFORM_WHATSAPP_NUMBER, PLATFORM_WHATSAPP_DISPLAY, SELLER_ORDER_COLUMNS } from '@/lib/constants';
 import { logEvent } from '@/lib/log-event';
 import {
-  groupJudaicaCategories, isJudaicaFieldVisible, STAM_PRODUCT_LABELS, STAM_PRODUCT_TYPES, seasonalBadgeLabel, shouldShowSeasonalBadge,
+  groupJudaicaCategories, isJudaicaFieldVisible, updateJudaicaAttributes, STAM_PRODUCT_LABELS, STAM_PRODUCT_TYPES, seasonalBadgeLabel, shouldShowSeasonalBadge,
   SELLER_TYPE_LABELS, findMissingJudaicaField, getJudaicaCategory, isStamProductType, normalizeJudaicaAttributes,
   resolveSellerType, type ProductAttributes,
 } from '@/lib/product-catalog';
@@ -2068,7 +2068,7 @@ function SellerDashboardContent() {
                       <JudaicaAttributeFields
                         category={getJudaicaCategory(formType)!}
                         values={formAttributes}
-                        onChange={(key, value) => setFormAttributes(prev => ({ ...prev, [key]: value }))}
+                        onChange={(key, value) => setFormAttributes(prev => updateJudaicaAttributes(getJudaicaCategory(formType)!, prev, key, value))}
                       />
                     ) : (
                     <>

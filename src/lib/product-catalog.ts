@@ -293,6 +293,18 @@ export function isJudaicaFieldVisible(field: JudaicaField, attributes: ProductAt
   return attributes?.[field.showIf.key] === field.showIf.equals;
 }
 
+/**
+ * Applies one form change and clears values of fields that the change just hid, so a hidden
+ * answer (e.g. a knot type after switching to "no threads") never comes back on its own.
+ */
+export function updateJudaicaAttributes(category: JudaicaCategory, attributes: ProductAttributes, key: string, value: string | string[] | boolean): ProductAttributes {
+  const next: ProductAttributes = { ...attributes, [key]: value };
+  for (const field of category.fields) {
+    if (!isJudaicaFieldVisible(field, next)) delete next[field.key];
+  }
+  return next;
+}
+
 /** Categories grouped under JUDAICA_SECTIONS, in display order. */
 export function groupJudaicaCategories(): { section: JudaicaSection; categories: JudaicaCategory[] }[] {
   return JUDAICA_SECTIONS.map((section) => ({ section, categories: JUDAICA_CATEGORIES.filter((c) => c.section === section) }));

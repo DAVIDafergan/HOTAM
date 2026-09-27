@@ -41,7 +41,8 @@ import {
   GraduationCap,
   CheckCircle2,
   LayoutGrid,
-  Rows3
+  Rows3,
+  X
 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useSupabaseClient, useCollection, useMemoStable } from '@/lib/supabase-hooks';
@@ -52,8 +53,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { JUDAICA_CATEGORIES, SEASONAL_BADGE_LABEL, isSeasonalCategory } from '@/lib/product-catalog';
-import { useOutOfSeason } from '@/hooks/use-out-of-season';
+import { JUDAICA_CATEGORIES, getProductGroup, seasonalBadgeLabel, shouldShowSeasonalBadge } from '@/lib/product-catalog';
+import { useActiveSeasons } from '@/hooks/use-active-seasons';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { TorahExpertBanner } from '@/components/TorahExpertBanner';
 import { CitySelect } from '@/components/CitySelect';
@@ -120,7 +121,10 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
 
   // Filter States
   const [selectedProduct, setSelectedProduct] = useState<ProductType>('');
-  const outOfSeason = useOutOfSeason();
+  // A category group from the homepage (?group=tallit|silver|kippah|holiday|high_holidays).
+  const [selectedGroupKey, setSelectedGroupKey] = useState('');
+  const selectedGroup = getProductGroup(selectedGroupKey);
+  const activeSeasons = useActiveSeasons();
   const [subType, setSubType] = useState('all');
   const [scriptType, setScriptType] = useState('all');
   const [qualityLevel, setQualityLevel] = useState('all');
@@ -234,6 +238,8 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
   useEffect(() => {
     const type = searchParams.get('product') as ProductType;
     setSelectedProduct(type || '');
+    const group = searchParams.get('group');
+    setSelectedGroupKey(getProductGroup(group) ? String(group) : '');
     
     const sub = searchParams.get('subtype');
     setSubType(sub || 'all');
@@ -329,7 +335,9 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
     if (!allProducts) return [];
     
     let results = allProducts.filter(p => {
-      const matchType = !selectedProduct || p.product_type === selectedProduct;
+      const matchType = selectedGroup
+        ? selectedGroup.types.includes(p.product_type)
+        : !selectedProduct || p.product_type === selectedProduct;
       const matchSub = subType === 'all' || p.sub_type === subType;
       const matchScript = scriptType === 'all' || p.script_type === scriptType;
       const matchQuality = qualityLevel === 'all' || p.script_level === qualityLevel;
@@ -415,7 +423,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
     }
 
     return results;
-  }, [activePriceRange, allProducts, certStatus, marriedOnly, mikvehFreq, qualityLevel, quantity, reviewTotalsByProduct, scriptType, scrollSize, selectedProduct, sellerById, shippingPreference, sortOrder, studyFreq, subType]);
+  }, [activePriceRange, allProducts, certStatus, marriedOnly, mikvehFreq, qualityLevel, quantity, reviewTotalsByProduct, scriptType, scrollSize, selectedGroup, selectedProduct, sellerById, shippingPreference, sortOrder, studyFreq, subType]);
 
   useEffect(() => {
     let cancelled = false;
@@ -531,7 +539,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
 
   const activeFiltersCount = useMemo(() => {
     let count = 0;
-    if (selectedProduct) count += 1;
+    if (selectedProduct || selectedGroup) count += 1;
     if (scriptType !== 'all') count += 1;
     if (scrollSize !== 'all') count += 1;
     if (selectedCity) count += 1;
@@ -552,6 +560,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
     priceRange,
     scriptType,
     scrollSize,
+    selectedGroup,
     selectedProduct,
     selectedCity,
     shippingPreference,
@@ -561,7 +570,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
 
   useEffect(() => {
     setVisibleCount(PRODUCTS_PAGE_SIZE);
-  }, [selectedProduct, subType, scriptType, qualityLevel, quantity, scrollSize,
+  }, [selectedGroupKey, selectedProduct, subType, scriptType, qualityLevel, quantity, scrollSize,
       selectedCity, shippingPreference, sortOrder, certStatus, studyFreq, marriedOnly,
       mikvehFreq, includeNearbyCities, detectedCity, priceRange]);
 
@@ -571,7 +580,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
   );
 
   const resetFilters = () => {
-    setSelectedProduct(''); setSubType('all'); setScriptType('all'); setQualityLevel('all');
+    setSelectedProduct(''); setSelectedGroupKey(''); setSubType('all'); setScriptType('all'); setQualityLevel('all');
     setQuantity(1); setScrollSize('all'); setSelectedCity(''); setUserCoords(null); setDetectedCity(null);
     setMarriedOnly(false); setMikvehFreq(''); setCertStatus(''); setStudyFreq('');
     setShippingPreference('all'); setSortOrder('newest');
@@ -602,7 +611,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
       </div>
 
       <FilterSection title="סוג מוצר" icon={<BookOpen className="w-3.5 h-3.5 text-accent" />} defaultOpen>
-        <RadioGroup value={selectedProduct} onValueChange={(value) => { setSelectedProduct(value as ProductType); setSubType('all'); }}>
+        <RadioGroup value={selectedProduct} onValueChange={(value) => { setSelectedProduct(value as ProductType); setSelectedGroupKey(''); setSubType('all'); }}>
           <div className="grid grid-cols-2 gap-3 pt-2">
             <WizardSmallCard value="מזוזה" selected={selectedProduct === 'מזוזה'} icon={<Scroll className="w-5 h-5" />} label="מזוזה" />
             <WizardSmallCard value="תפילין" selected={selectedProduct === 'תפילין'} icon={<Package className="w-5 h-5" />} label="תפילין" />
@@ -623,8 +632,8 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                 )}
               >
                 {category.value}
-                {outOfSeason && isSeasonalCategory(category.value) && (
-                  <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-800">{SEASONAL_BADGE_LABEL}</span>
+                {shouldShowSeasonalBadge(category.value, activeSeasons) && (
+                  <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-800">{seasonalBadgeLabel(category.value)}</span>
                 )}
                 <RadioGroupItem value={category.value} className="hidden" />
               </Label>
@@ -959,6 +968,19 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
               </div>
 
               <div className="mt-4 flex flex-wrap items-center justify-end gap-2.5">
+                {selectedGroup && (
+                  <div data-search-group-chip className="flex items-center gap-1 rounded-full bg-primary px-2 py-1 pr-4 text-[11px] font-black text-primary-foreground">
+                    {selectedGroup.label}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedGroupKey('')}
+                      aria-label={`הסרת הסינון ${selectedGroup.label}`}
+                      className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-white/15"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
                 {detectedCity && (
                   <div className="animate-in fade-in flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-[11px] font-black text-emerald-600">
                     <CheckCircle2 className="w-3.5 h-3.5" /> זיהינו: {detectedCity}
@@ -1009,8 +1031,17 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                       </div>
                     </div>
                     <div className="space-y-2 md:space-y-3 p-4 text-center bg-accent/10 rounded-md mx-auto max-w-md">
-                      <p className="text-2xl md:text-3xl font-headline font-black text-primary tracking-tight">לא נמצאה התאמה מדויקת</p>
-                       <p className="text-primary/60 max-w-sm mx-auto font-medium text-base md:text-lg leading-relaxed">נסו להסיר חלק מהמסננים או לאפס את החיפוש כדי לראות עוד אפשרויות קודש.</p>
+                      {selectedGroup ? (
+                        <>
+                          <p className="text-2xl md:text-3xl font-headline font-black text-primary tracking-tight">{selectedGroup.label} - בקרוב באתר</p>
+                          <p className="text-primary/60 max-w-sm mx-auto font-medium text-base md:text-lg leading-relaxed">מוכרים מצטרפים לחותם בימים אלה. בינתיים אפשר לראות את כל המוצרים באתר.</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-2xl md:text-3xl font-headline font-black text-primary tracking-tight">לא נמצאה התאמה מדויקת</p>
+                          <p className="text-primary/60 max-w-sm mx-auto font-medium text-base md:text-lg leading-relaxed">נסו להסיר חלק מהמסננים או לאפס את החיפוש כדי לראות עוד אפשרויות קודש.</p>
+                        </>
+                      )}
                     </div>
                     <Button variant="outline" onClick={resetFilters} className="rounded-full px-8 md:px-12 h-14 md:h-16 border-2 border-primary/10 text-primary font-black uppercase tracking-widest text-xs md:text-sm hover:bg-accent hover:border-accent hover:text-primary transition-all shadow-lg">
                       הצג את כל כלי הקודש באתר

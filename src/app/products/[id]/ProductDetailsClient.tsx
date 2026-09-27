@@ -62,7 +62,7 @@ import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import {
-  SEASONAL_BADGE_LABEL, describeJudaicaAttributes, getJudaicaCategory, isSeasonalCategory,
+  SEASONAL_BADGE_LABEL, describeJudaicaAttributes, getJudaicaCategory, isSeasonalCategory, resolveSellerType,
 } from '@/lib/product-catalog';
 
 const MIN_IMAGE_ZOOM_LEVEL = 1;
@@ -570,6 +570,9 @@ export function ProductDetailsClient({
   }));
   const sellerFullName = seller ? `${seller.first_name || ''} ${seller.last_name || ''}`.trim() : '';
   const judaicaCategory = getJudaicaCategory(product.product_type);
+  // Who's selling: a Judaica seller gets neutral wording (their type, or the product's kind
+  // when the seller row isn't available).
+  const isJudaicaSeller = seller ? resolveSellerType(seller.seller_type) === 'judaica_seller' : Boolean(judaicaCategory);
   const judaicaSpecRows = judaicaCategory ? describeJudaicaAttributes(judaicaCategory, product.attributes || {}) : [];
   const showSeasonalBadge = outOfSeason && isSeasonalCategory(product.product_type);
   const deliveryAreaText = (Array.isArray(product.delivery_area) ? product.delivery_area : [product.delivery_area])
@@ -860,7 +863,7 @@ export function ProductDetailsClient({
                     )}
                     <span className="flex items-center gap-1">
                       <Star className="h-3 w-3 fill-accent text-accent" />
-                      {sellerRating ? `${sellerRating.avg.toFixed(1)} (${sellerRating.count})` : 'סופר חדש'}
+                      {sellerRating ? `${sellerRating.avg.toFixed(1)} (${sellerRating.count})` : (isJudaicaSeller ? 'מוכר חדש' : 'סופר חדש')}
                     </span>
                   </div>
                 </div>
@@ -978,7 +981,7 @@ export function ProductDetailsClient({
                           </h2>
                           <div className="flex items-center justify-center sm:justify-start gap-3 flex-wrap">
                             {seller.is_approved && (
-                              <span className="text-[10px] font-black text-accent-strong uppercase tracking-widest">סופר מאומת</span>
+                              <span className="text-[10px] font-black text-accent-strong uppercase tracking-widest">{isJudaicaSeller ? 'מוכר מאושר' : 'סופר מאומת'}</span>
                             )}
                             <p className="text-muted-foreground text-sm font-bold flex items-center gap-1.5">
                               <MapPin className="w-3.5 h-3.5 text-accent" /> {sellerCity || 'לא צוין'}
@@ -988,13 +991,13 @@ export function ProductDetailsClient({
 
                         <blockquote className="border-r-2 border-accent/40 pr-4 py-0.5 text-center sm:text-right">
                           <p className="text-base sm:text-lg italic leading-relaxed text-primary/70">
-                            {seller.notes || 'סופר סת"ם מוסמך וירא שמיים, כותב בקדושה ובטהרה.'}
+                            {seller.notes || (isJudaicaSeller ? 'מוכר מוצרי יודאיקה באתר חותם.' : 'סופר סת"ם מוסמך וירא שמיים, כותב בקדושה ובטהרה.')}
                           </p>
                         </blockquote>
 
                         <div className="pt-2 flex justify-center sm:justify-start">
                           <Button asChild variant="outline" className="rounded-full border-2 border-primary text-primary hover:bg-accent hover:border-accent hover:text-primary font-black uppercase text-xs h-12 px-10 transition-all shadow-md">
-                            <Link href={`/sellers/${seller.id}`}>לפרופיל המלא ודוגמאות כתיבה <ArrowLeft className="w-4 h-4 mr-2" /></Link>
+                            <Link href={`/sellers/${seller.id}`}>{isJudaicaSeller ? 'לפרופיל המוכר' : 'לפרופיל המלא ודוגמאות כתיבה'} <ArrowLeft className="w-4 h-4 mr-2" /></Link>
                           </Button>
                         </div>
                       </div>
@@ -1002,7 +1005,7 @@ export function ProductDetailsClient({
                   </div>
                 ) : (
                   <p className="text-muted-foreground text-sm font-bold py-10 text-center md:text-right">
-                    פרטי הסופר אינם זמינים כרגע.
+                    {isJudaicaSeller ? 'פרטי המוכר אינם זמינים כרגע.' : 'פרטי הסופר אינם זמינים כרגע.'}
                   </p>
                 )}
               </div>

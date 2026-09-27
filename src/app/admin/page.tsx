@@ -113,6 +113,9 @@ export default function AdminDashboard() {
   // Pagination states
   const [pendingPage, setPendingPage] = useState(1);
   const [activePage, setActivePage] = useState(1);
+  // Judaica sellers are listed separately from סופרי סת"ם (own pages / totals).
+  const [pendingJudaicaPage, setPendingJudaicaPage] = useState(1);
+  const [judaicaPage, setJudaicaPage] = useState(1);
   const [customersPage, setCustomersPage] = useState(1);
   const [salesPage, setSalesPage] = useState(1);
   const [reportsPage, setReportsPage] = useState(1);
@@ -125,10 +128,14 @@ export default function AdminDashboard() {
   const [customerAuthCreatedAt, setCustomerAuthCreatedAt] = useState<Record<string, string>>({});
   const [pendingSellers, setPendingSellers] = useState<any[]>([]);
   const [activeSellers, setActiveSellers] = useState<any[]>([]);
+  const [pendingJudaica, setPendingJudaica] = useState<any[]>([]);
+  const [activeJudaica, setActiveJudaica] = useState<any[]>([]);
   const [customersData, setCustomersData] = useState<any[]>([]);
   const [sellerDirectory, setSellerDirectory] = useState<any[]>([]);
   const [pendingSellersTotal, setPendingSellersTotal] = useState(0);
   const [activeSellersTotal, setActiveSellersTotal] = useState(0);
+  const [pendingJudaicaTotal, setPendingJudaicaTotal] = useState(0);
+  const [activeJudaicaTotal, setActiveJudaicaTotal] = useState(0);
   const [customersTotal, setCustomersTotal] = useState(0);
   const [isSellersLoading, setIsSellersLoading] = useState(false);
   const [isCustomersLoading, setIsCustomersLoading] = useState(false);
@@ -158,24 +165,27 @@ export default function AdminDashboard() {
     canLoadData,
     pendingPage,
     activePage,
+    pendingJudaicaPage,
+    judaicaPage,
     sellersSearchTerm,
     refreshTick,
-  }), [canLoadData, pendingPage, activePage, sellersSearchTerm, refreshTick]);
+  }), [canLoadData, pendingPage, activePage, pendingJudaicaPage, judaicaPage, sellersSearchTerm, refreshTick]);
 
   useEffect(() => {
     if (!sellersQuery.canLoadData) {
       setPendingSellers([]);
       setActiveSellers([]);
+      setPendingJudaica([]);
+      setActiveJudaica([]);
       setPendingSellersTotal(0);
       setActiveSellersTotal(0);
+      setPendingJudaicaTotal(0);
+      setActiveJudaicaTotal(0);
       setIsSellersLoading(false);
       return;
     }
 
-    const pendingFrom = (sellersQuery.pendingPage - 1) * ITEMS_PER_PAGE;
-    const activeFrom = (sellersQuery.activePage - 1) * ITEMS_PER_PAGE;
-    const pendingTo = pendingFrom + ITEMS_PER_PAGE - 1;
-    const activeTo = activeFrom + ITEMS_PER_PAGE - 1;
+    const pageRange = (page: number) => [(page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE - 1] as const;
     const hasSearch = sellersQuery.sellersSearchTerm.length > 0;
     const searchPattern = `%${sellersQuery.sellersSearchTerm.replace(/[%_]/g, '').replace(/,/g, '')}%`;
     const isUuidSearch = /^[0-9a-fA-F-]{32,36}$/.test(sellersQuery.sellersSearchTerm);
@@ -190,11 +200,13 @@ export default function AdminDashboard() {
     setIsSellersLoading(true);
 
     (async () => {
-      const fetchSellerPage = async (isApproved: boolean, from: number, to: number) => {
+      const fetchSellerPage = async (isApproved: boolean, sellerType: 'stam_scribe' | 'judaica_seller', page: number) => {
+        const [from, to] = pageRange(page);
         let queryBuilder = db
           .from('sellers')
           .select('*', { count: 'exact' })
           .eq('is_approved', isApproved)
+          .eq('seller_type', sellerType)
           .order('created_at', { ascending: false })
           .range(from, to);
 
@@ -205,19 +217,30 @@ export default function AdminDashboard() {
         return queryBuilder;
       };
 
-      const [pendingRes, activeRes] = await Promise.all([
-        fetchSellerPage(false, pendingFrom, pendingTo),
-        fetchSellerPage(true, activeFrom, activeTo),
+      const [pendingRes, activeRes, pendingJudaicaRes, activeJudaicaRes] = await Promise.all([
+        fetchSellerPage(false, 'stam_scribe', sellersQuery.pendingPage),
+        fetchSellerPage(true, 'stam_scribe', sellersQuery.activePage),
+        fetchSellerPage(false, 'judaica_seller', sellersQuery.pendingJudaicaPage),
+        fetchSellerPage(true, 'judaica_seller', sellersQuery.judaicaPage),
       ]);
 
       if (cancelled) return;
+      const normalize = (rows: any[] | null) => (rows || []).map((s: any) => ({ ...s, id: String(s.id) }));
       if (!pendingRes.error) {
-        setPendingSellers((pendingRes.data || []).map((s: any) => ({ ...s, id: String(s.id) })));
+        setPendingSellers(normalize(pendingRes.data));
         setPendingSellersTotal(pendingRes.count || 0);
       }
       if (!activeRes.error) {
-        setActiveSellers((activeRes.data || []).map((s: any) => ({ ...s, id: String(s.id) })));
+        setActiveSellers(normalize(activeRes.data));
         setActiveSellersTotal(activeRes.count || 0);
+      }
+      if (!pendingJudaicaRes.error) {
+        setPendingJudaica(normalize(pendingJudaicaRes.data));
+        setPendingJudaicaTotal(pendingJudaicaRes.count || 0);
+      }
+      if (!activeJudaicaRes.error) {
+        setActiveJudaica(normalize(activeJudaicaRes.data));
+        setActiveJudaicaTotal(activeJudaicaRes.count || 0);
       }
       setIsSellersLoading(false);
     })();
@@ -258,6 +281,7 @@ export default function AdminDashboard() {
       return;
     }
     setStamUpgradeRequests(prev => prev.filter((s) => s.id !== seller.id));
+    setRefreshTick(t => t + 1);
     toast({ variant: 'success', title: approve ? 'השדרוג אושר — המוכר הוא כעת סופר סת"ם' : 'בקשת השדרוג נדחתה' });
 
     if (seller.email) {
@@ -646,9 +670,15 @@ export default function AdminDashboard() {
       });
     }
 
-    setActiveTab('active');
+    const approvedType = resolveSellerType(
+      [...pendingSellers, ...pendingJudaica].find((sel: any) => sel.id === id)?.seller_type,
+    );
+    setActiveTab(approvedType === 'judaica_seller' ? 'judaica' : 'active');
     setSearchTerm('');
-    setActivePage(1);
+    if (approvedType === 'judaica_seller') setJudaicaPage(1); else setActivePage(1);
+    // Reload the lists now — don't rely on the realtime event arriving (if it's late or
+    // missed, the approved seller wouldn't show up in its new tab until a page refresh).
+    setRefreshTick(t => t + 1);
     toast({ variant: "success", title: "המוכר אושר והועבר לרשימת המוכרים הפעילים" });
   };
 
@@ -713,7 +743,7 @@ export default function AdminDashboard() {
   // Counts shown as badges on the nav so open work is visible from any tab.
   const newInquiriesCount = (allInquiries || []).filter((m: any) => (m.status || 'new') === 'new').length;
   const tabBadges: Record<string, number> = {
-    pending: pendingSellersTotal + stamUpgradeRequests.length,
+    pending: pendingSellersTotal + pendingJudaicaTotal + stamUpgradeRequests.length,
     inquiries: newInquiriesCount,
     reports: (allReports || []).length,
   };
@@ -730,7 +760,8 @@ export default function AdminDashboard() {
       label: 'ניהול משתמשים',
       items: [
         { id: 'pending', label: 'ממתינים לאישור', icon: <Clock className="w-4 h-4" /> },
-        { id: 'active', label: 'סופרים פעילים', icon: <CheckCircle2 className="w-4 h-4" /> },
+        { id: 'active', label: 'סופרי סת"ם', icon: <CheckCircle2 className="w-4 h-4" /> },
+        { id: 'judaica', label: 'מוכרי יודאיקה', icon: <ShoppingBag className="w-4 h-4" /> },
         { id: 'customers', label: 'לקוחות', icon: <UserRound className="w-4 h-4" /> },
       ],
     },
@@ -1008,16 +1039,36 @@ export default function AdminDashboard() {
             {stamUpgradeRequests.length > 0 && (
               <StamUpgradeRequests requests={stamUpgradeRequests} db={db} onResolve={resolveStamUpgrade} />
             )}
-            <ScribeTable
-              scribes={filteredSellersPending} 
-              onApprove={approveScribe} 
-              onDelete={deleteScribe} 
-              isLoading={isSellersLoading} 
-              orders={visibleOrders} 
-              totalCount={pendingSellersTotal}
-              page={pendingPage}
-              setPage={setPendingPage}
-            />
+            <div className="space-y-10">
+              <section dir="rtl" data-admin-pending-section="stam_scribe" className="space-y-3">
+                <h2 className="px-1 text-base font-black text-primary">סופרי סת"ם ממתינים לאישור ({pendingSellersTotal})</h2>
+                <ScribeTable
+                  scribes={filteredSellersPending}
+                  onApprove={approveScribe}
+                  onDelete={deleteScribe}
+                  isLoading={isSellersLoading}
+                  orders={visibleOrders}
+                  totalCount={pendingSellersTotal}
+                  page={pendingPage}
+                  setPage={setPendingPage}
+                  sellerKind="stam_scribe"
+                />
+              </section>
+              <section dir="rtl" data-admin-pending-section="judaica_seller" className="space-y-3">
+                <h2 className="px-1 text-base font-black text-primary">מוכרי יודאיקה ממתינים לאישור ({pendingJudaicaTotal})</h2>
+                <ScribeTable
+                  scribes={pendingJudaica}
+                  onApprove={approveScribe}
+                  onDelete={deleteScribe}
+                  isLoading={isSellersLoading}
+                  orders={visibleOrders}
+                  totalCount={pendingJudaicaTotal}
+                  page={pendingJudaicaPage}
+                  setPage={setPendingJudaicaPage}
+                  sellerKind="judaica_seller"
+                />
+              </section>
+            </div>
           </TabsContent>
 
           <TabsContent value="active">
@@ -1030,6 +1081,21 @@ export default function AdminDashboard() {
               totalCount={activeSellersTotal}
               page={activePage}
               setPage={setActivePage}
+              sellerKind="stam_scribe"
+            />
+          </TabsContent>
+
+          <TabsContent value="judaica">
+            <ScribeTable
+              scribes={activeJudaica}
+              onApprove={approveScribe}
+              onDelete={deleteScribe}
+              isLoading={isSellersLoading}
+              orders={visibleOrders}
+              totalCount={activeJudaicaTotal}
+              page={judaicaPage}
+              setPage={setJudaicaPage}
+              sellerKind="judaica_seller"
             />
           </TabsContent>
 
@@ -1177,7 +1243,8 @@ function StamUpgradeRequests({ requests, db, onResolve }: { requests: any[]; db:
   );
 }
 
-function ScribeTable({ scribes, onApprove, onDelete, isLoading, orders, totalCount, page, setPage }: any) {
+function ScribeTable({ scribes, onApprove, onDelete, isLoading, orders, totalCount, page, setPage, sellerKind = 'stam_scribe' }: any) {
+  const isJudaicaList = sellerKind === 'judaica_seller';
   const db = useSupabaseClient();
   const logoImg = PlaceHolderImages.find(img => img.id === 'site-logo')?.imageUrl || 'https://picsum.photos/seed/hotam-logo/400/400';
 
@@ -1186,7 +1253,7 @@ function ScribeTable({ scribes, onApprove, onDelete, isLoading, orders, totalCou
   if (isLoading) return <div className="flex justify-center p-24"><Loader2 className="w-10 h-10 animate-spin text-primary/30" /></div>;
   if (!scribes || scribes.length === 0) return (
     <Card className="p-24 text-center bg-white rounded-[3rem] shadow-premium text-muted-foreground border-2 border-dashed border-muted italic">
-      אין סופרים להצגה.
+      {isJudaicaList ? 'אין מוכרי יודאיקה להצגה.' : 'אין סופרים להצגה.'}
     </Card>
   );
 
@@ -1196,9 +1263,9 @@ function ScribeTable({ scribes, onApprove, onDelete, isLoading, orders, totalCou
         <Table>
           <TableHeader className="bg-muted/30">
             <TableRow className="hover:bg-transparent border-none">
-              <TableHead className="text-right font-black text-[10px] uppercase py-6 px-8">סופר / מזהה אישי</TableHead>
+              <TableHead className="text-right font-black text-[10px] uppercase py-6 px-8">{isJudaicaList ? 'מוכר / מזהה אישי' : 'סופר / מזהה אישי'}</TableHead>
               <TableHead className="text-right font-black text-[10px] uppercase py-6">מיקום</TableHead>
-              <TableHead className="text-right font-black text-[10px] uppercase py-6">חוב לסופר (החודש)</TableHead>
+              <TableHead className="text-right font-black text-[10px] uppercase py-6">{isJudaicaList ? 'חוב למוכר (החודש)' : 'חוב לסופר (החודש)'}</TableHead>
               <TableHead className="text-right font-black text-[10px] uppercase py-6">תאריך הצטרפות</TableHead>
               <TableHead className="text-right font-black text-[10px] uppercase py-6">סטטוס הסמכה</TableHead>
               <TableHead className="text-left font-black text-[10px] uppercase py-6 px-8">ניהול</TableHead>
@@ -1247,9 +1314,13 @@ function ScribeTable({ scribes, onApprove, onDelete, isLoading, orders, totalCou
                     {scribeCreatedAt ? scribeCreatedAt.toLocaleDateString('he-IL') : '-'}
                   </TableCell>
                   <TableCell>
+                    {isJudaicaList ? (
+                      <span className="text-[10px] font-bold text-muted-foreground">לא רלוונטי</span>
+                    ) : (
                     <Badge variant="outline" className={cn("text-[8px] font-black uppercase px-2 py-0.5 rounded-full", scribe.has_scribe_certificate === 'valid' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-orange-50 text-orange-600 border-orange-200')}>
                       {certLabels[scribe.has_scribe_certificate] || scribe.has_scribe_certificate || 'לא צוין'}
                     </Badge>
+                    )}
                   </TableCell>
                   <TableCell className="px-8">
                     <div className="flex items-center gap-2 justify-end">

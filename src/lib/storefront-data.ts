@@ -53,7 +53,9 @@ const PUBLIC_SELLER_FIELDS = [
   'profile_image',
   'is_approved',
   'created_at',
+  'seller_type',
 ].join(', ');
+const PUBLIC_SELLER_FIELDS_LEGACY = PUBLIC_SELLER_FIELDS.replace(', seller_type', '');
 
 // Neither the reviews nor supermarket_reviews table has user_name/updated_at
 // columns (confirmed against docs/supabase-schema.sql and a live PostgREST
@@ -136,11 +138,16 @@ export const getPublicSellerById = cache(async (id: string): Promise<any | null>
     const client = getPublicSupabaseClient();
     if (!client) return null;
 
-    const { data, error } = await client
+    let { data, error } = await client
       .from('sellers')
       .select(PUBLIC_SELLER_FIELDS as any)
       .eq('id', id)
       .maybeSingle();
+    // Retry without seller_type on any error (column missing, or not granted to anon) so the
+    // page still renders — worst case with default wording, never a 404.
+    if (error) {
+      ({ data, error } = await client.from('sellers').select(PUBLIC_SELLER_FIELDS_LEGACY as any).eq('id', id).maybeSingle());
+    }
 
     if (error || !data) return null;
     return data as any;

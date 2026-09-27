@@ -798,7 +798,7 @@ export default function SellerOnboarding() {
           toast({
             variant: 'destructive',
             title: 'האימייל כבר קיים במערכת',
-            description: 'אם שכחת סיסמה, בצע איפוס סיסמה והתחבר. אם זה חשבון לקוח קיים, התחבר עם אותו מייל ואז השלם הרשמה כסופר.',
+            description: `אם שכחת סיסמה, בצע איפוס סיסמה והתחבר. אם זה חשבון לקוח קיים, התחבר עם אותו מייל ואז השלם הרשמה ${sellerType === 'judaica_seller' ? 'כמוכר' : 'כסופר'}.`,
           });
           setLoading(false);
           return;

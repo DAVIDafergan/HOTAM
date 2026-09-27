@@ -42,6 +42,7 @@ export type AdminOverviewData = {
   counts: {
     products?: number;
     activeSellers?: number;
+    activeJudaicaSellers?: number;
     pendingSellers?: number;
     customers?: number;
     openInquiries?: number;
@@ -63,7 +64,7 @@ export type AdminOverviewData = {
 };
 
 /** Target tabs of the admin page the overview links into. */
-export type AdminTabId = 'pending' | 'inquiries' | 'reports' | 'chats' | 'sales' | 'active' | 'customers';
+export type AdminTabId = 'pending' | 'inquiries' | 'reports' | 'chats' | 'sales' | 'active' | 'judaica' | 'customers';
 
 function formatDuration(ms: number) {
   const minutes = Math.round(ms / 60000);
@@ -101,7 +102,7 @@ function useAdminOverviewData(): AdminOverviewData {
     // ── Counts, 30-day sales and order-status breakdown ──
     Promise.all([
       db.from('products').select('id', head),
-      db.from('sellers').select('id', head).eq('is_approved', true),
+      db.from('sellers').select('id', head).eq('is_approved', true).eq('seller_type', 'stam_scribe'),
       db.from('sellers').select('id', head).eq('is_approved', false),
       db.from('customers').select('id', head),
       db.from('orders').select('amount, created_at, status').gte('created_at', since30d),
@@ -110,7 +111,8 @@ function useAdminOverviewData(): AdminOverviewData {
       db.from('chats').select('id', head).eq('is_suspicious', true),
       db.from('orders').select('id', head).eq('status', 'paid'),
       db.from('sellers').select('id', head).eq('stam_upgrade_status', 'pending'),
-    ]).then(([products, activeSellers, pendingSellers, customers, orders, inquiries, reports, flaggedChats, awaitingDelivery, stamUpgrades]) => {
+      db.from('sellers').select('id', head).eq('is_approved', true).eq('seller_type', 'judaica_seller'),
+    ]).then(([products, activeSellers, pendingSellers, customers, orders, inquiries, reports, flaggedChats, awaitingDelivery, stamUpgrades, activeJudaica]) => {
       const orderRows = orders.data || [];
       const paidRows = orderRows.filter((o: any) => PAID_ORDER_STATUSES.includes(o.status));
 
@@ -127,6 +129,7 @@ function useAdminOverviewData(): AdminOverviewData {
       setCounts({
         products: products.count ?? 0,
         activeSellers: activeSellers.count ?? 0,
+        activeJudaicaSellers: activeJudaica.error ? 0 : (activeJudaica.count ?? 0),
         pendingSellers: pendingSellers.count ?? 0,
         customers: customers.count ?? 0,
         openInquiries: inquiries.count ?? 0,
@@ -354,7 +357,7 @@ type ActionItem = { key: string; count: number; label: string; icon: ReactNode; 
 function ActionCenter({ counts, onNavigate }: { counts: AdminOverviewData['counts']; onNavigate?: (tab: AdminTabId) => void }) {
   const loaded = counts.pendingSellers !== undefined;
   const items: ActionItem[] = [
-    { key: 'pendingSellers', count: counts.pendingSellers ?? 0, label: 'סופרים ממתינים לאישור', icon: <Clock className="h-5 w-5" />, tab: 'pending', tone: 'accent' },
+    { key: 'pendingSellers', count: counts.pendingSellers ?? 0, label: 'מוכרים ממתינים לאישור', icon: <Clock className="h-5 w-5" />, tab: 'pending', tone: 'accent' },
     { key: 'stamUpgrades', count: counts.stamUpgrades ?? 0, label: 'בקשות שדרוג לסופר סת"ם', icon: <ShieldCheck className="h-5 w-5" />, tab: 'pending', tone: 'accent' },
     { key: 'awaitingDelivery', count: counts.awaitingDelivery ?? 0, label: 'מכירות ממתינות למסירה', icon: <Truck className="h-5 w-5" />, tab: 'sales', tone: 'accent' },
     { key: 'openInquiries', count: counts.openInquiries ?? 0, label: 'פניות חדשות', icon: <Inbox className="h-5 w-5" />, tab: 'inquiries', tone: 'warn' },
@@ -534,8 +537,9 @@ export function AdminOverviewView({
 
       <section>
         <SectionTitle>האתר</SectionTitle>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <StatPill icon={<UserCheck className="h-4 w-4" />} label="סופרים פעילים" value={dash(counts.activeSellers)} />
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+          <StatPill icon={<UserCheck className="h-4 w-4" />} label='סופרי סת"ם פעילים' value={dash(counts.activeSellers)} />
+          <StatPill icon={<ShoppingBag className="h-4 w-4" />} label="מוכרי יודאיקה פעילים" value={dash(counts.activeJudaicaSellers)} />
           <StatPill icon={<Users className="h-4 w-4" />} label="לקוחות רשומים" value={dash(counts.customers)} />
           <StatPill icon={<Package className="h-4 w-4" />} label="מוצרים באתר" value={dash(counts.products)} />
           <StatPill icon={<Eye className="h-4 w-4" />} label="צפיות במוצרים (7 ימים)" value={dash(data.viewCount7d)} />

@@ -43,6 +43,7 @@ import {
   UserRound,
   Clock,
   Award,
+  Store,
   ShieldCheck,
   Banknote,
   ShoppingBag,
@@ -328,6 +329,33 @@ function SellerDashboardContent() {
   const [megHeight, setMegHeight] = useState('');
   
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+
+  // A Judaica seller saves only the fields that apply to them (no halachic profile).
+  const JUDAICA_PROFILE_FIELDS = [
+    'first_name', 'last_name', 'phone', 'city', 'address', 'profile_image', 'notes',
+    'notification_email', 'notification_sms', 'notification_voice',
+  ] as const;
+
+  // Awaited, with a real error: an empty number used to be sent as '' into an INTEGER
+  // column, the whole update failed silently, and the "saved" toast still showed.
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    setIsSavingProfile(true);
+    const source: Record<string, any> = isStamSeller
+      ? { ...profileData }
+      : Object.fromEntries(JUDAICA_PROFILE_FIELDS.map((key) => [key, (profileData as any)[key]]));
+    for (const key of ['age', 'experience_years']) {
+      if (key in source) source[key] = source[key] === '' || source[key] == null ? null : Number(source[key]);
+    }
+    const { error } = await supabase.from('sellers').update(source).eq('id', user.uid);
+    setIsSavingProfile(false);
+    if (error) {
+      console.error('[seller-profile] save failed:', error.message);
+      toast({ variant: 'destructive', title: 'שמירת הפרופיל נכשלה', description: 'אנא נסה שוב.' });
+      return;
+    }
+    toast({ variant: 'success', title: 'הפרופיל עודכן' });
+  };
   const [isDeleteAccountDialogOpen, setIsDeleteAccountDialogOpen] = useState(false);
   const [deleteAccountReason, setDeleteAccountReason] = useState('');
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
@@ -1224,12 +1252,12 @@ function SellerDashboardContent() {
               </SheetTrigger>
               <SheetContent side="right" className="w-[280px] p-0 border-none bg-white rounded-l-[2.5rem]">
                 <SheetHeader className="sr-only">
-                  <SheetTitle>תפריט ניהול סופר</SheetTitle>
+                  <SheetTitle>{isStamSeller ? 'תפריט ניהול סופר' : 'תפריט ניהול החנות'}</SheetTitle>
                   <SheetDescription>מעבר בין מלאי, מכירות, הודעות והגדרות חשבון</SheetDescription>
                 </SheetHeader>
                 <div className="bg-gradient-to-b from-primary to-primary/80 p-8 text-white">
                   <h2 className="text-white font-headline font-black text-xl flex items-center gap-3">
-                    <LayoutDashboard className="w-5 h-5 text-accent" /> ניהול סופר
+                    <LayoutDashboard className="w-5 h-5 text-accent" /> {isStamSeller ? 'ניהול סופר' : 'ניהול החנות'}
                   </h2>
                   <p className="text-white/50 text-xs font-bold mt-1">{seller?.first_name} {seller?.last_name}</p>
                 </div>
@@ -1299,7 +1327,7 @@ function SellerDashboardContent() {
                    const orderProductName =
                      (typeof o.product_name === 'string' && o.product_name.trim()) ||
                      productTypeById.get(o.product_id) ||
-                     'מוצר קודש';
+                     (isStamSeller ? 'מוצר קודש' : 'מוצר');
                    return (
                      <Card key={o.id} className={cn("border-none shadow-premium rounded-[2rem] bg-white overflow-hidden text-right transition-all", isExpanded ? "ring-2 ring-primary/10" : "hover:shadow-lg")}>
                        <div 
@@ -1400,7 +1428,7 @@ function SellerDashboardContent() {
                                     </div>
                                     <div className="flex items-center gap-4">
                                        <div className="text-right">
-                                          <p className="text-[9px] font-black text-muted-foreground uppercase leading-none">הכנסה נטו לסופר (לאחר עמלת אתר):</p>
+                                          <p className="text-[9px] font-black text-muted-foreground uppercase leading-none">{isStamSeller ? 'הכנסה נטו לסופר (לאחר עמלת אתר):' : 'הכנסה נטו למוכר (לאחר עמלת אתר):'}</p>
                                           <p className="text-xl font-black text-emerald-600">₪{resolveSellerNet(o).toFixed(0)}</p>
                                        </div>
                                     </div>
@@ -1462,7 +1490,7 @@ function SellerDashboardContent() {
                           <div className="flex items-start gap-2 bg-destructive/5 p-3 rounded-xl border border-destructive/10">
                             <ShieldAlert className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
                             <p className="text-[9px] font-black text-destructive leading-tight">
-                              אזהרת אבטחה: חובה להעלות תמונת פנים של הסופר בלבד. כל ניסיון להעלות תמונה שאינה של בעל החשבון יביא לחסימה מיידית.
+                              אזהרת אבטחה: חובה להעלות תמונת פנים {isStamSeller ? 'של הסופר' : 'של בעל החשבון'} בלבד. כל ניסיון להעלות תמונה שאינה של בעל החשבון יביא לחסימה מיידית.
                             </p>
                           </div>
                         </div>
@@ -1516,7 +1544,7 @@ function SellerDashboardContent() {
                         </div>
                         <div className="grid md:grid-cols-2 gap-4">
                           <div className="space-y-2"><Label>טלפון *</Label><Input type="tel" inputMode="tel" autoComplete="tel" value={profileData.phone} onChange={e => setProfileData({...profileData, phone: e.target.value})} className="text-slate-900 rounded-xl h-12" dir="ltr" /></div>
-                          <div className="space-y-2"><Label>גיל *</Label><Input type="number" min={0} value={profileData.age === '' ? '' : String(profileData.age)} onChange={e => setProfileData({...profileData, age: e.target.value === '' ? '' : Number(e.target.value)})} className="text-slate-900 rounded-xl h-12" /></div>
+                          {isStamSeller && (<div className="space-y-2"><Label>גיל *</Label><Input type="number" min={0} value={profileData.age === '' ? '' : String(profileData.age)} onChange={e => setProfileData({...profileData, age: e.target.value === '' ? '' : Number(e.target.value)})} className="text-slate-900 rounded-xl h-12" /></div>)}
                         </div>
                         <div className="grid md:grid-cols-2 gap-4">
                           <div className="space-y-2"><Label>עיר *</Label><Input ref={sellerCityInputRef} value={profileData.city} onChange={e => setProfileData({...profileData, city: e.target.value})} className="text-slate-900 rounded-xl h-12" /></div>
@@ -1524,6 +1552,9 @@ function SellerDashboardContent() {
                         </div>
                       </div>
 
+                      {/* Scribe-only (halachic verification) fields; a Judaica seller sees only what applies to them. */}
+                      {isStamSeller ? (
+                      <>
                       <div className="pt-8 border-t space-y-8">
                         <h3 className="text-lg font-black text-primary flex items-center gap-2"><Scroll className="w-5 h-5 text-accent" /> פרטי הסופר</h3>
                         <div className="space-y-4 text-right">
@@ -1749,6 +1780,21 @@ function SellerDashboardContent() {
                           <input type="file" ref={writingSamplesInputRef} onChange={handleWritingSamplesUpload} className="hidden" multiple accept="image/*" />
                         </div>
                       </div>
+                      </>
+                      ) : (
+                      <div className="pt-8 border-t space-y-4" data-judaica-profile-section>
+                        <h3 className="text-lg font-black text-primary flex items-center gap-2"><Store className="w-5 h-5 text-accent" /> על העסק</h3>
+                        <div className="space-y-2 text-right">
+                          <Label className="font-bold">ספר בקצרה על העסק והמוצרים שלך (מוצג בדף המוכר)</Label>
+                          <Textarea
+                            value={profileData.notes}
+                            onChange={e => setProfileData({ ...profileData, notes: e.target.value })}
+                            placeholder="למשל: חנות יודאיקה משפחתית בבני ברק, טליתות וחנוכיות בעבודת יד..."
+                            className="min-h-[120px] rounded-2xl"
+                          />
+                        </div>
+                      </div>
+                      )}
 
                       <div className="pt-8 border-t space-y-8">
                          <div className="flex items-center justify-between">
@@ -1783,11 +1829,7 @@ function SellerDashboardContent() {
                 
                 <div className="pt-10 flex justify-end">
                    <Button 
-                    onClick={() => { 
-                      setIsSavingProfile(true); 
-                      updateDocumentNonBlocking(sellerRef!, profileData); 
-                      setTimeout(() => { setIsSavingProfile(false); toast({ variant: "success", title: "הפרופיל עודכן" }); }, 800); 
-                    }} 
+                    onClick={handleSaveProfile} 
                     className="rounded-full px-16 h-14 bg-accent text-primary font-black shadow-xl hover:bg-accent/90 transition-all"
                     disabled={isSavingProfile}
                    >
@@ -1856,7 +1898,7 @@ function SellerDashboardContent() {
               <DialogHeader>
                 <DialogTitle className="text-xl font-headline font-black flex items-center gap-3">
                   <ClipboardList className="w-6 h-6 text-accent" />
-                  {editingProduct ? 'עדכון מלאכת קודש' : 'פרסום מוצר חדש'}
+                  {editingProduct ? (productKind === 'judaica' ? 'עדכון מוצר' : 'עדכון מלאכת קודש') : 'פרסום מוצר חדש'}
                 </DialogTitle>
                 <p className="text-[10px] text-white/50 font-bold uppercase tracking-widest mt-1">
                   שלב {formStep} מתוך {totalFormSteps}
@@ -1920,7 +1962,7 @@ function SellerDashboardContent() {
                              }
                            }}>
                             <SelectTrigger className="h-14 rounded-2xl border-2 border-primary/5 bg-slate-50/50 focus:border-primary/20 text-right font-bold transition-all">
-                              <SelectValue placeholder="בחר סוג כלי קודש..." />
+                              <SelectValue placeholder={productKind === 'judaica' ? 'בחר קטגוריה...' : 'בחר סוג כלי קודש...'} />
                             </SelectTrigger>
                             <SelectContent className="rounded-2xl shadow-2xl">
                               {productKind === 'judaica'
@@ -2007,7 +2049,7 @@ function SellerDashboardContent() {
                         <Textarea 
                           value={formDescription} 
                           onChange={e => setFormDescription(e.target.value)} 
-                          placeholder="פרט על איכות הקלף, הדיו או רמת הכתיבה..."
+                          placeholder={productKind === 'judaica' ? 'פרט על החומרים, המידות, הגימור ומה כלול במוצר...' : 'פרט על איכות הקלף, הדיו או רמת הכתיבה...'}
                           className="rounded-2xl border-2 border-primary/5 bg-slate-50/50 min-h-[120px] text-sm font-medium" 
                         />
                       </div>
@@ -2300,7 +2342,7 @@ function SellerDashboardContent() {
                     <div className="bg-primary/5 p-8 rounded-[2.5rem] border-2 border-dashed border-primary/10 text-center space-y-5">
                        <div className="space-y-2">
                           <Label className="text-xs font-black uppercase text-primary tracking-widest block">צילומי המוצר (עד 6) *</Label>
-                          <p className="text-[10px] font-bold text-primary/40 leading-relaxed">חובה להעלות צילום תקריב של הכתב וצילום כללי של המוצר</p>
+                          <p className="text-[10px] font-bold text-primary/40 leading-relaxed">{productKind === 'judaica' ? 'חובה להעלות צילום ברור של המוצר, רצוי מכמה זוויות' : 'חובה להעלות צילום תקריב של הכתב וצילום כללי של המוצר'}</p>
                        </div>
 
                        <div className="grid grid-cols-3 gap-3">
@@ -2350,9 +2392,11 @@ function SellerDashboardContent() {
                     <div className="p-5 bg-orange-50/50 rounded-2xl border border-orange-100 flex items-start gap-4">
                        <ShieldAlert className="w-6 h-6 text-orange-600 shrink-0" />
                        <div className="space-y-1">
-                          <p className="text-[11px] font-black text-orange-900 leading-none">הצהרת כשרות ואחריות</p>
+                          <p className="text-[11px] font-black text-orange-900 leading-none">{productKind === 'judaica' ? 'הצהרת אחריות' : 'הצהרת כשרות ואחריות'}</p>
                           <p className="text-[10px] font-medium text-orange-800/70 leading-relaxed">
-                            בלחיצה על פרסום, הנך מצהיר כי כלי הקודש נכתב בהתאם לכל כללי ההלכה, בטהרה, ועל קלף כשר כחוק.
+                            {productKind === 'judaica'
+                              ? 'בלחיצה על פרסום, הנך מצהיר כי פרטי המוצר ותמונותיו מדויקים ונכונים, וכי הינך רשאי למכור אותו.'
+                              : 'בלחיצה על פרסום, הנך מצהיר כי כלי הקודש נכתב בהתאם לכל כללי ההלכה, בטהרה, ועל קלף כשר כחוק.'}
                           </p>
                        </div>
                     </div>

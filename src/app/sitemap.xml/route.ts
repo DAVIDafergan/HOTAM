@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { fromPublicView } from '@/lib/public-views';
 
 // Regenerate at most once an hour instead of being cached indefinitely
 // (Route Handlers with no explicit revalidation can otherwise be frozen
@@ -62,10 +63,8 @@ export async function GET() {
     if (supabaseUrl && supabaseAnonKey) {
       const client = createClient(supabaseUrl, supabaseAnonKey);
 
-      const { data: sellers } = await client
-        .from('sellers')
-        .select('id, profile_image, updated_at, created_at')
-        .eq('is_approved', true);
+      const { data: sellers } = await fromPublicView<any[]>(client, 'sellers_public', (from) =>
+        from.select('id, profile_image, updated_at, created_at').eq('is_approved', true));
       const approvedSellers = sellers || [];
       const approvedIds = approvedSellers.map((s: any) => s.id);
 

@@ -2,6 +2,7 @@
 "use client";
 
 import { Navbar } from '@/components/Navbar';
+import { fromPublicView } from '@/lib/public-views';
 import { SellerProfileSkeleton } from '@/components/SellerProfileSkeleton';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -136,7 +137,7 @@ export default function SellerProfile({
       // Scribe rating = profile-page ratings + post-purchase scribe ratings (reviews with
       // an order_id) — same definition as getPublicSellerReviews and the homepage card.
       const [sellerResult, productsResult, reviewsResult, orderReviewsResult] = await Promise.all([
-        supabase.from('sellers').select(PUBLIC_SELLER_PROFILE_COLUMNS).eq('id', id).maybeSingle(),
+        fromPublicView(supabase, 'sellers_public', (from) => from.select(PUBLIC_SELLER_PROFILE_COLUMNS).eq('id', id).maybeSingle()),
         supabase.from('products').select('*').eq('seller_id', id),
         supabase.from('supermarket_reviews').select('*, profiles(full_name, avatar_url)').eq('supermarket_id', id),
         supabase

@@ -11,6 +11,7 @@ SELECT
   s.profile_image,
   s.is_approved,
   s.created_at,
+  s.updated_at,
   s.seller_type,
   s.script_types,
   s.script_level,

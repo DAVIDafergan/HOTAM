@@ -4,6 +4,15 @@ import { useState, useEffect, useRef } from 'react';
 import { errorEmitter } from '@/lib/error-emitter';
 import { DatabasePermissionError } from '@/lib/errors';
 import { applyFilters, transformRow, type SupabaseQuery } from '@/lib/supabase-compat';
+import { PUBLIC_VIEW_BASE_TABLE, isMissingRelationError } from '@/lib/public-views';
+
+/** Runs a read against `table`; a public view that doesn't exist yet falls back to its base table. */
+async function withViewFallback(table: string, run: (table: string) => PromiseLike<any>) {
+  const first = await run(table);
+  const base = PUBLIC_VIEW_BASE_TABLE[table];
+  if (base && isMissingRelationError(first?.error)) return run(base);
+  return first;
+}
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 /** Utility type to add an 'id' field to a given type T. */
@@ -41,11 +50,8 @@ export function useCollectionCount(
 
     const fetchCount = async () => {
       try {
-        const builder = applyFilters(
-          queryRef.current!.client.from(queryRef.current!.table).select('*', { count: 'exact', head: true }),
-          queryRef.current!,
-        );
-        const { count: rowCount, error } = await (builder as any);
+        const { count: rowCount, error } = await withViewFallback(queryRef.current!.table, (table) =>
+          applyFilters(queryRef.current!.client.from(table).select('id', { count: 'exact', head: true }), queryRef.current!) as any);
 
         if (!isMounted) return;
         if (error) throw error;
@@ -125,11 +131,8 @@ export function useCollection<T = any>(
 
     const fetchData = async () => {
       try {
-        const builder = applyFilters(
-          queryRef.current!.client.from(queryRef.current!.table).select(queryRef.current!.columns ?? '*'),
-          queryRef.current!,
-        );
-        const { data: rows, error: qError } = await (builder as any);
+        const { data: rows, error: qError } = await withViewFallback(queryRef.current!.table, (table) =>
+          applyFilters(queryRef.current!.client.from(table).select(queryRef.current!.columns ?? '*'), queryRef.current!) as any);
 
         if (!isMounted) return;
         if (qError) throw qError;

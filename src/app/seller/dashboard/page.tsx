@@ -2586,7 +2586,7 @@ function Pagination({ current, total, onChange }: { current: number, total: numb
 
 function SellerChatListItem({ chat, otherUserId, userId }: any) {
   const db = useSupabaseClient();
-  const otherUserRef = useMemoStable(() => (db && otherUserId) ? doc(db, 'customers', otherUserId) : null, [db, otherUserId]);
+  const otherUserRef = useMemoStable(() => (db && otherUserId) ? doc(db, 'customers_public', otherUserId) : null, [db, otherUserId]);
   const { data: otherUser } = useDoc<any>(otherUserRef);
   const isUnread = chat[`unread_${userId}`] === true;
 

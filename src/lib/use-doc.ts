@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { errorEmitter } from '@/lib/error-emitter';
 import { DatabasePermissionError } from '@/lib/errors';
 import { transformRow, type SupabaseDocRef } from '@/lib/supabase-compat';
+import { PUBLIC_VIEW_BASE_TABLE, isMissingRelationError } from '@/lib/public-views';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 /** Utility type to add an 'id' field to a given type T. */
@@ -43,7 +44,23 @@ const SAFE_CLIENT_FIELDS: Record<string, string> = {
     'notification_voice',
     'seller_type',
     'stam_upgrade_status',
+    // Own row only (other people's sellers rows are read via sellers_public): the dashboard's
+    // read-only "פרטי עסק וחשבון" section.
+    'business_type',
+    'business_id',
+    'business_name',
+    'bank_name',
+    'bank_branch',
+    'bank_account_number',
   ].join(', '),
+  // Other people's rows (security Phase B views) — safe columns only.
+  sellers_public: [
+    'id', 'first_name', 'last_name', 'city', 'notes', 'profile_image', 'is_approved', 'created_at',
+    'seller_type', 'script_types', 'script_level', 'experience_years', 'writing_samples',
+    'torah_study_frequency', 'mikveh_frequency', 'has_scribe_certificate', 'certificate_url',
+    'marital_status', 'sales_count',
+  ].join(', '),
+  customers_public: ['id', 'first_name', 'last_name'].join(', '),
   customers: [
     'id',
     'first_name',
@@ -115,7 +132,7 @@ export function useDoc<T = any>(
 
     const fetchData = async () => {
       try {
-        const table = docRefRef.current!.table;
+        let table = docRefRef.current!.table;
         const fields = SAFE_CLIENT_FIELDS[table] || '*';
         const readRow = (columns: string) => docRefRef.current!.client
           .from(table)
@@ -123,6 +140,11 @@ export function useDoc<T = any>(
           .eq('id', docRefRef.current!.id)
           .maybeSingle();
         let { data: row, error: qError } = await readRow(fields);
+        // A public view that doesn't exist yet (before the Phase B migration): read its base table.
+        if (PUBLIC_VIEW_BASE_TABLE[table] && isMissingRelationError(qError)) {
+          table = PUBLIC_VIEW_BASE_TABLE[table];
+          ({ data: row, error: qError } = await readRow(fields));
+        }
         if (qError?.code === UNDEFINED_COLUMN_CODE && table === 'sellers') {
           const legacyFields = fields.split(', ').filter((f) => !POST_MIGRATION_SELLER_FIELDS.includes(f)).join(', ');
           ({ data: row, error: qError } = await readRow(legacyFields));

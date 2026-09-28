@@ -153,13 +153,15 @@ export const getPublicSellerById = cache(async (id: string): Promise<any | null>
     const client = getPublicSupabaseClient();
     if (!client) return null;
 
-    let { data, error } = await fromPublicView(client, 'sellers_public', (from) =>
-      from.select(PUBLIC_SELLER_FIELDS as any).eq('id', id).maybeSingle());
+    // The view already derives the city; the base table (before the Phase B migration) needs the
+    // address for that, and withoutAddress() below keeps it on the server either way.
+    const read = (fields: string) => fromPublicView(client, 'sellers_public', (from, name) =>
+      from.select((name === 'sellers_public' ? fields : `${fields}, address`) as any).eq('id', id).maybeSingle());
+    let { data, error } = await read(PUBLIC_SELLER_FIELDS);
     // Retry without seller_type on any error (column missing, or not granted to anon) so the
     // page still renders — worst case with default wording, never a 404.
     if (error) {
-      ({ data, error } = await fromPublicView(client, 'sellers_public', (from) =>
-        from.select(PUBLIC_SELLER_FIELDS_LEGACY as any).eq('id', id).maybeSingle()));
+      ({ data, error } = await read(PUBLIC_SELLER_FIELDS_LEGACY));
     }
 
     if (error || !data) return null;
@@ -329,20 +331,6 @@ const serviceSupabaseClient =
     : null;
 
 const TOP_SCRIBES_RPC_FALLBACK_LIMIT = 200;
-
-/** City for a card: the city field, else the part after the last comma of the address. */
-function publicCity(row: { city?: string | null; address?: string | null }): string | null {
-  const city = String(row.city || '').trim();
-  if (city) return city;
-  const address = String(row.address || '');
-  return address.includes(',') ? address.split(',').pop()!.trim() || null : null;
-}
-
-/** Card data never carries the street address (it used to reach the browser only to extract the city). */
-const withoutAddress = (row: any) => {
-  const { address: _address, ...rest } = row;
-  return { ...rest, city: publicCity(row) };
-};
 
 /**
  * Fetch every approved scribe for the homepage, best sellers first (then rating,

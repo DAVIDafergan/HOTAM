@@ -22,14 +22,15 @@ type Result<T> = { data: T | null; error: any; count?: number | null };
 
 /**
  * Runs `build` against a public view, retrying against its base table if the view is missing.
- * `build` receives `client.from(<name>)` and returns the finished query.
+ * `build` receives `client.from(<name>)` and the name it's reading (view or base table).
  */
 export async function fromPublicView<T = any>(
   client: any,
   view: keyof typeof PUBLIC_VIEW_BASE_TABLE,
-  build: (from: any) => PromiseLike<Result<T>>,
+  build: (from: any, name: string) => PromiseLike<Result<T>>,
 ): Promise<Result<T>> {
-  const first = await build(client.from(view));
+  const first = await build(client.from(view), view);
   if (!isMissingRelationError(first.error)) return first;
-  return build(client.from(PUBLIC_VIEW_BASE_TABLE[view]));
+  const base = PUBLIC_VIEW_BASE_TABLE[view];
+  return build(client.from(base), base);
 }

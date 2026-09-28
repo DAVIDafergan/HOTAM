@@ -34,6 +34,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useUser, useApp, useSupabaseClient, useDoc, useMemoStable, useCollection, updateDocumentNonBlocking } from '@/lib/supabase-hooks';
 import { doc, collection, query, where, documentId } from '@/lib/supabase-compat';
+import { ORDER_CLIENT_COLUMNS } from '@/lib/constants';
 import { supabase } from '@/lib/supabase';
 import { ProductCard } from '@/components/ProductCard';
 import { useToast } from '@/hooks/use-toast';
@@ -173,19 +174,29 @@ export default function CustomerDashboard() {
       return;
     }
     setIsOrdersLoading(true);
-    supabase
-      .from('orders')
-      .select('*')
-      .eq('buyer_id', user.uid)
-      .then(({ data, error }) => {
-        if (error) {
-          console.error(error);
-          toast({ title: "שגיאה בטעינת ההזמנות", variant: "destructive" });
-        } else {
-          setOrders((data || []).filter((order: any) => order.status !== 'pending_payment'));
-        }
-        setIsOrdersLoading(false);
-      });
+    (async () => {
+      // The delivery code isn't a readable column (security Phase B): the buyer gets their own
+      // codes from my_order_codes(). Before that migration runs, read the column directly.
+      const [{ data, error }, codesRes] = await Promise.all([
+        supabase.from('orders').select(ORDER_CLIENT_COLUMNS).eq('buyer_id', user.uid),
+        supabase.rpc('my_order_codes'),
+      ]);
+      let codeRows: any[] | null = codesRes.error ? null : (codesRes.data as any[]);
+      if (!codeRows) {
+        const legacy = await supabase.from('orders').select('id, verification_code').eq('buyer_id', user.uid);
+        codeRows = (legacy.data || []).map((r: any) => ({ order_id: r.id, verification_code: r.verification_code }));
+      }
+      const codeByOrder = new Map((codeRows || []).map((r: any) => [String(r.order_id), r.verification_code]));
+      if (error) {
+        console.error(error);
+        toast({ title: "שגיאה בטעינת ההזמנות", variant: "destructive" });
+      } else {
+        setOrders(((data as any[]) || [])
+          .filter((order: any) => order.status !== 'pending_payment')
+          .map((order: any) => ({ ...order, verification_code: codeByOrder.get(String(order.id)) ?? null })));
+      }
+      setIsOrdersLoading(false);
+    })();
   }, [user?.uid]);
 
   useEffect(() => {
@@ -771,7 +782,7 @@ export default function CustomerDashboard() {
 
 function CustomerChatListItem({ chat, otherUserId, currentUserId }: any) {
   const db = useSupabaseClient();
-  const { data: otherUser } = useDoc<any>(doc(db, 'sellers', otherUserId));
+  const { data: otherUser } = useDoc<any>(doc(db, 'sellers_public', otherUserId));
   const isUnread = chat?.unread_state?.[currentUserId] === true;
   return (
     <Link href={`/chat/${otherUserId}`}>

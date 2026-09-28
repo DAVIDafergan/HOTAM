@@ -28,3 +28,8 @@ export const SELLER_ORDER_COLUMNS = [
   'verified_by_seller', 'is_seen_by_seller', 'buyer_name', 'buyer_phone', 'buyer_email',
   'buyer_address', 'paid_at', 'invoice_generated', 'payment_provider', 'created_at', 'updated_at',
 ].join(', ');
+
+// Same list for any browser read of orders (buyer, admin): after security Phase B the
+// database only lets the browser read these columns. The buyer's own codes come from
+// the my_order_codes() function.
+export const ORDER_CLIENT_COLUMNS = SELLER_ORDER_COLUMNS;

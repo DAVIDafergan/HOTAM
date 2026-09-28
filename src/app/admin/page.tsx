@@ -67,7 +67,8 @@ import {
   useDoc, 
   useMemoStable
 } from '@/lib/supabase-hooks';
-import { collection, query, doc, orderBy, where, limit } from '@/lib/supabase-compat';
+import { collection, query, doc, orderBy, where, limit, selectColumns } from '@/lib/supabase-compat';
+import { ORDER_CLIENT_COLUMNS } from '@/lib/constants';
 import Image from '@/components/SmartImage';
 import { 
   Dialog, 
@@ -424,7 +425,7 @@ export default function AdminDashboard() {
 
   const ordersQuery = useMemoStable(() => {
     if (!canLoadData) return null;
-    return query(collection(db, 'orders'), orderBy('created_at', 'desc'), limit(1000));
+    return query(collection(db, 'orders'), orderBy('created_at', 'desc'), limit(1000), selectColumns(ORDER_CLIENT_COLUMNS));
   }, [db, canLoadData]);
   const { data: allOrders } = useCollection<any>(ordersQuery);
   const visibleOrders = useMemo(

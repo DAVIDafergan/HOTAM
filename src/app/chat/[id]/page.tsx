@@ -227,8 +227,8 @@ function ChatContent() {
     if (!user) return;
     const fetchMyProfile = async () => {
       const [{ data: seller }, { data: customer }] = await Promise.all([
-        supabase.from('sellers').select('first_name, last_name').eq('id', user.uid).single(),
-        supabase.from('customers').select('first_name, last_name').eq('id', user.uid).single(),
+        supabase.from('sellers').select('first_name, last_name').eq('id', user.uid).maybeSingle(),
+        supabase.from('customers').select('first_name, last_name').eq('id', user.uid).maybeSingle(),
       ]);
       if (seller) setMyProfile(seller);
       else if (customer) setMyProfile(customer);

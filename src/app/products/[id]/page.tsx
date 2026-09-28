@@ -73,7 +73,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description = `${description.slice(0, MAX_DESCRIPTION_LENGTH - 1).trimEnd()}…`;
     }
 
-    let imageUrl = 'https://github.com/user-attachments/assets/c225c666-5c35-4add-86d2-ed2454e6f368';
+    let imageUrl = 'https://www.hotam.shop/og-image-v2.jpg';
     if (Array.isArray(fields.images) && fields.images.length > 0) {
       imageUrl = fields.images[0];
     }

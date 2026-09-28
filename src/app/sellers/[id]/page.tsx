@@ -4,7 +4,7 @@ import SellerProfileClient from './SellerProfileClient';
 import { resolveSellerType } from '@/lib/product-catalog';
 import { getPublicSellerById, getPublicSellerPageData } from '@/lib/storefront-data';
 
-const DEFAULT_OG_IMAGE = 'https://github.com/user-attachments/assets/c225c666-5c35-4add-86d2-ed2454e6f368';
+const DEFAULT_OG_IMAGE = 'https://www.hotam.shop/og-image-v2.jpg';
 
 // Without this, notFound() renders the correct not-found content but Vercel
 // keeps serving it with a 200 status (confirmed live) — this route isn't a

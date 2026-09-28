@@ -145,7 +145,7 @@ function CategoryTile({ group, products }: { group: ProductGroup & { key: TileKe
         <Link href={groupHref(group.key)} aria-label={group.label} className="absolute inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-3 p-5 md:p-6">
           {products.length > 0 && (
-            <span className="text-[11px] font-black tracking-[0.18em] text-[#E2B35B]">{products.length} מוצרים באתר</span>
+            <span className="text-[11px] font-black tracking-[0.18em] text-[#E2B35B]">{products.length === 1 ? 'מוצר אחד באתר' : `${products.length} מוצרים באתר`}</span>
           )}
           <div className="flex items-end justify-between gap-3">
             <h3 className="font-headline text-[1.9rem] font-black leading-none text-white md:text-[2.2rem]">{group.label}</h3>

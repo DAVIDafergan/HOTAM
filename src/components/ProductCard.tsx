@@ -9,9 +9,9 @@ import { useApp, useSupabaseClient, setDocumentNonBlocking } from '@/lib/supabas
 import { doc, arrayUnion, arrayRemove } from '@/lib/supabase-compat';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { useOutOfSeason } from '@/hooks/use-out-of-season';
+import { useActiveSeasons } from '@/hooks/use-active-seasons';
 import {
-  SEASONAL_BADGE_LABEL, describeJudaicaAttributes, getJudaicaCategory, isSeasonalCategory,
+  describeJudaicaAttributes, getJudaicaCategory, seasonalBadgeLabel, shouldShowSeasonalBadge,
 } from '@/lib/product-catalog';
 
 export type ProductCardViewMode = 'grid' | 'list';
@@ -94,8 +94,8 @@ export function ProductCard({
         product.proofreading_level ? `הגהה ${product.proofreading_level}` : null,
         product.parchment_size ? `${product.parchment_size} ס״מ` : null,
       ]).filter(Boolean) as string[];
-  const outOfSeason = useOutOfSeason();
-  const showSeasonalBadge = outOfSeason && isSeasonalCategory(product.product_type);
+  const activeSeasons = useActiveSeasons();
+  const showSeasonalBadge = shouldShowSeasonalBadge(product.product_type, activeSeasons);
 
   const prefetchProductPage = () => {
     router.prefetch(productHref);
@@ -222,7 +222,7 @@ export function ProductCard({
               </span>
               {showSeasonalBadge && (
                 <span className="max-w-full truncate rounded-full bg-amber-100/95 px-2.5 py-1 text-[10px] font-bold text-amber-800">
-                  {SEASONAL_BADGE_LABEL}
+                  {seasonalBadgeLabel(product.product_type)}
                 </span>
               )}
             </div>

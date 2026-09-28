@@ -2,6 +2,7 @@ import 'server-only';
 
 import { cache } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import { JUDAICA_PRODUCT_TYPES } from '@/lib/product-catalog';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -263,6 +264,48 @@ export const getHomeProducts = cache(async (limit: number): Promise<any[]> => {
   } catch (error) {
     console.error('[storefront] home products fetch error:', error);
     return [];
+  }
+});
+
+const JUDAICA_HOME_SCAN_LIMIT = 300;
+
+/**
+ * Homepage Judaica data in one query: in-stock counts per Judaica category (seasonal banners
+ * show only when their category has stock) and the newest in-stock products, sellers attached
+ * the same way as getHomeProducts. Products of sellers that aren't approved are left out.
+ */
+export const getJudaicaHomeData = cache(async (): Promise<{ counts: Record<string, number>; products: any[] }> => {
+  const empty = { counts: {}, products: [] };
+  try {
+    const client = getPublicSupabaseClient();
+    if (!client) return empty;
+
+    const { data, error } = await client
+      .from('products')
+      .select('*')
+      .in('product_type', JUDAICA_PRODUCT_TYPES)
+      .gt('quantity', 0)
+      .order('created_at', { ascending: false })
+      .limit(JUDAICA_HOME_SCAN_LIMIT);
+    if (error || !data || data.length === 0) return empty;
+
+    const sellerIds = Array.from(new Set((data as any[]).map((p) => p.seller_id).filter(Boolean)));
+    const { data: sellers, error: sellersError } = await client
+      .from('sellers')
+      .select('id, first_name, last_name, profile_image, city, is_approved')
+      .in('id', sellerIds);
+    if (sellersError) console.error('[storefront] judaica sellers fetch error:', sellersError.message);
+    const sellerById = new Map((sellers || []).map((s: any) => [s.id, s]));
+
+    const products = (data as any[])
+      .map((p) => ({ ...p, seller: sellerById.get(p.seller_id) ?? null }))
+      .filter((p) => p.seller?.is_approved !== false);
+    const counts: Record<string, number> = {};
+    for (const p of products) counts[p.product_type] = (counts[p.product_type] || 0) + 1;
+    return { counts, products };
+  } catch (error) {
+    console.error('[storefront] judaica home data fetch error:', error);
+    return empty;
   }
 });
 

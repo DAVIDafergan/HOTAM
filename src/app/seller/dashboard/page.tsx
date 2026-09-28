@@ -84,7 +84,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
-import { useOutOfSeason } from '@/hooks/use-out-of-season';
+import { useActiveSeasons } from '@/hooks/use-active-seasons';
 import { getCommissionRate, getSellerPayoutRate, resolveSellerNet } from '@/lib/commission';
 import { cleanupImageAssetsViaApi, isHeicFile, uploadImageViaApi } from '@/lib/image-upload';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -98,9 +98,9 @@ import { TORAH_DELIVERY_TIME_OPTIONS } from '@/lib/torah-delivery-time';
 import { PLATFORM_WHATSAPP_NUMBER, PLATFORM_WHATSAPP_DISPLAY, SELLER_ORDER_COLUMNS } from '@/lib/constants';
 import { logEvent } from '@/lib/log-event';
 import {
-  JUDAICA_CATEGORIES, SEASONAL_BADGE_LABEL, STAM_PRODUCT_LABELS, STAM_PRODUCT_TYPES,
+  JUDAICA_CATEGORIES, STAM_PRODUCT_LABELS, STAM_PRODUCT_TYPES, seasonalBadgeLabel, shouldShowSeasonalBadge,
   SELLER_TYPE_LABELS, findMissingJudaicaField, getJudaicaCategory, isStamProductType, normalizeJudaicaAttributes,
-  resolveSellerType, isSeasonalCategory, type ProductAttributes,
+  resolveSellerType, type ProductAttributes,
 } from '@/lib/product-catalog';
 
 const PRODUCT_SUBTYPES: Record<string, string[]> = {
@@ -305,7 +305,7 @@ function SellerDashboardContent() {
   // 'stam' | 'judaica' — a סופר סת"ם picks which kind of product first; a Judaica seller is
   // always 'judaica' (scribal categories aren't offered at all).
   const [productKind, setProductKind] = useState<'stam' | 'judaica' | null>(null);
-  const outOfSeason = useOutOfSeason();
+  const activeSeasons = useActiveSeasons();
   const [formAttributes, setFormAttributes] = useState<ProductAttributes>({});
   const [formType, setFormType] = useState('');
   const [formSubType, setFormSubType] = useState('');
@@ -1969,8 +1969,8 @@ function SellerDashboardContent() {
                                 ? JUDAICA_CATEGORIES.map((category) => (
                                     <SelectItem key={category.value} value={category.value} className="font-bold py-3">
                                       {category.value}
-                                      {outOfSeason && isSeasonalCategory(category.value) && (
-                                        <span className="mr-2 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">{SEASONAL_BADGE_LABEL}</span>
+                                      {shouldShowSeasonalBadge(category.value, activeSeasons) && (
+                                        <span className="mr-2 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">{seasonalBadgeLabel(category.value)}</span>
                                       )}
                                     </SelectItem>
                                   ))

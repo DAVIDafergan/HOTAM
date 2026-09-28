@@ -53,7 +53,7 @@ import { useToast } from '@/hooks/use-toast';
 import { logEvent } from '@/lib/log-event';
 import unsplashLoader from '@/lib/unsplashLoader';
 import { cn } from '@/lib/utils';
-import { useOutOfSeason } from '@/hooks/use-out-of-season';
+import { useActiveSeasons } from '@/hooks/use-active-seasons';
 import { getTorahDeliveryTimeLabel } from '@/lib/torah-delivery-time';
 import { PROFILE_NOT_FOUND_CODE } from '@/lib/supabase-errors';
 import { Textarea } from '@/components/ui/textarea';
@@ -62,7 +62,7 @@ import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import {
-  SEASONAL_BADGE_LABEL, describeJudaicaAttributes, getJudaicaCategory, isSeasonalCategory, resolveSellerType,
+  describeJudaicaAttributes, getJudaicaCategory, resolveSellerType, seasonalBadgeLabel, shouldShowSeasonalBadge,
 } from '@/lib/product-catalog';
 
 const MIN_IMAGE_ZOOM_LEVEL = 1;
@@ -125,7 +125,7 @@ export function ProductDetailsClient({
   const pathname = usePathname();
   const { toast } = useToast();
   const [selectedImageIdx, setSelectedImageIdx] = useState(0);
-  const outOfSeason = useOutOfSeason();
+  const activeSeasons = useActiveSeasons();
   const [detailsTab, setDetailsTab] = useState('specs');
   const detailsSectionRef = useRef<HTMLDivElement | null>(null);
   const openDetailsTab = (tab: string) => {
@@ -574,7 +574,7 @@ export function ProductDetailsClient({
   // when the seller row isn't available).
   const isJudaicaSeller = seller ? resolveSellerType(seller.seller_type) === 'judaica_seller' : Boolean(judaicaCategory);
   const judaicaSpecRows = judaicaCategory ? describeJudaicaAttributes(judaicaCategory, product.attributes || {}) : [];
-  const showSeasonalBadge = outOfSeason && isSeasonalCategory(product.product_type);
+  const showSeasonalBadge = shouldShowSeasonalBadge(product.product_type, activeSeasons);
   const deliveryAreaText = (Array.isArray(product.delivery_area) ? product.delivery_area : [product.delivery_area])
     .filter(Boolean)
     .join(', ');
@@ -715,7 +715,7 @@ export function ProductDetailsClient({
                 )}
                 {showSeasonalBadge && (
                   <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800 font-bold text-[11px] py-1 px-3 rounded-full whitespace-nowrap">
-                    {SEASONAL_BADGE_LABEL}
+                    {seasonalBadgeLabel(product.product_type)}
                   </Badge>
                 )}
                 {isInStock ? (

@@ -15,6 +15,8 @@ import { ScrollFadeIn } from '@/components/ScrollFadeIn';
 import { StaggerGrid, StaggerItem } from '@/components/StaggerGrid';
 import { MotionTap } from '@/components/MotionTap';
 import SignatureInkAnimation from '@/components/SignatureInkAnimationLoader';
+import { HomeJudaicaSection, HomeJudaicaProductsSection } from '@/components/HomeJudaicaSection';
+import { getSeasonalShortcut } from '@/lib/product-catalog';
 
 // The route no longer touches cookies() anywhere in its render tree (product/scribe data is
 // fetched with the public anon client in storefront-data.ts; the one per-user bit — whether to
@@ -52,9 +54,13 @@ export default function Home() {
       <main>
         <h1 className="sr-only">חותם - זירת המסחר המובילה לכלי קודש וסת''ם מהודרים</h1>
 
-        <HeroAnimation />
+        <HeroAnimation seasonalShortcut={getSeasonalShortcut()} />
+
+        <HomeJudaicaSection />
 
         <HomeProductsCarousel />
+
+        <HomeJudaicaProductsSection />
 
         <WorkFlow />
 

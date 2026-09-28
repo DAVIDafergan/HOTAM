@@ -52,7 +52,7 @@ export type JudaicaCategory = {
   /** Variants stored in products.sub_type (required pick when present). */
   subtypes?: string[];
   fields: JudaicaField[];
-  seasonal?: 'sukkot';
+  seasonal?: SeasonKey;
   /** Fixed notice shown in the form and on the product page — not editable by the seller. */
   notice?: { text: string; linkLabel: string; href: string };
 };
@@ -94,6 +94,7 @@ export const JUDAICA_CATEGORIES: JudaicaCategory[] = [
   },
   {
     value: 'חנוכיה',
+    seasonal: 'hanukkah',
     fields: [
       { key: 'material', label: 'חומר', type: 'select', options: ['כסף', 'פליז', 'נחושת', 'עץ', 'זכוכית'], required: true },
       { key: 'style', label: 'סגנון', type: 'select', options: ['קלאסי', 'מודרני', 'מסורתי', 'לילדים'], required: true },
@@ -113,6 +114,7 @@ export const JUDAICA_CATEGORIES: JudaicaCategory[] = [
   },
   {
     value: 'שופר',
+    seasonal: 'rosh_hashana',
     fields: [
       { key: 'kind', label: 'סוג', type: 'select', options: ['איל', 'קודו (תימני)', 'אחר'], required: true },
       { key: 'length', label: 'אורך (ס"מ)', type: 'text', placeholder: 'למשל: 30-35', required: true },
@@ -211,29 +213,135 @@ export function describeJudaicaAttributes(category: JudaicaCategory, attributes:
 }
 
 // ── Seasonality ──────────────────────────────────────────────────────────────
-// ארבעת המינים is shown all year; outside the Elul–Sukkot window it carries a
-// "seasonal" badge so buyers understand it's a pre-order / holiday item.
+// שופר, ארבעת המינים and חנוכיה are sold all year. Inside their window (Hebrew
+// calendar, Israel time) they get a homepage banner; outside it they carry a
+// "seasonal" badge so buyers understand it's a holiday item.
 
-/** True from 1 Elul through 22 Tishrei (end of Sukkot), by the Hebrew calendar. */
-export function isSukkotSeason(date: Date = new Date()): boolean {
+export type SeasonKey = 'rosh_hashana' | 'sukkot' | 'hanukkah';
+
+export type Season = {
+  key: SeasonKey;
+  /** The Judaica category (products.product_type) this season promotes. */
+  category: string;
+  /** Plural display name for banners. */
+  title: string;
+  /** "לקראת …" — the seasonal search button and the badge. */
+  towards: string;
+  /** Banner chip: how long the window lasts. */
+  until: string;
+  /** Banner button. */
+  cta: string;
+  description: string;
+};
+
+export const SEASONS: Season[] = [
+  { key: 'rosh_hashana', category: 'שופר', title: 'שופרות', towards: 'לקראת ראש השנה', until: 'עד ראש השנה', cta: 'לכל השופרות', description: 'שופר איל ושופר קודו, בכל הגדלים' },
+  { key: 'sukkot', category: 'ארבעת המינים', title: 'ארבעת המינים', towards: 'לקראת סוכות', until: 'עד סוף סוכות', cta: 'לכל ארבעת המינים', description: 'לולב, אתרוג, הדסים וערבות' },
+  { key: 'hanukkah', category: 'חנוכיה', title: 'חנוכיות', towards: 'לקראת חנוכה', until: 'עד סוף חנוכה', cta: 'לכל החנוכיות', description: 'חנוכיות לנרות ולשמן, ממוכרים מאומתים' },
+];
+
+type HebrewDay = { month: string; day: number };
+
+/** The Hebrew date in Israel (civil day, Asia/Jerusalem) — the same on the server and in the browser. */
+function hebrewDay(date: Date): HebrewDay | null {
   try {
-    const parts = new Intl.DateTimeFormat('en-u-ca-hebrew', { month: 'long', day: 'numeric' }).formatToParts(date);
+    const parts = new Intl.DateTimeFormat('en-u-ca-hebrew', { month: 'long', day: 'numeric', timeZone: 'Asia/Jerusalem' }).formatToParts(date);
     const month = parts.find((p) => p.type === 'month')?.value || '';
     const day = Number(parts.find((p) => p.type === 'day')?.value || 0);
-    if (month === 'Elul') return true;
-    if (month === 'Tishri') return day <= 22;
-    return false;
+    return month && day ? { month, day } : null;
   } catch {
-    return false;
+    return null;
   }
 }
 
-export const SEASONAL_BADGE_LABEL = 'עונתי - לקראת סוכות';
+const DAY_MS = 24 * 60 * 60 * 1000;
 
-export function isSeasonalCategory(productType: unknown): boolean {
-  return getJudaicaCategory(productType)?.seasonal === 'sukkot';
+/** Hanukkah runs 25 Kislev + 7 days, so it ends on 2 or 3 Tevet depending on Kislev's length. */
+function isHanukkahWindow(date: Date, today: HebrewDay): boolean {
+  if (today.month === 'Kislev') return true;
+  if (today.month !== 'Tevet') return false;
+  for (let back = 0; back <= 7; back++) {
+    const d = hebrewDay(new Date(date.getTime() - back * DAY_MS));
+    if (d && d.month === 'Kislev' && d.day === 25) return true;
+  }
+  return false;
 }
 
-export function shouldShowSeasonalBadge(productType: unknown, date: Date = new Date()): boolean {
-  return isSeasonalCategory(productType) && !isSukkotSeason(date);
+/**
+ * Windows: שופר 1 Elul – Erev Rosh Hashana; ארבעת המינים 1 Elul – 22 Tishrei;
+ * חנוכיה 1 Kislev – last day of Hanukkah.
+ */
+export function isSeasonActive(key: SeasonKey, date: Date = new Date()): boolean {
+  const today = hebrewDay(date);
+  if (!today) return false;
+  if (key === 'rosh_hashana') return today.month === 'Elul';
+  if (key === 'sukkot') return today.month === 'Elul' || (today.month === 'Tishri' && today.day <= 22);
+  return isHanukkahWindow(date, today);
+}
+
+export function getActiveSeasons(date: Date = new Date()): Season[] {
+  return SEASONS.filter((season) => isSeasonActive(season.key, date));
+}
+
+/** Days left in a season's window, counting today (for "נותרו X ימים"). */
+export function daysLeftInSeason(key: SeasonKey, date: Date = new Date()): number {
+  let days = 0;
+  while (days < 60 && isSeasonActive(key, new Date(date.getTime() + (days + 1) * DAY_MS))) days++;
+  return days + 1;
+}
+
+/** True from 1 Elul through 22 Tishrei (end of Sukkot), by the Hebrew calendar. */
+export function isSukkotSeason(date: Date = new Date()): boolean {
+  return isSeasonActive('sukkot', date);
+}
+
+export function getCategorySeason(productType: unknown): Season | undefined {
+  const key = getJudaicaCategory(productType)?.seasonal;
+  return key ? SEASONS.find((season) => season.key === key) : undefined;
+}
+
+export function isSeasonalCategory(productType: unknown): boolean {
+  return Boolean(getCategorySeason(productType));
+}
+
+/** Badge text for a seasonal category, e.g. "עונתי - לקראת חנוכה". */
+export function seasonalBadgeLabel(productType: unknown): string {
+  const season = getCategorySeason(productType);
+  return season ? `עונתי - ${season.towards}` : '';
+}
+
+/** The badge shows outside the category's own window. `activeSeasons` null = not known yet (before mount). */
+export function shouldShowSeasonalBadge(productType: unknown, activeSeasons: ReadonlySet<SeasonKey> | null): boolean {
+  const season = getCategorySeason(productType);
+  return Boolean(season && activeSeasons && !activeSeasons.has(season.key));
+}
+
+// ── Category groups (homepage tiles, seasonal button → /search?group=…) ─────
+
+export type ProductGroup = { key: string; label: string; types: string[] };
+
+export const PRODUCT_GROUPS: ProductGroup[] = [
+  { key: 'tallit', label: 'טליתות ואביזרים', types: ['טלית', 'טלית קטן', 'כיסוי טלית', 'תיק תפילין'] },
+  { key: 'silver', label: 'כלי כסף לשולחן', types: ['סט קידוש', 'פמוטי שבת'] },
+  { key: 'kippah', label: 'כיפות', types: ['כיפה'] },
+  { key: 'holiday', label: 'מוצרי חג', types: SEASONS.map((season) => season.category) },
+  { key: 'high_holidays', label: 'לראש השנה וסוכות', types: ['שופר', 'ארבעת המינים'] },
+];
+
+export function getProductGroup(key: unknown): ProductGroup | undefined {
+  return PRODUCT_GROUPS.find((group) => group.key === key);
+}
+
+export type SeasonalShortcut = { label: string; href: string; season: SeasonKey | null };
+
+/**
+ * The sixth search-area button: "לקראת ראש השנה / סוכות / חנוכה" in season (Elul shows the
+ * Rosh Hashana label but leads to both שופר and ארבעת המינים), "מוצרי חג" between holidays.
+ */
+export function getSeasonalShortcut(date: Date = new Date()): SeasonalShortcut {
+  const active = getActiveSeasons(date);
+  if (active.length === 0) return { label: 'מוצרי חג', href: '/search?view=results&group=holiday', season: null };
+  if (active.length > 1) return { label: active[0].towards, href: '/search?view=results&group=high_holidays', season: active[0].key };
+  const [season] = active;
+  return { label: season.towards, href: `/search?view=results&product=${encodeURIComponent(season.category)}`, season: season.key };
 }

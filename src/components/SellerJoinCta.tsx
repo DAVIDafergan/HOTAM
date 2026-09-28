@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { PenTool } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,8 +15,13 @@ import { useUser } from '@/lib/supabase-hooks';
 // cookies() call was what forced the entire home route out of static/ISR rendering.
 export function SellerJoinCta() {
   const { user, isUserLoading } = useUser();
+  // Decide only after mount: this section streams in late, and by then the auth check may have
+  // already finished on the client — rendering it during hydration while the server sent nothing
+  // was a hydration mismatch (React #418). Server and first client render are now both empty.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
-  if (isUserLoading || user?.role === 'seller') return null;
+  if (!mounted || isUserLoading || user?.role === 'seller') return null;
 
   return (
     <section className="section-shell bg-primary text-white relative overflow-hidden">

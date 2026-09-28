@@ -53,7 +53,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { JUDAICA_CATEGORIES, getProductGroup, seasonalBadgeLabel, shouldShowSeasonalBadge } from '@/lib/product-catalog';
+import { getProductGroup, groupJudaicaCategories, seasonalBadgeLabel, shouldShowSeasonalBadge } from '@/lib/product-catalog';
 import { useActiveSeasons } from '@/hooks/use-active-seasons';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { TorahExpertBanner } from '@/components/TorahExpertBanner';
@@ -619,9 +619,12 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
             <WizardSmallCard value="ספר תורה" selected={selectedProduct === 'ספר תורה'} icon={<BookOpen className="w-5 h-5" />} label="ספר תורה" />
             <WizardSmallCard value="מוצרי יודאיקה שונים" selected={selectedProduct === 'מוצרי יודאיקה שונים'} icon={<Palette className="w-5 h-5" />} label="מוצרי קלף" />
           </div>
-          <p className="pt-4 pb-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">יודאיקה</p>
+          <p className="pt-4 pb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">יודאיקה</p>
+          {groupJudaicaCategories().map(({ section, categories }) => (
+          <div key={section} className="pt-2" data-judaica-filter-section={section}>
+          <p className="pb-1.5 text-[10px] font-bold text-primary/45">{section}</p>
           <div className="flex flex-wrap gap-2">
-            {JUDAICA_CATEGORIES.map((category) => (
+            {categories.map((category) => (
               <Label
                 key={category.value}
                 className={cn(
@@ -639,6 +642,8 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
               </Label>
             ))}
           </div>
+          </div>
+          ))}
         </RadioGroup>
       </FilterSection>
 

@@ -18,7 +18,7 @@ const PREVIEW_MIN_PRODUCTS = 4;
 const PREVIEW_LIMIT = 12;
 
 const TILE_ART: Record<(typeof TILE_GROUPS)[number], { Art: ComponentType<SVGProps<SVGSVGElement>>; tone: string; note: string }> = {
-  tallit: { Art: TallitIllustration, tone: 'bg-[#EFE4D1]', note: 'טלית, טלית קטן, כיסוי ותיק תפילין' },
+  tallit: { Art: TallitIllustration, tone: 'bg-[#EFE4D1]', note: 'טלית, טלית קטן, גופיית ציצית ועוד' },
   silver: { Art: SilverIllustration, tone: 'bg-[#E6E4E0]', note: 'סט קידוש · פמוטי שבת' },
   kippah: { Art: KippahIllustration, tone: 'bg-[#F1E4D3]', note: 'סרוגות, קטיפה, בד ועור' },
 };

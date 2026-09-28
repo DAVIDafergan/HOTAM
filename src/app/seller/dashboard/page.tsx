@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { 
@@ -98,7 +98,7 @@ import { TORAH_DELIVERY_TIME_OPTIONS } from '@/lib/torah-delivery-time';
 import { PLATFORM_WHATSAPP_NUMBER, PLATFORM_WHATSAPP_DISPLAY, SELLER_ORDER_COLUMNS } from '@/lib/constants';
 import { logEvent } from '@/lib/log-event';
 import {
-  JUDAICA_CATEGORIES, STAM_PRODUCT_LABELS, STAM_PRODUCT_TYPES, seasonalBadgeLabel, shouldShowSeasonalBadge,
+  groupJudaicaCategories, isJudaicaFieldVisible, updateJudaicaAttributes, STAM_PRODUCT_LABELS, STAM_PRODUCT_TYPES, seasonalBadgeLabel, shouldShowSeasonalBadge,
   SELLER_TYPE_LABELS, findMissingJudaicaField, getJudaicaCategory, isStamProductType, normalizeJudaicaAttributes,
   resolveSellerType, type ProductAttributes,
 } from '@/lib/product-catalog';
@@ -1966,13 +1966,18 @@ function SellerDashboardContent() {
                             </SelectTrigger>
                             <SelectContent className="rounded-2xl shadow-2xl">
                               {productKind === 'judaica'
-                                ? JUDAICA_CATEGORIES.map((category) => (
-                                    <SelectItem key={category.value} value={category.value} className="font-bold py-3">
-                                      {category.value}
-                                      {shouldShowSeasonalBadge(category.value, activeSeasons) && (
-                                        <span className="mr-2 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">{seasonalBadgeLabel(category.value)}</span>
-                                      )}
-                                    </SelectItem>
+                                ? groupJudaicaCategories().map(({ section, categories }) => (
+                                    <SelectGroup key={section}>
+                                      <SelectLabel className="pt-3 pb-1 pr-8 text-[10px] font-black uppercase tracking-widest text-muted-foreground">{section}</SelectLabel>
+                                      {categories.map((category) => (
+                                        <SelectItem key={category.value} value={category.value} className="font-bold py-3">
+                                          {category.value}
+                                          {shouldShowSeasonalBadge(category.value, activeSeasons) && (
+                                            <span className="mr-2 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">{seasonalBadgeLabel(category.value)}</span>
+                                          )}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectGroup>
                                   ))
                                 : STAM_PRODUCT_TYPES.map((type) => (
                                     <SelectItem key={type} value={type} className="font-bold py-3">{STAM_PRODUCT_LABELS[type]}</SelectItem>
@@ -2063,7 +2068,7 @@ function SellerDashboardContent() {
                       <JudaicaAttributeFields
                         category={getJudaicaCategory(formType)!}
                         values={formAttributes}
-                        onChange={(key, value) => setFormAttributes(prev => ({ ...prev, [key]: value }))}
+                        onChange={(key, value) => setFormAttributes(prev => updateJudaicaAttributes(getJudaicaCategory(formType)!, prev, key, value))}
                       />
                     ) : (
                     <>
@@ -2457,6 +2462,8 @@ function JudaicaAttributeFields({
   return (
     <div className="grid gap-5 md:grid-cols-2" data-judaica-fields={category.value}>
       {category.fields.map((field) => {
+        // Conditional fields (e.g. knot type) appear only once their condition holds.
+        if (!isJudaicaFieldVisible(field, values)) return null;
         const label = (
           <Label className="text-[10px] font-black uppercase text-primary/40 tracking-wider">
             {field.label}{'required' in field && field.required ? ' *' : ''}

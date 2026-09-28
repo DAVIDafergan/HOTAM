@@ -41,14 +41,23 @@ export function isStamProductType(productType: unknown): boolean {
 
 // ── Judaica categories ───────────────────────────────────────────────────────
 
-export type JudaicaField =
+/** A field shown only while another field of the same product holds a given value. */
+export type FieldCondition = { key: string; equals: string | boolean };
+
+export type JudaicaField = { showIf?: FieldCondition } & (
   | { key: string; label: string; type: 'select'; options: string[]; required?: boolean }
   | { key: string; label: string; type: 'multiselect'; options: string[]; required?: boolean }
   | { key: string; label: string; type: 'text'; placeholder?: string; required?: boolean }
-  | { key: string; label: string; type: 'toggle'; onLabel: string; offLabel: string };
+  | { key: string; label: string; type: 'toggle'; onLabel: string; offLabel: string }
+);
+
+/** Headings the category list is grouped under (product form + search filter), in display order. */
+export const JUDAICA_SECTIONS = ['טלית, ציצית וכיפה', 'תפילין ומזוזה', 'שבת ובית', 'חגים', 'מעגל החיים'] as const;
+export type JudaicaSection = (typeof JUDAICA_SECTIONS)[number];
 
 export type JudaicaCategory = {
   value: string;
+  section: JudaicaSection;
   /** Variants stored in products.sub_type (required pick when present). */
   subtypes?: string[];
   fields: JudaicaField[];
@@ -59,26 +68,41 @@ export type JudaicaCategory = {
 
 const MATERIALS_METAL = ['כסף', 'כסף 925', 'פליז', 'נחושת', 'אלומיניום', 'עץ', 'זכוכית', 'קרמיקה', 'אחר'];
 
+// Tallit / tzitzit garments: are the tzitzit tied on, and if so in which custom. Knot names are
+// the customs' own plain names (sources: common tying customs — Ashkenazi per the Rema,
+// Sephardi, Chabad, Yemenite per the Rambam); anything else is described by the seller.
+export const TZITZIT_WITH_THREADS = 'כולל פתילים קשורים';
+export const TZITZIT_KNOT_TYPES = ['אשכנזי', 'ספרדי', 'חב"ד', 'תימני (רמב"ם)', 'אחר (יפורט בתיאור)'];
+const TZITZIT_FIELDS: JudaicaField[] = [
+  { key: 'threads', label: 'פתילים', type: 'select', options: [TZITZIT_WITH_THREADS, 'ללא פתילים (הבגד בלבד)'], required: true },
+  { key: 'knot', label: 'סוג הקשר', type: 'select', options: TZITZIT_KNOT_TYPES, required: true, showIf: { key: 'threads', equals: TZITZIT_WITH_THREADS } },
+];
+
 export const JUDAICA_CATEGORIES: JudaicaCategory[] = [
   {
     value: 'טלית',
+    section: 'טלית, ציצית וכיפה',
     fields: [
       { key: 'size', label: 'גודל', type: 'select', options: ['40', '45', '50', '55', '60', '65', '70', '75', '80', '90'], required: true },
       { key: 'material', label: 'חומר', type: 'select', options: ['צמר', 'פוליאסטר', 'משי'], required: true },
       { key: 'nusach', label: 'נוסח', type: 'select', options: ['אשכנזי', 'ספרדי', 'עדות המזרח'], required: true },
       { key: 'stripe_color', label: 'צבע פסים', type: 'select', options: ['שחור', 'כחול', 'לבן', 'כסף', 'זהב', 'צבעוני'], required: true },
       { key: 'atara', label: 'עטרה', type: 'toggle', onLabel: 'עם עטרה', offLabel: 'בלי עטרה' },
+      ...TZITZIT_FIELDS,
     ],
   },
   {
     value: 'טלית קטן',
+    section: 'טלית, ציצית וכיפה',
     fields: [
       { key: 'size', label: 'מידה', type: 'text', placeholder: 'למשל: 10 או L', required: true },
       { key: 'material', label: 'חומר', type: 'select', options: ['צמר', 'כותנה', 'פוליאסטר', 'רשת (דרייפיט)'], required: true },
+      ...TZITZIT_FIELDS,
     ],
   },
   {
     value: 'כיסוי טלית',
+    section: 'טלית, ציצית וכיפה',
     fields: [
       { key: 'material', label: 'חומר', type: 'select', options: ['קטיפה', 'עור', 'דמוי עור', 'בד', 'אחר'], required: true },
       { key: 'name_embroidery', label: 'רקמת שם', type: 'toggle', onLabel: 'עם רקמת שם', offLabel: 'בלי רקמה' },
@@ -86,6 +110,7 @@ export const JUDAICA_CATEGORIES: JudaicaCategory[] = [
   },
   {
     value: 'תיק תפילין',
+    section: 'תפילין ומזוזה',
     fields: [
       { key: 'material', label: 'חומר', type: 'select', options: ['קטיפה', 'עור', 'דמוי עור', 'בד', 'אחר'], required: true },
       { key: 'color', label: 'צבע', type: 'text', placeholder: 'למשל: כחול כהה', required: true },
@@ -94,6 +119,7 @@ export const JUDAICA_CATEGORIES: JudaicaCategory[] = [
   },
   {
     value: 'חנוכיה',
+    section: 'חגים',
     seasonal: 'hanukkah',
     fields: [
       { key: 'material', label: 'חומר', type: 'select', options: ['כסף', 'פליז', 'נחושת', 'עץ', 'זכוכית'], required: true },
@@ -104,6 +130,7 @@ export const JUDAICA_CATEGORIES: JudaicaCategory[] = [
   },
   {
     value: 'ארבעת המינים',
+    section: 'חגים',
     seasonal: 'sukkot',
     subtypes: ['סט מלא', 'אתרוג', 'לולב', 'הדסים', 'ערבות'],
     fields: [
@@ -114,6 +141,7 @@ export const JUDAICA_CATEGORIES: JudaicaCategory[] = [
   },
   {
     value: 'שופר',
+    section: 'חגים',
     seasonal: 'rosh_hashana',
     fields: [
       { key: 'kind', label: 'סוג', type: 'select', options: ['איל', 'קודו (תימני)', 'אחר'], required: true },
@@ -123,9 +151,10 @@ export const JUDAICA_CATEGORIES: JudaicaCategory[] = [
   },
   {
     value: 'בית מזוזה',
+    section: 'תפילין ומזוזה',
     fields: [
       { key: 'material', label: 'חומר', type: 'select', options: MATERIALS_METAL, required: true },
-      { key: 'size', label: 'גודל (לקלף בגודל, ס"מ)', type: 'text', placeholder: 'למשל: 10, 12 או 15', required: true },
+      { key: 'size', label: 'גודל (לקלף בגודל)', type: 'select', options: ['10 ס"מ', '12 ס"מ', '15 ס"מ', '20 ס"מ', 'מותאם אישית'], required: true },
       { key: 'style', label: 'סגנון', type: 'select', options: ['קלאסי', 'מודרני', 'מסורתי', 'לילדים'], required: true },
     ],
     notice: {
@@ -137,6 +166,7 @@ export const JUDAICA_CATEGORIES: JudaicaCategory[] = [
   },
   {
     value: 'כיפה',
+    section: 'טלית, ציצית וכיפה',
     fields: [
       { key: 'kind', label: 'סוג', type: 'select', options: ['סרוגה', 'קטיפה', 'בד', 'עור', 'אחר'], required: true },
       { key: 'size', label: 'גודל', type: 'text', placeholder: 'למשל: 14 ס"מ או מס\' 3', required: true },
@@ -145,6 +175,7 @@ export const JUDAICA_CATEGORIES: JudaicaCategory[] = [
   },
   {
     value: 'סט קידוש',
+    section: 'שבת ובית',
     fields: [
       { key: 'material', label: 'חומר', type: 'select', options: MATERIALS_METAL, required: true },
       { key: 'parts', label: 'חלקים כלולים', type: 'multiselect', options: ['גביע', 'תחתית / צלחת', 'בקבוק', 'כוסיות', 'מגש', 'מזרקה'], required: true },
@@ -152,10 +183,94 @@ export const JUDAICA_CATEGORIES: JudaicaCategory[] = [
   },
   {
     value: 'פמוטי שבת',
+    section: 'שבת ובית',
     fields: [
       { key: 'material', label: 'חומר', type: 'select', options: MATERIALS_METAL, required: true },
       { key: 'height', label: 'גובה (ס"מ)', type: 'text', placeholder: 'למשל: 25', required: true },
       { key: 'branches', label: 'מספר קנים', type: 'select', options: ['1', '2', '3', '5', '7'], required: true },
+    ],
+  },
+  {
+    value: 'גופיית ציצית',
+    section: 'טלית, ציצית וכיפה',
+    fields: [
+      { key: 'size', label: 'מידה', type: 'text', placeholder: 'למשל: 10 או L', required: true },
+      { key: 'material', label: 'חומר', type: 'select', options: ['כותנה', 'צמר', 'פוליאסטר', 'רשת (דרייפיט)'], required: true },
+      ...TZITZIT_FIELDS,
+    ],
+  },
+  {
+    value: 'פתילים לציצית',
+    section: 'טלית, ציצית וכיפה',
+    fields: [
+      { key: 'for', label: 'מיועד ל', type: 'select', options: ['טלית גדול', 'טלית קטן'], required: true },
+      { key: 'thickness', label: 'עובי', type: 'select', options: ['דק', 'בינוני', 'עבה'], required: true },
+      { key: 'hechsher', label: 'הכשר', type: 'text', placeholder: 'שם הרב / המערכת המכשירה', required: true },
+    ],
+  },
+  {
+    value: 'קופסאות לתפילין',
+    section: 'תפילין ומזוזה',
+    fields: [
+      { key: 'kind', label: 'סוג', type: 'select', options: ['של יד', 'של ראש', 'זוג (יד וראש)'], required: true },
+      { key: 'material', label: 'חומר', type: 'select', options: ['עור', 'דמוי עור', 'אחר'], required: true },
+      { key: 'size', label: 'מתאים לבתים בגודל', type: 'text', placeholder: 'למשל: 3.5 ס"מ' },
+    ],
+    notice: {
+      text: 'מוצר זה כולל קופסאות מגן בלבד, ללא תפילין. תפילין כשרות יש לרכוש מסופר סת"ם מאומת.',
+      linkLabel: 'לחיפוש תפילין באתר',
+      href: '/search?view=results&product=' + encodeURIComponent('תפילין'),
+    },
+  },
+  {
+    value: 'תפידנית',
+    section: 'תפילין ומזוזה',
+    fields: [
+      { key: 'material', label: 'חומר', type: 'select', options: ['קטיפה', 'עור', 'דמוי עור', 'בד', 'אחר'], required: true },
+      { key: 'size', label: 'גודל', type: 'select', options: ['קטנה', 'בינונית', 'גדולה'], required: true },
+    ],
+  },
+  {
+    value: 'סט הבדלה',
+    section: 'שבת ובית',
+    fields: [
+      { key: 'material', label: 'חומר', type: 'select', options: MATERIALS_METAL, required: true },
+      { key: 'parts', label: 'חלקים כלולים', type: 'multiselect', options: ['גביע', 'מגש', 'בשמים', 'פמוט לנר הבדלה'], required: true },
+    ],
+  },
+  {
+    value: 'נטלה',
+    section: 'שבת ובית',
+    fields: [
+      { key: 'material', label: 'חומר', type: 'select', options: ['נירוסטה', 'כסף', 'כסף 925', 'פליז', 'נחושת', 'אלומיניום', 'קרמיקה', 'זכוכית', 'פלסטיק', 'אחר'], required: true },
+      { key: 'style', label: 'עיצוב', type: 'select', options: ['קלאסי', 'מודרני', 'מסורתי'], required: true },
+    ],
+  },
+  {
+    value: 'מוצרים לבר מצווה',
+    section: 'מעגל החיים',
+    fields: [
+      { key: 'item', label: 'מה המוצר?', type: 'text', placeholder: 'למשל: סט טלית ותפילין, כיסוי לסידור', required: true },
+      { key: 'material', label: 'חומר', type: 'select', options: ['כסף', 'כסף 925', 'פליז', 'עץ', 'זכוכית', 'קרמיקה', 'בד', 'אחר'], required: true },
+      { key: 'dedication', label: 'הקדשה אישית', type: 'toggle', onLabel: 'ניתן להוסיף הקדשה', offLabel: 'ללא הקדשה' },
+    ],
+  },
+  {
+    value: 'מוצרים לברית',
+    section: 'מעגל החיים',
+    fields: [
+      { key: 'item', label: 'מה המוצר?', type: 'text', placeholder: 'למשל: כרית ברית, כיסא אליהו', required: true },
+      { key: 'material', label: 'חומר', type: 'select', options: ['כסף', 'כסף 925', 'פליז', 'עץ', 'זכוכית', 'קרמיקה', 'בד', 'אחר'], required: true },
+      { key: 'dedication', label: 'הקדשה אישית', type: 'toggle', onLabel: 'ניתן להוסיף הקדשה', offLabel: 'ללא הקדשה' },
+    ],
+  },
+  {
+    value: 'מוצרים לחתונה',
+    section: 'מעגל החיים',
+    fields: [
+      { key: 'item', label: 'מה המוצר?', type: 'text', placeholder: 'למשל: כוס לשבירה, כיסוי לחלה', required: true },
+      { key: 'material', label: 'חומר', type: 'select', options: ['כסף', 'כסף 925', 'פליז', 'עץ', 'זכוכית', 'קרמיקה', 'בד', 'אחר'], required: true },
+      { key: 'dedication', label: 'הקדשה אישית', type: 'toggle', onLabel: 'ניתן להוסיף הקדשה', offLabel: 'ללא הקדשה' },
     ],
   },
 ];
@@ -172,10 +287,33 @@ export function isJudaicaProductType(productType: unknown): boolean {
 
 export type ProductAttributes = Record<string, string | string[] | boolean>;
 
+/** A field with a condition is shown (and stored, and required) only while the condition holds. */
+export function isJudaicaFieldVisible(field: JudaicaField, attributes: ProductAttributes): boolean {
+  if (!field.showIf) return true;
+  return attributes?.[field.showIf.key] === field.showIf.equals;
+}
+
+/**
+ * Applies one form change and clears values of fields that the change just hid, so a hidden
+ * answer (e.g. a knot type after switching to "no threads") never comes back on its own.
+ */
+export function updateJudaicaAttributes(category: JudaicaCategory, attributes: ProductAttributes, key: string, value: string | string[] | boolean): ProductAttributes {
+  const next: ProductAttributes = { ...attributes, [key]: value };
+  for (const field of category.fields) {
+    if (!isJudaicaFieldVisible(field, next)) delete next[field.key];
+  }
+  return next;
+}
+
+/** Categories grouped under JUDAICA_SECTIONS, in display order. */
+export function groupJudaicaCategories(): { section: JudaicaSection; categories: JudaicaCategory[] }[] {
+  return JUDAICA_SECTIONS.map((section) => ({ section, categories: JUDAICA_CATEGORIES.filter((c) => c.section === section) }));
+}
+
 /** Returns the first missing required field's label, or null when the attributes are complete. */
 export function findMissingJudaicaField(category: JudaicaCategory, attributes: ProductAttributes): string | null {
   for (const field of category.fields) {
-    if (field.type === 'toggle' || !field.required) continue;
+    if (field.type === 'toggle' || !field.required || !isJudaicaFieldVisible(field, attributes)) continue;
     const value = attributes[field.key];
     const empty = Array.isArray(value) ? value.length === 0 : !String(value ?? '').trim();
     if (empty) return field.label;
@@ -186,10 +324,12 @@ export function findMissingJudaicaField(category: JudaicaCategory, attributes: P
 /**
  * Keeps only the category's own keys (drops leftovers from a previously picked category)
  * and stores untouched toggles as false, since the form shows them as "off" by default.
+ * Hidden conditional fields are dropped (e.g. the knot type once "no threads" is picked).
  */
 export function normalizeJudaicaAttributes(category: JudaicaCategory, attributes: ProductAttributes): ProductAttributes {
   const normalized: ProductAttributes = {};
   for (const field of category.fields) {
+    if (!isJudaicaFieldVisible(field, attributes)) continue;
     const value = attributes[field.key];
     if (field.type === 'toggle') normalized[field.key] = value === true;
     else if (value !== undefined && value !== '') normalized[field.key] = value;
@@ -201,6 +341,7 @@ export function normalizeJudaicaAttributes(category: JudaicaCategory, attributes
 export function describeJudaicaAttributes(category: JudaicaCategory, attributes: ProductAttributes): [string, string][] {
   const rows: [string, string][] = [];
   for (const field of category.fields) {
+    if (!isJudaicaFieldVisible(field, attributes || {})) continue;
     const value = attributes?.[field.key];
     if (field.type === 'toggle') {
       if (typeof value === 'boolean') rows.push([field.label, value ? field.onLabel : field.offLabel]);
@@ -321,7 +462,7 @@ export function shouldShowSeasonalBadge(productType: unknown, activeSeasons: Rea
 export type ProductGroup = { key: string; label: string; types: string[] };
 
 export const PRODUCT_GROUPS: ProductGroup[] = [
-  { key: 'tallit', label: 'טליתות ואביזרים', types: ['טלית', 'טלית קטן', 'כיסוי טלית', 'תיק תפילין'] },
+  { key: 'tallit', label: 'טליתות וציציות', types: ['טלית', 'טלית קטן', 'גופיית ציצית', 'פתילים לציצית', 'כיסוי טלית', 'תיק תפילין'] },
   { key: 'silver', label: 'כלי כסף לשולחן', types: ['סט קידוש', 'פמוטי שבת'] },
   { key: 'kippah', label: 'כיפות', types: ['כיפה'] },
   { key: 'holiday', label: 'מוצרי חג', types: SEASONS.map((season) => season.category) },

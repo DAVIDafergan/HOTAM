@@ -32,9 +32,6 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { CitySelect } from '@/components/CitySelect';
 import { COMMON_CITY_OPTIONS, NEARBY_RADIUS_KM } from '@/lib/location-utils';
-import Link from 'next/link';
-import type { SeasonalShortcut } from '@/lib/product-catalog';
-import { SeasonIllustration } from '@/components/judaica/JudaicaIllustrations';
 
 type ProductType = 'מזוזה' | 'תפילין' | 'מגילה' | 'ספר תורה' | 'מוצרי יודאיקה שונים' | '';
 type ShippingPreference = 'all' | 'shipping' | 'pickup';
@@ -75,7 +72,7 @@ function useIsDesktopViewport(): boolean | null {
   return isDesktop;
 }
 
-export function HeroAnimation({ seasonalShortcut }: { seasonalShortcut?: SeasonalShortcut }) {
+export function HeroAnimation() {
   const router = useRouter();
   const { toast } = useToast();
   const heroImg = PlaceHolderImages.find(img => img.id === 'hero-bg');
@@ -316,13 +313,13 @@ export function HeroAnimation({ seasonalShortcut }: { seasonalShortcut?: Seasona
             </div>
 
             {/* Category cards */}
-            <div className={cn("grid gap-3 md:gap-4", seasonalShortcut ? "grid-cols-3 md:grid-cols-6" : "grid-cols-2 sm:grid-cols-3 md:grid-cols-5")}>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 md:gap-4">
               <CategoryCard icon={<Scroll />} label="מזוזה" onClick={() => handleCategorySelect('מזוזה')} color="indigo" active={selectedProduct === 'מזוזה'} />
               <CategoryCard icon={<Package />} label="תפילין" onClick={() => handleCategorySelect('תפילין')} color="blue" active={selectedProduct === 'תפילין'} />
               <CategoryCard icon={<Crown />} label="מגילה" onClick={() => handleCategorySelect('מגילה')} color="amber" active={selectedProduct === 'מגילה'} />
               <CategoryCard icon={<BookOpen />} label="ספר תורה" onClick={() => handleCategorySelect('ספר תורה')} color="emerald" active={selectedProduct === 'ספר תורה'} />
-              <CategoryCard icon={<Palette />} label="מוצרי קלף" onClick={() => handleCategorySelect('מוצרי יודאיקה שונים')} color="purple" active={selectedProduct === 'מוצרי יודאיקה שונים'} />
-              {seasonalShortcut && <SeasonalCategoryCard shortcut={seasonalShortcut} />}
+              {/* Judaica isn't part of the scribal spec wizard — straight to all Judaica results. */}
+              <CategoryCard icon={<Palette />} label="יודאיקה" onClick={() => router.push('/search?view=results&group=judaica')} color="purple" />
             </div>
 
             <AnimatePresence>
@@ -684,26 +681,6 @@ interface CategoryCardProps {
   onClick: () => void;
   color?: 'indigo' | 'blue' | 'amber' | 'emerald' | 'purple' | 'primary';
   active?: boolean;
-}
-
-// The sixth search-area button: straight to the season's Judaica results (the scribal spec
-// wizard doesn't apply to them). Label and target come from getSeasonalShortcut().
-function SeasonalCategoryCard({ shortcut }: { shortcut: SeasonalShortcut }) {
-  return (
-    <Link
-      href={shortcut.href}
-      data-seasonal-shortcut={shortcut.season ?? 'none'}
-      className="group relative flex w-full flex-col items-center gap-2.5 rounded-3xl border-2 border-accent bg-primary p-4 shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 md:gap-3 md:p-5"
-    >
-      <span className="absolute -top-2.5 right-1/2 translate-x-1/2 whitespace-nowrap rounded-full bg-accent px-2.5 py-0.5 text-[9px] font-black text-primary shadow-md md:text-[10px]">
-        מוצרי חג
-      </span>
-      <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-accent/40 bg-accent/15 text-accent transition-transform duration-300 group-hover:scale-110 md:h-14 md:w-14">
-        <SeasonIllustration season={shortcut.season} className="h-8 w-8 md:h-9 md:w-9" strokeWidth={4} />
-      </span>
-      <span className="text-center font-black text-[11px] leading-tight tracking-tight text-primary-foreground md:text-xs">{shortcut.label}</span>
-    </Link>
-  );
 }
 
 function CategoryCard({ icon, label, onClick, color = 'primary', active = false }: CategoryCardProps) {

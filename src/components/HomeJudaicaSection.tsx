@@ -16,7 +16,6 @@ import mezuzahCasePhoto from '../../public/images/home/mezuzah-case.jpg';
 // from its group appear under the photo once the group has any.
 const TILE_GROUPS = ['tallit', 'silver', 'mezuzah_case'] as const;
 type TileKey = (typeof TILE_GROUPS)[number];
-const TILE_PREVIEW_MAX = 4;
 
 const TILE_PHOTO: Record<TileKey, { photo: StaticImageData; alt: string; note: string }> = {
   tallit: { photo: tallitPhoto, alt: 'טלית צמר מקופלת עם עטרה ופסים כחולים', note: 'טלית, טלית קטן, גופיית ציצית ועוד' },
@@ -91,104 +90,92 @@ function productTitle(product: any): string {
   return product.product_type === 'מוצרי יודאיקה שונים' ? (product.sub_type || 'מוצר יודאיקה') : product.product_type;
 }
 
-/** A compact real-product card for the tile preview (same price rule as ProductCard: incl. VAT). */
-function TileProductCard({ product }: { product: any }) {
+const TILE_PREVIEW_MAX = 3;
+const TILE_CHIPS_MAX = 2;
+
+/** One real product in the tile's preview strip: thumbnail + price (incl. VAT, as on ProductCard). */
+function TileProductThumb({ product }: { product: any }) {
   const image = Array.isArray(product.images) ? product.images.find(Boolean) : null;
   const price = Math.round(Number(product.price) * 1.18).toLocaleString('he-IL');
   return (
-    <Link
-      href={`/products/${product.id}`}
-      data-tile-product
-      className="group/card flex flex-col overflow-hidden rounded-2xl border border-primary/5 bg-white transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"
-    >
-      <div className="relative aspect-square overflow-hidden bg-[#F3EDE3]">
+    <Link href={`/products/${product.id}`} data-tile-product className="group/thumb flex min-w-0 flex-col gap-1.5" aria-label={`${productTitle(product)} ₪${price}`}>
+      <span className="relative block aspect-square overflow-hidden rounded-xl bg-white/10 ring-1 ring-white/10 transition group-hover/thumb:ring-[#E2B35B]/70">
         {image ? (
-          <SmartImage
-            src={image}
-            alt={productTitle(product)}
-            fill
-            kind="product"
-            sizes="(max-width: 768px) 45vw, 180px"
-            className="object-cover transition-transform duration-500 group-hover/card:scale-105 motion-reduce:transition-none"
-          />
+          <SmartImage src={image} alt="" fill kind="product" sizes="(max-width: 768px) 28vw, 110px" className="object-cover transition-transform duration-500 group-hover/thumb:scale-105 motion-reduce:transition-none" />
         ) : (
-          <span className="absolute inset-0 flex items-center justify-center text-primary/15" aria-hidden="true">
-            <ImageIcon className="h-8 w-8" />
-          </span>
+          <span className="absolute inset-0 flex items-center justify-center text-white/25" aria-hidden="true"><ImageIcon className="h-6 w-6" /></span>
         )}
-      </div>
-      <div className="flex flex-col gap-0.5 px-3 py-2.5 text-right">
-        <span className="truncate text-sm font-bold text-primary">{productTitle(product)}</span>
-        <span className="text-sm font-black text-accent-strong">₪{price}</span>
-      </div>
+      </span>
+      <span className="truncate text-[11px] font-semibold text-white/70">{productTitle(product)}</span>
+      <span className="-mt-1 text-xs font-black text-[#E2B35B]">₪{price}</span>
     </Link>
   );
 }
 
 function CategoryTile({ group, products }: { group: ProductGroup & { key: TileKey }; products: any[] }) {
   const { photo, alt, note } = TILE_PHOTO[group.key];
-  // An even grid reads best: 4, else 2, else the single product there is.
-  const shown = products.slice(0, products.length >= TILE_PREVIEW_MAX ? TILE_PREVIEW_MAX : products.length >= 2 ? 2 : products.length);
+  // Most-stocked types first (catalog order breaks ties): two chips, the rest as "+N נוספים".
+  const stock = (type: string) => products.filter((p) => p.product_type === type).length;
+  const types = [...group.types].sort((a, b) => stock(b) - stock(a));
+  const chips = types.slice(0, TILE_CHIPS_MAX);
+  const more = types.length - chips.length;
+  const shown = products.slice(0, TILE_PREVIEW_MAX);
+  const chipClass = 'relative z-10 inline-flex h-8 shrink-0 items-center rounded-full border border-white/25 bg-white/10 px-3.5 text-xs font-bold text-white backdrop-blur-sm transition-colors hover:border-[#E2B35B]/80 hover:bg-white/20';
+
   return (
-    <div data-judaica-tile={group.key} className="flex flex-col rounded-[1.75rem] bg-card p-3 shadow-[0_18px_44px_-24px_rgba(28,24,21,0.35)] md:rounded-[2.25rem] md:p-4 md:pb-6">
-      {/* Ark-style arch: gentle zoom on hover (and on scroll where supported), gold frame lights up. */}
-      <Link
-        href={groupHref(group.key)}
-        aria-label={group.label}
-        className="group/photo relative block h-[220px] overflow-hidden rounded-t-[7rem] rounded-b-2xl bg-primary shadow-[0_0_0_1px_rgba(226,179,91,0.35)] transition-shadow duration-500 hover:shadow-[0_0_0_1px_rgba(226,179,91,0.9),0_22px_44px_-16px_rgba(190,137,45,0.6)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent md:h-[300px] md:rounded-t-[11rem] md:rounded-b-3xl"
-      >
+    <div
+      data-judaica-tile={group.key}
+      className="group/photo flex h-full flex-col overflow-hidden rounded-t-[8rem] rounded-b-[1.75rem] bg-primary shadow-[0_24px_50px_-24px_rgba(28,24,21,0.6)] ring-1 ring-[#E2B35B]/25 transition-shadow duration-500 hover:shadow-[0_28px_56px_-20px_rgba(190,137,45,0.55)] hover:ring-[#E2B35B]/60 md:rounded-t-[12rem] md:rounded-b-[2rem]"
+    >
+      {/* The photo is the card: it stretches so all three cards match in height. */}
+      <div className="relative min-h-[340px] flex-1 overflow-hidden md:min-h-[440px]">
         <div className="judaica-scroll-zoom absolute inset-0">
           <Image
             src={photo}
             alt={alt}
             fill
             placeholder="blur"
-            sizes="(max-width: 768px) 100vw, 400px"
+            sizes="(max-width: 768px) 100vw, 420px"
             className="object-cover transition-transform duration-[900ms] ease-out group-hover/photo:scale-[1.06] motion-reduce:transition-none motion-reduce:group-hover/photo:scale-100"
           />
         </div>
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-2 rounded-t-[6.5rem] rounded-b-xl border border-[#E2B35B]/0 transition-colors duration-500 group-hover/photo:border-[#E2B35B]/70 md:rounded-t-[10.5rem] md:rounded-b-2xl"
-        />
-      </Link>
-      <div className="flex items-center justify-between gap-3 px-1 pt-4 md:px-3 md:pt-6">
-        <div className="flex flex-col gap-1">
-          <Link href={groupHref(group.key)} className="font-headline text-2xl font-black text-primary hover:text-accent-strong md:text-3xl">
-            {group.label}
-          </Link>
-          <span className="text-xs font-semibold text-muted-foreground md:hidden">{note}</span>
+        <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-[#1C1815]/95 via-[#1C1815]/55 to-transparent" />
+        <span aria-hidden="true" className="pointer-events-none absolute inset-3 rounded-t-[7.3rem] rounded-b-[1.25rem] border border-[#E2B35B]/0 transition-colors duration-500 group-hover/photo:border-[#E2B35B]/60 md:rounded-t-[11.3rem]" />
+        {/* Whole photo is the category link; chips sit above it as their own links. */}
+        <Link href={groupHref(group.key)} aria-label={group.label} className="absolute inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-3 p-5 md:p-6">
+          {products.length > 0 && (
+            <span className="text-[11px] font-black tracking-[0.18em] text-[#E2B35B]">{products.length === 1 ? 'מוצר אחד באתר' : `${products.length} מוצרים באתר`}</span>
+          )}
+          <div className="flex items-end justify-between gap-3">
+            <h3 className="font-headline text-[1.9rem] font-black leading-none text-white md:text-[2.2rem]">{group.label}</h3>
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent text-primary shadow-lg transition-transform duration-300 group-hover/photo:-translate-x-1" aria-hidden="true">
+              <ArrowLeft className="h-4 w-4" />
+            </span>
+          </div>
+          <div className="pointer-events-auto flex h-8 items-center gap-2 overflow-hidden" data-tile-chips>
+            {group.types.length === 1 ? (
+              <span className="text-sm font-semibold text-white/75">{note}</span>
+            ) : (
+              <>
+                {chips.map((type) => <Link key={type} href={typeHref(type)} className={chipClass}>{type}</Link>)}
+                {more > 0 && <Link href={groupHref(group.key)} className={chipClass}>+{more} נוספים</Link>}
+              </>
+            )}
+          </div>
         </div>
-        <Link
-          href={groupHref(group.key)}
-          aria-label={`לכל המוצרים: ${group.label}`}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-[#E2B35B] transition-transform hover:-translate-x-1"
-        >
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-        </Link>
-      </div>
-      <div className="hidden flex-wrap gap-2 px-3 pt-4 md:flex">
-        {group.types.map((type) => (
-          <Link
-            key={type}
-            href={typeHref(type)}
-            className="rounded-full border border-[#EDE3D3] bg-[#F7F1E7] px-3.5 py-1.5 text-xs font-bold text-primary transition-colors hover:border-accent/40 hover:bg-accent/10"
-          >
-            {type === 'בית מזוזה' ? 'כל בתי המזוזות' : type}
-          </Link>
-        ))}
       </div>
       {shown.length > 0 && (
-        <div className="mt-4 space-y-3 px-1 md:px-3" data-tile-products={group.key}>
-          <div className="grid grid-cols-2 gap-2.5">
-            {shown.map((product) => <TileProductCard key={product.id} product={product} />)}
+        <div className="border-t border-white/10 px-5 pb-5 pt-4 md:px-6" data-tile-products={group.key}>
+          <div className="mb-3 flex items-center justify-between">
+            <span className="text-[11px] font-black tracking-[0.18em] text-white/55">מבחר מהקטגוריה</span>
+            {products.length > shown.length && (
+              <Link href={groupHref(group.key)} className="text-xs font-black text-[#E2B35B] hover:text-white">לכל {products.length} המוצרים ←</Link>
+            )}
           </div>
-          {products.length > shown.length && (
-            <Link href={groupHref(group.key)} className="flex items-center justify-center gap-1.5 py-1 text-sm font-black text-accent-strong hover:text-primary">
-              לכל {products.length} המוצרים
-              <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
-            </Link>
-          )}
+          <div className="grid grid-cols-3 gap-3">
+            {shown.map((product) => <TileProductThumb key={product.id} product={product} />)}
+          </div>
         </div>
       )}
     </div>
@@ -229,7 +216,7 @@ export async function HomeJudaicaSection() {
           </div>
         )}
 
-        <div className="grid items-start gap-4 md:grid-cols-3 md:gap-7">
+        <div className="grid items-stretch gap-5 md:grid-cols-3 md:gap-7">
           {tiles.map((group) => (
             <CategoryTile key={group.key} group={group} products={products.filter((p) => group.types.includes(p.product_type))} />
           ))}

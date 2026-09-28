@@ -41,7 +41,8 @@ import {
   Sunrise,
   Sun,
   Sunset,
-  Moon
+  Moon,
+  Award
 } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { 
@@ -133,7 +134,14 @@ export function Navbar() {
   }, [db, isSuperAdmin, mounted]);
   const { count: reportsCount } = useCollectionCount(reportsCountQuery);
 
-  const adminNotificationCount = (pendingSellers?.length || 0) + (reportsCount || 0);
+  // Judaica sellers asking to be verified as סופרי סת"ם (reviewed in /admin → ממתינים לאישור).
+  const upgradeRequestsQuery = useMemoStable(() => {
+    if (!isSuperAdmin || !mounted) return null;
+    return query(collection(db, 'sellers'), where('stam_upgrade_status', '==', 'pending'));
+  }, [db, isSuperAdmin, mounted]);
+  const { data: upgradeRequests } = useCollection<any>(upgradeRequestsQuery);
+
+  const adminNotificationCount = (pendingSellers?.length || 0) + (upgradeRequests?.length || 0) + (reportsCount || 0);
 
   const sellerOrdersQuery = useMemoStable(() => {
     if (!isSeller || !user || !mounted || isProfileLoading) return null;
@@ -367,9 +375,21 @@ export function Navbar() {
                             <Link href="/admin" className="flex items-center justify-between w-full">
                               <div className="flex items-center gap-3">
                                 <div className="p-2 bg-orange-50 rounded-lg text-orange-600"><Clock className="w-4 h-4" /></div>
-                                <span className="text-[11px] font-bold text-primary">ממתינים לאישור סופר</span>
+                                <span className="text-[11px] font-bold text-primary">מוכרים ממתינים לאישור</span>
                               </div>
                               <Badge className="bg-orange-500 text-white border-none text-[10px]">{pendingSellers.length}</Badge>
+                            </Link>
+                          </DropdownMenuItem>
+                        ) : null}
+
+                        {upgradeRequests && upgradeRequests.length > 0 ? (
+                          <DropdownMenuItem asChild className="rounded-xl p-3 cursor-pointer hover:bg-primary/5 transition-colors">
+                            <Link href="/admin" className="flex items-center justify-between w-full" data-admin-bell-upgrades>
+                              <div className="flex items-center gap-3">
+                                <div className="p-2 bg-amber-50 rounded-lg text-amber-700"><Award className="w-4 h-4" /></div>
+                                <span className="text-[11px] font-bold text-primary">בקשות שדרוג לסופר סת"ם</span>
+                              </div>
+                              <Badge className="bg-amber-600 text-white border-none text-[10px]">{upgradeRequests.length}</Badge>
                             </Link>
                           </DropdownMenuItem>
                         ) : null}

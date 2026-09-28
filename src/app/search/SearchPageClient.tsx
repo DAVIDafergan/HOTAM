@@ -121,7 +121,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
 
   // Filter States
   const [selectedProduct, setSelectedProduct] = useState<ProductType>('');
-  // A category group from the homepage (?group=tallit|silver|kippah|holiday|high_holidays).
+  // A category group from the homepage (?group=tallit|silver|mezuzah_case|judaica|…).
   const [selectedGroupKey, setSelectedGroupKey] = useState('');
   const selectedGroup = getProductGroup(selectedGroupKey);
   const activeSeasons = useActiveSeasons();

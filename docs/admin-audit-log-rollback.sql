@@ -1,0 +1,12 @@
+DROP TRIGGER IF EXISTS trg_audit_admins ON public.admins;
+DROP TRIGGER IF EXISTS trg_audit_products_delete ON public.products;
+DROP TRIGGER IF EXISTS trg_audit_customers_delete ON public.customers;
+DROP TRIGGER IF EXISTS trg_audit_orders ON public.orders;
+DROP TRIGGER IF EXISTS trg_audit_sellers ON public.sellers;
+DROP FUNCTION IF EXISTS public.audit_admins();
+DROP FUNCTION IF EXISTS public.audit_deletions();
+DROP FUNCTION IF EXISTS public.audit_orders();
+DROP FUNCTION IF EXISTS public.audit_sellers();
+DROP FUNCTION IF EXISTS public.audit_write(TEXT, TEXT, TEXT, JSONB);
+DROP FUNCTION IF EXISTS public.audit_actor_kind();
+DROP TABLE IF EXISTS public.audit_log;

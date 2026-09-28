@@ -64,7 +64,7 @@ export type AdminOverviewData = {
 };
 
 /** Target tabs of the admin page the overview links into. */
-export type AdminTabId = 'pending' | 'inquiries' | 'reports' | 'chats' | 'sales' | 'active' | 'judaica' | 'customers';
+export type AdminTabId = 'pending' | 'inquiries' | 'reports' | 'chats' | 'sales' | 'active' | 'judaica' | 'customers' | 'audit';
 
 function formatDuration(ms: number) {
   const minutes = Math.round(ms / 60000);

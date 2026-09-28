@@ -151,8 +151,15 @@ export default function AdminDashboard() {
   const isSuperAdmin = !!adminData;
 
   useEffect(() => {
-    if (isUserLoading || isAdminCheckLoading || !isAdminCheckLoaded) return;
-    if (!user || !adminData) {
+    if (isUserLoading) return;
+    // Logged out: the admin lookup never runs (no user), so it never "loads" — send to login
+    // here instead of leaving a blank page.
+    if (!user) {
+      router.replace('/login?redirect=' + encodeURIComponent('/admin'));
+      return;
+    }
+    if (isAdminCheckLoading || !isAdminCheckLoaded) return;
+    if (!adminData) {
       router.push('/');
     }
   }, [user, isUserLoading, isAdminCheckLoading, isAdminCheckLoaded, adminData, router]);

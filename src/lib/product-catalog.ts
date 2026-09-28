@@ -465,6 +465,7 @@ export const PRODUCT_GROUPS: ProductGroup[] = [
   { key: 'tallit', label: 'טליתות וציציות', types: ['טלית', 'טלית קטן', 'גופיית ציצית', 'פתילים לציצית', 'כיסוי טלית', 'תיק תפילין'] },
   { key: 'silver', label: 'כלי כסף לשולחן', types: ['סט קידוש', 'פמוטי שבת'] },
   { key: 'kippah', label: 'כיפות', types: ['כיפה'] },
+  { key: 'mezuzah_case', label: 'בתי מזוזות', types: ['בית מזוזה'] },
   { key: 'holiday', label: 'מוצרי חג', types: SEASONS.map((season) => season.category) },
   { key: 'high_holidays', label: 'לראש השנה וסוכות', types: ['שופר', 'ארבעת המינים'] },
 ];

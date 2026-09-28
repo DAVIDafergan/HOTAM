@@ -15,7 +15,7 @@ import { ScrollFadeIn } from '@/components/ScrollFadeIn';
 import { StaggerGrid, StaggerItem } from '@/components/StaggerGrid';
 import { MotionTap } from '@/components/MotionTap';
 import SignatureInkAnimation from '@/components/SignatureInkAnimationLoader';
-import { HomeJudaicaSection, HomeJudaicaProductsSection } from '@/components/HomeJudaicaSection';
+import { HomeJudaicaSection } from '@/components/HomeJudaicaSection';
 import { getSeasonalShortcut } from '@/lib/product-catalog';
 
 // The route no longer touches cookies() anywhere in its render tree (product/scribe data is
@@ -56,11 +56,9 @@ export default function Home() {
 
         <HeroAnimation seasonalShortcut={getSeasonalShortcut()} />
 
-        <HomeJudaicaSection />
-
         <HomeProductsCarousel />
 
-        <HomeJudaicaProductsSection />
+        <HomeJudaicaSection />
 
         <WorkFlow />
 

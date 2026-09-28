@@ -220,3 +220,19 @@
   }
 
 }
+
+/* Homepage category photos: a slow settle-in zoom as the tile scrolls into view (browsers with
+   scroll-driven animations only; hover zoom works everywhere). Off for reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .judaica-scroll-zoom {
+      animation: judaica-scroll-zoom linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 55%;
+    }
+  }
+}
+@keyframes judaica-scroll-zoom {
+  from { transform: scale(1.1); }
+  to { transform: scale(1); }
+}

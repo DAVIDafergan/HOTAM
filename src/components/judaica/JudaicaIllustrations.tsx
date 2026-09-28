@@ -1,5 +1,5 @@
-// Original line illustrations for the Judaica homepage tiles, seasonal banners and the
-// seasonal search button. Stroke uses currentColor, so the caller sets the color.
+// Original line illustrations for the seasonal banners and the seasonal search button.
+// Stroke uses currentColor, so the caller sets the color.
 import type { SVGProps } from 'react';
 import type { SeasonKey } from '@/lib/product-catalog';
 
@@ -13,56 +13,6 @@ const base = {
   strokeLinejoin: 'round' as const,
   'aria-hidden': true,
 };
-
-/** Tallit with atarah and tzitzit. */
-export function TallitIllustration(props: IllustrationProps) {
-  return (
-    <svg {...base} strokeWidth={1.1} {...props}>
-      <rect x="14" y="34" width="92" height="52" rx="4" />
-      <rect x="42" y="26" width="36" height="14" rx="2" />
-      <path d="M46 30 h28 M46 33 h28 M46 36 h28" strokeDasharray="1.5 1.5" />
-      <path d="M14 46 h92 M14 50 h92 M14 70 h92 M14 74 h92" />
-      <path d="M18 86 v18 M21 86 v16 M24 86 v19 M27 86 v15" />
-      <path d="M93 86 v15 M96 86 v19 M99 86 v16 M102 86 v18" />
-      <circle cx="22.5" cy="89" r="2" />
-      <circle cx="97.5" cy="89" r="2" />
-    </svg>
-  );
-}
-
-/** Kiddush cup on its plate between two Shabbat candlesticks. */
-export function SilverIllustration(props: IllustrationProps) {
-  return (
-    <svg {...base} strokeWidth={1.1} {...props}>
-      <path d="M44 22 h32 v12 c0 13 -7 21 -16 21 c-9 0 -16 -8 -16 -21 z" />
-      <path d="M46 30 h28" strokeDasharray="2 1.6" />
-      <path d="M60 55 v18" />
-      <ellipse cx="60" cy="64" rx="4" ry="2.4" />
-      <path d="M48 82 q12 -9 24 0 z" />
-      <ellipse cx="60" cy="88" rx="34" ry="6" />
-      <path d="M18 36 v42 M102 36 v42" />
-      <rect x="15" y="26" width="6" height="12" rx="1" />
-      <rect x="99" y="26" width="6" height="12" rx="1" />
-      <path d="M18 26 c-3 -4 -2 -8 0 -11 c2 3 3 7 0 11 z M102 26 c-3 -4 -2 -8 0 -11 c2 3 3 7 0 11 z" />
-      <path d="M12 38 h12 M96 38 h12" />
-      <path d="M10 92 q8 -9 16 0 z M94 92 q8 -9 16 0 z" />
-    </svg>
-  );
-}
-
-/** Knitted kippah. */
-export function KippahIllustration(props: IllustrationProps) {
-  return (
-    <svg {...base} strokeWidth={1.1} {...props}>
-      <path d="M12 80 A48 42 0 0 1 108 80 Z" />
-      <path d="M26 80 A34 30 0 0 1 94 80" />
-      <path d="M40 80 A20 18 0 0 1 80 80" />
-      <path d="M19 71 A41 36 0 0 1 101 71" strokeDasharray="2 2.4" />
-      <path d="M60 38 v42 M40 45 l10 35 M80 45 l-10 35 M26 58 l20 22 M94 58 l-20 22" />
-      <circle cx="60" cy="38" r="2.4" />
-    </svg>
-  );
-}
 
 /** Lulav bound with myrtle and willow, and an etrog. */
 export function ArbaMinimIllustration(props: IllustrationProps) {

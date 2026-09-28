@@ -13,6 +13,46 @@ const PROFESSIONAL_FIELDS = [
   'mikveh_frequency', 'notes', 'experience_years', 'script_level', 'script_types', 'writing_samples',
 ] as const;
 
+const escapeHtml = (value: unknown) =>
+  String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+
+/**
+ * Tells every admin (the admins table's emails) that an upgrade request is waiting. Best effort:
+ * the request is already saved and shows in /admin, so a mail failure is only logged.
+ */
+async function notifyAdmins(serviceClient: any, seller: { first_name?: string | null; last_name?: string | null; email?: string | null }, experienceYears: number) {
+  try {
+    const { data: admins, error } = await serviceClient.from('admins').select('email');
+    if (error) throw error;
+    const recipients = Array.from(new Set((admins || []).map((a: any) => String(a.email || '').trim()).filter(Boolean))) as string[];
+    if (recipients.length === 0) return;
+    // Loaded here (not at the top) so a missing mail key can't take the whole route down.
+    const { sendEmail } = await import('@/lib/send-email');
+    const name = `${seller.first_name || ''} ${seller.last_name || ''}`.trim() || seller.email || 'מוכר';
+    const subject = `בקשת שדרוג לסופר סת"ם: ${name}`;
+    const text = `${name} (${seller.email || ''}) ביקש/ה אימות כסופר סת"ם, עם ${experienceYears} שנות ניסיון. הבקשה ממתינה לאישורך בפאנל הניהול: https://hotam.shop/admin`;
+    const html = `
+      <div dir="rtl" style="margin:0;padding:32px 16px;background:#f5f1e8;font-family:Arial,'Segoe UI',sans-serif;color:#1f2937;">
+        <div style="max-width:620px;margin:0 auto;background:#ffffff;border-radius:24px;overflow:hidden;border:1px solid rgba(212,175,55,0.18);">
+          <div style="background:#111827;padding:28px;text-align:center;">
+            <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:900;">בקשת שדרוג לסופר סת"ם</h1>
+            <p style="margin:8px 0 0;color:#d4af37;font-size:14px;font-weight:700;">ממתינה לאישורך</p>
+          </div>
+          <div style="padding:28px;text-align:right;">
+            <p style="margin:0 0 12px;font-size:16px;line-height:1.8;"><strong>${escapeHtml(name)}</strong> (${escapeHtml(seller.email)}), מוכר/ת יודאיקה באתר, ביקש/ה אימות מלא כסופר סת"ם.</p>
+            <p style="margin:0 0 24px;font-size:15px;color:#374151;">שנות ניסיון: ${escapeHtml(experienceYears)}. פרטי ההסמכה ודוגמאות הכתיבה מחכים לבדיקה בפאנל הניהול, בטאב "ממתינים לאישור".</p>
+            <div style="text-align:center;">
+              <a href="https://hotam.shop/admin" style="display:inline-block;background:#111827;color:#ffffff;text-decoration:none;padding:14px 30px;border-radius:999px;font-size:15px;font-weight:800;">לבדיקת הבקשה</a>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    await Promise.all(recipients.map((to) => sendEmail({ to, subject, text, html })));
+  } catch (error: any) {
+    console.error('[request-stam-upgrade] admin notification email failed:', error?.message ?? error);
+  }
+}
+
 function validate(fields: Record<string, any>): string | null {
   if (!String(fields.notes ?? '').trim()) return 'יש לפרט על ההסמכה וההנהגה האישית';
   const experience = fields.experience_years;
@@ -48,7 +88,7 @@ export async function POST(req: Request) {
 
     const { data: seller, error: sellerError } = await serviceClient
       .from('sellers')
-      .select('id, is_approved, seller_type, stam_upgrade_status')
+      .select('id, is_approved, seller_type, stam_upgrade_status, first_name, last_name, email')
       .eq('id', user.id)
       .maybeSingle();
     if (sellerError || !seller) return NextResponse.json({ error: 'Seller not found' }, { status: 404 });
@@ -89,6 +129,8 @@ export async function POST(req: Request) {
       console.error('[request-stam-upgrade] update failed:', updateError.message);
       return NextResponse.json({ error: 'Failed to submit request' }, { status: 500 });
     }
+
+    await notifyAdmins(serviceClient, { ...seller, email: seller.email || user.email }, fields.experience_years);
 
     return NextResponse.json({ ok: true, status: 'pending' });
   } catch (error: any) {

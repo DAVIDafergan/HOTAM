@@ -468,22 +468,10 @@ export const PRODUCT_GROUPS: ProductGroup[] = [
   { key: 'mezuzah_case', label: 'בתי מזוזות', types: ['בית מזוזה'] },
   { key: 'holiday', label: 'מוצרי חג', types: SEASONS.map((season) => season.category) },
   { key: 'high_holidays', label: 'לראש השנה וסוכות', types: ['שופר', 'ארבעת המינים'] },
+  { key: 'judaica', label: 'יודאיקה', types: JUDAICA_PRODUCT_TYPES },
 ];
 
 export function getProductGroup(key: unknown): ProductGroup | undefined {
   return PRODUCT_GROUPS.find((group) => group.key === key);
 }
 
-export type SeasonalShortcut = { label: string; href: string; season: SeasonKey | null };
-
-/**
- * The sixth search-area button: "לקראת ראש השנה / סוכות / חנוכה" in season (Elul shows the
- * Rosh Hashana label but leads to both שופר and ארבעת המינים), "מוצרי חג" between holidays.
- */
-export function getSeasonalShortcut(date: Date = new Date()): SeasonalShortcut {
-  const active = getActiveSeasons(date);
-  if (active.length === 0) return { label: 'מוצרי חג', href: '/search?view=results&group=holiday', season: null };
-  if (active.length > 1) return { label: active[0].towards, href: '/search?view=results&group=high_holidays', season: active[0].key };
-  const [season] = active;
-  return { label: season.towards, href: `/search?view=results&product=${encodeURIComponent(season.category)}`, season: season.key };
-}

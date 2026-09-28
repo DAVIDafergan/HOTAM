@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { ProductDetailsClient } from './ProductDetailsClient';
+import { isJudaicaProductType } from '@/lib/product-catalog';
 import { getPublicProductById, getPublicProductReviews, getPublicSellerById, getPublicSellerReviews } from '@/lib/storefront-data';
 
 const VAT_MULTIPLIER = 1.18;
@@ -33,6 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       };
     }
 
+    const isJudaica = isJudaicaProductType(fields.product_type);
     const title = fields.product_type || 'מוצר קודש';
     const subType = fields.sub_type && fields.sub_type !== 'all' ? ` ${fields.sub_type}` : '';
     const scriptType = fields.script_type || '';
@@ -55,7 +57,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     // real text is appended when there's room, never invented.
     const MAX_DESCRIPTION_LENGTH = 160;
     const priceLabel = displayPrice > 0 ? `₪${displayPrice.toLocaleString('he-IL')} כולל מע"מ` : 'מחיר משתלם';
-    const descriptionBase = `${title}${subType}${qualityLabel}${scriptLabel}${sizeLabel ? ` בגודל${sizeLabel}` : ''} במחיר ${priceLabel}, ישירות מסופר סת"ם מוסמך - חותם.`;
+    const descriptionBase = `${title}${subType}${qualityLabel}${scriptLabel}${sizeLabel ? ` בגודל${sizeLabel}` : ''} במחיר ${priceLabel}, ${isJudaica ? 'ישירות מהמוכר' : 'ישירות מסופר סת"ם מוסמך'} - חותם.`;
     let description = descriptionBase;
     if (fields.description) {
       const available = MAX_DESCRIPTION_LENGTH - descriptionBase.length - 1;
@@ -64,7 +66,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         description = `${descriptionBase} ${sellerText.length > available ? `${sellerText.slice(0, available - 1).trimEnd()}…` : sellerText}`;
       }
     } else {
-      const closing = ' שקיפות מלאה וכשרות ללא פשרות, ישירות מהסופר.';
+      const closing = isJudaica ? ' שקיפות מלאה ושירות אישי, ישירות מהמוכר.' : ' שקיפות מלאה וכשרות ללא פשרות, ישירות מהסופר.';
       if ((descriptionBase + closing).length <= MAX_DESCRIPTION_LENGTH) description = descriptionBase + closing;
     }
     if (description.length > MAX_DESCRIPTION_LENGTH) {
@@ -146,7 +148,7 @@ export default async function ProductPage({ params }: Props) {
     "@context": "https://schema.org",
     "@type": "Product",
     "name": productName,
-    "description": fields.description || 'מוצר קודש מהודר מחותם',
+    "description": fields.description || (isJudaicaProductType(fields.product_type) ? 'מוצר יודאיקה מחותם' : 'מוצר קודש מהודר מחותם'),
     "image": Array.isArray(fields.images) && fields.images.length > 0 ? fields.images : undefined,
     "sku": id,
     "productID": id,

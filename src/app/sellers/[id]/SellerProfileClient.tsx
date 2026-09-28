@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 import Image from '@/components/SmartImage';
 import Link from 'next/link';
+import { resolveSellerType } from '@/lib/product-catalog';
 import { usePathname } from 'next/navigation';
 import { useSupabaseClient, useUser } from '@/lib/supabase-hooks';
 import { supabase } from '@/lib/supabase';
@@ -199,7 +200,12 @@ export default function SellerProfile({
     });
     return list;
   }, [reviews, reviewSortOrder]);
-  const sellerFullName = [seller?.first_name, seller?.last_name].filter(Boolean).join(' ').trim() || 'הסופר';
+  // Judaica sellers aren't scribes: neutral wording, and none of the halachic profile (stats,
+  // certificate, script types, writing samples) — which a Judaica seller with a pending
+  // upgrade request may already have uploaded, unapproved.
+  const isJudaicaSeller = resolveSellerType(seller?.seller_type) === 'judaica_seller';
+  const sellerNoun = isJudaicaSeller ? 'מוכר' : 'סופר';
+  const sellerFullName = [seller?.first_name, seller?.last_name].filter(Boolean).join(' ').trim() || `ה${sellerNoun}`;
   const getSellerReviewSubmitLabel = () => {
     if (!user) return 'התחבר כדי לפרסם ביקורת';
     if (isOwnSellerReviewBlocked) return 'לא ניתן לדרג את עצמך';
@@ -211,15 +217,15 @@ export default function SellerProfile({
     toast({
       variant: 'destructive',
       title: 'לא ניתן לדרג את עצמך',
-      description: 'סופר לא יכול לפרסם דירוג או ביקורת על עצמו.',
+      description: `${sellerNoun} לא יכול לפרסם דירוג או ביקורת על עצמו.`,
     });
   };
 
   const showAlreadyReviewedSellerToast = () => {
     toast({
       variant: 'destructive',
-      title: 'כבר פרסמת ביקורת על סופר זה',
-      description: 'ניתן לפרסם ביקורת אחת בלבד לכל סופר.',
+      title: `כבר פרסמת ביקורת על ${sellerNoun} זה`,
+      description: `ניתן לפרסם ביקורת אחת בלבד לכל ${sellerNoun}.`,
     });
   };
 
@@ -250,7 +256,7 @@ export default function SellerProfile({
   const handleSubmitSellerReview = async () => {
     if (!user) { router.push('/login?redirect=' + encodeURIComponent(pathname)); return; }
     if (!id) {
-      toast({ variant: 'destructive', title: 'שגיאה בזיהוי הסופר', description: 'אנא רענן את העמוד ונסה שוב.' });
+      toast({ variant: 'destructive', title: `שגיאה בזיהוי ה${sellerNoun}`, description: 'אנא רענן את העמוד ונסה שוב.' });
       return;
     }
     if (isOwnSellerReviewBlocked) {
@@ -342,7 +348,7 @@ export default function SellerProfile({
   if (!seller) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center text-center p-4">
-        <h1 className="text-2xl font-bold mb-4">הסופר לא נמצא</h1>
+        <h1 className="text-2xl font-bold mb-4">המוכר לא נמצא</h1>
         <Button asChild><Link href="/">חזרה לדף הבית</Link></Button>
       </div>
     );
@@ -451,6 +457,7 @@ export default function SellerProfile({
                 {seller.is_approved && <span className="text-[9px] font-black text-primary/60 uppercase tracking-widest">(פרופיל מאומת)</span>}
               </div>
 
+              {!isJudaicaSeller && (
               <div className="grid grid-cols-1 gap-2 text-right">
                 {stats.map((stat, i) => (
                   <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-transparent hover:border-accent/10 transition-all">
@@ -462,9 +469,10 @@ export default function SellerProfile({
                   </div>
                 ))}
               </div>
+              )}
 
               <div className="pt-8 space-y-3">
-                {seller.certificate_url && (
+                {seller.certificate_url && !isJudaicaSeller && (
                   <Dialog>
                     <DialogTrigger asChild>
                       <Button className="w-full bg-accent text-primary hover:bg-accent/90 py-6 rounded-2xl gap-2 text-xs font-black uppercase tracking-wider shadow-lg">
@@ -496,7 +504,7 @@ export default function SellerProfile({
                 <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
                   <DialogTrigger asChild>
                     <Button variant="ghost" className="w-full text-destructive hover:bg-destructive/5 rounded-2xl gap-2 text-[10px] font-black uppercase tracking-widest h-12">
-                      <Flag className="w-3.5 h-3.5" /> דיווח על סופר זה
+                      <Flag className="w-3.5 h-3.5" /> דיווח על {sellerNoun} זה
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="max-w-lg rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white text-right" dir="rtl">
@@ -543,14 +551,14 @@ export default function SellerProfile({
             <Card className="border-none shadow-premium rounded-[2.5rem] bg-white p-6 md:p-10 text-right">
               <div className="mb-8 space-y-4">
                 <div className="flex items-center justify-end gap-2 mb-1">
-                   <h2 className="text-2xl md:text-3xl font-headline font-black text-primary tracking-tight">על הסופר</h2>
+                   <h2 className="text-2xl md:text-3xl font-headline font-black text-primary tracking-tight">על ה{sellerNoun}</h2>
                    <Quote className="w-6 h-6 text-accent/20 rotate-180" />
                 </div>
                 <p className="text-lg md:text-xl leading-relaxed text-primary/80 italic font-medium">
-                  "{seller.notes || 'מלאכת שמיים ושליחות קודש. כל תג נכתב מתוך כוונה טהורה על קלף איכותי, בחרדת קודש ובהתאם לכל כללי ההלכה.'}"
+                  "{seller.notes || (isJudaicaSeller ? 'מוכר מוצרי יודאיקה באתר חותם.' : 'מלאכת שמיים ושליחות קודש. כל תג נכתב מתוך כוונה טהורה על קלף איכותי, בחרדת קודש ובהתאם לכל כללי ההלכה.')}"
                 </p>
                 <div className="flex flex-wrap justify-end gap-2">
-                  {(seller.script_types || []).map((type: string) => (
+                  {(isJudaicaSeller ? [] : (seller.script_types || [])).map((type: string) => (
                     <Badge key={type} variant="secondary" className="bg-accent/10 text-accent border-accent/10 font-black text-[9px] px-4 py-1 uppercase tracking-wider">
                       מומחה לכתב {type}
                     </Badge>
@@ -561,7 +569,9 @@ export default function SellerProfile({
               <Tabs defaultValue="products" dir="rtl" className="w-full">
                 <TabsList className="bg-muted/30 p-1 rounded-2xl mb-8 flex h-14 shadow-inner border border-muted">
                   <TabsTrigger value="products" className="flex-1 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-premium text-[10px] md:text-xs font-black uppercase tracking-widest">מוצרים למכירה</TabsTrigger>
-                  <TabsTrigger value="samples" className="flex-1 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-premium text-[10px] md:text-xs font-black uppercase tracking-widest">דוגמאות כתיבה</TabsTrigger>
+                  {!isJudaicaSeller && (
+                    <TabsTrigger value="samples" className="flex-1 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-premium text-[10px] md:text-xs font-black uppercase tracking-widest">דוגמאות כתיבה</TabsTrigger>
+                  )}
                   <TabsTrigger value="reviews" className="flex-1 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-premium text-[10px] md:text-xs font-black uppercase tracking-widest">ביקורות ({(reviews || []).length})</TabsTrigger>
                 </TabsList>
 
@@ -606,11 +616,12 @@ export default function SellerProfile({
                    ) : (
                      <div className="text-center py-16 bg-muted/10 rounded-3xl border-2 border-dashed border-muted">
                         <Package className="w-10 h-10 mx-auto mb-3 opacity-10" />
-                        <p className="text-muted-foreground font-bold text-sm">הסופר טרם העלה מוצרים למכירה</p>
+                        <p className="text-muted-foreground font-bold text-sm">ה{sellerNoun} טרם העלה מוצרים למכירה</p>
                      </div>
                    )}
                 </TabsContent>
 
+                {!isJudaicaSeller && (
                 <TabsContent value="samples" className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
                   <div className="grid grid-cols-2 gap-4">
                     {(seller.writing_samples || []).map((sample: string, i: number) => (
@@ -643,6 +654,7 @@ export default function SellerProfile({
                     )}
                   </div>
                 </TabsContent>
+                )}
 
                 <TabsContent value="reviews" className="animate-in fade-in slide-in-from-bottom-2 space-y-4">
                   <div className="flex justify-between items-center mb-4">
@@ -685,7 +697,7 @@ export default function SellerProfile({
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black uppercase text-slate-500">ביקורת</Label>
                         <Textarea
-                          placeholder="שתף את חווית השירות והכתיבה..."
+                          placeholder={isJudaicaSeller ? 'שתף את חווית השירות והמוצרים...' : 'שתף את חווית השירות והכתיבה...'}
                           value={reviewComment}
                           onChange={e => setReviewComment(e.target.value)}
                           className="rounded-2xl min-h-[100px]"

@@ -26,6 +26,19 @@ import { cn } from '@/lib/utils';
 const ACCESSIBILITY_BUTTON_SIZE_PX = 48;
 const ACCESSIBILITY_BUTTON_PADDING_PX = 16;
 const ACCESSIBILITY_DEFAULT_BOTTOM_OFFSET_PX = 88;
+// On phones the button rests tight in the bottom-left corner, smaller, so it stays out
+// of the way of page content (desktop keeps the roomier default above).
+const ACCESSIBILITY_MOBILE_BREAKPOINT_PX = 768;
+const ACCESSIBILITY_MOBILE_BUTTON_SIZE_PX = 40;
+const ACCESSIBILITY_MOBILE_EDGE_GAP_PX = 6;
+
+function isMobileViewport() {
+  return typeof window !== 'undefined' && window.innerWidth < ACCESSIBILITY_MOBILE_BREAKPOINT_PX;
+}
+
+function getButtonSize() {
+  return isMobileViewport() ? ACCESSIBILITY_MOBILE_BUTTON_SIZE_PX : ACCESSIBILITY_BUTTON_SIZE_PX;
+}
 const ACCESSIBILITY_DRAG_THRESHOLD_PX = 4;
 const ACCESSIBILITY_KEYBOARD_NUDGE_PX = 24;
 // Breathing room above a page-level sticky bottom bar (checkout/purchase footers
@@ -44,7 +57,7 @@ export function AccessibilityButton() {
   const [grayscale, setGrayscale] = useState(false);
   const [readableFont, setReadableFont] = useState(false);
   const [highlightLinks, setHighlightLinks] = useState(false);
-  const [position, setPosition] = useState({ x: 4, y: 0 });
+  const [position, setPosition] = useState({ x: ACCESSIBILITY_MOBILE_EDGE_GAP_PX, y: 0 });
   const dragStateRef = useRef<{
     pointerId: number;
     startX: number;
@@ -54,12 +67,16 @@ export function AccessibilityButton() {
     moved: boolean;
   } | null>(null);
   const suppressClickRef = useRef(false);
+  // Until the user drags/nudges the button, keep it anchored to its default corner (which
+  // moves above a page's sticky footer). Once they place it, respect their spot.
+  const userPlacedRef = useRef(false);
 
   const clampPosition = (x: number, y: number) => {
     if (typeof window === 'undefined') return { x, y };
+    const size = getButtonSize();
     return {
-      x: Math.min(Math.max(0, x), window.innerWidth - ACCESSIBILITY_BUTTON_SIZE_PX),
-      y: Math.min(Math.max(ACCESSIBILITY_BUTTON_PADDING_PX, y), window.innerHeight - ACCESSIBILITY_BUTTON_SIZE_PX),
+      x: Math.min(Math.max(0, x), window.innerWidth - size),
+      y: Math.min(Math.max(ACCESSIBILITY_BUTTON_PADDING_PX, y), window.innerHeight - size),
     };
   };
 
@@ -93,19 +110,22 @@ export function AccessibilityButton() {
       frameId = requestAnimationFrame(() => {
         const stickyFooter = document.querySelector<HTMLElement>('[data-sticky-footer]');
         const stickyFooterHeight = stickyFooter ? stickyFooter.getBoundingClientRect().height : 0;
+        const isMobile = isMobileViewport();
+        const size = getButtonSize();
+        const defaultOffset = isMobile
+          ? size + ACCESSIBILITY_MOBILE_EDGE_GAP_PX
+          : ACCESSIBILITY_DEFAULT_BOTTOM_OFFSET_PX;
+        const footerGap = isMobile ? ACCESSIBILITY_MOBILE_EDGE_GAP_PX : ACCESSIBILITY_STICKY_FOOTER_GAP_PX;
         // bottomOffset is the CSS `top` distance from the viewport's bottom edge — it has to
         // clear the footer's height *plus* the button's own height, or the button's bottom
         // edge (top + SIZE) still lands inside the footer's band.
         const bottomOffset = stickyFooterHeight > 0
-          ? Math.max(
-              ACCESSIBILITY_DEFAULT_BOTTOM_OFFSET_PX,
-              stickyFooterHeight + ACCESSIBILITY_STICKY_FOOTER_GAP_PX + ACCESSIBILITY_BUTTON_SIZE_PX,
-            )
-          : ACCESSIBILITY_DEFAULT_BOTTOM_OFFSET_PX;
+          ? Math.max(defaultOffset, stickyFooterHeight + footerGap + size)
+          : defaultOffset;
 
         setPosition(prev => {
-          if (prev.y === 0) {
-            return clampPosition(prev.x, window.innerHeight - bottomOffset);
+          if (!userPlacedRef.current) {
+            return clampPosition(ACCESSIBILITY_MOBILE_EDGE_GAP_PX, window.innerHeight - bottomOffset);
           }
           return clampPosition(prev.x, prev.y);
         });
@@ -163,6 +183,7 @@ export function AccessibilityButton() {
     if (!dragState.moved && exceedsDragThreshold(deltaX, deltaY)) {
       dragState.moved = true;
       suppressClickRef.current = true;
+      userPlacedRef.current = true;
     }
 
     if (!dragState.moved) return;
@@ -184,6 +205,7 @@ export function AccessibilityButton() {
   };
 
   const handleTriggerKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (event.key.startsWith('Arrow')) userPlacedRef.current = true;
     switch (event.key) {
       case 'ArrowLeft':
         event.preventDefault();
@@ -209,13 +231,18 @@ export function AccessibilityButton() {
   return (
     <div
       className="fixed z-[200]"
-      style={{ left: position.x, top: position.y === 0 ? `calc(100dvh - ${ACCESSIBILITY_DEFAULT_BOTTOM_OFFSET_PX}px)` : position.y }}
+      style={{
+        left: position.x,
+        top: position.y === 0
+          ? `calc(100dvh - ${ACCESSIBILITY_MOBILE_BUTTON_SIZE_PX + ACCESSIBILITY_MOBILE_EDGE_GAP_PX}px)`
+          : position.y,
+      }}
     >
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button 
             size="icon" 
-            className="h-11 w-11 rounded-full bg-accent text-primary shadow-2xl transition-transform animate-in fade-in zoom-in md:h-12 md:w-12"
+            className="h-10 w-10 rounded-full bg-accent text-primary shadow-lg ring-2 ring-white/80 transition-transform animate-in fade-in zoom-in md:h-12 md:w-12 md:shadow-2xl md:ring-0"
             aria-label="תפריט נגישות, ניתן לגרור או להזיז עם מקשי החיצים"
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
@@ -224,7 +251,7 @@ export function AccessibilityButton() {
             onClick={handleTriggerClick}
             onKeyDown={handleTriggerKeyDown}
           >
-            <Accessibility className="h-5 w-5 md:h-6 md:w-6" />
+            <Accessibility className="h-[18px] w-[18px] md:h-6 md:w-6" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-72 p-3 rounded-[2rem] shadow-2xl border-none bg-white/95 backdrop-blur-xl text-right overflow-hidden">

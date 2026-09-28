@@ -1,122 +1,232 @@
-
 "use client";
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Navbar } from '@/components/Navbar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import {
   Mail,
   MessageCircle,
-  MapPin,
   Clock,
   ShieldCheck,
   ArrowLeft,
   Send,
   Loader2,
-  CheckCircle2
+  CheckCircle2,
+  Headphones,
+  Inbox,
+  PhoneCall,
+  Sparkles,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useSupabaseClient } from '@/lib/supabase-hooks';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 import { PLATFORM_WHATSAPP_NUMBER, PLATFORM_WHATSAPP_DISPLAY } from '@/lib/constants';
 
+const CONTACT_EMAIL = 'DA@101.ORG.IL';
+const WHATSAPP_HREF = `https://wa.me/${PLATFORM_WHATSAPP_NUMBER}`;
+const BUSINESS_HOURS = "א'-ה' 09:00 - 18:00";
+
+// Stored in contact_messages.subject so the admin inbox can see what each inquiry is about.
+const CONTACT_TOPICS = ['רכישה והזמנות', 'כשרות ובדיקה', 'הצטרפות כסופר', 'עזרה טכנית', 'אחר'] as const;
+
+const FAQ_ITEMS: { q: string; a: ReactNode }[] = [
+  {
+    q: 'איך עובד קוד המסירה?',
+    a: 'אחרי הרכישה נשלח אליכם במייל קוד סודי. קבלו את המוצר מהסופר, בדקו שהוא תקין ומתאים להזמנה — ורק אז מסרו לו את הקוד. הקוד הוא שמשחרר את התשלום לסופר.',
+  },
+  {
+    q: 'איך מצטרפים כסופר?',
+    a: (
+      <>
+        נרשמים דרך <Link href="/onboarding/seller" className="font-bold text-primary underline decoration-accent underline-offset-4">עמוד ההצטרפות לסופרים</Link>, ממלאים פרופיל ודוגמאות כתיבה, והצוות שלנו מאשר את הפרופיל לפני שהוא מופיע באתר.
+      </>
+    ),
+  },
+  {
+    q: 'איך מזמינים ספר תורה?',
+    a: 'ספרי תורה וספרי הפטרות מוזמנים בתיאום אישי: משאירים בקשה בעמוד המוצר, ונציג של חותם חוזר אליכם לתיאום פגישה והתרשמות.',
+  },
+  {
+    q: 'האם המחירים באתר כוללים מע״מ?',
+    a: 'כן. כל המחירים המוצגים באתר כוללים מע״מ.',
+  },
+];
+
 export default function ContactPageClient() {
-  const formattedPhone = PLATFORM_WHATSAPP_DISPLAY;
-  const whatsappHref = `https://wa.me/${PLATFORM_WHATSAPP_NUMBER}`;
-  const contactEmail = 'DA@101.ORG.IL';
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-primary/5" dir="rtl">
+    <div className="min-h-screen bg-[#FAFAF8]" dir="rtl">
       <Navbar />
-      <main className="container mx-auto px-4 py-32 max-w-4xl">
-        <div className="text-center mb-12 space-y-4">
-          <h1 className="text-4xl md:text-5xl font-headline font-black text-primary tracking-tight">צרו קשר עם חותם</h1>
-          <p className="text-muted-foreground text-lg font-medium">אנחנו כאן לכל שאלה בנושא כשרות, רכישה או הצטרפות כסופר.</p>
-          <div className="w-16 h-1 bg-accent mx-auto rounded-full" />
+
+      {/* Hero */}
+      <section className="relative overflow-hidden bg-gradient-to-b from-accent/15 via-accent/5 to-[#FAFAF8] pb-32 pt-32 text-primary md:pb-40 md:pt-40">
+        <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-accent/25 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-32 -left-16 h-80 w-80 rounded-full bg-accent/10 blur-3xl" />
+        <div className="container relative mx-auto max-w-5xl px-4 text-center">
+          <span className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-white/70 px-4 py-1.5 text-[11px] font-bold tracking-widest text-accent-strong">
+            <Sparkles className="h-3.5 w-3.5" /> אנחנו כאן בשבילכם
+          </span>
+          <h1 className="mt-5 font-headline text-4xl font-black tracking-tight md:text-6xl">דברו עם חותם</h1>
+          <p className="mx-auto mt-4 max-w-xl text-base font-medium leading-relaxed text-primary/65 md:text-lg">
+            שאלה על רכישה, כשרות או הצטרפות כסופר? בחרו את הדרך הנוחה לכם — ואנחנו נחזור אליכם.
+          </p>
+        </div>
+      </section>
+
+      <main className="container mx-auto max-w-5xl px-4 pb-24">
+        {/* Quick channels — overlap the hero */}
+        <div className="relative z-10 -mt-16 grid gap-3 sm:grid-cols-3 md:-mt-20 md:gap-5">
+          <ChannelCard
+            href={WHATSAPP_HREF}
+            external
+            highlight
+            icon={<MessageCircle className="h-6 w-6" />}
+            title="וואטסאפ"
+            value={PLATFORM_WHATSAPP_DISPLAY}
+            note="הדרך המהירה ביותר"
+          />
+          <ChannelCard
+            href={`mailto:${CONTACT_EMAIL}`}
+            icon={<Mail className="h-6 w-6" />}
+            title="אימייל"
+            value={CONTACT_EMAIL}
+            valueDir="ltr"
+            note="לפניות מפורטות"
+          />
+          <ChannelCard
+            icon={<Clock className="h-6 w-6" />}
+            title="שעות פעילות"
+            value={BUSINESS_HOURS}
+            note="ירושלים, ישראל"
+          />
         </div>
 
-        <ContactFormCard />
+        <div className="mt-12 grid gap-8 md:mt-16 lg:grid-cols-5 lg:gap-10">
+          <div className="lg:col-span-3">
+            <ContactForm />
+          </div>
 
-        <div className="grid md:grid-cols-2 gap-8 mt-8">
-          <Card className="border border-primary/10 shadow-premium rounded-[2.5rem] bg-white/90 backdrop-blur-sm p-8 space-y-8">
-            <CardHeader className="p-0 text-right">
-              <CardTitle className="text-2xl font-black text-primary">פרטי התקשרות</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0 space-y-6">
-              <ContactItem
-                icon={<Mail className="w-5 h-5 text-accent" />}
-                label="דואר אלקטרוני"
-                value={contactEmail}
-                href={`mailto:${contactEmail}`}
-              />
-              <ContactItem
-                icon={<MessageCircle className="w-5 h-5 text-accent" />}
-                label="וואטסאפ"
-                value={formattedPhone}
-                href={whatsappHref}
-                external
-              />
-              <ContactItem
-                icon={<MapPin className="w-5 h-5 text-accent" />}
-                label="מיקום"
-                value="ירושלים, ישראל"
-              />
-              <ContactItem
-                icon={<Clock className="w-5 h-5 text-accent" />}
-                label="שעות פעילות"
-                value="א'-ה' 09:00 - 18:00"
-              />
-            </CardContent>
-          </Card>
-
-          <Card className="border-none shadow-premium rounded-[2.5rem] bg-gradient-to-br from-primary to-primary/90 text-white p-8 flex flex-col justify-center text-center space-y-6 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-accent/20 rounded-full -ml-14 -mb-14 blur-2xl" />
-            <div className="relative z-10 space-y-6">
-              <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mx-auto border border-white/20">
-                <MessageCircle className="w-10 h-10 text-accent" />
-              </div>
-              <div className="space-y-2">
-                <h2 className="text-2xl font-headline font-black">מענה מהיר בוואטסאפ</h2>
-                <p className="text-white/80 font-medium">לעזרה טכנית, שלחו לנו הודעה ונחזור אליכם בהקדם.</p>
-              </div>
-              <Button asChild className="bg-accent text-primary hover:bg-accent/90 rounded-full h-14 px-10 font-bold uppercase tracking-widest shadow-xl transition-all hover:scale-105 active:scale-95">
-                <a href={whatsappHref} target="_blank" rel="noopener noreferrer">
-                   דברו איתנו בוואטסאפ
-                </a>
-              </Button>
-              <p className="text-xs text-white/70 font-semibold tracking-wide">{formattedPhone}</p>
+          <aside className="space-y-6 lg:col-span-2">
+            <div className="rounded-[1.75rem] border border-primary/5 bg-white p-6 shadow-premium md:p-7">
+              <h2 className="flex items-center gap-2 text-lg font-black text-primary">
+                <Headphones className="h-5 w-5 text-accent-strong" /> מה קורה אחרי שפונים?
+              </h2>
+              <ol className="mt-5 space-y-5">
+                <Step n={1} icon={<Inbox className="h-4 w-4" />} title="הפנייה מגיעה אלינו" text="כל פנייה נכנסת לתיבה של צוות חותם ונבדקת." />
+                <Step n={2} icon={<PhoneCall className="h-4 w-4" />} title="חוזרים אליכם" text={`במייל, בטלפון או בוואטסאפ — בשעות הפעילות (${BUSINESS_HOURS}).`} />
+                <Step n={3} icon={<CheckCircle2 className="h-4 w-4" />} title="מלווים עד הסוף" text="עד שהשאלה נפתרה או שההזמנה הגיעה אליכם." />
+              </ol>
             </div>
-          </Card>
+
+            <div className="rounded-[1.75rem] border border-primary/5 bg-white p-6 shadow-premium md:p-7">
+              <h2 className="text-lg font-black text-primary">שאלות נפוצות</h2>
+              <Accordion type="single" collapsible dir="rtl" className="mt-2">
+                {FAQ_ITEMS.map((item, i) => (
+                  <AccordionItem key={item.q} value={`faq-${i}`} className="border-primary/5 last:border-b-0">
+                    <AccordionTrigger className="gap-3 py-4 text-right text-sm font-bold text-primary hover:no-underline">
+                      {item.q}
+                    </AccordionTrigger>
+                    <AccordionContent className="text-right text-sm leading-relaxed text-primary/70">
+                      {item.a}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </div>
+
+            <div className="flex items-center gap-3 rounded-[1.5rem] bg-emerald-50/70 p-4">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                <ShieldCheck className="h-5 w-5" />
+              </span>
+              <p className="text-xs font-semibold leading-relaxed text-emerald-900/80">
+                כל הפניות באתר מוצפנות ומטופלות בסטנדרט הגבוה ביותר.
+              </p>
+            </div>
+          </aside>
         </div>
 
-        <div className="mt-12 bg-white/70 backdrop-blur-sm rounded-[2rem] p-8 border border-primary/10 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 text-right">
-           <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
-                <ShieldCheck className="w-6 h-6" />
-              </div>
-              <div>
-                 <h3 className="font-black text-primary">אבטחה ופרטיות</h3>
-                 <p className="text-xs text-muted-foreground font-medium">כל הפניות באתר מוצפנות ומטופלות בסטנדרט הגבוה ביותר.</p>
-              </div>
-           </div>
-           <Button variant="ghost" asChild className="rounded-full font-bold text-xs uppercase tracking-widest gap-2">
-              <Link href="/"><ArrowLeft className="w-4 h-4" /> חזרה לדף הבית</Link>
-           </Button>
+        <div className="mt-12 flex justify-center">
+          <Button variant="ghost" asChild className="gap-2 rounded-full text-xs font-bold">
+            <Link href="/">חזרה לדף הבית <ArrowLeft className="h-4 w-4" /></Link>
+          </Button>
         </div>
       </main>
     </div>
   );
 }
 
-function ContactFormCard() {
+function ChannelCard({
+  icon, title, value, note, href, external, highlight, valueDir,
+}: {
+  icon: ReactNode; title: string; value: string; note: string;
+  href?: string; external?: boolean; highlight?: boolean; valueDir?: 'ltr' | 'rtl';
+}) {
+  const body = (
+    <div
+      className={cn(
+        "group flex h-full items-center gap-4 rounded-[1.75rem] border p-5 text-right shadow-premium transition-all duration-300 sm:flex-col sm:items-start sm:p-6",
+        highlight ? "border-accent/40 bg-white ring-1 ring-accent/20" : "border-primary/5 bg-white",
+        href && "hover:-translate-y-1 hover:shadow-2xl",
+      )}
+    >
+      <span
+        className={cn(
+          "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl transition-colors",
+          highlight ? "bg-accent text-primary" : "bg-primary/5 text-primary group-hover:bg-accent/15",
+        )}
+      >
+        {icon}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-[11px] font-bold tracking-widest text-primary/45">{title}</p>
+        <p className="mt-0.5 truncate text-base font-black text-primary" dir={valueDir}>{value}</p>
+        <p className={cn("mt-1 text-xs font-semibold", highlight ? "text-accent-strong" : "text-muted-foreground")}>{note}</p>
+      </div>
+      {href && <ArrowLeft className="h-4 w-4 shrink-0 text-primary/30 transition-transform group-hover:-translate-x-1 sm:hidden" />}
+    </div>
+  );
+
+  if (!href) return body;
+  return (
+    <a
+      href={href}
+      className="block rounded-[1.75rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+      {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+    >
+      {body}
+    </a>
+  );
+}
+
+function Step({ n, icon, title, text }: { n: number; icon: ReactNode; title: string; text: string }) {
+  return (
+    <li className="flex gap-3">
+      <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent-strong">
+        {icon}
+        <span className="absolute -left-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-black text-primary-foreground">{n}</span>
+      </span>
+      <div>
+        <p className="text-sm font-black text-primary">{title}</p>
+        <p className="mt-0.5 text-xs font-medium leading-relaxed text-muted-foreground">{text}</p>
+      </div>
+    </li>
+  );
+}
+
+function ContactForm() {
   const db = useSupabaseClient();
   const { toast } = useToast();
   const [form, setForm] = useState({ name: '', email: '', phone: '', message: '' });
+  const [topic, setTopic] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -138,6 +248,7 @@ function ContactFormCard() {
       name: form.name.trim(),
       email: form.email.trim(),
       phone: form.phone.trim() || null,
+      subject: topic || null,
       message: form.message.trim(),
     });
     setIsSubmitting(false);
@@ -153,62 +264,77 @@ function ContactFormCard() {
 
     setIsSubmitted(true);
     setForm({ name: '', email: '', phone: '', message: '' });
+    setTopic('');
     toast({ variant: "success", title: 'הפנייה נשלחה בהצלחה', description: 'נחזור אליכם בהקדם האפשרי.' });
   };
 
   if (isSubmitted) {
     return (
-      <Card className="border border-emerald-100 shadow-premium rounded-[2.5rem] bg-emerald-50/60 backdrop-blur-sm p-10 text-center space-y-4">
-        <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-600">
-          <CheckCircle2 className="w-8 h-8" />
+      <div className="flex h-full flex-col items-center justify-center rounded-[2rem] border border-emerald-100 bg-white p-10 text-center shadow-premium md:p-14">
+        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 ring-8 ring-emerald-50/50">
+          <CheckCircle2 className="h-10 w-10" />
         </div>
-        <h2 className="text-2xl font-headline font-black text-primary">הפנייה שלכם התקבלה!</h2>
-        <p className="text-muted-foreground font-medium">תודה שפניתם אלינו, צוות חותם יחזור אליכם בהקדם האפשרי.</p>
-        <Button variant="outline" onClick={() => setIsSubmitted(false)} className="rounded-full font-bold h-11 px-8 mt-2">
-          שליחת פנייה נוספת
-        </Button>
-      </Card>
+        <h2 className="mt-6 font-headline text-3xl font-black text-primary">הפנייה התקבלה!</h2>
+        <p className="mt-2 max-w-sm font-medium text-muted-foreground">תודה שפניתם אלינו. צוות חותם יחזור אליכם בהקדם האפשרי.</p>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <Button variant="outline" onClick={() => setIsSubmitted(false)} className="h-11 rounded-full px-6 font-bold">
+            שליחת פנייה נוספת
+          </Button>
+          <Button asChild className="h-11 gap-2 rounded-full bg-primary px-6 font-bold">
+            <Link href="/search?view=all">לכל המוצרים <ArrowLeft className="h-4 w-4" /></Link>
+          </Button>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card className="border border-primary/10 shadow-premium-lg rounded-[2.5rem] bg-white/95 backdrop-blur-sm p-8 md:p-10">
-      <CardHeader className="p-0 text-right mb-6">
-        <CardTitle className="text-2xl font-black text-primary flex items-center justify-end gap-3">
-          השאירו לנו הודעה
-          <span className="w-11 h-11 rounded-2xl bg-primary/5 flex items-center justify-center text-primary shrink-0"><Send className="w-5 h-5" /></span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-0">
-        <form onSubmit={handleSubmit} className="space-y-5 text-right">
-          <div className="grid sm:grid-cols-2 gap-5">
-            <div className="space-y-2">
-              <Label htmlFor="contact-name" className="text-xs font-bold">שם מלא *</Label>
-              <Input
-                id="contact-name"
-                value={form.name}
-                onChange={e => updateField('name', e.target.value)}
-                placeholder="ישראל ישראלי"
-                className="h-12 rounded-2xl"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="contact-email" className="text-xs font-bold">אימייל *</Label>
-              <Input
-                id="contact-email"
-                type="email"
-                dir="ltr"
-                value={form.email}
-                onChange={e => updateField('email', e.target.value)}
-                placeholder="your@email.com"
-                className="h-12 rounded-2xl text-right"
-                required
-              />
-            </div>
+    <div className="rounded-[2rem] border border-primary/5 bg-white p-6 shadow-premium md:p-9">
+      <div className="flex items-center gap-3">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
+          <Send className="h-5 w-5" />
+        </span>
+        <div>
+          <h2 className="text-xl font-black text-primary md:text-2xl">השאירו לנו הודעה</h2>
+          <p className="text-xs font-medium text-muted-foreground">נחזור אליכם בשעות הפעילות</p>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="mt-7 space-y-5 text-right">
+        <fieldset className="space-y-2.5">
+          <legend className="mb-2.5 text-xs font-bold text-primary">במה נוכל לעזור?</legend>
+          <div className="flex flex-wrap gap-2">
+            {CONTACT_TOPICS.map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setTopic(prev => (prev === t ? '' : t))}
+                aria-pressed={topic === t}
+                className={cn(
+                  "rounded-full border px-4 py-2 text-xs font-bold transition-all",
+                  topic === t
+                    ? "border-primary bg-primary text-primary-foreground shadow-md"
+                    : "border-primary/10 bg-[#FAFAF8] text-primary/70 hover:border-accent hover:text-primary",
+                )}
+              >
+                {t}
+              </button>
+            ))}
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="contact-phone" className="text-xs font-bold">טלפון (אופציונלי)</Label>
+        </fieldset>
+
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Field id="contact-name" label="שם מלא" required>
+            <Input
+              id="contact-name"
+              value={form.name}
+              onChange={e => updateField('name', e.target.value)}
+              placeholder="ישראל ישראלי"
+              className="h-12 rounded-2xl bg-[#FAFAF8]"
+              required
+            />
+          </Field>
+          <Field id="contact-phone" label="טלפון" hint="אופציונלי">
             <Input
               id="contact-phone"
               type="tel"
@@ -216,54 +342,65 @@ function ContactFormCard() {
               value={form.phone}
               onChange={e => updateField('phone', e.target.value)}
               placeholder="050-0000000"
-              className="h-12 rounded-2xl text-right"
+              className="h-12 rounded-2xl bg-[#FAFAF8] text-right"
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="contact-message" className="text-xs font-bold">הודעה *</Label>
-            <Textarea
-              id="contact-message"
-              value={form.message}
-              onChange={e => updateField('message', e.target.value)}
-              placeholder="כתבו לנו במה נוכל לעזור..."
-              className="min-h-36 rounded-2xl resize-none"
-              required
-            />
-          </div>
+          </Field>
+        </div>
+        <Field id="contact-email" label="אימייל" required>
+          <Input
+            id="contact-email"
+            type="email"
+            dir="ltr"
+            value={form.email}
+            onChange={e => updateField('email', e.target.value)}
+            placeholder="your@email.com"
+            className="h-12 rounded-2xl bg-[#FAFAF8] text-right"
+            required
+          />
+        </Field>
+        <Field id="contact-message" label="הודעה" required>
+          <Textarea
+            id="contact-message"
+            value={form.message}
+            onChange={e => updateField('message', e.target.value)}
+            placeholder="כתבו לנו במה נוכל לעזור..."
+            className="min-h-36 resize-none rounded-2xl bg-[#FAFAF8]"
+            required
+          />
+        </Field>
+
+        <div className="flex flex-col-reverse items-stretch gap-4 pt-2 sm:flex-row sm:items-center sm:justify-between">
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="w-full sm:w-auto rounded-full h-14 px-12 font-bold uppercase tracking-widest bg-accent text-primary hover:bg-accent/90 shadow-xl transition-all hover:scale-[1.02] active:scale-95 gap-2"
+            className="h-14 gap-2 rounded-full bg-accent px-10 font-bold text-primary shadow-xl transition-all hover:scale-[1.02] hover:bg-accent/90 active:scale-95"
           >
-            {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+            {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
             שליחת הפנייה
           </Button>
-        </form>
-      </CardContent>
-    </Card>
+          <a
+            href={WHATSAPP_HREF}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-1.5 text-xs font-bold text-primary/60 transition-colors hover:text-primary"
+          >
+            <MessageCircle className="h-4 w-4 text-emerald-600" /> דחוף? כתבו לנו בוואטסאפ
+          </a>
+        </div>
+      </form>
+    </div>
   );
 }
 
-function ContactItem({ icon, label, value, href, external }: any) {
-  const content = (
-    <div className="flex items-center justify-end gap-4 group p-3 rounded-2xl border border-transparent hover:border-primary/10 hover:bg-primary/5 transition-all">
-      <div className="text-right">
-        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest leading-none mb-1">{label}</p>
-        <p className="text-base font-bold text-primary group-hover:text-accent transition-colors">{value}</p>
-      </div>
-      <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center group-hover:bg-accent group-hover:text-primary transition-all">
-        {icon}
-      </div>
+function Field({ id, label, required, hint, children }: { id: string; label: string; required?: boolean; hint?: string; children: ReactNode }) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id} className="flex items-center gap-1.5 text-xs font-bold text-primary">
+        {label}
+        {required && <span className="text-accent-strong">*</span>}
+        {hint && <span className="font-medium text-muted-foreground">({hint})</span>}
+      </Label>
+      {children}
     </div>
   );
-
-  if (href) {
-    return (
-      <a href={href} className="block transition-all" {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
-        {content}
-      </a>
-    );
-  }
-
-  return content;
 }

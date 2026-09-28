@@ -78,6 +78,8 @@ export function Navbar() {
   // Use profile (DB lookup, more up-to-date) as primary source; fall back to
   // JWT user_metadata role so the bell renders even when the DB is unavailable.
   const isSeller = profile?.role === 'seller' || user?.role === 'seller';
+  // Judaica sellers aren't scribes — neutral wording for them (seller_type from the seller row).
+  const sellerNoun = profile?.seller_type === 'judaica_seller' ? 'מוכר' : 'סופר';
 
   const adminRef = useMemoStable(() => {
     if (!user?.uid || user?.role !== 'admin') return null;
@@ -465,7 +467,7 @@ export function Navbar() {
                         variant="ghost" 
                         size="icon" 
                         className="rounded-full h-11 w-11 bg-white/55 border border-white/45 shadow-premium relative hover:bg-white/72 transition-all"
-                        aria-label="עדכוני סופר"
+                        aria-label={`עדכוני ${sellerNoun}`}
                       >
                         <Bell className="w-5 h-5 text-primary" />
                         {sellerNotificationCount > 0 && (
@@ -477,7 +479,7 @@ export function Navbar() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-72 p-2 rounded-[2rem] shadow-premium border-none bg-white/95 backdrop-blur-md mt-2">
                       <DropdownMenuLabel className="text-sm font-semibold uppercase text-primary flex items-center gap-2 p-4">
-                        <Bell className="w-4 h-4 text-accent" /> התראות סופר
+                        <Bell className="w-4 h-4 text-accent" /> התראות {sellerNoun}
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator className="bg-primary/5" />
                       

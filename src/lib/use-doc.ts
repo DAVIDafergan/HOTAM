@@ -9,6 +9,11 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 /** Utility type to add an 'id' field to a given type T. */
 type WithId<T> = T & { id: string };
 
+// Columns added by docs/add-seller-types-migration.sql. If a read runs before that migration
+// (undefined column), it's retried without them so the seller's dashboard keeps working.
+const POST_MIGRATION_SELLER_FIELDS = ['seller_type', 'stam_upgrade_status'];
+const UNDEFINED_COLUMN_CODE = '42703';
+
 const SAFE_CLIENT_FIELDS: Record<string, string> = {
   sellers: [
     'id',
@@ -36,6 +41,8 @@ const SAFE_CLIENT_FIELDS: Record<string, string> = {
     'notification_email',
     'notification_sms',
     'notification_voice',
+    'seller_type',
+    'stam_upgrade_status',
   ].join(', '),
   customers: [
     'id',
@@ -108,12 +115,18 @@ export function useDoc<T = any>(
 
     const fetchData = async () => {
       try {
-        const fields = SAFE_CLIENT_FIELDS[docRefRef.current!.table] || '*';
-        const { data: row, error: qError } = await docRefRef.current!.client
-          .from(docRefRef.current!.table)
-          .select(fields)
+        const table = docRefRef.current!.table;
+        const fields = SAFE_CLIENT_FIELDS[table] || '*';
+        const readRow = (columns: string) => docRefRef.current!.client
+          .from(table)
+          .select(columns)
           .eq('id', docRefRef.current!.id)
           .maybeSingle();
+        let { data: row, error: qError } = await readRow(fields);
+        if (qError?.code === UNDEFINED_COLUMN_CODE && table === 'sellers') {
+          const legacyFields = fields.split(', ').filter((f) => !POST_MIGRATION_SELLER_FIELDS.includes(f)).join(', ');
+          ({ data: row, error: qError } = await readRow(legacyFields));
+        }
 
         if (!isMounted) return;
 

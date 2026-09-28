@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import SellerProfileClient from './SellerProfileClient';
+import { resolveSellerType } from '@/lib/product-catalog';
 import { getPublicSellerById, getPublicSellerPageData } from '@/lib/storefront-data';
 
 const DEFAULT_OG_IMAGE = 'https://github.com/user-attachments/assets/c225c666-5c35-4add-86d2-ed2454e6f368';
@@ -32,12 +33,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       };
     }
 
-    const titleBase = `${seller.first_name} ${seller.last_name} — סופר סת"ם`;
+    const isJudaica = resolveSellerType(seller.seller_type) === 'judaica_seller';
+    const titleBase = `${seller.first_name} ${seller.last_name} — ${isJudaica ? 'מוכר יודאיקה' : 'סופר סת"ם'}`;
     // pageTitle (with the explicit "| חותם" suffix) is only for OG/Twitter, which
     // don't get the root layout's title template applied — the <title> tag itself
     // uses titleBase alone so the template doesn't double up the brand suffix.
     const pageTitle = `${titleBase} | חותם`;
-    const description = seller.notes || `סופר סת"ם מוסמך עם ${seller.experience_years} שנות ניסיון. צפו בפרופיל המלא וביצירות שלו באתר חותם.`;
+    const description = seller.notes || (isJudaica
+      ? 'מוכר מוצרי יודאיקה באתר חותם. צפו בפרופיל ובמוצרים באתר.'
+      : `סופר סת"ם מוסמך עם ${seller.experience_years} שנות ניסיון. צפו בפרופיל המלא וביצירות שלו באתר חותם.`);
     const imageUrl = seller.profile_image || DEFAULT_OG_IMAGE;
     const pageUrl = `https://www.hotam.shop/sellers/${id}`;
 
@@ -88,14 +92,15 @@ export default async function SellerPage({ params }: Props) {
     ? ratedReviews.reduce((sum: number, r: any) => sum + Number(r.rating), 0) / ratedReviews.length
     : null;
 
+  const isJudaica = resolveSellerType(seller?.seller_type) === 'judaica_seller';
   const jsonLd = seller ? {
     "@context": "https://schema.org",
     "@type": "Person",
     "name": `${seller.first_name} ${seller.last_name}`,
-    "description": seller.notes || `סופר סת"ם מוסמך באתר חותם`,
+    "description": seller.notes || (isJudaica ? 'מוכר מוצרי יודאיקה באתר חותם' : `סופר סת"ם מוסמך באתר חותם`),
     "image": seller.profile_image || undefined,
     "url": `https://www.hotam.shop/sellers/${id}`,
-    "jobTitle": 'סופר סת"ם',
+    "jobTitle": isJudaica ? 'מוכר יודאיקה' : 'סופר סת"ם',
     ...(seller.city ? { "address": { "@type": "PostalAddress", "addressLocality": seller.city, "addressCountry": "IL" } } : {}),
     ...(avgRating !== null ? {
       "aggregateRating": {

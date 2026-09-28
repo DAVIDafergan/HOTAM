@@ -3,6 +3,7 @@ import 'server-only';
 import { cache } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { JUDAICA_PRODUCT_TYPES } from '@/lib/product-catalog';
+import { fromPublicView } from '@/lib/public-views';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -49,7 +50,6 @@ const PUBLIC_SELLER_FIELDS = [
   'first_name',
   'last_name',
   'city',
-  'address',
   'notes',
   'profile_image',
   'is_approved',
@@ -153,15 +153,13 @@ export const getPublicSellerById = cache(async (id: string): Promise<any | null>
     const client = getPublicSupabaseClient();
     if (!client) return null;
 
-    let { data, error } = await client
-      .from('sellers')
-      .select(PUBLIC_SELLER_FIELDS as any)
-      .eq('id', id)
-      .maybeSingle();
+    let { data, error } = await fromPublicView(client, 'sellers_public', (from) =>
+      from.select(PUBLIC_SELLER_FIELDS as any).eq('id', id).maybeSingle());
     // Retry without seller_type on any error (column missing, or not granted to anon) so the
     // page still renders — worst case with default wording, never a 404.
     if (error) {
-      ({ data, error } = await client.from('sellers').select(PUBLIC_SELLER_FIELDS_LEGACY as any).eq('id', id).maybeSingle());
+      ({ data, error } = await fromPublicView(client, 'sellers_public', (from) =>
+        from.select(PUBLIC_SELLER_FIELDS_LEGACY as any).eq('id', id).maybeSingle()));
     }
 
     if (error || !data) return null;
@@ -269,10 +267,8 @@ export const getHomeProducts = cache(async (limit: number): Promise<any[]> => {
     // Attach the public seller fields the card shows in its "post" header.
     const sellerIds = Array.from(new Set((data as any[]).map((p) => p.seller_id).filter(Boolean)));
     if (sellerIds.length === 0) return data as any[];
-    const { data: sellers, error: sellersError } = await client
-      .from('sellers')
-      .select('id, first_name, last_name, profile_image, city')
-      .in('id', sellerIds);
+    const { data: sellers, error: sellersError } = await fromPublicView<any[]>(client, 'sellers_public', (from) =>
+      from.select('id, first_name, last_name, profile_image, city').in('id', sellerIds));
     if (sellersError) console.error('[storefront] home product sellers fetch error:', sellersError.message);
     const sellerById = new Map((sellers || []).map((s: any) => [s.id, s]));
     return (data as any[]).map((p) => ({ ...p, seller: sellerById.get(p.seller_id) ?? null }));
@@ -305,10 +301,8 @@ export const getJudaicaHomeData = cache(async (): Promise<{ counts: Record<strin
     if (error || !data || data.length === 0) return empty;
 
     const sellerIds = Array.from(new Set((data as any[]).map((p) => p.seller_id).filter(Boolean)));
-    const { data: sellers, error: sellersError } = await client
-      .from('sellers')
-      .select('id, first_name, last_name, profile_image, city, is_approved')
-      .in('id', sellerIds);
+    const { data: sellers, error: sellersError } = await fromPublicView<any[]>(client, 'sellers_public', (from) =>
+      from.select('id, first_name, last_name, profile_image, city, is_approved').in('id', sellerIds));
     if (sellersError) console.error('[storefront] judaica sellers fetch error:', sellersError.message);
     const sellerById = new Map((sellers || []).map((s: any) => [s.id, s]));
 
@@ -335,6 +329,20 @@ const serviceSupabaseClient =
     : null;
 
 const TOP_SCRIBES_RPC_FALLBACK_LIMIT = 200;
+
+/** City for a card: the city field, else the part after the last comma of the address. */
+function publicCity(row: { city?: string | null; address?: string | null }): string | null {
+  const city = String(row.city || '').trim();
+  if (city) return city;
+  const address = String(row.address || '');
+  return address.includes(',') ? address.split(',').pop()!.trim() || null : null;
+}
+
+/** Card data never carries the street address (it used to reach the browser only to extract the city). */
+const withoutAddress = (row: any) => {
+  const { address: _address, ...rest } = row;
+  return { ...rest, city: publicCity(row) };
+};
 
 /**
  * Fetch every approved scribe for the homepage, best sellers first (then rating,

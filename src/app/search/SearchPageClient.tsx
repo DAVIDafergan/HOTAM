@@ -46,7 +46,8 @@ import {
 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useSupabaseClient, useCollection, useMemoStable } from '@/lib/supabase-hooks';
-import { collection, query, where, limit } from '@/lib/supabase-compat';
+import { collection, query, where, limit, selectColumns } from '@/lib/supabase-compat';
+import { SEARCH_SELLER_COLUMNS } from '@/lib/constants';
 import { ProductCard, type ProductCardViewMode } from '@/components/ProductCard';
 import { ProductCardSkeletonGrid } from '@/components/ProductCardSkeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -162,7 +163,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
   const allProducts = allProductsFromHook ?? (initialProducts && initialProducts.length > 0 ? initialProducts : null);
   const isLoading = isProductsHookLoading && !(initialProducts && initialProducts.length > 0);
 
-  const sellersQuery = useMemoStable(() => query(collection(db, 'sellers'), where('is_approved', '==', true), limit(200)), [db]);
+  const sellersQuery = useMemoStable(() => query(collection(db, 'sellers'), where('is_approved', '==', true), limit(200), selectColumns(SEARCH_SELLER_COLUMNS)), [db]);
   const { data: allSellersFromHook } = useCollection<any>(sellersQuery);
   // Every product's matchApproved filter requires its seller record, so without
   // this seed every product was excluded during SSR (0 results server-rendered)

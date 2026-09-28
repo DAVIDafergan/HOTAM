@@ -48,6 +48,7 @@ import { Switch } from '@/components/ui/switch';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PROFILE_NOT_FOUND_CODE } from '@/lib/supabase-errors';
+import { PUBLIC_SELLER_PROFILE_COLUMNS } from '@/lib/constants';
 
 type SellerProfileClientProps = {
   sellerId: string;
@@ -135,7 +136,7 @@ export default function SellerProfile({
       // Scribe rating = profile-page ratings + post-purchase scribe ratings (reviews with
       // an order_id) — same definition as getPublicSellerReviews and the homepage card.
       const [sellerResult, productsResult, reviewsResult, orderReviewsResult] = await Promise.all([
-        supabase.from('sellers').select('*').eq('id', id).maybeSingle(),
+        supabase.from('sellers').select(PUBLIC_SELLER_PROFILE_COLUMNS).eq('id', id).maybeSingle(),
         supabase.from('products').select('*').eq('seller_id', id),
         supabase.from('supermarket_reviews').select('*, profiles(full_name, avatar_url)').eq('supermarket_id', id),
         supabase
@@ -148,7 +149,12 @@ export default function SellerProfile({
       if (isCancelled) return;
 
       if (sellerResult.error) console.error('[seller] fetch error:', sellerResult.error.message);
-      else setSeller(sellerResult.data || null);
+      // Keep the server's city when the row has none (the server derives it from the address,
+      // which never reaches the browser).
+      else {
+        const fresh = sellerResult.data as any;
+        setSeller((prev: any) => (fresh ? { ...fresh, city: fresh.city || prev?.city || null } : null));
+      }
 
       if (productsResult.error) console.error('products fetch error:', productsResult.error.message);
       else setProducts(productsResult.data || []);

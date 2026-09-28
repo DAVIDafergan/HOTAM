@@ -205,12 +205,13 @@ function ChatContent() {
   useEffect(() => {
     if (!otherUserId) return;
     const fetchOtherUser = async () => {
-      let { data: seller } = await supabase.from('sellers').select('*').eq('id', otherUserId).maybeSingle();
+      // Only what the chat shows and needs for its email notice — never bank details, phone or address.
+      let { data: seller } = await supabase.from('sellers').select('id, first_name, last_name, profile_image, is_approved, email, notification_email').eq('id', otherUserId).maybeSingle();
       if (seller) {
         setOtherSellerData(seller);
         setOtherUserData(seller);
       } else {
-        let { data: customer } = await supabase.from('customers').select('*').eq('id', otherUserId).single();
+        let { data: customer } = await supabase.from('customers').select('id, first_name, last_name, email, notif_msg_email').eq('id', otherUserId).single();
         setOtherUserData(customer);
       }
     };

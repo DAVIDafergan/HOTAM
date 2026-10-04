@@ -1985,6 +1985,8 @@ function EditSellerDialog({ scribe, db }: any) {
     notes: s.notes || '',
   });
   const [form, setForm] = useState(buildFormFromScribe(scribe));
+  // Judaica sellers have no scribal background: no years-of-experience field, and saving never touches it.
+  const isJudaicaSeller = resolveSellerType(scribe.seller_type) === 'judaica_seller';
 
   // Re-sync the form to the latest DB values every time the dialog is (re)opened, so a
   // stale in-memory copy never overwrites a change made elsewhere in the meantime.
@@ -1997,10 +1999,10 @@ function EditSellerDialog({ scribe, db }: any) {
 
   const handleSave = async () => {
     setIsSaving(true);
-    const payload = {
-      ...form,
-      experience_years: form.experience_years === '' ? null : Number(form.experience_years),
-    };
+    const { experience_years: experienceInput, ...rest } = form;
+    const payload = isJudaicaSeller
+      ? rest
+      : { ...rest, experience_years: experienceInput === '' ? null : Number(experienceInput) };
     const { error, count } = await db
       .from('sellers')
       .update(payload, { count: 'exact' })
@@ -2023,7 +2025,7 @@ function EditSellerDialog({ scribe, db }: any) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon" className="h-10 w-10 rounded-full hover:bg-accent hover:text-primary transition-all border-primary/5 shadow-sm" aria-label="ערוך פרטי סופר">
+        <Button variant="outline" size="icon" className="h-10 w-10 rounded-full hover:bg-accent hover:text-primary transition-all border-primary/5 shadow-sm" aria-label={isJudaicaSeller ? "ערוך פרטי מוכר" : "ערוך פרטי סופר"}>
           <Pencil className="w-3.5 h-3.5" />
         </Button>
       </DialogTrigger>
@@ -2035,7 +2037,7 @@ function EditSellerDialog({ scribe, db }: any) {
               עריכת פרטי {scribe.first_name} {scribe.last_name}
             </DialogTitle>
           </DialogHeader>
-          <p className="text-white/60 text-xs font-semibold mt-1">כמנהל, ניתן לערוך כאן את כל פרטי הסופר — כולל פרטי חשבון בנק שהסופר עצמו אינו יכול לערוך</p>
+          <p className="text-white/60 text-xs font-semibold mt-1">{isJudaicaSeller ? 'כמנהל, ניתן לערוך כאן את כל פרטי המוכר — כולל פרטי חשבון בנק שהמוכר עצמו אינו יכול לערוך' : 'כמנהל, ניתן לערוך כאן את כל פרטי הסופר — כולל פרטי חשבון בנק שהסופר עצמו אינו יכול לערוך'}</p>
         </div>
 
         <div className="p-8 space-y-8 text-right">
@@ -2073,10 +2075,12 @@ function EditSellerDialog({ scribe, db }: any) {
 
           {/* Professional */}
           <div className="space-y-4">
-            <p className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2"><ShieldCheck className="w-4 h-4" /> רקע מקצועי</p>
-            <div className="grid sm:grid-cols-2 gap-4">
+            <p className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2"><ShieldCheck className="w-4 h-4" /> {isJudaicaSeller ? 'על העסק' : 'רקע מקצועי'}</p>
+            {!isJudaicaSeller && (
+            <div className="grid sm:grid-cols-2 gap-4" data-admin-edit-scribal>
               <div className="space-y-1.5"><Label className="text-xs font-semibold">שנות ניסיון</Label><Input type="number" min={0} value={form.experience_years} onChange={e => updateField('experience_years', e.target.value)} className="rounded-xl h-11" /></div>
             </div>
+            )}
             <div className="space-y-1.5"><Label className="text-xs font-semibold">הערות</Label><Textarea value={form.notes} onChange={e => updateField('notes', e.target.value)} className="rounded-xl min-h-24" /></div>
           </div>
         </div>
@@ -2094,6 +2098,11 @@ function EditSellerDialog({ scribe, db }: any) {
 }
 
 function VerifyScribeDialog({ scribe, db }: any) {
+  // Scribal (halachic) details belong to סופרי סת"ם only. A Judaica seller shows none — unless they
+  // have a pending upgrade request, where the admin has to review exactly what they submitted.
+  const isJudaicaSeller = resolveSellerType(scribe.seller_type) === 'judaica_seller';
+  const upgradePending = isJudaicaSeller && scribe.stam_upgrade_status === 'pending';
+  const showScribal = !isJudaicaSeller || upgradePending;
   // Scribe rating = profile-page ratings + post-purchase scribe ratings (reviews with an
   // order_id) — same definition as the public profile and homepage card. Product-page
   // reviews rate the product, so they're excluded.
@@ -2169,10 +2178,12 @@ function VerifyScribeDialog({ scribe, db }: any) {
                </div>
             </div>
 
-            {/* Religious & Professional Info */}
+            {/* Religious & Professional Info — scribes (and a pending upgrade request) only */}
             <div className="space-y-6">
-               <div className="space-y-4">
-                  <p className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2"><UserCheck className="w-4 h-4" /> רקע מקצועי והנהגה</p>
+               {showScribal ? (
+               <>
+               <div className="space-y-4" data-admin-view-scribal>
+                  <p className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2"><UserCheck className="w-4 h-4" /> {upgradePending ? 'פרטים שהוגשו בבקשת השדרוג לסופר סת"ם' : 'רקע מקצועי והנהגה'}</p>
                   <div className="bg-primary/5 p-5 rounded-2xl space-y-3 text-[11px] font-bold border border-primary/10">
                     <div className="flex justify-between border-b border-primary/10 pb-2"><span>{scribe.experience_years} שנים</span><span className="text-muted-foreground">ניסיון:</span></div>
                     <div className="flex justify-between border-b border-primary/10 pb-2"><span>{scribe.script_level}</span><span className="text-muted-foreground">רמת הידור:</span></div>
@@ -2189,6 +2200,13 @@ function VerifyScribeDialog({ scribe, db }: any) {
                     ))}
                   </div>
                </div>
+               </>
+               ) : (
+               <div className="space-y-2" data-admin-view-judaica>
+                  <p className="text-[10px] font-black text-primary uppercase tracking-widest">סוג מוכר</p>
+                  <p className="bg-muted/30 p-4 rounded-2xl text-[11px] font-bold text-primary">מוכר יודאיקה — ללא פרטי הסמכה הלכתיים</p>
+               </div>
+               )}
                <div className="space-y-4 pt-2">
                   <p className="text-[10px] font-black text-primary uppercase tracking-widest">מזהה פנימי (UID)</p>
                   <p className="bg-muted p-2 rounded-lg text-[9px] font-mono break-all text-primary/60">{scribe.id}</p>
@@ -2197,10 +2215,11 @@ function VerifyScribeDialog({ scribe, db }: any) {
           </div>
 
           <div className="pt-6 border-t space-y-4">
-             <p className="font-black text-sm text-primary underline decoration-accent/30 underline-offset-4">אודות והסמכה אישית</p>
+             <p className="font-black text-sm text-primary underline decoration-accent/30 underline-offset-4">{showScribal ? 'אודות והסמכה אישית' : 'אודות העסק'}</p>
              <p className="text-xs text-primary/70 leading-relaxed italic bg-muted/20 p-4 rounded-xl">"{scribe.notes || '-'}"</p>
           </div>
 
+          {showScribal && (
           <div className="grid md:grid-cols-2 gap-8">
             {scribe.certificate_url && (
               <div className="space-y-4">
@@ -2224,6 +2243,7 @@ function VerifyScribeDialog({ scribe, db }: any) {
               </div>
             )}
           </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

@@ -83,6 +83,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { StuckOrdersPanel } from '@/components/admin/StuckOrdersPanel';
 import { classifyStuckOrder } from '@/lib/stuck-orders';
+import { AdminAuditLogPanel } from '@/components/admin/AdminAuditLogPanel';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -794,6 +795,7 @@ export default function AdminDashboard() {
         { id: 'chats', label: 'שיחות', icon: <MessageSquare className="w-4 h-4" /> },
         { id: 'reports', label: 'דיווחים', icon: <Flag className="w-4 h-4" /> },
         { id: 'inquiries', label: 'פניות', icon: <Inbox className="w-4 h-4" /> },
+        { id: 'audit', label: 'יומן ביקורת', icon: <History className="w-4 h-4" /> },
       ],
     },
   ];
@@ -1000,7 +1002,7 @@ export default function AdminDashboard() {
                   <ChevronDown className="w-4 h-4 text-primary/40" />
                 </button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[280px] p-0 border-none bg-white rounded-l-[2.5rem]" dir="rtl">
+              <SheetContent side="right" className="w-[280px] p-0 border-none bg-white rounded-l-[2.5rem] overflow-y-auto overscroll-contain" dir="rtl">
                 <SheetHeader className="sr-only">
                   <SheetTitle>תפריט ניהול מערכת</SheetTitle>
                   <SheetDescription>מעבר מהיר בין לקוחות, סופרים, מכירות ודיווחים</SheetDescription>
@@ -1127,6 +1129,10 @@ export default function AdminDashboard() {
               setPage={setCustomersPage}
               customerAuthCreatedAt={customerAuthCreatedAt}
             />
+          </TabsContent>
+
+          <TabsContent value="audit">
+            <AdminAuditLogPanel />
           </TabsContent>
 
           <TabsContent value="sales">

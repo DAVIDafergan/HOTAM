@@ -4,8 +4,9 @@ import { useEffect, useState, type ReactNode } from 'react';
 import {
   Package, Users, UserCheck, Clock, ShoppingBag, Banknote,
   Inbox, Flag, ShieldAlert, Eye, TrendingUp, LogIn, UserCog, Timer, PieChart, BarChart3,
-  CheckCircle2, ChevronLeft, Truck, Trophy, SlidersHorizontal, ShieldCheck,
+  CheckCircle2, ChevronLeft, Truck, Trophy, SlidersHorizontal, ShieldCheck, AlertTriangle,
 } from 'lucide-react';
+import { STUCK_STATUSES, classifyStuckOrder } from '@/lib/stuck-orders';
 import { useSupabaseClient } from '@/lib/supabase-hooks';
 import { cn } from '@/lib/utils';
 import { FunnelSummary } from '@/components/admin/AdminActivityPanel';
@@ -49,6 +50,7 @@ export type AdminOverviewData = {
     openReports?: number;
     flaggedChats?: number;
     awaitingDelivery?: number;
+    stuckOrders?: number;
     stamUpgrades?: number;
   };
   sales: { revenue30d: number; paidOrders30d: number; completed30d: number } | null;
@@ -112,7 +114,8 @@ function useAdminOverviewData(): AdminOverviewData {
       db.from('orders').select('id', head).eq('status', 'paid'),
       db.from('sellers').select('id', head).eq('stam_upgrade_status', 'pending'),
       db.from('sellers').select('id', head).eq('is_approved', true).eq('seller_type', 'judaica_seller'),
-    ]).then(([products, activeSellers, pendingSellers, customers, orders, inquiries, reports, flaggedChats, awaitingDelivery, stamUpgrades, activeJudaica]) => {
+      db.from('orders').select('id, status, paid_at, created_at').in('status', STUCK_STATUSES).limit(2000),
+    ]).then(([products, activeSellers, pendingSellers, customers, orders, inquiries, reports, flaggedChats, awaitingDelivery, stamUpgrades, activeJudaica, stuckCandidates]) => {
       const orderRows = orders.data || [];
       const paidRows = orderRows.filter((o: any) => PAID_ORDER_STATUSES.includes(o.status));
 
@@ -136,6 +139,7 @@ function useAdminOverviewData(): AdminOverviewData {
         openReports: reports.count ?? 0,
         flaggedChats: flaggedChats.count ?? 0,
         awaitingDelivery: awaitingDelivery.count ?? 0,
+        stuckOrders: (stuckCandidates.data || []).filter((o: any) => classifyStuckOrder(o)).length,
         // Errors before the seller-types migration (missing column) — count as none.
         stamUpgrades: stamUpgrades.error ? 0 : (stamUpgrades.count ?? 0),
       });
@@ -286,7 +290,7 @@ function useAdminOverviewData(): AdminOverviewData {
   };
 }
 
-export function AdminOverviewPanel({ onNavigate }: { onNavigate?: (tab: AdminTabId) => void }) {
+export function AdminOverviewPanel({ onNavigate }: { onNavigate?: AdminNavigate }) {
   const db = useSupabaseClient();
   const data = useAdminOverviewData();
   return <AdminOverviewView data={data} onNavigate={onNavigate} funnelSlot={<FunnelSummary db={db} />} />;
@@ -352,13 +356,15 @@ function StatPill({ icon, label, value }: { icon: ReactNode; label: string; valu
   );
 }
 
-type ActionItem = { key: string; count: number; label: string; icon: ReactNode; tab: AdminTabId; tone: 'warn' | 'accent' };
+type ActionItem = { key: string; count: number; label: string; icon: ReactNode; tab: AdminTabId; tone: 'warn' | 'accent'; salesFilter?: 'stuck' };
+export type AdminNavigate = (tab: AdminTabId, options?: { salesFilter?: 'stuck' }) => void;
 
-function ActionCenter({ counts, onNavigate }: { counts: AdminOverviewData['counts']; onNavigate?: (tab: AdminTabId) => void }) {
+function ActionCenter({ counts, onNavigate }: { counts: AdminOverviewData['counts']; onNavigate?: AdminNavigate }) {
   const loaded = counts.pendingSellers !== undefined;
   const items: ActionItem[] = [
     { key: 'pendingSellers', count: counts.pendingSellers ?? 0, label: 'מוכרים ממתינים לאישור', icon: <Clock className="h-5 w-5" />, tab: 'pending', tone: 'accent' },
     { key: 'stamUpgrades', count: counts.stamUpgrades ?? 0, label: 'בקשות שדרוג לסופר סת"ם', icon: <ShieldCheck className="h-5 w-5" />, tab: 'pending', tone: 'accent' },
+    { key: 'stuckOrders', count: counts.stuckOrders ?? 0, label: 'הזמנות תקועות', icon: <AlertTriangle className="h-5 w-5" />, tab: 'sales', tone: 'warn', salesFilter: 'stuck' },
     { key: 'awaitingDelivery', count: counts.awaitingDelivery ?? 0, label: 'מכירות ממתינות למסירה', icon: <Truck className="h-5 w-5" />, tab: 'sales', tone: 'accent' },
     { key: 'openInquiries', count: counts.openInquiries ?? 0, label: 'פניות חדשות', icon: <Inbox className="h-5 w-5" />, tab: 'inquiries', tone: 'warn' },
     { key: 'openReports', count: counts.openReports ?? 0, label: 'דיווחים', icon: <Flag className="h-5 w-5" />, tab: 'reports', tone: 'warn' },
@@ -385,7 +391,7 @@ function ActionCenter({ counts, onNavigate }: { counts: AdminOverviewData['count
             <button
               key={item.key}
               type="button"
-              onClick={() => onNavigate?.(item.tab)}
+              onClick={() => onNavigate?.(item.tab, item.salesFilter ? { salesFilter: item.salesFilter } : undefined)}
               className={cn(
                 "group flex items-center gap-4 rounded-[1.5rem] border bg-white p-4 text-right shadow-premium transition-all hover:-translate-y-0.5 hover:shadow-xl",
                 item.tone === 'warn' ? "border-destructive/15" : "border-accent/30",
@@ -513,7 +519,7 @@ export function AdminOverviewView({
   data, onNavigate, funnelSlot,
 }: {
   data: AdminOverviewData;
-  onNavigate?: (tab: AdminTabId) => void;
+  onNavigate?: AdminNavigate;
   funnelSlot?: ReactNode;
 }) {
   const { counts, sales } = data;

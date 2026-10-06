@@ -81,6 +81,8 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { StuckOrdersPanel } from '@/components/admin/StuckOrdersPanel';
+import { classifyStuckOrder } from '@/lib/stuck-orders';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -109,7 +111,7 @@ export default function AdminDashboard() {
   
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
-  const [salesStatusFilter, setSalesStatusFilter] = useState<'all' | 'completed' | 'pending'>('all');
+  const [salesStatusFilter, setSalesStatusFilter] = useState<'all' | 'completed' | 'pending' | 'stuck'>('all');
   
   // Pagination states
   const [pendingPage, setPendingPage] = useState(1);
@@ -523,6 +525,12 @@ export default function AdminDashboard() {
       return matchSearch && matchStatus;
     });
   }, [visibleOrders, searchTerm, salesStatusFilter]);
+
+  // Stuck orders (incl. unfinished payments and ספר תורה requests, which the log lists elsewhere).
+  const stuckOrdersCount = useMemo(() => {
+    const now = new Date();
+    return (allOrders || []).filter((o: any) => classifyStuckOrder(o, now)).length;
+  }, [allOrders]);
 
   const torahOrders = useMemo(() => {
     return visibleOrders.filter(o => o.status === 'torah_request' && (
@@ -1040,7 +1048,7 @@ export default function AdminDashboard() {
 
           <div className="flex-1 min-w-0 space-y-8">
           <TabsContent value="overview">
-            <AdminOverviewPanel onNavigate={setActiveTab} />
+            <AdminOverviewPanel onNavigate={(tab, options) => { if (options?.salesFilter) setSalesStatusFilter(options.salesFilter); setActiveTab(tab); }} />
           </TabsContent>
 
           <TabsContent value="pending">
@@ -1127,7 +1135,12 @@ export default function AdminDashboard() {
                 <Button variant={salesStatusFilter === 'all' ? 'default' : 'outline'} size="sm" onClick={() => setSalesStatusFilter('all')} className="rounded-full text-[9px] h-8">הכל</Button>
                 <Button variant={salesStatusFilter === 'completed' ? 'default' : 'outline'} size="sm" onClick={() => setSalesStatusFilter('completed')} className="rounded-full text-[9px] h-8">אושר/הושלם</Button>
                 <Button variant={salesStatusFilter === 'pending' ? 'default' : 'outline'} size="sm" onClick={() => setSalesStatusFilter('pending')} className="rounded-full text-[9px] h-8">בהמתנה</Button>
+                <Button variant={salesStatusFilter === 'stuck' ? 'destructive' : 'outline'} size="sm" onClick={() => setSalesStatusFilter('stuck')} className="rounded-full text-[9px] h-8" data-sales-filter-stuck>
+                  תקועות{stuckOrdersCount > 0 ? ` (${stuckOrdersCount})` : ''}
+                </Button>
               </div>
+              {salesStatusFilter === 'stuck' && <StuckOrdersPanel orders={allOrders || []} sellers={sellerDirectory} />}
+              {salesStatusFilter !== 'stuck' && (
               <SalesCards 
                 orders={filteredOrders} 
                 sellers={sellerDirectory} 
@@ -1135,6 +1148,7 @@ export default function AdminDashboard() {
                 page={salesPage}
                 setPage={setSalesPage}
               />
+              )}
             </div>
           </TabsContent>
 

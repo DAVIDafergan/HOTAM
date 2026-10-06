@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { SEARCH_SELLER_COLUMNS } from '@/lib/constants';
 import SearchPageClient from './SearchPageClient';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 
@@ -35,7 +36,7 @@ export default async function SearchPage() {
           .limit(PRODUCTS_LIMIT),
         supabase
           .from('sellers')
-          .select('*')
+          .select(SEARCH_SELLER_COLUMNS)
           .eq('is_approved', true)
           .limit(SELLERS_LIMIT),
       ]);

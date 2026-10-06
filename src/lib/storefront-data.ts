@@ -133,6 +133,20 @@ export const getPublicProductById = cache(async (id: string): Promise<any | null
   }
 });
 
+/** City for display: the city field, else the part after the last comma of the address. */
+function publicCity(row: { city?: string | null; address?: string | null }): string | null {
+  const city = String(row.city || '').trim();
+  if (city) return city;
+  const address = String(row.address || '');
+  return address.includes(',') ? address.split(',').pop()!.trim() || null : null;
+}
+
+/** Row for the browser: street address removed, city derived from it when missing. */
+function withoutAddress(row: any) {
+  const { address: _address, ...rest } = row;
+  return { ...rest, city: publicCity(row) };
+}
+
 /** Fetch a public seller profile by id for storefront rendering. */
 export const getPublicSellerById = cache(async (id: string): Promise<any | null> => {
   try {
@@ -151,7 +165,8 @@ export const getPublicSellerById = cache(async (id: string): Promise<any | null>
     }
 
     if (error || !data) return null;
-    return data as any;
+    // The street address is only used to derive the city; it never leaves the server.
+    return withoutAddress(data);
   } catch (error) {
     console.error('[storefront] seller fetch error:', error);
     return null;
@@ -371,7 +386,7 @@ export const getTopScribes = cache(async (): Promise<any[]> => {
       sellers.map((s: any) => {
         const agg = ratingBySeller.get(s.id);
         return {
-          ...s,
+          ...withoutAddress(s),
           sales_count: Number(s.sales_count || 0),
           avg_rating: agg ? agg.sum / agg.count : 0,
           review_count: agg?.count || 0,
@@ -393,7 +408,7 @@ async function getTopScribesViaRpc(): Promise<any[]> {
       if (error) console.error('[storefront] get_top_scribes RPC error:', error.message);
       return [];
     }
-    return sortScribes(data as any[]);
+    return sortScribes((data as any[]).map(withoutAddress));
   } catch (error) {
     console.error('[storefront] get_top_scribes RPC error:', error);
     return [];

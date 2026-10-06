@@ -5,6 +5,21 @@
 export const PLATFORM_WHATSAPP_NUMBER = '972556674329';
 export const PLATFORM_WHATSAPP_DISPLAY = '055-667-4329';
 
+// Seller columns that may reach anyone's browser: public profile, search filters, cards.
+// Never bank/business details, phone, email, street address or age.
+export const PUBLIC_SELLER_PROFILE_COLUMNS = [
+  'id', 'first_name', 'last_name', 'city', 'notes', 'profile_image', 'is_approved', 'created_at',
+  'seller_type', 'script_types', 'script_level', 'experience_years', 'writing_samples',
+  'torah_study_frequency', 'mikveh_frequency', 'has_scribe_certificate', 'certificate_url',
+  'marital_status', 'sales_count',
+].join(', ');
+
+// What the search page needs per seller: card header + the halachic filters.
+export const SEARCH_SELLER_COLUMNS = [
+  'id', 'first_name', 'last_name', 'profile_image', 'city', 'is_approved',
+  'marital_status', 'mikveh_frequency', 'has_scribe_certificate', 'torah_study_frequency',
+].join(', ');
+
 // Every orders column except verification_code — the buyer's delivery code must never
 // reach the seller's browser (it's checked server-side in /api/orders/verify-delivery).
 export const SELLER_ORDER_COLUMNS = [

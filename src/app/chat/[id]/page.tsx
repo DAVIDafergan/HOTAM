@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo, Suspense } from 'react';
+import { fromPublicView } from '@/lib/public-views';
 import { Navbar } from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -205,13 +206,16 @@ function ChatContent() {
   useEffect(() => {
     if (!otherUserId) return;
     const fetchOtherUser = async () => {
-      // Only what the chat shows and needs for its email notice — never bank details, phone or address.
-      let { data: seller } = await supabase.from('sellers').select('id, first_name, last_name, profile_image, is_approved, email, notification_email').eq('id', otherUserId).maybeSingle();
+      // Only what the chat shows (name, photo): other people's rows come from the public views.
+      // Their email is never needed here — /api/chat/notify looks it up on the server.
+      const { data: seller } = await fromPublicView(supabase, 'sellers_public', (from) =>
+        from.select('id, first_name, last_name, profile_image, is_approved').eq('id', otherUserId).maybeSingle());
       if (seller) {
         setOtherSellerData(seller);
         setOtherUserData(seller);
       } else {
-        let { data: customer } = await supabase.from('customers').select('id, first_name, last_name, email, notif_msg_email').eq('id', otherUserId).single();
+        const { data: customer } = await fromPublicView(supabase, 'customers_public', (from) =>
+          from.select('id, first_name, last_name').eq('id', otherUserId).maybeSingle());
         setOtherUserData(customer);
       }
     };
@@ -223,8 +227,8 @@ function ChatContent() {
     if (!user) return;
     const fetchMyProfile = async () => {
       const [{ data: seller }, { data: customer }] = await Promise.all([
-        supabase.from('sellers').select('first_name, last_name').eq('id', user.uid).single(),
-        supabase.from('customers').select('first_name, last_name').eq('id', user.uid).single(),
+        supabase.from('sellers').select('first_name, last_name').eq('id', user.uid).maybeSingle(),
+        supabase.from('customers').select('first_name, last_name').eq('id', user.uid).maybeSingle(),
       ]);
       if (seller) setMyProfile(seller);
       else if (customer) setMyProfile(customer);
@@ -342,44 +346,17 @@ function ChatContent() {
       updated_at: new Date().toISOString()
     }).eq('id', chatId);
 
-    if (otherUserData?.email && !isOtherUserPresent) {
-      // Respect the recipient's email notification preference.
-      // Sellers use `notification_email`; customers use `notif_msg_email`.
-      const emailNotifEnabled = otherSellerData
-        ? otherUserData?.notification_email !== false
-        : otherUserData?.notif_msg_email !== false;
-
-      // Throttle: send at most one email per hour per chat to avoid flooding.
-      const lastEmailAt = chatData?.last_email_notif_at;
-      const oneHourAgo = Date.now() - 3_600_000;
-      const shouldSendEmail =
-        emailNotifEnabled &&
-        (!lastEmailAt || new Date(lastEmailAt).getTime() < oneHourAgo);
-
-      if (shouldSendEmail) {
-        const profileName = myProfile?.first_name
-          ? `${myProfile.first_name}${myProfile.last_name ? ' ' + myProfile.last_name : ''}`
-          : null;
-        const senderName = profileName || (user.email ? user.email.split('@')[0] : null) || 'משתמש';
-        const chatLink = `https://hotam.shop/chat/${user.uid}`;
-        fetch('/api/send-email', {
+    // Email the other side only if they're not in the chat right now; the server decides the
+    // rest (recipient, their preference, at most one email per chat per hour).
+    if (!isOtherUserPresent) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (!session?.access_token) return;
+        fetch('/api/chat/notify', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            to: otherUserData.email,
-            subject: `הודעות ממתינות לך ב-Hotam`,
-            text: `יש לך הודעות חדשות מ-${senderName}. לצפייה ולהשבה, כנס/י לאתר: ${chatLink}`,
-            senderName,
-            message: textCopy,
-            link: chatLink,
-          }),
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+          body: JSON.stringify({ chatId, message: textCopy }),
         }).catch((err) => console.error('Failed to send email notification:', err));
-
-        // Record the time we sent the throttle email on the chat document.
-        supabase.from('chats').update({ last_email_notif_at: new Date().toISOString() })
-          .eq('id', chatId)
-          .then(({ error }) => { if (error) console.error('Failed to update last_email_notif_at:', error); });
-      }
+      });
     }
   };
 

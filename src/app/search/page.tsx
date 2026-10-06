@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import { SEARCH_SELLER_COLUMNS } from '@/lib/constants';
+import { fromPublicView } from '@/lib/public-views';
 import SearchPageClient from './SearchPageClient';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 
@@ -34,11 +35,8 @@ export default async function SearchPage() {
           .gt('quantity', 0)
           .order('created_at', { ascending: false })
           .limit(PRODUCTS_LIMIT),
-        supabase
-          .from('sellers')
-          .select(SEARCH_SELLER_COLUMNS)
-          .eq('is_approved', true)
-          .limit(SELLERS_LIMIT),
+        fromPublicView(supabase, 'sellers_public', (from) =>
+          from.select(SEARCH_SELLER_COLUMNS).eq('is_approved', true).limit(SELLERS_LIMIT)),
       ]);
       initialProducts = products || [];
       initialSellers = sellers || [];

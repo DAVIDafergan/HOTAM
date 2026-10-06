@@ -94,6 +94,7 @@ import { SELLER_TYPE_LABELS, resolveSellerType } from '@/lib/product-catalog';
 import { calculateCommissionAmount, resolveSellerNet } from '@/lib/commission';
 import { AdminChatsPanel } from '@/components/admin/AdminChatsPanel';
 import { AdminActivityPanel } from '@/components/admin/AdminActivityPanel';
+import { AdminBroadcastPanel } from '@/components/admin/AdminBroadcastPanel';
 import { AdminOverviewPanel } from '@/components/admin/AdminOverviewPanel';
 
 const ITEMS_PER_PAGE = 15;
@@ -795,6 +796,7 @@ export default function AdminDashboard() {
         { id: 'chats', label: 'שיחות', icon: <MessageSquare className="w-4 h-4" /> },
         { id: 'reports', label: 'דיווחים', icon: <Flag className="w-4 h-4" /> },
         { id: 'inquiries', label: 'פניות', icon: <Inbox className="w-4 h-4" /> },
+        { id: 'broadcast', label: 'דיוור במייל', icon: <Send className="w-4 h-4" /> },
         { id: 'audit', label: 'יומן ביקורת', icon: <History className="w-4 h-4" /> },
       ],
     },
@@ -1194,6 +1196,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="activity">
             <AdminActivityPanel />
+          </TabsContent>
+
+          <TabsContent value="broadcast">
+            <AdminBroadcastPanel />
           </TabsContent>
           </div>
         </Tabs>

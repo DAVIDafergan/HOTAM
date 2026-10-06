@@ -90,6 +90,7 @@ import { SELLER_TYPE_LABELS, resolveSellerType } from '@/lib/product-catalog';
 import { calculateCommissionAmount, resolveSellerNet } from '@/lib/commission';
 import { AdminChatsPanel } from '@/components/admin/AdminChatsPanel';
 import { AdminActivityPanel } from '@/components/admin/AdminActivityPanel';
+import { AdminBroadcastPanel } from '@/components/admin/AdminBroadcastPanel';
 import { AdminOverviewPanel } from '@/components/admin/AdminOverviewPanel';
 
 const ITEMS_PER_PAGE = 15;
@@ -785,6 +786,7 @@ export default function AdminDashboard() {
         { id: 'chats', label: 'שיחות', icon: <MessageSquare className="w-4 h-4" /> },
         { id: 'reports', label: 'דיווחים', icon: <Flag className="w-4 h-4" /> },
         { id: 'inquiries', label: 'פניות', icon: <Inbox className="w-4 h-4" /> },
+        { id: 'broadcast', label: 'דיוור במייל', icon: <Send className="w-4 h-4" /> },
       ],
     },
   ];
@@ -991,7 +993,7 @@ export default function AdminDashboard() {
                   <ChevronDown className="w-4 h-4 text-primary/40" />
                 </button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[280px] p-0 border-none bg-white rounded-l-[2.5rem]" dir="rtl">
+              <SheetContent side="right" className="w-[280px] p-0 border-none bg-white rounded-l-[2.5rem] overflow-y-auto overscroll-contain" dir="rtl">
                 <SheetHeader className="sr-only">
                   <SheetTitle>תפריט ניהול מערכת</SheetTitle>
                   <SheetDescription>מעבר מהיר בין לקוחות, סופרים, מכירות ודיווחים</SheetDescription>
@@ -1173,6 +1175,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="activity">
             <AdminActivityPanel />
+          </TabsContent>
+
+          <TabsContent value="broadcast">
+            <AdminBroadcastPanel />
           </TabsContent>
           </div>
         </Tabs>

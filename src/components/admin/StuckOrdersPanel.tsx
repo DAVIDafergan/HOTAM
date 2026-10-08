@@ -11,7 +11,6 @@ import { cn } from '@/lib/utils';
 const KIND_TONE: Record<StuckKind, string> = {
   awaiting_delivery: 'bg-red-50 text-red-700 border-red-100',
   torah_request: 'bg-amber-50 text-amber-800 border-amber-100',
-  abandoned_payment: 'bg-slate-50 text-slate-600 border-slate-200',
 };
 
 /** Israeli local number → wa.me link (972…), or null when there's no usable number. */
@@ -67,7 +66,6 @@ export function StuckOrdersPanel({ orders, sellers }: { orders: any[]; sellers: 
         const shortId = String(order.id).slice(0, 8);
         const buyerWa = whatsappHref(order.buyer_phone, `שלום ${order.buyer_name || ''}, כאן חותם בנוגע להזמנה #${shortId} (${order.product_name || ''}).`);
         const sellerWa = whatsappHref(seller?.phone, `שלום ${sellerName}, כאן חותם בנוגע להזמנה #${shortId} (${order.product_name || ''}) שממתינה לטיפולך.`);
-        const canRemind = info.kind !== 'abandoned_payment';
         return (
           <div key={order.id} data-stuck-order={order.id} data-stuck-kind={info.kind} className="flex flex-col gap-3 rounded-[1.5rem] border border-primary/5 bg-white p-4 shadow-sm md:flex-row md:items-center md:justify-between md:p-5">
             <div className="flex min-w-0 items-start gap-3">
@@ -93,12 +91,10 @@ export function StuckOrdersPanel({ orders, sellers }: { orders: any[]; sellers: 
                   <a href={sellerWa} target="_blank" rel="noopener noreferrer"><MessageCircle className="ml-1.5 h-4 w-4 text-emerald-600" />למוכר</a>
                 </Button>
               )}
-              {canRemind && (
-                <Button size="sm" onClick={() => remind(order.id)} disabled={sendingId === order.id} className="h-10 rounded-full text-xs font-black" data-remind-seller>
-                  {sendingId === order.id ? <Loader2 className="ml-1.5 h-4 w-4 animate-spin" /> : <BellRing className="ml-1.5 h-4 w-4" />}
-                  שלח תזכורת למוכר
-                </Button>
-              )}
+              <Button size="sm" onClick={() => remind(order.id)} disabled={sendingId === order.id} className="h-10 rounded-full text-xs font-black" data-remind-seller>
+                {sendingId === order.id ? <Loader2 className="ml-1.5 h-4 w-4 animate-spin" /> : <BellRing className="ml-1.5 h-4 w-4" />}
+                שלח תזכורת למוכר
+              </Button>
             </div>
           </div>
         );

@@ -39,7 +39,7 @@ export async function POST(req: Request) {
       .maybeSingle();
     if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     const stuck = classifyStuckOrder(order);
-    if (!stuck || stuck.kind === 'abandoned_payment') {
+    if (!stuck) {
       return NextResponse.json({ error: 'ההזמנה אינה ממתינה לטיפול המוכר' }, { status: 409 });
     }
 

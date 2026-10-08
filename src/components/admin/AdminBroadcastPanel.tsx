@@ -25,6 +25,14 @@ import { cn } from '@/lib/utils';
 
 const PREVIEW_SITE_URL = 'https://www.hotam.shop';
 
+/** The form field a validation message refers to, so it can be focused. */
+function problemField(problem: string): string | undefined {
+  if (problem.includes('נושא')) return 'bc-subject';
+  if (problem.includes('תוכן')) return 'bc-body';
+  if (problem.includes('כפתור')) return String(problem).includes('קישור') ? 'bc-cta-url' : 'bc-cta-text';
+  return undefined;
+}
+
 const AUDIENCES: { id: BroadcastAudience; hint: string; icon: React.ReactNode; involvesSellers: boolean }[] = [
   { id: 'all', hint: 'לקוחות וכל המוכרים', icon: <Users className="w-5 h-5" />, involvesSellers: true },
   { id: 'sellers', hint: 'סופרים ומוכרי יודאיקה', icon: <Store className="w-5 h-5" />, involvesSellers: true },
@@ -71,6 +79,7 @@ export function AdminBroadcastPanel() {
   const [testEmail, setTestEmail] = useState('');
   const [testedSnapshot, setTestedSnapshot] = useState<string | null>(null);
   const [isTesting, setIsTesting] = useState(false);
+  const [testStatus, setTestStatus] = useState<{ ok: boolean; message: string } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -80,15 +89,21 @@ export function AdminBroadcastPanel() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
 
+  // Never throws: a network failure comes back as ok=false with a readable error.
   const call = useCallback(async (payload: Record<string, unknown>) => {
-    const { data: { session } } = await db.auth.getSession();
-    const res = await fetch('/api/admin/broadcast', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}) },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json().catch(() => ({}));
-    return { ok: res.ok, status: res.status, data };
+    try {
+      const { data: { session } } = await db.auth.getSession();
+      const res = await fetch('/api/admin/broadcast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}) },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok && !data?.error) data.error = res.status === 401 || res.status === 403 ? 'אין הרשאה — יש להתחבר מחדש כמנהל' : `שגיאת שרת (${res.status})`;
+      return { ok: res.ok, status: res.status, data };
+    } catch {
+      return { ok: false, status: 0, data: { error: 'אין חיבור לשרת. בדקו את החיבור לאינטרנט ונסו שוב.' } };
+    }
   }, [db]);
 
   const loadStats = useCallback(async () => {
@@ -112,7 +127,7 @@ export function AdminBroadcastPanel() {
     {
       ...content,
       subject: content.subject || 'נושא המייל',
-      heading: content.heading || 'כותרת ההודעה',
+      heading: content.heading || content.subject || 'כותרת ההודעה',
       body: content.body || 'כאן יופיע תוכן ההודעה.\n\nאפשר לכתוב כמה פסקאות, להדגיש **מילים חשובות** ולהוסיף קישורים.',
     },
     { firstName: 'ישראל', unsubscribeUrl: '#', siteUrl: PREVIEW_SITE_URL },
@@ -144,14 +159,23 @@ export function AdminBroadcastPanel() {
     }
   };
 
+  // Shown under the button (not only as a toast) and the field to fix gets focus.
+  const failTest = (message: string, fieldId?: string) => {
+    setTestStatus({ ok: false, message });
+    toast({ variant: 'destructive', title: 'מייל הניסיון לא נשלח', description: message });
+    if (fieldId) document.getElementById(fieldId)?.focus();
+  };
+
   const sendTest = async () => {
-    if (contentProblem) { toast({ variant: 'destructive', title: contentProblem }); return; }
-    if (!isValidEmail(testEmail)) { toast({ variant: 'destructive', title: 'כתובת המייל לניסיון אינה תקינה' }); return; }
+    setTestStatus(null);
+    if (contentProblem) { failTest(contentProblem, problemField(contentProblem)); return; }
+    if (!isValidEmail(testEmail)) { failTest('כתובת המייל לניסיון אינה תקינה', 'bc-test'); return; }
     setIsTesting(true);
     const { ok, data } = await call({ action: 'test', content, testEmail: testEmail.trim() });
     setIsTesting(false);
-    if (!ok) { toast({ variant: 'destructive', title: data?.error || 'שליחת מייל הניסיון נכשלה' }); return; }
+    if (!ok) { failTest(data?.error || 'שליחת מייל הניסיון נכשלה'); return; }
     setTestedSnapshot(snapshot);
+    setTestStatus({ ok: true, message: `נשלח אל ${data.to}. אם לא הגיע תוך כמה דקות, בדקו בתיקיית הספאם.` });
     toast({ variant: 'success', title: 'מייל ניסיון נשלח', description: `נשלח אל ${data.to}` });
   };
 
@@ -275,7 +299,7 @@ export function AdminBroadcastPanel() {
               <Switch checked={content.isAdvertisement} onCheckedChange={(v) => update({ isAdvertisement: v })} data-ad-switch />
             </label>
             <div className="space-y-2">
-              <Label htmlFor="bc-heading" className="font-black text-primary">כותרת בתוך המייל</Label>
+              <Label htmlFor="bc-heading" className="font-black text-primary">כותרת בתוך המייל <span className="font-medium text-muted-foreground">(לא חובה — בלי כותרת יוצג הנושא)</span></Label>
               <Input id="bc-heading" value={content.heading} onChange={(e) => update({ heading: e.target.value })} placeholder={`לדוגמה: שלום ${NAME_PLACEHOLDER}, חג שמח!`} className="h-12 rounded-xl font-bold" />
             </div>
             <div className="space-y-2">
@@ -339,7 +363,15 @@ export function AdminBroadcastPanel() {
                   {isTesting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FlaskConical className="w-4 h-4" />} שלח מייל ניסיון
                 </Button>
               </div>
-              {testedCurrentVersion && (
+              {testStatus && !testStatus.ok && (
+                <p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-xs font-bold text-red-700 flex items-start gap-1.5" data-test-error>
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" /> {testStatus.message}
+                </p>
+              )}
+              {testedCurrentVersion && testStatus?.ok && (
+                <p className="text-xs font-bold text-emerald-700 flex items-start gap-1.5" data-test-ok><CheckCircle2 className="w-3.5 h-3.5 shrink-0 mt-0.5" /> {testStatus.message}</p>
+              )}
+              {testedCurrentVersion && !testStatus && (
                 <p className="text-xs font-bold text-emerald-700 flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> מייל ניסיון של הגרסה הנוכחית נשלח</p>
               )}
             </div>

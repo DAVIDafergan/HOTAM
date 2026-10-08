@@ -58,7 +58,6 @@ export function finalSubject(content: Pick<BroadcastContent, 'subject' | 'isAdve
 export function validateBroadcastContent(content: Partial<BroadcastContent>): string | null {
   if (!String(content.subject ?? '').trim()) return 'יש למלא נושא למייל';
   if (String(content.subject).length > MAX_SUBJECT_LENGTH) return `הנושא ארוך מדי (עד ${MAX_SUBJECT_LENGTH} תווים)`;
-  if (!String(content.heading ?? '').trim()) return 'יש למלא כותרת';
   if (!String(content.body ?? '').trim()) return 'יש לכתוב את תוכן ההודעה';
   if (String(content.body).length > MAX_BODY_LENGTH) return `התוכן ארוך מדי (עד ${MAX_BODY_LENGTH} תווים)`;
   if (content.imageUrl && !isHttpsUrl(content.imageUrl)) return 'כתובת התמונה אינה תקינה';
@@ -102,7 +101,8 @@ export interface RenderOptions {
 }
 
 export function renderBroadcastEmail(content: BroadcastContent, { firstName, unsubscribeUrl, siteUrl }: RenderOptions) {
-  const heading = personalize(content.heading.trim(), firstName);
+  // The heading is optional; without one the subject is shown as the email's title.
+  const heading = personalize(String(content.heading ?? '').trim() || content.subject.trim(), firstName);
   const body = personalize(content.body, firstName);
   const ctaText = String(content.ctaText ?? '').trim();
   const ctaUrl = String(content.ctaUrl ?? '').trim();

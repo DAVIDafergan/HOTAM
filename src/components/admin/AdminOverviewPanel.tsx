@@ -4,9 +4,9 @@ import { useEffect, useState, type ReactNode } from 'react';
 import {
   Package, Users, UserCheck, Clock, ShoppingBag, Banknote,
   Inbox, Flag, ShieldAlert, Eye, TrendingUp, LogIn, UserCog, Timer, PieChart, BarChart3,
-  CheckCircle2, ChevronLeft, Truck, Trophy, SlidersHorizontal, ShieldCheck, AlertTriangle,
+  CheckCircle2, ChevronLeft, Truck, Trophy, SlidersHorizontal, ShieldCheck, AlertTriangle, CreditCard,
 } from 'lucide-react';
-import { STUCK_STATUSES, classifyStuckOrder } from '@/lib/stuck-orders';
+import { ABANDONED_PAYMENT_AFTER_MS, STUCK_STATUSES, classifyStuckOrder } from '@/lib/stuck-orders';
 import { useSupabaseClient } from '@/lib/supabase-hooks';
 import { cn } from '@/lib/utils';
 import { FunnelSummary } from '@/components/admin/AdminActivityPanel';
@@ -51,6 +51,7 @@ export type AdminOverviewData = {
     flaggedChats?: number;
     awaitingDelivery?: number;
     stuckOrders?: number;
+    abandonedPayments?: number;
     stamUpgrades?: number;
   };
   sales: { revenue30d: number; paidOrders30d: number; completed30d: number } | null;
@@ -115,7 +116,8 @@ function useAdminOverviewData(): AdminOverviewData {
       db.from('sellers').select('id', head).eq('stam_upgrade_status', 'pending'),
       db.from('sellers').select('id', head).eq('is_approved', true).eq('seller_type', 'judaica_seller'),
       db.from('orders').select('id, status, paid_at, created_at').in('status', STUCK_STATUSES).limit(2000),
-    ]).then(([products, activeSellers, pendingSellers, customers, orders, inquiries, reports, flaggedChats, awaitingDelivery, stamUpgrades, activeJudaica, stuckCandidates]) => {
+      db.from('orders').select('id', head).eq('status', 'pending_payment').lt('created_at', new Date(Date.now() - ABANDONED_PAYMENT_AFTER_MS).toISOString()),
+    ]).then(([products, activeSellers, pendingSellers, customers, orders, inquiries, reports, flaggedChats, awaitingDelivery, stamUpgrades, activeJudaica, stuckCandidates, abandonedPayments]) => {
       const orderRows = orders.data || [];
       const paidRows = orderRows.filter((o: any) => PAID_ORDER_STATUSES.includes(o.status));
 
@@ -140,6 +142,7 @@ function useAdminOverviewData(): AdminOverviewData {
         flaggedChats: flaggedChats.count ?? 0,
         awaitingDelivery: awaitingDelivery.count ?? 0,
         stuckOrders: (stuckCandidates.data || []).filter((o: any) => classifyStuckOrder(o)).length,
+        abandonedPayments: abandonedPayments.count ?? 0,
         // Errors before the seller-types migration (missing column) — count as none.
         stamUpgrades: stamUpgrades.error ? 0 : (stamUpgrades.count ?? 0),
       });
@@ -323,10 +326,10 @@ const Empty = ({ children }: { children: ReactNode }) => (
   <p className="py-6 text-center text-xs font-bold italic text-muted-foreground">{children}</p>
 );
 
-function KpiCard({ icon, label, value, sub, emphasis }: { icon: ReactNode; label: string; value: ReactNode; sub?: string; emphasis?: boolean }) {
+function KpiCard({ icon, label, value, sub, emphasis, className, ...rest }: { icon: ReactNode; label: string; value: ReactNode; sub?: string; emphasis?: boolean; className?: string; [data: `data-${string}`]: unknown }) {
   return (
-    <div className={cn(
-      "rounded-[1.5rem] border p-5 shadow-premium",
+    <div {...rest} className={cn(
+      "rounded-[1.5rem] border p-5 shadow-premium", className,
       emphasis ? "border-transparent bg-primary text-primary-foreground" : "border-primary/5 bg-white",
     )}>
       <div className="flex items-center gap-2">
@@ -533,11 +536,19 @@ export function AdminOverviewView({
 
       <section>
         <SectionTitle hint={`${RECENT_DAYS} הימים האחרונים · הזמנות ששולמו בלבד`}>מכירות</SectionTitle>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
           <KpiCard emphasis icon={<Banknote className="h-4 w-4" />} label="הכנסות" value={sales ? formatShekels(sales.revenue30d) : '...'} sub={avgOrder != null ? `ממוצע להזמנה ${formatShekels(avgOrder)}` : undefined} />
           <KpiCard icon={<ShoppingBag className="h-4 w-4" />} label="הזמנות ששולמו" value={sales ? sales.paidOrders30d : '...'} />
           <KpiCard icon={<CheckCircle2 className="h-4 w-4" />} label="עסקאות שהושלמו" value={sales ? sales.completed30d : '...'} sub="המסירה אומתה בקוד" />
           <KpiCard icon={<Truck className="h-4 w-4" />} label="ממתינות למסירה" value={dash(counts.awaitingDelivery)} sub="כל הזמנים" />
+          <KpiCard
+            className="col-span-2 lg:col-span-1"
+            data-abandoned-payments
+            icon={<CreditCard className="h-4 w-4" />}
+            label={counts.abandonedPayments == null ? 'נטישת תשלום' : `נטישת תשלום (${counts.abandonedPayments})`}
+            value={dash(counts.abandonedPayments)}
+            sub="התחילו תשלום ולא סיימו (מעל 48 שעות) · כל הזמנים"
+          />
         </div>
       </section>
 

@@ -1,7 +1,9 @@
 // Orders that have waited too long in a state that needs someone to act. Shared by the admin
 // overview ("דורש טיפול") and the sales log's "תקועות" filter, so both count the same thing.
+// Unfinished checkouts (pending_payment) are not stuck — nobody can act on them — and are
+// counted separately as "נטישת תשלום" (see isAbandonedPayment).
 
-export type StuckKind = 'awaiting_delivery' | 'torah_request' | 'abandoned_payment';
+export type StuckKind = 'awaiting_delivery' | 'torah_request';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -9,7 +11,6 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export const STUCK_THRESHOLDS: Record<StuckKind, { status: string; afterMs: number; label: string; hint: string }> = {
   awaiting_delivery: { status: 'paid', afterMs: 10 * DAY_MS, label: 'שולמה ולא נמסרה', hint: 'עברו יותר מ-10 ימים מהתשלום בלי שהמוכר הזין קוד מסירה' },
   torah_request: { status: 'torah_request', afterMs: 7 * DAY_MS, label: 'בקשת ספר תורה ללא טיפול', hint: 'עברו יותר מ-7 ימים מהבקשה' },
-  abandoned_payment: { status: 'pending_payment', afterMs: 2 * DAY_MS, label: 'תשלום שלא הושלם', hint: 'הקונה התחיל תשלום ולא סיים (יותר מ-48 שעות)' },
 };
 
 export type StuckInfo = { kind: StuckKind; days: number; since: Date };
@@ -35,3 +36,12 @@ export function classifyStuckOrder(order: { status?: string; paid_at?: any; crea
 }
 
 export const STUCK_STATUSES = Object.values(STUCK_THRESHOLDS).map((rule) => rule.status);
+
+/** A checkout the buyer started and didn't finish within this time counts as abandoned. */
+export const ABANDONED_PAYMENT_AFTER_MS = 2 * DAY_MS;
+
+export function isAbandonedPayment(order: { status?: string; created_at?: any }, now: Date = new Date()): boolean {
+  if (order.status !== 'pending_payment') return false;
+  const since = toDate(order.created_at);
+  return !!since && now.getTime() - since.getTime() >= ABANDONED_PAYMENT_AFTER_MS;
+}

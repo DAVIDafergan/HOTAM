@@ -180,7 +180,7 @@ export async function POST(req: Request) {
         await sendEmailBatch([buildEmail(content, { email: normalizeEmail(to), firstName }, true)]);
       } catch (error: any) {
         console.error('[admin/broadcast] test send failed:', error?.message ?? error);
-        return NextResponse.json({ error: 'שליחת מייל הניסיון נכשלה' }, { status: 502 });
+        return NextResponse.json({ error: `שליחת מייל הניסיון נכשלה: ${String(error?.message || 'שגיאה בשירות המייל')}` }, { status: 502 });
       }
       return NextResponse.json({ ok: true, to });
     }

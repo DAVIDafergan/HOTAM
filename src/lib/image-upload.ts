@@ -16,6 +16,10 @@ const ALLOWED_IMAGE_TYPES = new Set([
   'image/heif',
 ]);
 const MAX_UPLOAD_SIZE_BYTES = 15 * 1024 * 1024;
+// A raw phone photo (48-200MP cameras) is often well over 15MB but shrinks to ~1-2MB after
+// client-side compression, so an image is only held to the 15MB cap after compressing.
+const MAX_RAW_IMAGE_SIZE_BYTES = 60 * 1024 * 1024;
+const TOO_LARGE_MESSAGE = 'הקובץ גדול מדי. ניתן להעלות עד 15MB.';
 
 const MIME_BY_EXT: Record<string, string> = {
   jpg: 'image/jpeg',
@@ -48,11 +52,12 @@ export function isHeicFile(file: File): boolean {
   return ext === 'heic' || ext === 'heif';
 }
 
-function validateUploadFile(file: File): void {
+function validateUploadFile(file: File, contentType: string): void {
   if (!(file instanceof File)) throw new Error('קובץ לא תקין.');
   if (!file.name?.trim()) throw new Error('שם קובץ לא תקין.');
   if (file.size <= 0) throw new Error('לא ניתן להעלות קובץ ריק.');
-  if (file.size > MAX_UPLOAD_SIZE_BYTES) throw new Error('הקובץ גדול מדי. ניתן להעלות עד 15MB.');
+  const willCompress = contentType.startsWith('image/') && !HEIC_TYPES.has(contentType) && contentType !== 'image/gif';
+  if (file.size > (willCompress ? MAX_RAW_IMAGE_SIZE_BYTES : MAX_UPLOAD_SIZE_BYTES)) throw new Error(TOO_LARGE_MESSAGE);
 }
 
 export async function uploadImageViaApi(
@@ -79,7 +84,6 @@ export async function uploadImageAssetViaApi(
 ) {
   const allowPdf = options?.assetKind === 'certificate';
 
-  validateUploadFile(file);
   const originalContentType = getUploadMimeType(file, allowPdf);
   if (!originalContentType) {
     throw new Error(
@@ -88,6 +92,7 @@ export async function uploadImageAssetViaApi(
         : 'סוג הקובץ אינו נתמך. ניתן להעלות תמונות בפורמט JPG, PNG, WEBP, GIF, AVIF או HEIC (עד 15MB).'
     );
   }
+  validateUploadFile(file, originalContentType);
 
   // HEIC/HEIF (the default iPhone photo format) can't be rendered by any browser and
   // must be converted server-side via Cloudinary — without it configured we'd upload
@@ -99,6 +104,7 @@ export async function uploadImageAssetViaApi(
   // Compress on the client before it ever leaves the device — cuts upload time and storage costs.
   // compressImageFile already no-ops for non-image types, so a PDF passes through untouched.
   const uploadFile = await compressImageFile(file);
+  if (uploadFile.size > MAX_UPLOAD_SIZE_BYTES) throw new Error(TOO_LARGE_MESSAGE);
   const contentType = getUploadMimeType(uploadFile, allowPdf) || originalContentType;
 
   let authToken: string | undefined;

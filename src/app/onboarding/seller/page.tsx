@@ -779,6 +779,18 @@ export default function SellerOnboarding() {
         return;
       }
 
+      // The password is deliberately never saved in the draft, so a restored draft (e.g. the
+      // phone's camera app reloaded the page mid-upload) reaches here without one.
+      if (!formData.password) {
+        setLoading(false);
+        setStep(2);
+        setTouchedFields(prev => ({ ...prev, password: true }));
+        setFieldErrors(prev => ({ ...prev, password: validateOnboardingField('password', '', { isExistingCustomer }) }));
+        toast({ variant: 'destructive', title: 'יש להזין סיסמה מחדש', description: 'מטעמי אבטחה הסיסמה לא נשמרת בטיוטה. הזן/י אותה שוב בשלב זה והמשך/י להגשה.' });
+        scrollToFirstError();
+        return;
+      }
+
       console.info('[seller-onboarding] signup start', { email: formData.email.trim().toLowerCase() });
 
       // Create the seller via Admin API (email_confirm=true) so they can sign in immediately.
@@ -1309,7 +1321,8 @@ export default function SellerOnboarding() {
                               <div className="absolute inset-0 bg-black/45 backdrop-blur-[1px] flex flex-col items-center justify-center gap-3 px-8">
                                 <Loader2 className="w-6 h-6 text-white animate-spin" />
                                 <Progress value={uploadProgress.cert} className="h-1.5 w-full max-w-[180px]" />
-                                <span className="text-[10px] font-black text-white uppercase tracking-widest">מעלה תעודה... {uploadProgress.cert}%</span>
+                                {/* 0% = still compressing on the device, which can take a while on a budget phone. */}
+                                <span className="text-[10px] font-black text-white uppercase tracking-widest">{uploadProgress.cert > 0 ? `מעלה תעודה... ${uploadProgress.cert}%` : 'מכין את הקובץ להעלאה...'}</span>
                               </div>
                             ) : (
                               <button onClick={() => { if (formData.certificateUrl) void cleanupImages([formData.certificateUrl]); updateField('certificateUrl', ''); }} className="absolute top-2 right-2 bg-destructive text-white rounded-full p-1 shadow-lg hover:scale-110 transition-transform"><X className="w-4 h-4" /></button>
@@ -1353,7 +1366,7 @@ export default function SellerOnboarding() {
                           <div className="absolute inset-0 bg-black/45 flex flex-col items-center justify-center gap-2 px-3">
                             <Loader2 className="w-5 h-5 text-white animate-spin" />
                             <Progress value={uploadProgress.samples ?? 0} className="h-1 w-full" />
-                            <span className="text-[9px] font-black text-white">{uploadProgress.samples ?? 0}%</span>
+                            <span className="text-[9px] font-black text-white">{uploadProgress.samples ? `${uploadProgress.samples}%` : 'מכין...'}</span>
                           </div>
                         </div>
                       ))}

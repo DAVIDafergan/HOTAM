@@ -13,7 +13,14 @@ export type UploadedImageAsset = {
 // unresponsive endpoint can never leave the calling promise pending forever — it always
 // settles (resolves or rejects) within a bounded time, letting the UI's finally block reset.
 const PRESIGN_TIMEOUT_MS = 20_000;
-const UPLOAD_TIMEOUT_MS = 60_000;
+// The PUT timeout scales with the file: a flat minute isn't enough for a multi-MB original
+// (e.g. a PDF scan, or a photo whose compression was skipped) over a weak mobile uplink.
+const UPLOAD_BASE_TIMEOUT_MS = 60_000;
+const UPLOAD_MIN_BYTES_PER_SEC = 50 * 1024;
+
+function getUploadTimeoutMs(size: number): number {
+  return UPLOAD_BASE_TIMEOUT_MS + Math.ceil((size / UPLOAD_MIN_BYTES_PER_SEC) * 1000);
+}
 
 function putFileWithProgress(
   url: string,
@@ -24,7 +31,7 @@ function putFileWithProgress(
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('PUT', url, true);
-    xhr.timeout = UPLOAD_TIMEOUT_MS;
+    xhr.timeout = getUploadTimeoutMs(file.size);
     xhr.setRequestHeader('Content-Type', contentType);
     xhr.upload.onprogress = (event) => {
       if (onProgress && event.lengthComputable) {

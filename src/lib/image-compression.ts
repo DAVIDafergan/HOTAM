@@ -10,7 +10,9 @@ const MIN_SIZE_TO_COMPRESS_BYTES = 300 * 1024; // Not worth spending CPU on smal
 // The library runs compression in a Web Worker. If that worker is ever blocked from
 // executing (e.g. a strict CSP with no worker-src/blob: allowance) it can fail silently
 // without ever resolving or rejecting — this timeout guarantees we always move on.
-const COMPRESSION_TIMEOUT_MS = 8000;
+// Generous enough for a budget phone shrinking a 12-50MP photo (measured ~11s at 8x CPU
+// throttling): giving up early means uploading the full-size original over mobile data.
+const COMPRESSION_TIMEOUT_MS = 25_000;
 
 function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
   return new Promise((resolve, reject) => {

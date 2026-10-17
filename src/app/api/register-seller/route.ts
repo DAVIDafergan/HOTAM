@@ -16,6 +16,20 @@ function stripServerOnlyFields<T extends Record<string, any>>(fields: T): Partia
   return safe as Partial<T>;
 }
 
+// INTEGER columns on public.sellers. A fractional value from the form (e.g. 1.5 years of
+// experience) makes Postgres reject the whole upsert, so coerce instead of failing the signup.
+const INTEGER_SELLER_FIELDS = ['age', 'experience_years'] as const;
+
+function coerceIntegerFields<T extends Record<string, any>>(fields: T): T {
+  const out: Record<string, any> = { ...fields };
+  for (const key of INTEGER_SELLER_FIELDS) {
+    if (!(key in out) || out[key] === null || out[key] === undefined || out[key] === '') continue;
+    const n = Number(out[key]);
+    out[key] = Number.isFinite(n) ? Math.round(n) : null;
+  }
+  return out as T;
+}
+
 function normalizeRequestedSellerType(value: unknown): 'stam_scribe' | 'judaica_seller' {
   return value === 'judaica_seller' ? 'judaica_seller' : 'stam_scribe';
 }
@@ -64,7 +78,7 @@ export async function POST(req: Request) {
       // always unapproved, so honouring the requested type is safe: an admin still has to
       // approve the account before anything can be sold.
       const requestedSellerType = normalizeRequestedSellerType(sellerFields.requested_seller_type);
-      const { id: _id, ...safeFields } = stripServerOnlyFields(sellerFields);
+      const { id: _id, ...safeFields } = coerceIntegerFields(stripServerOnlyFields(sellerFields));
 
       const { data: createData, error: createError } =
         await serviceClient.auth.admin.createUser({
@@ -112,9 +126,17 @@ export async function POST(req: Request) {
       }
 
       if (dbError) {
-        // Rollback: delete the auth user to leave no orphan behind.
-        // The sellers row is removed automatically via ON DELETE CASCADE.
+        // Rollback: delete the auth user AND the rows the handle_new_user trigger created.
+        // public.sellers / public.customers have no FK to auth.users, so deleting the auth
+        // user does NOT cascade — without the explicit deletes every failed attempt left an
+        // empty, account-less seller row in the admin "pending" list.
         console.error('[register-seller] DB upsert failed — rolling back auth user', dbError);
+        await serviceClient.from('sellers').delete().eq('id', newUser.id).then(({ error }) => {
+          if (error) console.error('[register-seller] rollback sellers delete failed', error);
+        });
+        await serviceClient.from('customers').delete().eq('id', newUser.id).then(({ error }) => {
+          if (error) console.error('[register-seller] rollback customers delete failed', error);
+        });
         await serviceClient.auth.admin.deleteUser(newUser.id).catch((delErr) => {
           console.error('[register-seller] rollback deleteUser failed', delErr);
         });
@@ -165,7 +187,7 @@ export async function POST(req: Request) {
     });
 
     // Strip fields that must only be set server-side — never allow client to overwrite them.
-    const safeSellerData = stripServerOnlyFields(sellerData);
+    const safeSellerData = coerceIntegerFields(stripServerOnlyFields(sellerData));
 
     // The seller type may only be chosen while the account is still an unapproved applicant
     // (customer→seller upgrade, or recovering an unfinished signup). An approved seller can

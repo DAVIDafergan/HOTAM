@@ -91,7 +91,7 @@ function validateOnboardingField(
       return !/^0\d{8,9}$/.test(value.replace(/[\s-]/g, '')) ? 'מספר טלפון אינו תקין (למשל 0501234567)' : undefined;
     case 'age': {
       const n = Number(value);
-      return (!value || Number.isNaN(n) || n < 16 || n > 120) ? 'יש להזין גיל תקין (16–120)' : undefined;
+      return (!value || Number.isNaN(n) || !Number.isInteger(n) || n < 16 || n > 120) ? 'יש להזין גיל תקין (16–120)' : undefined;
     }
     case 'city':
       return !value.trim() ? 'יש להזין עיר' : undefined;
@@ -99,8 +99,13 @@ function validateOnboardingField(
       return !value.trim() ? 'יש להזין כתובת' : undefined;
     case 'notes':
       return !value.trim() ? 'יש לפרט על ההסמכה וההנהגה האישית שלך' : undefined;
-    case 'experienceYears':
-      return !value ? 'יש להזין שנות ניסיון' : undefined;
+    case 'experienceYears': {
+      // experience_years is an INTEGER column — a fractional value like "1.5" used to pass here
+      // and then fail the DB write on submit, so require a whole number up front.
+      const n = Number(value);
+      if (!value) return 'יש להזין שנות ניסיון';
+      return (Number.isNaN(n) || !Number.isInteger(n) || n < 0 || n > 90) ? 'יש להזין מספר שנים שלם (למשל 1 או 2)' : undefined;
+    }
     default:
       return undefined;
   }
@@ -1230,7 +1235,7 @@ export default function SellerOnboarding() {
                   <div className="grid md:grid-cols-2 gap-8">
                     <div className="space-y-2">
                       <Label className="font-bold">שנות ניסיון במלאכת הקודש *</Label>
-                      <Input type="number" inputMode="numeric" value={formData.experienceYears} onChange={(e) => updateFieldWithValidation('experienceYears', e.target.value)} onBlur={() => handleFieldBlur('experienceYears')} required className={cn("text-slate-900 rounded-xl h-12", fieldErrors.experienceYears && "border-destructive")} />
+                      <Input type="number" inputMode="numeric" step={1} min={0} value={formData.experienceYears} onChange={(e) => updateFieldWithValidation('experienceYears', e.target.value)} onBlur={() => handleFieldBlur('experienceYears')} required className={cn("text-slate-900 rounded-xl h-12", fieldErrors.experienceYears && "border-destructive")} />
                       <FieldError message={fieldErrors.experienceYears} />
                     </div>
                     <div className="space-y-2">

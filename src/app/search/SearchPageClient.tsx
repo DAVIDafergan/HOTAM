@@ -1016,7 +1016,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
             {selectedProduct === 'ספר תורה' && <TorahExpertBanner />}
 
             <div className="container mx-auto px-4 pb-20 pt-6 md:pt-8">
-              <div className={cn(viewMode === 'grid' ? "grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6 xl:grid-cols-3 xl:gap-7" : "flex flex-col gap-3")}>
+              <div className={cn(viewMode === 'grid' ? "grid grid-cols-2 gap-3 sm:gap-4 md:gap-6 xl:grid-cols-3 xl:gap-7" : "flex flex-col gap-3")}>
                 {filteredProducts.slice(0, visibleCount).map((p, i) => (
                   <motion.div
                     key={p.id}
@@ -1024,7 +1024,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: shouldReduceMotion ? 0 : Math.min(i, 6) * 0.04, duration: shouldReduceMotion ? 0.1 : 0.25 }}
                   >
-                    <ProductCard product={p} seller={sellerById.get(p.seller_id) as any} distanceKm={includeNearbyCities && selectedCity ? nearbyDistanceMap[p.id] : undefined} priority={i === 0} viewMode={viewMode} />
+                    <ProductCard product={p} seller={sellerById.get(p.seller_id) as any} distanceKm={includeNearbyCities && selectedCity ? nearbyDistanceMap[p.id] : undefined} priority={i === 0} viewMode={viewMode} density="compact" />
                   </motion.div>
                 ))}
                 

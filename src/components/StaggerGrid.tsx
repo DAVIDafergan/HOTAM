@@ -2,16 +2,16 @@
 
 import type { ReactNode } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { EASE } from '@/lib/motion';
+import { EASE_OUT_EXPO } from '@/lib/motion';
 
 const containerVariants = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.07 } },
+  visible: { transition: { staggerChildren: 0.09 } },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: EASE } },
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.9, ease: EASE_OUT_EXPO } },
 };
 
 // Client-side stagger primitives so Server Components (e.g. src/app/page.tsx) can still

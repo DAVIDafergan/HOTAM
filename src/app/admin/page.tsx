@@ -1,306 +1,407 @@
-
 "use client";
 
-import { useState, useMemo, useEffect } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
-import { EASE } from '@/lib/motion';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { FileDown, Loader2 } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
-import { 
-  Users, 
-  Clock, 
-  CheckCircle2, 
-  Eye, 
-  ShieldAlert,
-  Loader2,
-  Trash2,
-  TrendingUp,
-  Search,
-  UserCheck,
-  ShieldCheck,
-  Award,
-  UserRound,
-  Scroll,
-  History,
-  Flag,
-  Star,
-  MessageSquare,
-  AlertTriangle,
-  ShoppingBag,
-  ArrowUpRight,
-  ExternalLink,
-  Banknote,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  Landmark,
-  Building2,
-  Hash,
-  AlertCircle,
-  IdCard,
-  Phone,
-  Mail,
-  MapPin,
-  FileDown,
-  Pencil,
-  Inbox,
-  Send,
-  Activity,
-  LayoutDashboard
-} from 'lucide-react';
-import { 
-  useUser, 
-  useSupabaseClient, 
-  useCollection, 
-  useCollectionCount,
-  useDoc, 
-  useMemoStable
-} from '@/lib/supabase-hooks';
-import { collection, query, doc, orderBy, where, limit, selectColumns } from '@/lib/supabase-compat';
-import { ORDER_CLIENT_COLUMNS } from '@/lib/constants';
-import Image from '@/components/SmartImage';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger 
-} from '@/components/ui/dialog';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { StuckOrdersPanel } from '@/components/admin/StuckOrdersPanel';
-import { classifyStuckOrder } from '@/lib/stuck-orders';
-import { AdminAuditLogPanel } from '@/components/admin/AdminAuditLogPanel';
 import { useToast } from '@/hooks/use-toast';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import unsplashLoader from '@/lib/unsplashLoader';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { cn } from '@/lib/utils';
-import { SELLER_TYPE_LABELS, resolveSellerType } from '@/lib/product-catalog';
-import { calculateCommissionAmount, resolveSellerNet } from '@/lib/commission';
+import { useCollection, useDoc, useMemoStable, useSupabaseClient, useUser } from '@/lib/supabase-hooks';
+import { collection, doc, limit, orderBy, query, selectColumns } from '@/lib/supabase-compat';
+import { ORDER_CLIENT_COLUMNS } from '@/lib/constants';
+import { resolveSellerType } from '@/lib/product-catalog';
+import { classifyStuckOrder } from '@/lib/stuck-orders';
+import { AdminShell } from '@/components/admin/AdminShell';
+import { AdminGlobalSearch, type SearchHit } from '@/components/admin/AdminGlobalSearch';
+import { isAdminTab, type AdminBadges, type AdminNavParams, type AdminTabId } from '@/components/admin/admin-nav';
+import { ADMIN_PAGE_SIZE, AdminConfirmProvider, AdminListFilter, AdminSectionTitle, personSearchFilter, useAdminConfirm } from '@/components/admin/admin-ui';
+import { useAdminAttention } from '@/components/admin/useAdminAttention';
+import { AdminOverviewPanel } from '@/components/admin/AdminOverviewPanel';
+import { SellerDetailDialog, SellersTable, StamUpgradeRequests } from '@/components/admin/AdminSellers';
+import { CustomerDetailsDialog, CustomersTable } from '@/components/admin/AdminCustomers';
+import { SalesFilterBar, SalesList, TorahRequestsList, isSalesFilter, type SalesFilter } from '@/components/admin/AdminSales';
+import { InquiriesList, InquiryFilterBar, ReportsList, matchesInquiryFilter, type InquiryFilter } from '@/components/admin/AdminInbox';
+import { AdminAuditLogPanel } from '@/components/admin/AdminAuditLogPanel';
 import { AdminChatsPanel } from '@/components/admin/AdminChatsPanel';
 import { AdminActivityPanel } from '@/components/admin/AdminActivityPanel';
 import { AdminBroadcastPanel } from '@/components/admin/AdminBroadcastPanel';
-import { AdminOverviewPanel } from '@/components/admin/AdminOverviewPanel';
+import { AdminNotificationsPanel } from '@/components/admin/AdminNotificationsPanel';
 
-const ITEMS_PER_PAGE = 15;
+// /admin — the owner's control room. The section lives in the URL (?tab=…&q=…&filter=…) so
+// refresh, back and deep links work. Lists and detail views are in src/components/admin/*;
+// this file loads the data a section needs (only while that section is open) and runs the
+// admin actions. Every privileged write still goes through RLS (admins) or an admin-only API.
 
-const certLabels: Record<string, string> = {
-  'valid': 'תעודה בתוקף',
-  'expired': 'הייתה תעודה בעבר',
-  'none': 'ללא תעודה'
-};
+const SELLER_TABS: AdminTabId[] = ['pending', 'active', 'judaica'];
+const ORDER_TABS: AdminTabId[] = ['sales', 'torah', 'customers', 'active', 'judaica'];
+const LIST_FILTER_TABS: AdminTabId[] = ['pending', 'active', 'judaica', 'customers', 'sales', 'torah', 'reports', 'inquiries'];
 
-export default function AdminDashboard() {
+const fullName = (p: any) => `${p?.first_name || ''} ${p?.last_name || ''}`.trim() || 'ללא שם';
+const pageRange = (page: number) => [(page - 1) * ADMIN_PAGE_SIZE, page * ADMIN_PAGE_SIZE - 1] as const;
+
+function useDebounced<T>(value: T, ms = 300) {
+  const [v, setV] = useState(value);
+  useEffect(() => { const t = setTimeout(() => setV(value), ms); return () => clearTimeout(t); }, [value, ms]);
+  return v;
+}
+
+const FullPageLoader = () => (
+  <div className="flex min-h-screen items-center justify-center bg-background"><Loader2 className="h-10 w-10 animate-spin text-primary" /></div>
+);
+
+export default function AdminPage() {
+  return (
+    <Suspense fallback={<FullPageLoader />}>
+      <AdminConfirmProvider>
+        <AdminDashboard />
+      </AdminConfirmProvider>
+    </Suspense>
+  );
+}
+
+function AdminDashboard() {
   const { user, isUserLoading } = useUser();
   const db = useSupabaseClient();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
-  
-  const [activeTab, setActiveTab] = useState('overview');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [salesStatusFilter, setSalesStatusFilter] = useState<'all' | 'completed' | 'pending' | 'stuck'>('all');
-  
-  // Pagination states
+  const confirm = useAdminConfirm();
+
+  /* ------------------------------- admin check (unchanged) ------------------------------- */
+  const adminRef = useMemoStable(() => (user ? doc(db, 'admins', user.uid) : null), [db, user?.uid]);
+  const { data: adminData, isLoading: isAdminCheckLoading, isLoaded: isAdminCheckLoaded } = useDoc<any>(adminRef);
+  useEffect(() => {
+    if (isUserLoading) return;
+    // Logged out: the admin lookup never runs (no user), so send to login instead of a blank page.
+    if (!user) { router.replace('/login?redirect=' + encodeURIComponent('/admin')); return; }
+    if (isAdminCheckLoading || !isAdminCheckLoaded) return;
+    if (!adminData) router.push('/');
+  }, [user, isUserLoading, isAdminCheckLoading, isAdminCheckLoaded, adminData, router]);
+  const canLoadData = !!user && !isUserLoading && isAdminCheckLoaded && !!adminData;
+
+  /* ---------------------------------- URL state ---------------------------------- */
+  const tabParam = searchParams.get('tab');
+  const activeTab: AdminTabId = isAdminTab(tabParam) ? tabParam : 'overview';
+  const qParam = searchParams.get('q') || '';
+  const filterParam = searchParams.get('filter') || '';
+
+  const navigate = useCallback((tab: AdminTabId, params: AdminNavParams = {}) => {
+    const sp = new URLSearchParams();
+    if (tab !== 'overview') sp.set('tab', tab);
+    if (params.q) sp.set('q', params.q);
+    if (params.filter) sp.set('filter', params.filter);
+    const qs = sp.toString();
+    router.push(`/admin${qs ? `?${qs}` : ''}`);
+  }, [router]);
+
+  // The list filter belongs to the section: it starts from ?q= and resets when the section changes.
+  const [searchTerm, setSearchTerm] = useState(qParam);
+  useEffect(() => { setSearchTerm(qParam); }, [activeTab, qParam]);
+  const debouncedSearch = useDebounced(searchTerm.trim());
+  const listFilter = debouncedSearch;
+
+  const [salesFilter, setSalesFilter] = useState<SalesFilter>('all');
+  const [inquiryFilter, setInquiryFilter] = useState<InquiryFilter>('open');
+  useEffect(() => {
+    if (activeTab === 'sales') setSalesFilter(isSalesFilter(filterParam) ? filterParam : 'all');
+    if (activeTab === 'inquiries') setInquiryFilter(filterParam === 'new' || filterParam === 'resolved' || filterParam === 'all' ? filterParam : 'open');
+  }, [activeTab, filterParam]);
+
   const [pendingPage, setPendingPage] = useState(1);
-  const [activePage, setActivePage] = useState(1);
-  // Judaica sellers are listed separately from סופרי סת"ם (own pages / totals).
   const [pendingJudaicaPage, setPendingJudaicaPage] = useState(1);
+  const [activePage, setActivePage] = useState(1);
   const [judaicaPage, setJudaicaPage] = useState(1);
   const [customersPage, setCustomersPage] = useState(1);
   const [salesPage, setSalesPage] = useState(1);
+  const [torahPage, setTorahPage] = useState(1);
   const [reportsPage, setReportsPage] = useState(1);
   const [inquiriesPage, setInquiriesPage] = useState(1);
-  const [torahPage, setTorahPage] = useState(1);
-  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const shouldReduceMotion = useReducedMotion();
-  const [deletingCustomerId, setDeletingCustomerId] = useState<string | null>(null);
-  const [customerAuthCreatedAt, setCustomerAuthCreatedAt] = useState<Record<string, string>>({});
-  const [pendingSellers, setPendingSellers] = useState<any[]>([]);
-  const [activeSellers, setActiveSellers] = useState<any[]>([]);
-  const [pendingJudaica, setPendingJudaica] = useState<any[]>([]);
-  const [activeJudaica, setActiveJudaica] = useState<any[]>([]);
-  const [customersData, setCustomersData] = useState<any[]>([]);
-  const [sellerDirectory, setSellerDirectory] = useState<any[]>([]);
-  const [pendingSellersTotal, setPendingSellersTotal] = useState(0);
-  const [activeSellersTotal, setActiveSellersTotal] = useState(0);
-  const [pendingJudaicaTotal, setPendingJudaicaTotal] = useState(0);
-  const [activeJudaicaTotal, setActiveJudaicaTotal] = useState(0);
-  const [customersTotal, setCustomersTotal] = useState(0);
-  const [isSellersLoading, setIsSellersLoading] = useState(false);
-  const [isCustomersLoading, setIsCustomersLoading] = useState(false);
+  useEffect(() => {
+    setPendingPage(1); setPendingJudaicaPage(1); setActivePage(1); setJudaicaPage(1); setCustomersPage(1);
+    setSalesPage(1); setTorahPage(1); setReportsPage(1); setInquiriesPage(1);
+  }, [debouncedSearch, activeTab, salesFilter, inquiryFilter]);
+
   const [refreshTick, setRefreshTick] = useState(0);
-  // Judaica sellers who asked to be verified as סופר סת"ם (stam_upgrade_status = 'pending').
+  const attention = useAdminAttention(canLoadData, refreshTick);
+
+  /* ------------------------------------ sellers ------------------------------------ */
+  const needSellers = canLoadData && SELLER_TABS.includes(activeTab);
+  const [sellerLists, setSellerLists] = useState<{ pending: any[]; active: any[]; pendingJudaica: any[]; judaica: any[]; totals: Record<string, number> }>({ pending: [], active: [], pendingJudaica: [], judaica: [], totals: {} });
+  const [isSellersLoading, setIsSellersLoading] = useState(false);
   const [stamUpgradeRequests, setStamUpgradeRequests] = useState<any[]>([]);
 
-  const adminRef = useMemoStable(() => {
-    if (!user) return null;
-    return doc(db, 'admins', user.uid);
-  }, [db, user?.uid]);
-  const { data: adminData, isLoading: isAdminCheckLoading, isLoaded: isAdminCheckLoaded } = useDoc<any>(adminRef);
-  const isSuperAdmin = !!adminData;
-
   useEffect(() => {
-    if (isUserLoading) return;
-    // Logged out: the admin lookup never runs (no user), so it never "loads" — send to login
-    // here instead of leaving a blank page.
-    if (!user) {
-      router.replace('/login?redirect=' + encodeURIComponent('/admin'));
-      return;
-    }
-    if (isAdminCheckLoading || !isAdminCheckLoaded) return;
-    if (!adminData) {
-      router.push('/');
-    }
-  }, [user, isUserLoading, isAdminCheckLoading, isAdminCheckLoaded, adminData, router]);
-
-  const canLoadData = !!user && !isUserLoading && isAdminCheckLoaded && !!adminData;
-
-  const sellersSearchTerm = searchTerm.trim();
-
-  const sellersQuery = useMemoStable(() => ({
-    canLoadData,
-    pendingPage,
-    activePage,
-    pendingJudaicaPage,
-    judaicaPage,
-    sellersSearchTerm,
-    refreshTick,
-  }), [canLoadData, pendingPage, activePage, pendingJudaicaPage, judaicaPage, sellersSearchTerm, refreshTick]);
-
-  useEffect(() => {
-    if (!sellersQuery.canLoadData) {
-      setPendingSellers([]);
-      setActiveSellers([]);
-      setPendingJudaica([]);
-      setActiveJudaica([]);
-      setPendingSellersTotal(0);
-      setActiveSellersTotal(0);
-      setPendingJudaicaTotal(0);
-      setActiveJudaicaTotal(0);
-      setIsSellersLoading(false);
-      return;
-    }
-
-    const pageRange = (page: number) => [(page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE - 1] as const;
-    const hasSearch = sellersQuery.sellersSearchTerm.length > 0;
-    const searchPattern = `%${sellersQuery.sellersSearchTerm.replace(/[%_]/g, '').replace(/,/g, '')}%`;
-    const isUuidSearch = /^[0-9a-fA-F-]{32,36}$/.test(sellersQuery.sellersSearchTerm);
-    const buildSearchFilter = () => ([
-      `first_name.ilike.${searchPattern}`,
-      `last_name.ilike.${searchPattern}`,
-      `email.ilike.${searchPattern}`,
-      ...(isUuidSearch ? [`id.eq.${sellersQuery.sellersSearchTerm}`] : []),
-    ].join(','));
-
+    if (!needSellers) return;
     let cancelled = false;
     setIsSellersLoading(true);
-
+    const filter = personSearchFilter(listFilter, ['business_name']);
+    const fetchPage = (isApproved: boolean, sellerType: 'stam_scribe' | 'judaica_seller', page: number) => {
+      const [from, to] = pageRange(page);
+      let q = db.from('sellers').select('*', { count: 'exact' }).eq('is_approved', isApproved).eq('seller_type', sellerType)
+        .order('created_at', { ascending: false }).range(from, to);
+      if (filter) q = q.or(filter);
+      return q;
+    };
     (async () => {
-      const fetchSellerPage = async (isApproved: boolean, sellerType: 'stam_scribe' | 'judaica_seller', page: number) => {
-        const [from, to] = pageRange(page);
-        let queryBuilder = db
-          .from('sellers')
-          .select('*', { count: 'exact' })
-          .eq('is_approved', isApproved)
-          .eq('seller_type', sellerType)
-          .order('created_at', { ascending: false })
-          .range(from, to);
-
-        if (hasSearch) {
-          queryBuilder = queryBuilder.or(buildSearchFilter());
-        }
-
-        return queryBuilder;
-      };
-
-      const [pendingRes, activeRes, pendingJudaicaRes, activeJudaicaRes] = await Promise.all([
-        fetchSellerPage(false, 'stam_scribe', sellersQuery.pendingPage),
-        fetchSellerPage(true, 'stam_scribe', sellersQuery.activePage),
-        fetchSellerPage(false, 'judaica_seller', sellersQuery.pendingJudaicaPage),
-        fetchSellerPage(true, 'judaica_seller', sellersQuery.judaicaPage),
+      const [p, a, pj, j, up] = await Promise.all([
+        fetchPage(false, 'stam_scribe', pendingPage),
+        fetchPage(true, 'stam_scribe', activePage),
+        fetchPage(false, 'judaica_seller', pendingJudaicaPage),
+        fetchPage(true, 'judaica_seller', judaicaPage),
+        db.from('sellers').select('*').eq('stam_upgrade_status', 'pending').order('stam_upgrade_requested_at', { ascending: true }),
       ]);
-
       if (cancelled) return;
-      const normalize = (rows: any[] | null) => (rows || []).map((s: any) => ({ ...s, id: String(s.id) }));
-      if (!pendingRes.error) {
-        setPendingSellers(normalize(pendingRes.data));
-        setPendingSellersTotal(pendingRes.count || 0);
-      }
-      if (!activeRes.error) {
-        setActiveSellers(normalize(activeRes.data));
-        setActiveSellersTotal(activeRes.count || 0);
-      }
-      if (!pendingJudaicaRes.error) {
-        setPendingJudaica(normalize(pendingJudaicaRes.data));
-        setPendingJudaicaTotal(pendingJudaicaRes.count || 0);
-      }
-      if (!activeJudaicaRes.error) {
-        setActiveJudaica(normalize(activeJudaicaRes.data));
-        setActiveJudaicaTotal(activeJudaicaRes.count || 0);
-      }
+      const norm = (rows: any[] | null) => (rows || []).map((s: any) => ({ ...s, id: String(s.id) }));
+      setSellerLists((prev) => ({
+        pending: p.error ? prev.pending : norm(p.data),
+        active: a.error ? prev.active : norm(a.data),
+        pendingJudaica: pj.error ? prev.pendingJudaica : norm(pj.data),
+        judaica: j.error ? prev.judaica : norm(j.data),
+        totals: { pending: p.count ?? 0, active: a.count ?? 0, pendingJudaica: pj.count ?? 0, judaica: j.count ?? 0 },
+      }));
+      // Before the seller-types migration the column doesn't exist — just show none.
+      setStamUpgradeRequests(up.error ? [] : norm(up.data));
+      if ([p, a, pj, j].some((r) => r.error)) toast({ variant: 'destructive', title: 'חלק מרשימות המוכרים לא נטענו', description: 'נסה לרענן את הדף.' });
       setIsSellersLoading(false);
     })();
+    return () => { cancelled = true; };
+  }, [db, needSellers, listFilter, pendingPage, activePage, pendingJudaicaPage, judaicaPage, refreshTick, toast]);
 
-    return () => {
-      cancelled = true;
-    };
-  }, [db, sellersQuery]);
+  /* ----------------------------------- customers ----------------------------------- */
+  const needCustomers = canLoadData && activeTab === 'customers';
+  const [customers, setCustomers] = useState<{ rows: any[]; total: number }>({ rows: [], total: 0 });
+  const [isCustomersLoading, setIsCustomersLoading] = useState(false);
+  const [customerAuthCreatedAt, setCustomerAuthCreatedAt] = useState<Record<string, string>>({});
+  const [deletingCustomerId, setDeletingCustomerId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!canLoadData) return;
+    if (!needCustomers) return;
     let cancelled = false;
-    db.from('sellers')
-      .select('*')
-      .eq('stam_upgrade_status', 'pending')
-      .order('stam_upgrade_requested_at', { ascending: true })
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        // Before the seller-types migration the column doesn't exist — just show none.
-        setStamUpgradeRequests(error ? [] : (data || []).map((s: any) => ({ ...s, id: String(s.id) })));
-      });
+    setIsCustomersLoading(true);
+    const [from, to] = pageRange(customersPage);
+    const filter = personSearchFilter(listFilter);
+    let q = db.from('customers').select('*', { count: 'exact' }).order('created_at', { ascending: false }).range(from, to);
+    if (filter) q = q.or(filter);
+    q.then(({ data, error, count }) => {
+      if (cancelled) return;
+      if (error) toast({ variant: 'destructive', title: 'טעינת הלקוחות נכשלה', description: error.message });
+      else setCustomers({ rows: (data || []).map((c: any) => ({ ...c, id: String(c.id) })), total: count || 0 });
+      setIsCustomersLoading(false);
+    });
     return () => { cancelled = true; };
-  }, [db, canLoadData, refreshTick]);
+  }, [db, needCustomers, listFilter, customersPage, refreshTick, toast]);
+
+  // Older customer rows have no created_at — fetch it from auth (admin-only route).
+  useEffect(() => {
+    const missing = customers.rows.filter((c) => !c.created_at && !customerAuthCreatedAt[c.id]).map((c) => c.id);
+    if (!canLoadData || missing.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      const { data: { session } } = await db.auth.getSession();
+      if (!session?.access_token) return;
+      const res = await fetch('/api/admin/customers-created-at', { method: 'POST', headers: { Authorization: 'Bearer ' + session.access_token, 'Content-Type': 'application/json' }, body: JSON.stringify({ ids: missing }) });
+      if (!res.ok) return;
+      const payload = await res.json().catch(() => null);
+      if (!cancelled && payload?.usersCreatedAt && typeof payload.usersCreatedAt === 'object') setCustomerAuthCreatedAt((prev) => ({ ...prev, ...payload.usersCreatedAt }));
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customers.rows, canLoadData, db]);
+  const resolveCreatedAt = useCallback((c: any) => c?.created_at || customerAuthCreatedAt[c?.id] || null, [customerAuthCreatedAt]);
+
+  // Lists refresh when someone else changes sellers / customers.
+  useEffect(() => {
+    if (!canLoadData) return;
+    const channel = db
+      .channel('admin-realtime-users')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'sellers' }, () => setRefreshTick((t) => t + 1))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'customers' }, () => setRefreshTick((t) => t + 1))
+      .subscribe();
+    return () => { db.removeChannel(channel); };
+  }, [db, canLoadData]);
+
+  /* ------------------------------------- orders ------------------------------------- */
+  const needOrders = canLoadData && ORDER_TABS.includes(activeTab);
+  const ordersQuery = useMemoStable(
+    () => (needOrders ? query(collection(db, 'orders'), orderBy('created_at', 'desc'), limit(1000), selectColumns(ORDER_CLIENT_COLUMNS)) : null),
+    [db, needOrders],
+  );
+  const { data: allOrders } = useCollection<any>(ordersQuery);
+  // pending_payment rows are unfinished checkouts, not sales.
+  const visibleOrders = useMemo(() => (allOrders || []).filter((o: any) => o.status !== 'pending_payment'), [allOrders]);
+
+  const [sellerDirectory, setSellerDirectory] = useState<any[]>([]);
+  useEffect(() => {
+    const ids = Array.from(new Set(visibleOrders.map((o: any) => o?.seller_id).filter((id: any): id is string => typeof id === 'string' && id.length > 0)));
+    if (!canLoadData || ids.length === 0) { setSellerDirectory([]); return; }
+    let cancelled = false;
+    (async () => {
+      const chunks: string[][] = [];
+      for (let i = 0; i < ids.length; i += 100) chunks.push(ids.slice(i, i + 100));
+      const results = await Promise.all(chunks.map(async (chunk) => {
+        const { data } = await db.from('sellers').select('id, first_name, last_name, phone, email, seller_type, is_approved').in('id', chunk);
+        return (data || []).map((s: any) => ({ ...s, id: String(s.id) }));
+      }));
+      if (!cancelled) setSellerDirectory(results.flat());
+    })();
+    return () => { cancelled = true; };
+  }, [canLoadData, db, visibleOrders]);
+
+  const stuckCount = useMemo(() => { const now = new Date(); return (allOrders || []).filter((o: any) => classifyStuckOrder(o, now)).length; }, [allOrders]);
+  const matchesOrderSearch = useCallback((o: any, term: string) => {
+    if (!term) return true;
+    const t = term.toLowerCase().replace(/^#/, '');
+    return [o.id, o.buyer_name, o.buyer_email, o.product_name].some((v) => String(v || '').toLowerCase().includes(t));
+  }, []);
+  const salesOrders = useMemo(() => visibleOrders.filter((o: any) => {
+    if (o.status === 'torah_request') return false;
+    if (salesFilter === 'completed' && o.status !== 'completed') return false;
+    if (salesFilter === 'pending' && o.status !== 'paid') return false;
+    return matchesOrderSearch(o, searchTerm.trim());
+  }), [visibleOrders, salesFilter, searchTerm, matchesOrderSearch]);
+  const torahOrders = useMemo(() => visibleOrders.filter((o: any) => o.status === 'torah_request' && matchesOrderSearch(o, searchTerm.trim())), [visibleOrders, searchTerm, matchesOrderSearch]);
+
+  /* ------------------------------- reports & inquiries ------------------------------- */
+  const reportsQuery = useMemoStable(() => (canLoadData && activeTab === 'reports' ? query(collection(db, 'reports'), orderBy('created_at', 'desc'), limit(500)) : null), [db, canLoadData, activeTab]);
+  const { data: allReports } = useCollection<any>(reportsQuery);
+  const inquiriesQuery = useMemoStable(() => (canLoadData && activeTab === 'inquiries' ? query(collection(db, 'contact_messages'), orderBy('created_at', 'desc'), limit(500)) : null), [db, canLoadData, activeTab]);
+  const { data: allInquiries } = useCollection<any>(inquiriesQuery);
+  // Local view of changes made here, so the list reacts at once (realtime may lag).
+  const [removed, setRemoved] = useState<Set<string>>(new Set());
+  const [inquiryStatus, setInquiryStatus] = useState<Record<string, string>>({});
+
+  const reports = useMemo(() => {
+    const t = searchTerm.trim().toLowerCase();
+    return (allReports || []).filter((r: any) => !removed.has(`r:${r.id}`)).filter((r: any) => !t
+      || [r.reporter_name, r.seller_name, r.id, r.reason].some((v) => String(v || '').toLowerCase().includes(t)));
+  }, [allReports, removed, searchTerm]);
+  const inquiriesAll = useMemo(() => {
+    const t = searchTerm.trim().toLowerCase();
+    return (allInquiries || [])
+      .filter((m: any) => !removed.has(`i:${m.id}`))
+      .map((m: any) => (inquiryStatus[m.id] ? { ...m, status: inquiryStatus[m.id] } : m))
+      .filter((m: any) => !t || [m.name, m.email, m.phone, m.message].some((v) => String(v || '').toLowerCase().includes(t)));
+  }, [allInquiries, removed, inquiryStatus, searchTerm]);
+  const inquiryCounts = useMemo(() => ({
+    open: inquiriesAll.filter((m) => matchesInquiryFilter(m, 'open')).length,
+    new: inquiriesAll.filter((m) => matchesInquiryFilter(m, 'new')).length,
+    resolved: inquiriesAll.filter((m) => matchesInquiryFilter(m, 'resolved')).length,
+    all: inquiriesAll.length,
+  }), [inquiriesAll]);
+  const inquiries = useMemo(() => inquiriesAll.filter((m) => matchesInquiryFilter(m, inquiryFilter)), [inquiriesAll, inquiryFilter]);
+
+  /* ------------------------------------- actions ------------------------------------- */
+  const authHeader = async () => {
+    const { data: { session } } = await db.auth.getSession();
+    return session?.access_token ? `Bearer ${session.access_token}` : null;
+  };
+  const afterChange = () => { setRefreshTick((t) => t + 1); };
+
+  const deleteManagedUser = async (id: string, role: 'seller' | 'customer') => {
+    const auth = await authHeader();
+    if (!auth) { toast({ variant: 'destructive', title: 'שגיאת הרשאות', description: 'לא ניתן לאמת את מנהל המערכת. התחבר מחדש ונסה שוב.' }); return false; }
+    const res = await fetch('/api/delete-account', {
+      method: 'POST',
+      headers: { Authorization: auth, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ targetUserId: id, targetRole: role, reason: 'admin_delete' }),
+    });
+    if (!res.ok) {
+      const payload = await res.json().catch(() => null);
+      toast({ variant: 'destructive', title: role === 'seller' ? 'מחיקת המוכר נכשלה' : 'מחיקת הלקוח נכשלה', description: payload?.error || 'אירעה שגיאה במחיקת המשתמש מהמסד.' });
+      return false;
+    }
+    return true;
+  };
+
+  const [approvingId, setApprovingId] = useState<string | null>(null);
+  const approveSeller = async (seller: any) => {
+    setApprovingId(seller.id);
+    try {
+      const { error, count } = await db.from('sellers').update({ is_approved: true }, { count: 'exact' }).eq('id', seller.id);
+      if (error || count === null || count === 0) {
+        const msg = error?.message ?? (count === null ? 'לא התקבל מידע על מספר השורות שעודכנו' : 'המוכר לא נמצא (אולי כבר אושר או נמחק)');
+        toast({ variant: 'destructive', title: 'אישור המוכר נכשל', description: msg });
+        return;
+      }
+      const judaica = resolveSellerType(seller.seller_type) === 'judaica_seller';
+      if (seller.email) {
+        const auth = await authHeader();
+        fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(auth ? { Authorization: auth } : {}) },
+          body: JSON.stringify({ to: seller.email, subject: '🎉 הפרופיל שלך באתר חותם אושר!', text: `שלום ${seller.first_name}, הפרופיל שלך אושר על ידי צוות חותם. כעת תוכל להתחיל להעלות מוצרים ולמכור באתר.`, html: approvalEmailHtml(seller.first_name) }),
+        }).catch((err) => console.error('[admin] approval email failed', err));
+      }
+      // Stay in the queue so the next seller can be reviewed right away.
+      afterChange();
+      toast({ variant: 'success', title: `${fullName(seller)} אושר/ה`, description: `עבר/ה לרשימת ${judaica ? 'מוכרי היודאיקה' : 'סופרי הסת"ם'} ונשלח מייל אישור.` });
+    } finally {
+      setApprovingId(null);
+    }
+  };
+
+  const deleteSeller = async (seller: any) => {
+    const pending = !seller.is_approved;
+    const ok = await confirm({
+      title: pending ? `לדחות ולמחוק את ${fullName(seller)}?` : `למחוק את ${fullName(seller)}?`,
+      description: 'החשבון והפרופיל של המוכר יימחקו לצמיתות. אי אפשר לבטל את הפעולה.',
+      confirmLabel: pending ? 'דחייה ומחיקה' : 'מחיקה לצמיתות',
+      destructive: true,
+    });
+    if (!ok) return;
+    if (await deleteManagedUser(seller.id, 'seller')) {
+      toast({ title: `${fullName(seller)} נמחק/ה` });
+      afterChange();
+    }
+  };
+
+  const deleteCustomer = async (customer: any) => {
+    const ok = await confirm({
+      title: `למחוק את הלקוח ${fullName(customer)}?`,
+      description: 'החשבון של הלקוח יימחק לצמיתות. אי אפשר לבטל את הפעולה.',
+      confirmLabel: 'מחיקה לצמיתות',
+      destructive: true,
+    });
+    if (!ok) return false;
+    setDeletingCustomerId(customer.id);
+    try {
+      if (!(await deleteManagedUser(customer.id, 'customer'))) return false;
+      toast({ title: `הלקוח ${fullName(customer)} נמחק` });
+      afterChange();
+      return true;
+    } finally {
+      setDeletingCustomerId((cur) => (cur === customer.id ? null : cur));
+    }
+  };
 
   const resolveStamUpgrade = async (seller: any, approve: boolean) => {
-    const { error, count } = await db
-      .from('sellers')
-      .update(
-        approve
-          ? { seller_type: 'stam_scribe', stam_upgrade_status: 'approved', updated_at: new Date().toISOString() }
-          : { stam_upgrade_status: 'rejected', updated_at: new Date().toISOString() },
-        { count: 'exact' },
-      )
+    if (!approve) {
+      const ok = await confirm({
+        title: `לדחות את בקשת השדרוג של ${fullName(seller)}?`,
+        description: 'המוכר יקבל מייל שהבקשה לא אושרה. מוצרי היודאיקה שלו ממשיכים להימכר כרגיל, והוא יוכל להגיש בקשה חדשה.',
+        confirmLabel: 'דחיית הבקשה',
+        destructive: true,
+      });
+      if (!ok) return;
+    }
+    const { error, count } = await db.from('sellers')
+      .update(approve
+        ? { seller_type: 'stam_scribe', stam_upgrade_status: 'approved', updated_at: new Date().toISOString() }
+        : { stam_upgrade_status: 'rejected', updated_at: new Date().toISOString() }, { count: 'exact' })
       .eq('id', seller.id)
       .eq('stam_upgrade_status', 'pending');
     if (error || !count) {
       toast({ variant: 'destructive', title: 'העדכון נכשל', description: error?.message || 'הבקשה כבר טופלה או לא נמצאה.' });
       return;
     }
-    setStamUpgradeRequests(prev => prev.filter((s) => s.id !== seller.id));
-    setRefreshTick(t => t + 1);
+    setStamUpgradeRequests((prev) => prev.filter((s) => s.id !== seller.id));
+    afterChange();
     toast({ variant: 'success', title: approve ? 'השדרוג אושר — המוכר הוא כעת סופר סת"ם' : 'בקשת השדרוג נדחתה' });
-
     if (seller.email) {
-      const { data: { session } } = await db.auth.getSession();
+      const auth = await authHeader();
       await fetch('/api/send-email', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token}` },
+        headers: { 'Content-Type': 'application/json', ...(auth ? { Authorization: auth } : {}) },
         body: JSON.stringify({
           to: seller.email,
           subject: approve ? '🎉 אושרת כסופר סת"ם באתר חותם' : 'עדכון לגבי בקשת השדרוג שלך באתר חותם',
@@ -312,1996 +413,251 @@ export default function AdminDashboard() {
     }
   };
 
-  const customersQuery = useMemoStable(() => ({
-    canLoadData,
-    customersPage,
-    sellersSearchTerm,
-    refreshTick,
-  }), [canLoadData, customersPage, sellersSearchTerm, refreshTick]);
-
-  useEffect(() => {
-    if (!customersQuery.canLoadData) {
-      setCustomersData([]);
-      setCustomersTotal(0);
-      setIsCustomersLoading(false);
-      return;
-    }
-
-    const from = (customersQuery.customersPage - 1) * ITEMS_PER_PAGE;
-    const to = from + ITEMS_PER_PAGE - 1;
-    const hasSearch = customersQuery.sellersSearchTerm.length > 0;
-    const searchPattern = `%${customersQuery.sellersSearchTerm.replace(/[%_]/g, '').replace(/,/g, '')}%`;
-    const isUuidSearch = /^[0-9a-fA-F-]{32,36}$/.test(customersQuery.sellersSearchTerm);
-    const searchFilter = [
-      `first_name.ilike.${searchPattern}`,
-      `last_name.ilike.${searchPattern}`,
-      `email.ilike.${searchPattern}`,
-      ...(isUuidSearch ? [`id.eq.${customersQuery.sellersSearchTerm}`] : []),
-    ].join(',');
-
-    let cancelled = false;
-    setIsCustomersLoading(true);
-
-    (async () => {
-      let queryBuilder = db
-        .from('customers')
-        .select('*', { count: 'exact' })
-        .order('created_at', { ascending: false })
-        .range(from, to);
-
-      if (hasSearch) {
-        queryBuilder = queryBuilder.or(searchFilter);
-      }
-
-      const { data, error, count } = await queryBuilder;
-      if (cancelled) return;
-      if (!error) {
-        setCustomersData((data || []).map((c: any) => ({ ...c, id: String(c.id) })));
-        setCustomersTotal(count || 0);
-      }
-      setIsCustomersLoading(false);
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [db, customersQuery]);
-
-  useEffect(() => {
-    if (!canLoadData || !customersData?.length) return;
-    const missingCreatedAtIds = customersData
-      .filter((customer: any) => !customer?.created_at && typeof customer?.id === 'string')
-      .map((customer: any) => customer.id);
-    if (missingCreatedAtIds.length === 0) return;
-
-    let cancelled = false;
-    (async () => {
-      const { data: { session } } = await db.auth.getSession();
-      const token = session?.access_token;
-      if (!token) return;
-
-      const response = await fetch('/api/admin/customers-created-at', {
-        method: 'POST',
-        headers: {
-          Authorization: 'Bearer ' + token,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ ids: missingCreatedAtIds }),
-      });
-      if (!response.ok) return;
-      const payload = await response.json().catch(() => null);
-      const usersCreatedAt = payload?.usersCreatedAt;
-      if (!cancelled && usersCreatedAt && typeof usersCreatedAt === 'object') {
-        setCustomerAuthCreatedAt((prev) => ({ ...prev, ...(usersCreatedAt as Record<string, string>) }));
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [customersData, canLoadData, db]);
-
-  useEffect(() => {
-    if (!canLoadData) return;
-    const channel = db
-      .channel('admin-realtime-users')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'sellers' }, () => {
-        setRefreshTick(t => t + 1);
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'customers' }, () => {
-        setRefreshTick(t => t + 1);
-      })
-      .subscribe();
-    return () => { db.removeChannel(channel); };
-  }, [db, canLoadData]);
-
-  const activeSellersCountQuery = useMemoStable(() => {
-    if (!canLoadData) return null;
-    return query(collection(db, 'sellers'), where('is_approved', '==', true));
-  }, [db, canLoadData]);
-  const { count: activeSellersCount } = useCollectionCount(activeSellersCountQuery);
-
-  const allCustomersCountQuery = useMemoStable(() => {
-    if (!canLoadData) return null;
-    return query(collection(db, 'customers'));
-  }, [db, canLoadData]);
-  const { count: allCustomersCount } = useCollectionCount(allCustomersCountQuery);
-
-  const ordersQuery = useMemoStable(() => {
-    if (!canLoadData) return null;
-    return query(collection(db, 'orders'), orderBy('created_at', 'desc'), limit(1000), selectColumns(ORDER_CLIENT_COLUMNS));
-  }, [db, canLoadData]);
-  const { data: allOrders } = useCollection<any>(ordersQuery);
-  const visibleOrders = useMemo(
-    () => (allOrders || []).filter((order: any) => order.status !== 'pending_payment'),
-    [allOrders]
-  );
-
-  const reportsQuery = useMemoStable(() => {
-    if (!canLoadData) return null;
-    return query(collection(db, 'reports'), orderBy('created_at', 'desc'), limit(500));
-  }, [db, canLoadData]);
-  const { data: allReports } = useCollection<any>(reportsQuery);
-
-  const inquiriesQuery = useMemoStable(() => {
-    if (!canLoadData) return null;
-    return query(collection(db, 'contact_messages'), orderBy('created_at', 'desc'), limit(500));
-  }, [db, canLoadData]);
-  const { data: allInquiries } = useCollection<any>(inquiriesQuery);
-
-
-  // Filtering Logic
-  const filteredSellersPending = useMemo(() => pendingSellers, [pendingSellers]);
-
-  const filteredSellersActive = useMemo(() => activeSellers, [activeSellers]);
-
-  const filteredCustomers = useMemo(() => {
-    if (!customersData) return [];
-    return customersData
-      .sort((a, b) => {
-        const aCreatedAt = a.created_at || customerAuthCreatedAt[a.id];
-        const bCreatedAt = b.created_at || customerAuthCreatedAt[b.id];
-        const aTime = aCreatedAt ? new Date(aCreatedAt).getTime() : 0;
-        const bTime = bCreatedAt ? new Date(bCreatedAt).getTime() : 0;
-        return bTime - aTime;
-      });
-  }, [customersData, customerAuthCreatedAt]);
-
-  useEffect(() => {
-    if (!canLoadData || !visibleOrders?.length) {
-      setSellerDirectory([]);
-      return;
-    }
-
-    const sellerIds = Array.from(
-      new Set(
-        visibleOrders
-          .map((order: any) => order?.seller_id)
-          .filter((id: any): id is string => typeof id === 'string' && id.length > 0)
-      )
-    );
-
-    if (sellerIds.length === 0) {
-      setSellerDirectory([]);
-      return;
-    }
-
-    let cancelled = false;
-    (async () => {
-      const chunks: string[][] = [];
-      for (let i = 0; i < sellerIds.length; i += 100) {
-        chunks.push(sellerIds.slice(i, i + 100));
-      }
-
-      const results = await Promise.all(
-        chunks.map(async (chunk) => {
-          const { data } = await db
-            .from('sellers')
-            .select('id, first_name, last_name, phone, email')
-            .in('id', chunk);
-          return (data || []).map((seller: any) => ({ ...seller, id: String(seller.id) }));
-        })
-      );
-
-      if (!cancelled) {
-        setSellerDirectory(results.flat());
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [canLoadData, db, visibleOrders]);
-
-  const filteredOrders = useMemo(() => {
-    return visibleOrders.filter(o => {
-      if (o.status === 'torah_request') return false; 
-      const matchSearch = (o.id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (o.buyer_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (o.product_name || '').toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchStatus = salesStatusFilter === 'all' ? true :
-                          salesStatusFilter === 'completed' ? o.status === 'completed' :
-                          o.status !== 'completed';
-      
-      return matchSearch && matchStatus;
-    });
-  }, [visibleOrders, searchTerm, salesStatusFilter]);
-
-  // Stuck orders (incl. unfinished payments and ספר תורה requests, which the log lists elsewhere).
-  const stuckOrdersCount = useMemo(() => {
-    const now = new Date();
-    return (allOrders || []).filter((o: any) => classifyStuckOrder(o, now)).length;
-  }, [allOrders]);
-
-  const torahOrders = useMemo(() => {
-    return visibleOrders.filter(o => o.status === 'torah_request' && (
-      (o.id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (o.buyer_name || '').toLowerCase().includes(searchTerm.toLowerCase())
-    ));
-  }, [visibleOrders, searchTerm]);
-
-  const filteredReports = useMemo(() => {
-    if (!allReports) return [];
-    if (!searchTerm) return allReports;
-    const term = searchTerm.toLowerCase();
-    return allReports.filter(r =>
-      (r.reporter_name || '').toLowerCase().includes(term) ||
-      (r.seller_name || '').toLowerCase().includes(term) ||
-      (r.id || '').toLowerCase().includes(term) ||
-      (r.reason || '').toLowerCase().includes(term)
-    );
-  }, [allReports, searchTerm]);
-
-  const filteredInquiries = useMemo(() => {
-    if (!allInquiries) return [];
-    if (!searchTerm) return allInquiries;
-    const term = searchTerm.toLowerCase();
-    return allInquiries.filter((m: any) =>
-      (m.name || '').toLowerCase().includes(term) ||
-      (m.email || '').toLowerCase().includes(term) ||
-      (m.message || '').toLowerCase().includes(term)
-    );
-  }, [allInquiries, searchTerm]);
-
-  useEffect(() => {
-    setPendingPage(1);
-    setActivePage(1);
-    setCustomersPage(1);
-    setSalesPage(1);
-    setReportsPage(1);
-    setTorahPage(1);
-  }, [searchTerm]);
-
-  const handleTabLink = (tab: string, search: string = '') => {
-    setActiveTab(tab);
-    setSearchTerm(search);
+  const deleteReport = async (r: any) => {
+    const ok = await confirm({ title: 'למחוק את הדיווח?', description: 'מחיקה מסמנת שהדיווח טופל. אי אפשר לשחזר אותו.', confirmLabel: 'מחיקת הדיווח', destructive: true });
+    if (!ok) return;
+    const { error } = await db.from('reports').delete().eq('id', r.id);
+    if (error) { toast({ variant: 'destructive', title: 'מחיקת הדיווח נכשלה', description: error.message }); return; }
+    setRemoved((prev) => new Set(prev).add(`r:${r.id}`));
+    afterChange();
+    toast({ variant: 'success', title: 'הדיווח נמחק' });
   };
 
-  const deleteManagedUser = async (id: string, role: 'seller' | 'customer') => {
-    const { data: { session } } = await db.auth.getSession();
-    const token = session?.access_token;
-    if (!token) {
-      toast({
-        variant: 'destructive',
-        title: 'שגיאת הרשאות',
-        description: 'לא ניתן לאמת את מנהל המערכת. התחבר מחדש ונסה שוב.',
-      });
-      return false;
-    }
-
-    const res = await fetch('/api/delete-account', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        targetUserId: id,
-        targetRole: role,
-        reason: 'admin_delete',
-      }),
-    });
-
-    if (!res.ok) {
-      const payload = await res.json().catch(() => null);
-      toast({
-        variant: 'destructive',
-        title: role === 'seller' ? 'מחיקת הסופר נכשלה' : 'מחיקת הלקוח נכשלה',
-        description: payload?.error || 'אירעה שגיאה במחיקת המשתמש מהמסד.',
-      });
-      return false;
-    }
-
-    return true;
-  };
-
-  const approveScribe = async (id: string) => {
-    const { data: { session } } = await db.auth.getSession();
-    const { error, count } = await db
-      .from('sellers')
-      .update({ is_approved: true }, { count: 'exact' })
-      .eq('id', id);
-
-    if (error || count === null || count === 0) {
-      const failureMessage = error?.message
-        ?? (count === null
-          ? 'אישור המוכר נכשל: לא התקבל מידע על מספר השורות שעודכנו'
-          : 'אישור המוכר נכשל: לא נמצאו שורות לעדכון');
-      console.error('approve failed:', failureMessage, 'count:', count);
-      toast({
-        variant: "destructive",
-        title: "שגיאה באישור המוכר",
-        description: failureMessage,
-      });
-      return;
-    }
-
-    const { data: approvedSeller } = await db
-      .from('sellers')
-      .select('email, first_name')
-      .eq('id', id)
-      .single();
-
-    if (approvedSeller?.email) {
-      await fetch('/api/send-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session?.access_token}`,
-        },
-        body: JSON.stringify({
-          to: approvedSeller.email,
-          subject: '🎉 הפרופיל שלך באתר חותם אושר!',
-          text: `שלום ${approvedSeller.first_name}, הפרופיל שלך אושר על ידי צוות חותם. כעת תוכל להתחיל להעלות מוצרים ולמכור באתר.`,
-          html: `
-            <div dir="rtl" style="margin:0;padding:32px 16px;background:#f5f1e8;font-family:Arial,'Segoe UI',sans-serif;color:#1f2937;">
-              <div style="max-width:620px;margin:0 auto;background:#ffffff;border-radius:24px;overflow:hidden;box-shadow:0 18px 50px rgba(15,23,42,0.12);border:1px solid rgba(212,175,55,0.18);">
-                <div style="background:#111827;padding:32px;text-align:center;">
-                  <img src="https://hotam.shop/icon.svg" alt="Hotam" width="64" height="64" style="display:block;margin:0 auto 14px;" />
-                  <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:900;">🎉 הפרופיל שלך אושר!</h1>
-                  <p style="margin:10px 0 0;color:#d4af37;font-size:15px;font-weight:700;">ברוך הבא לקהילת המוכרים של חותם</p>
-                </div>
-                <div style="padding:32px;text-align:right;">
-                  <p style="margin:0 0 18px;font-size:17px;line-height:1.8;color:#111827;">שלום ${approvedSeller.first_name},</p>
-                  <p style="margin:0 0 20px;font-size:16px;line-height:1.9;color:#374151;">
-                    הפרופיל שלך אושר על ידי צוות חותם. כעת תוכל להתחיל להעלות מוצרים ולמכור באתר.
-                  </p>
-                  <div style="background:#fff8e1;border-right:4px solid #d4af37;border-radius:14px;padding:18px 16px;margin-bottom:24px;">
-                    <p style="margin:0;font-size:15px;line-height:1.8;color:#92400e;font-weight:700;">
-                      כדי להתחיל, היכנס לדשבורד המוכר שלך והעלה את המוצר הראשון.
-                    </p>
-                  </div>
-                  <div style="text-align:center;">
-                    <a href="https://hotam.shop/seller/dashboard" style="display:inline-block;background:#111827;color:#ffffff;text-decoration:none;padding:14px 30px;border-radius:999px;font-size:15px;font-weight:800;">
-                      מעבר לדשבורד המוכר
-                    </a>
-                  </div>
-                </div>
-                <div style="padding:18px 28px;background:#faf7f0;border-top:1px solid rgba(212,175,55,0.2);text-align:center;">
-                  <p style="margin:0;font-size:12px;color:#6b7280;">Hotam Shop · זירת המסחר המאובטחת לכלי קודש וסת&quot;ם מהודרים</p>
-                </div>
-              </div>
-            </div>
-          `,
-        }),
-      });
-    }
-
-    const approvedType = resolveSellerType(
-      [...pendingSellers, ...pendingJudaica].find((sel: any) => sel.id === id)?.seller_type,
-    );
-    setActiveTab(approvedType === 'judaica_seller' ? 'judaica' : 'active');
-    setSearchTerm('');
-    if (approvedType === 'judaica_seller') setJudaicaPage(1); else setActivePage(1);
-    // Reload the lists now — don't rely on the realtime event arriving (if it's late or
-    // missed, the approved seller wouldn't show up in its new tab until a page refresh).
-    setRefreshTick(t => t + 1);
-    toast({ variant: "success", title: "המוכר אושר והועבר לרשימת המוכרים הפעילים" });
-  };
-
-  const deleteScribe = async (id: string) => {
-    if (confirm('האם אתה בטוח שברצונך למחוק סופר זה לצמיתות?')) {
-      const ok = await deleteManagedUser(id, 'seller');
-      if (!ok) {
-        return;
-      }
-      toast({ variant: "destructive", title: "הסופר נמחק" });
-    }
-  };
-
-  const deleteReport = async (id: string) => {
-    if (confirm('מחיקת הדיווח מהמערכת?')) {
-      const { error } = await db.from('reports').delete().eq('id', id);
-      if (error) {
-        toast({ variant: "destructive", title: "מחיקת הדיווח נכשלה", description: error.message });
-        return;
-      }
-      toast({ variant: "success", title: "הדיווח נמחק" });
-    }
-  };
-
-  const deleteInquiry = async (id: string) => {
-    if (confirm('מחיקת הפנייה מהמערכת?')) {
-      const { error } = await db.from('contact_messages').delete().eq('id', id);
-      if (error) {
-        toast({ variant: "destructive", title: "מחיקת הפנייה נכשלה", description: error.message });
-        return;
-      }
-      toast({ variant: "success", title: "הפנייה נמחקה" });
-    }
+  const deleteInquiry = async (m: any) => {
+    const ok = await confirm({ title: `למחוק את הפנייה של ${m.name || 'הפונה'}?`, description: 'הפנייה תימחק לצמיתות. אם רק טיפלת בה, עדיף לסמן "טופלה".', confirmLabel: 'מחיקת הפנייה', destructive: true });
+    if (!ok) return;
+    const { error } = await db.from('contact_messages').delete().eq('id', m.id);
+    if (error) { toast({ variant: 'destructive', title: 'מחיקת הפנייה נכשלה', description: error.message }); return; }
+    setRemoved((prev) => new Set(prev).add(`i:${m.id}`));
+    afterChange();
+    toast({ variant: 'success', title: 'הפנייה נמחקה' });
   };
 
   const updateInquiryStatus = async (id: string, status: 'new' | 'read' | 'resolved') => {
+    const before = inquiryStatus[id];
+    setInquiryStatus((prev) => ({ ...prev, [id]: status }));
     const { error } = await db.from('contact_messages').update({ status }).eq('id', id);
     if (error) {
-      toast({ variant: "destructive", title: "עדכון סטטוס הפנייה נכשל", description: error.message });
+      setInquiryStatus((prev) => { const next = { ...prev }; if (before) next[id] = before; else delete next[id]; return next; });
+      toast({ variant: 'destructive', title: 'עדכון סטטוס הפנייה נכשל', description: error.message });
+      return;
     }
+    afterChange();
   };
 
-  const deleteCustomer = async (id: string) => {
-    if (confirm('האם אתה בטוח שברצונך למחוק לקוח זה לצמיתות?')) {
-      setDeletingCustomerId(id);
-      try {
-        const ok = await deleteManagedUser(id, 'customer');
-        if (!ok) {
-          return;
-        }
-        toast({ variant: "destructive", title: "הלקוח נמחק" });
-      } finally {
-        setDeletingCustomerId((current) => current === id ? null : current);
-      }
+  /* ------------------------------ detail dialogs / search ------------------------------ */
+  const [detail, setDetail] = useState<{ type: 'seller' | 'customer'; row: any } | null>(null);
+  const openPerson = useCallback(async (type: 'seller' | 'customer', id: string) => {
+    const { data, error } = await db.from(type === 'seller' ? 'sellers' : 'customers').select('*').eq('id', id).maybeSingle();
+    if (error || !data) {
+      toast({ variant: 'destructive', title: type === 'seller' ? 'המוכר לא נמצא' : 'הלקוח לא נמצא', description: error?.message || 'ייתכן שהחשבון נמחק.' });
+      return;
     }
+    setDetail({ type, row: { ...data, id: String((data as any).id) } });
+  }, [db, toast]);
+
+  const onSearchPick = (hit: SearchHit) => {
+    if (hit.type === 'order') navigate('sales', { q: hit.id });
+    else openPerson(hit.type, hit.id);
   };
-
-  // Grouped so the sidebar reads as a hierarchy (overview → user management → sales →
-  // communication/moderation) instead of one flat list of 10 items — adminTabItems below
-  // stays a flat derived list for the places that just need lookup-by-id (mobile header,
-  // the "which tab is active" checks).
-  // Counts shown as badges on the nav so open work is visible from any tab.
-  const newInquiriesCount = (allInquiries || []).filter((m: any) => (m.status || 'new') === 'new').length;
-  const tabBadges: Record<string, number> = {
-    pending: pendingSellersTotal + pendingJudaicaTotal + stamUpgradeRequests.length,
-    inquiries: newInquiriesCount,
-    reports: (allReports || []).length,
+  const showSellerInList = (s: any) => {
+    setDetail(null);
+    navigate(!s.is_approved ? 'pending' : resolveSellerType(s.seller_type) === 'judaica_seller' ? 'judaica' : 'active', { q: s.email || fullName(s) });
   };
-
-  const adminTabGroups: { label: string; items: { id: string; label: string; icon: React.ReactNode }[] }[] = [
-    {
-      label: 'סקירה',
-      items: [
-        { id: 'overview', label: 'סקירה כללית', icon: <LayoutDashboard className="w-4 h-4" /> },
-        { id: 'activity', label: 'פעילות', icon: <Activity className="w-4 h-4" /> },
-      ],
-    },
-    {
-      label: 'ניהול משתמשים',
-      items: [
-        { id: 'pending', label: 'ממתינים לאישור', icon: <Clock className="w-4 h-4" /> },
-        { id: 'active', label: 'סופרי סת"ם', icon: <CheckCircle2 className="w-4 h-4" /> },
-        { id: 'judaica', label: 'מוכרי יודאיקה', icon: <ShoppingBag className="w-4 h-4" /> },
-        { id: 'customers', label: 'לקוחות', icon: <UserRound className="w-4 h-4" /> },
-      ],
-    },
-    {
-      label: 'מכירות',
-      items: [
-        { id: 'sales', label: 'יומן מכירות', icon: <History className="w-4 h-4" /> },
-        { id: 'torah', label: 'ספרי תורה', icon: <Scroll className="w-4 h-4" /> },
-      ],
-    },
-    {
-      label: 'תקשורת ובקרה',
-      items: [
-        { id: 'chats', label: 'שיחות', icon: <MessageSquare className="w-4 h-4" /> },
-        { id: 'reports', label: 'דיווחים', icon: <Flag className="w-4 h-4" /> },
-        { id: 'inquiries', label: 'פניות', icon: <Inbox className="w-4 h-4" /> },
-        { id: 'broadcast', label: 'דיוור במייל', icon: <Send className="w-4 h-4" /> },
-        { id: 'audit', label: 'יומן ביקורת', icon: <History className="w-4 h-4" /> },
-      ],
-    },
-  ];
-
-  const adminTabItems = adminTabGroups.flatMap((g) => g.items);
 
   const exportSellersToExcel = async () => {
-    const { data, error } = await db
-      .from('sellers')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (error) {
-      toast({ variant: 'destructive', title: 'ייצוא הסופרים נכשל', description: error.message });
-      return;
-    }
+    const { data, error } = await db.from('sellers').select('*').order('created_at', { ascending: false });
+    if (error) { toast({ variant: 'destructive', title: 'ייצוא המוכרים נכשל', description: error.message }); return; }
     const sellers = data || [];
-    if (sellers.length === 0) {
-      toast({ variant: 'destructive', title: 'אין נתונים לייצוא' });
-      return;
-    }
-    const certLabelMap: Record<string, string> = {
-      valid: 'תעודה בתוקף',
-      expired: 'הייתה תעודה בעבר',
-      none: 'ללא תעודה',
-    };
-
-    const headers = [
-      'מזהה סופר',
-      'סטטוס',
-      'שם פרטי',
-      'שם משפחה',
-      'אימייל',
-      'טלפון',
-      'כתובת',
-      'גיל',
-      'מצב משפחתי',
-      'ניסיון (שנים)',
-      'רמת כתב',
-      'סוגי כתב',
-      'תדירות מקווה',
-      'תדירות לימוד תורה',
-      'תעודת סופר',
-      'שם עסק',
-      'מספר עסק/ח.פ',
-      'סוג עסק',
-      'בנק',
-      'סניף',
-      'מספר חשבון',
-      'תאריך יצירה',
-    ];
-
-    const rows = sellers.map((seller: any) => [
-      seller.id || '',
-      seller.is_approved ? 'פעיל' : 'ממתין לאישור',
-      seller.first_name || '',
-      seller.last_name || '',
-      seller.email || '',
-      seller.phone || '',
-      seller.address || '',
-      seller.age ?? '',
-      seller.marital_status || '',
-      seller.experience_years ?? '',
-      seller.script_level || '',
-      Array.isArray(seller.script_types) ? seller.script_types.join(' | ') : (seller.script_types || ''),
-      seller.mikveh_frequency || '',
-      seller.torah_study_frequency || '',
-      certLabelMap[seller.has_scribe_certificate] || seller.has_scribe_certificate || '',
-      seller.business_name || '',
-      seller.business_id || '',
-      seller.business_type || '',
-      seller.bank_name || '',
-      seller.bank_branch || '',
-      seller.bank_account_number || '',
-      seller.created_at ? new Date(seller.created_at).toLocaleString('he-IL') : '',
+    if (sellers.length === 0) { toast({ variant: 'destructive', title: 'אין נתונים לייצוא' }); return; }
+    const certLabelMap: Record<string, string> = { valid: 'תעודה בתוקף', expired: 'הייתה תעודה בעבר', none: 'ללא תעודה' };
+    const headers = ['מזהה', 'סוג מוכר', 'סטטוס', 'שם פרטי', 'שם משפחה', 'אימייל', 'טלפון', 'כתובת', 'גיל', 'מצב משפחתי', 'ניסיון (שנים)', 'רמת כתב', 'סוגי כתב', 'תדירות מקווה', 'תדירות לימוד תורה', 'תעודת סופר', 'שם עסק', 'מספר עסק/ח.פ', 'סוג עסק', 'בנק', 'סניף', 'מספר חשבון', 'תאריך יצירה'];
+    const rows = sellers.map((s: any) => [
+      s.id || '', resolveSellerType(s.seller_type) === 'judaica_seller' ? 'מוכר יודאיקה' : 'סופר סת"ם', s.is_approved ? 'פעיל' : 'ממתין לאישור',
+      s.first_name || '', s.last_name || '', s.email || '', s.phone || '', s.address || '', s.age ?? '', s.marital_status || '', s.experience_years ?? '',
+      s.script_level || '', Array.isArray(s.script_types) ? s.script_types.join(' | ') : (s.script_types || ''), s.mikveh_frequency || '', s.torah_study_frequency || '',
+      certLabelMap[s.has_scribe_certificate] || s.has_scribe_certificate || '', s.business_name || '', s.business_id || '', s.business_type || '',
+      s.bank_name || '', s.bank_branch || '', s.bank_account_number || '', s.created_at ? new Date(s.created_at).toLocaleString('he-IL') : '',
     ]);
-
-    const csvContent = [headers, ...rows]
-      .map((row) =>
-        row
-          .map((value) => `"${String(value ?? '').replace(/"/g, '""')}"`)
-          .join(','),
-      )
-      .join('\n');
-
-    // Prefix UTF-8 BOM so Excel opens Hebrew content correctly.
-    const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
+    const csv = [headers, ...rows].map((row) => row.map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
+    // UTF-8 BOM so Excel opens the Hebrew correctly.
+    const url = URL.createObjectURL(new Blob([`﻿${csv}`], { type: 'text/csv;charset=utf-8;' }));
     const a = document.createElement('a');
     a.href = url;
     a.download = `hotam-sellers-export-${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    document.body.appendChild(a); a.click(); a.remove();
     URL.revokeObjectURL(url);
-    toast({ variant: "success", title: 'קובץ Excel מוכן להורדה' });
+    toast({ variant: 'success', title: 'קובץ Excel מוכן להורדה' });
   };
 
-  if (isUserLoading || isAdminCheckLoading) {
-    return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>;
-  }
+  /* --------------------------------------- badges --------------------------------------- */
+  const a = attention;
+  const badges: AdminBadges = {
+    pending: { count: a.pendingStam + a.pendingJudaica + a.stamUpgrades, tone: 'alert' },
+    sales: { count: a.stuckOrders, tone: 'alert' },
+    torah: { count: a.torahRequests, tone: 'info' },
+    inquiries: { count: a.newInquiries, tone: 'alert' },
+    reports: { count: a.reports, tone: 'alert' },
+    chats: a.flaggedChats > 0 ? { count: a.flaggedChats, tone: 'alert' } : { count: a.waitingChatIds.length, tone: 'info' },
+    notifications: { count: a.sms?.installed ? a.sms.failed24h : 0, tone: 'alert' },
+  };
 
-  if (!user || (!adminData && !isSuperAdmin)) {
-    return null;
-  }
+  if (isUserLoading || isAdminCheckLoading) return <FullPageLoader />;
+  if (!user || !adminData) return null;
+
+  const filtered = !!searchTerm.trim();
+  const listFilterBox = LIST_FILTER_TABS.includes(activeTab) && (
+    <AdminListFilter
+      value={searchTerm}
+      onChange={setSearchTerm}
+      placeholder={activeTab === 'sales' || activeTab === 'torah' ? 'סינון לפי מספר הזמנה, קונה או מוצר…' : activeTab === 'inquiries' || activeTab === 'reports' ? 'סינון לפי שם, אימייל או תוכן…' : 'סינון לפי שם, אימייל או טלפון…'}
+    />
+  );
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] flex flex-col" dir="rtl">
+    <div className="flex min-h-screen flex-col bg-[#F8F9FA]" dir="rtl">
       <Navbar />
-      
-      <main className="container mx-auto px-4 py-8 md:py-12 max-w-7xl flex-1">
-        <div className="flex flex-col xl:flex-row xl:items-center justify-between mb-8 gap-4 xl:gap-6">
-          <div className="text-start w-full xl:w-auto">
-             <div className="flex items-center gap-3 mb-2">
-                <div className="bg-primary/5 p-3 rounded-2xl">
-                  <ShieldCheck className="w-8 h-8 text-primary" />
-                </div>
-                 <div>
-                  <h1 className="text-2xl md:text-3xl font-headline font-black text-primary tracking-tight">ניהול מערכת HOTAM</h1>
-                  <p className="text-muted-foreground font-medium">פיקוח על כשרות, אימות סופרים וניטור פיננסי</p>
-                </div>
-             </div>
-           </div>
-          <div className="flex w-full xl:w-auto flex-col sm:flex-row gap-3">
-            <div className="relative w-full xl:w-96">
-              <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input 
-                placeholder="חפש לפי שם, אימייל או מזהה ID..." 
-                className="pr-11 h-14 rounded-2xl bg-white border-none shadow-premium focus:ring-2 focus:ring-primary/10 transition-all text-sm font-bold text-slate-900"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <Button onClick={exportSellersToExcel} className="h-12 sm:h-14 rounded-2xl px-5 font-black gap-2 bg-accent text-primary hover:bg-accent/90 w-full sm:w-auto">
-              <FileDown className="w-4 h-4" /> ייצוא סופרים לאקסל
-            </Button>
-          </div>
-        </div>
-
-
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="md:flex md:flex-row-reverse md:items-start md:gap-6">
-          {/* Desktop-only vertical sidebar, right-aligned (RTL). Collapses to icon-only via
-              plain component state — no localStorage in this codebase's client components. */}
-          <motion.div
-            initial={false}
-            animate={{ width: isSidebarCollapsed ? 76 : 240 }}
-            transition={{ duration: shouldReduceMotion ? 0 : 0.35, ease: EASE }}
-            className="hidden md:block shrink-0 sticky top-28 self-start"
-          >
-            <div className="bg-white/50 backdrop-blur-md rounded-[2rem] shadow-premium border p-3 space-y-1 overflow-hidden">
-              <button
-                type="button"
-                onClick={() => setIsSidebarCollapsed(v => !v)}
-                aria-label={isSidebarCollapsed ? 'הרחב סרגל ניהול' : 'צמצם סרגל ניהול'}
-                className="w-full flex items-center justify-center h-10 rounded-xl hover:bg-primary/5 text-primary/50 hover:text-primary transition-colors mb-1"
-              >
-                {isSidebarCollapsed ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-              </button>
-              <TabsList className="flex flex-col bg-transparent p-0 h-auto gap-4 w-full">
-                {adminTabGroups.map((group) => (
-                  <div key={group.label} className="w-full space-y-1">
-                    {!isSidebarCollapsed && (
-                      <p className="px-4 pb-1 text-[9px] font-black uppercase tracking-widest text-primary/35">
-                        {group.label}
-                      </p>
-                    )}
-                    {group.items.map((tab) => (
-                      <TabsTrigger
-                        key={tab.id}
-                        value={tab.id}
-                        title={tab.label}
-                        className={cn(
-                          "w-full flex items-center rounded-2xl h-12 data-[state=active]:bg-accent data-[state=active]:text-primary font-black text-[11px] uppercase tracking-widest gap-3 transition-colors",
-                          isSidebarCollapsed ? "justify-center px-0" : "justify-start px-4"
-                        )}
-                      >
-                        <span className="relative shrink-0">
-                          {tab.icon}
-                          {isSidebarCollapsed && tabBadges[tab.id] > 0 && (
-                            <span className="absolute -right-1.5 -top-1.5 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-white" />
-                          )}
-                        </span>
-                        {!isSidebarCollapsed && <span className="flex-1 truncate text-start">{tab.label}</span>}
-                        {!isSidebarCollapsed && tabBadges[tab.id] > 0 && (
-                          <span className="min-w-5 rounded-full bg-destructive px-1.5 py-0.5 text-center text-[10px] font-black leading-none text-white tabular-nums">
-                            {tabBadges[tab.id]}
-                          </span>
-                        )}
-                      </TabsTrigger>
-                    ))}
-                  </div>
-                ))}
-              </TabsList>
-            </div>
-          </motion.div>
-
-          <div className="md:hidden mb-8">
-            <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
-              <SheetTrigger asChild>
-                <button className="w-full flex items-center justify-between bg-white rounded-2xl shadow-premium border border-primary/5 px-5 h-14 font-black text-primary text-sm">
-                  <div className="flex items-center gap-3">
-                    {adminTabItems.find((tab) => tab.id === activeTab)?.icon}
-                    <span>{adminTabItems.find((tab) => tab.id === activeTab)?.label}</span>
-                  </div>
-                  <ChevronDown className="w-4 h-4 text-primary/40" />
-                </button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[280px] p-0 border-none bg-white rounded-l-[2.5rem] overflow-y-auto overscroll-contain" dir="rtl">
-                <SheetHeader className="sr-only">
-                  <SheetTitle>תפריט ניהול מערכת</SheetTitle>
-                  <SheetDescription>מעבר מהיר בין לקוחות, סופרים, מכירות ודיווחים</SheetDescription>
-                </SheetHeader>
-                <div className="bg-gradient-to-b from-primary to-primary/80 p-8 text-white">
-                  <h2 className="text-white font-headline font-black text-xl flex items-center gap-3">
-                    <ShieldCheck className="w-5 h-5 text-accent" /> ניהול מערכת
-                  </h2>
-                  <p className="text-white/60 text-xs font-bold mt-1">שליטה נוחה גם מהנייד</p>
-                </div>
-                <div className="p-4 space-y-5 mt-2">
-                  {adminTabGroups.map((group) => (
-                    <div key={group.label} className="space-y-1.5">
-                      <p className="px-4 text-[9px] font-black uppercase tracking-widest text-primary/35">{group.label}</p>
-                      {group.items.map((tab) => (
-                        <button
-                          key={tab.id}
-                          onClick={() => {
-                            setActiveTab(tab.id);
-                            setIsMobileNavOpen(false);
-                          }}
-                          className={cn(
-                            "w-full flex items-center justify-between p-4 rounded-2xl transition-all font-black text-sm",
-                            activeTab === tab.id ? "bg-accent text-primary shadow-lg" : "text-primary/60 hover:bg-primary/5"
-                          )}
-                        >
-                          <div className="flex items-center gap-3">
-                            {tab.icon}
-                            <span>{tab.label}</span>
-                            {tabBadges[tab.id] > 0 && (
-                              <span className="min-w-5 rounded-full bg-destructive px-1.5 py-0.5 text-center text-[10px] font-black leading-none text-white tabular-nums">
-                                {tabBadges[tab.id]}
-                              </span>
-                            )}
-                          </div>
-                          <ChevronLeft className="w-4 h-4 opacity-30" />
-                        </button>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
-
-          <div className="flex-1 min-w-0 space-y-8">
-          <TabsContent value="overview">
-            <AdminOverviewPanel onNavigate={(tab, options) => { if (options?.salesFilter) setSalesStatusFilter(options.salesFilter); setActiveTab(tab); }} />
-          </TabsContent>
-
-          <TabsContent value="pending">
-            {stamUpgradeRequests.length > 0 && (
-              <StamUpgradeRequests requests={stamUpgradeRequests} db={db} onResolve={resolveStamUpgrade} />
-            )}
-            <div className="space-y-10">
-              <section dir="rtl" data-admin-pending-section="stam_scribe" className="space-y-3">
-                <h2 className="px-1 text-base font-black text-primary">סופרי סת"ם ממתינים לאישור ({pendingSellersTotal})</h2>
-                <ScribeTable
-                  scribes={filteredSellersPending}
-                  onApprove={approveScribe}
-                  onDelete={deleteScribe}
-                  isLoading={isSellersLoading}
-                  orders={visibleOrders}
-                  totalCount={pendingSellersTotal}
-                  page={pendingPage}
-                  setPage={setPendingPage}
-                  sellerKind="stam_scribe"
-                />
-              </section>
-              <section dir="rtl" data-admin-pending-section="judaica_seller" className="space-y-3">
-                <h2 className="px-1 text-base font-black text-primary">מוכרי יודאיקה ממתינים לאישור ({pendingJudaicaTotal})</h2>
-                <ScribeTable
-                  scribes={pendingJudaica}
-                  onApprove={approveScribe}
-                  onDelete={deleteScribe}
-                  isLoading={isSellersLoading}
-                  orders={visibleOrders}
-                  totalCount={pendingJudaicaTotal}
-                  page={pendingJudaicaPage}
-                  setPage={setPendingJudaicaPage}
-                  sellerKind="judaica_seller"
-                />
-              </section>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="active">
-            <ScribeTable 
-              scribes={filteredSellersActive} 
-              onApprove={approveScribe} 
-              onDelete={deleteScribe} 
-              isLoading={isSellersLoading} 
-              orders={visibleOrders} 
-              totalCount={activeSellersTotal}
-              page={activePage}
-              setPage={setActivePage}
-              sellerKind="stam_scribe"
-            />
-          </TabsContent>
-
-          <TabsContent value="judaica">
-            <ScribeTable
-              scribes={activeJudaica}
-              onApprove={approveScribe}
-              onDelete={deleteScribe}
-              isLoading={isSellersLoading}
-              orders={visibleOrders}
-              totalCount={activeJudaicaTotal}
-              page={judaicaPage}
-              setPage={setJudaicaPage}
-              sellerKind="judaica_seller"
-            />
-          </TabsContent>
-
-          <TabsContent value="customers">
-            <CustomerTable 
-              customers={filteredCustomers} 
-              orders={visibleOrders}
-              isLoading={isCustomersLoading}
-              onDelete={deleteCustomer}
-              deletingCustomerId={deletingCustomerId}
-              totalCount={customersTotal}
-              page={customersPage}
-              setPage={setCustomersPage}
-              customerAuthCreatedAt={customerAuthCreatedAt}
-            />
-          </TabsContent>
-
-          <TabsContent value="audit">
-            <AdminAuditLogPanel />
-          </TabsContent>
-
-          <TabsContent value="sales">
-            <div className="space-y-6">
-              <div className="flex gap-2 justify-end">
-                <Button variant={salesStatusFilter === 'all' ? 'default' : 'outline'} size="sm" onClick={() => setSalesStatusFilter('all')} className="rounded-full text-[9px] h-8">הכל</Button>
-                <Button variant={salesStatusFilter === 'completed' ? 'default' : 'outline'} size="sm" onClick={() => setSalesStatusFilter('completed')} className="rounded-full text-[9px] h-8">אושר/הושלם</Button>
-                <Button variant={salesStatusFilter === 'pending' ? 'default' : 'outline'} size="sm" onClick={() => setSalesStatusFilter('pending')} className="rounded-full text-[9px] h-8">בהמתנה</Button>
-                <Button variant={salesStatusFilter === 'stuck' ? 'destructive' : 'outline'} size="sm" onClick={() => setSalesStatusFilter('stuck')} className="rounded-full text-[9px] h-8" data-sales-filter-stuck>
-                  תקועות{stuckOrdersCount > 0 ? ` (${stuckOrdersCount})` : ''}
+      <main className="flex-1 px-4 pb-16 pt-24 md:px-6 md:pt-28">
+        <AdminShell
+          active={activeTab}
+          badges={badges}
+          onNavigate={(tab) => navigate(tab)}
+          adminName={(adminData as any)?.email || user.email}
+          search={<AdminGlobalSearch onPick={onSearchPick} />}
+          actions={(listFilterBox || SELLER_TABS.includes(activeTab)) ? (
+            <>
+              {listFilterBox}
+              {SELLER_TABS.includes(activeTab) && (
+                <Button onClick={exportSellersToExcel} variant="outline" className="h-11 gap-2 rounded-2xl border-primary/10 bg-white px-4 text-sm font-bold text-primary">
+                  <FileDown className="h-4 w-4" /> ייצוא מוכרים לאקסל
                 </Button>
-              </div>
-              {salesStatusFilter === 'stuck' && <StuckOrdersPanel orders={allOrders || []} sellers={sellerDirectory} />}
-              {salesStatusFilter !== 'stuck' && (
-              <SalesCards 
-                orders={filteredOrders} 
-                sellers={sellerDirectory} 
-                onLinkToTab={handleTabLink}
-                page={salesPage}
-                setPage={setSalesPage}
-              />
               )}
-            </div>
-          </TabsContent>
+            </>
+          ) : undefined}
+        >
+          <div className="space-y-8" data-admin-tab={activeTab}>
+            {activeTab === 'overview' && <AdminOverviewPanel attention={attention} onNavigate={navigate} />}
 
-          <TabsContent value="torah">
-             <TorahRequestsTable 
-               orders={torahOrders} 
-               sellers={sellerDirectory} 
-               page={torahPage} 
-               setPage={setTorahPage} 
-             />
-          </TabsContent>
+            {activeTab === 'pending' && (
+              <>
+                {stamUpgradeRequests.length > 0 && <StamUpgradeRequests requests={stamUpgradeRequests} orders={[]} onResolve={resolveStamUpgrade} />}
+                <section data-admin-pending-section="stam_scribe">
+                  <AdminSectionTitle count={sellerLists.totals.pending ?? 0}>סופרי סת"ם ממתינים לאישור</AdminSectionTitle>
+                  <SellersTable sellers={sellerLists.pending} orders={[]} isLoading={isSellersLoading} totalCount={sellerLists.totals.pending ?? 0} page={pendingPage} setPage={setPendingPage}
+                    kind="stam_scribe" pending onApprove={approveSeller} onDelete={deleteSeller} approvingId={approvingId}
+                    emptyText={filtered ? 'אין סופרים ממתינים שמתאימים לסינון' : 'אין סופרים שממתינים לאישור'} />
+                </section>
+                <section data-admin-pending-section="judaica_seller">
+                  <AdminSectionTitle count={sellerLists.totals.pendingJudaica ?? 0}>מוכרי יודאיקה ממתינים לאישור</AdminSectionTitle>
+                  <SellersTable sellers={sellerLists.pendingJudaica} orders={[]} isLoading={isSellersLoading} totalCount={sellerLists.totals.pendingJudaica ?? 0} page={pendingJudaicaPage} setPage={setPendingJudaicaPage}
+                    kind="judaica_seller" pending onApprove={approveSeller} onDelete={deleteSeller} approvingId={approvingId}
+                    emptyText={filtered ? 'אין מוכרים ממתינים שמתאימים לסינון' : 'אין מוכרי יודאיקה שממתינים לאישור'} />
+                </section>
+              </>
+            )}
 
-          <TabsContent value="reports">
-            <ReportsTable
-              reports={filteredReports}
-              sellers={sellerDirectory}
-              onDelete={deleteReport}
-              onLinkToTab={handleTabLink}
-              page={reportsPage}
-              setPage={setReportsPage}
-            />
-          </TabsContent>
+            {activeTab === 'active' && (
+              <section>
+                <AdminSectionTitle count={sellerLists.totals.active ?? 0}>סופרי סת"ם מאושרים</AdminSectionTitle>
+                <SellersTable sellers={sellerLists.active} orders={visibleOrders} isLoading={isSellersLoading} totalCount={sellerLists.totals.active ?? 0} page={activePage} setPage={setActivePage}
+                  kind="stam_scribe" pending={false} onApprove={approveSeller} onDelete={deleteSeller} emptyText={filtered ? 'לא נמצאו סופרים תואמים' : 'אין עדיין סופרים מאושרים'} />
+              </section>
+            )}
 
-          <TabsContent value="inquiries">
-            <InquiriesTable
-              inquiries={filteredInquiries}
-              onDelete={deleteInquiry}
-              onUpdateStatus={updateInquiryStatus}
-              page={inquiriesPage}
-              setPage={setInquiriesPage}
-            />
-          </TabsContent>
+            {activeTab === 'judaica' && (
+              <section>
+                <AdminSectionTitle count={sellerLists.totals.judaica ?? 0}>מוכרי יודאיקה מאושרים</AdminSectionTitle>
+                <SellersTable sellers={sellerLists.judaica} orders={visibleOrders} isLoading={isSellersLoading} totalCount={sellerLists.totals.judaica ?? 0} page={judaicaPage} setPage={setJudaicaPage}
+                  kind="judaica_seller" pending={false} onApprove={approveSeller} onDelete={deleteSeller} emptyText={filtered ? 'לא נמצאו מוכרים תואמים' : 'אין עדיין מוכרי יודאיקה מאושרים'} />
+              </section>
+            )}
 
-          <TabsContent value="chats">
-            <AdminChatsPanel />
-          </TabsContent>
+            {activeTab === 'customers' && (
+              <CustomersTable customers={customers.rows} orders={visibleOrders} isLoading={isCustomersLoading} onOpen={(c) => setDetail({ type: 'customer', row: c })}
+                onDelete={deleteCustomer} deletingCustomerId={deletingCustomerId} totalCount={customers.total} page={customersPage} setPage={setCustomersPage}
+                resolveCreatedAt={resolveCreatedAt} filtered={filtered} />
+            )}
 
-          <TabsContent value="activity">
-            <AdminActivityPanel />
-          </TabsContent>
-
-          <TabsContent value="broadcast">
-            <AdminBroadcastPanel />
-          </TabsContent>
-          </div>
-        </Tabs>
-      </main>
-    </div>
-  );
-}
-
-function SellerTypeBadge({ seller }: { seller: any }) {
-  const type = resolveSellerType(seller?.seller_type);
-  return (
-    <span
-      data-admin-seller-type={type}
-      className={cn(
-        "mb-1 inline-block rounded-full px-2 py-0.5 text-[9px] font-black",
-        type === 'stam_scribe' ? "bg-accent/15 text-accent-strong" : "bg-sky-50 text-sky-700",
-      )}
-    >
-      {SELLER_TYPE_LABELS[type]}
-    </span>
-  );
-}
-
-// Judaica sellers requesting verification as סופר סת"ם. Approving flips seller_type to
-// stam_scribe; rejecting leaves them a Judaica seller (their listings are never affected).
-function StamUpgradeRequests({ requests, db, onResolve }: { requests: any[]; db: any; onResolve: (seller: any, approve: boolean) => void }) {
-  const [busyId, setBusyId] = useState<string | null>(null);
-  const handle = async (seller: any, approve: boolean) => {
-    setBusyId(seller.id);
-    try { await onResolve(seller, approve); } finally { setBusyId(null); }
-  };
-  return (
-    <Card dir="rtl" className="mb-6 rounded-[2rem] border border-accent/30 bg-white p-5 text-right shadow-premium md:p-6" data-stam-upgrade-requests>
-      <h3 className="flex items-center gap-2 text-base font-black text-primary">
-        <Award className="h-5 w-5 text-accent-strong" /> בקשות שדרוג לסופר סת"ם ({requests.length})
-      </h3>
-      <p className="mt-1 text-xs font-medium text-muted-foreground">מוכרי יודאיקה שביקשו אימות הלכתי מלא. מוצרי היודאיקה שלהם ממשיכים להימכר בזמן הבדיקה.</p>
-      <div className="mt-4 space-y-3">
-        {requests.map((seller) => (
-          <div key={seller.id} className="flex flex-col gap-3 rounded-2xl border border-primary/5 bg-[#FAFAF8] p-4 md:flex-row md:items-center">
-            <div className="min-w-0 flex-1 text-right">
-              <p className="font-black text-primary">{seller.first_name} {seller.last_name}</p>
-              <p className="text-[11px] font-bold text-muted-foreground" dir="ltr">{seller.email}</p>
-              <p className="mt-1 text-[11px] font-medium text-primary/60">
-                {seller.experience_years != null ? `${seller.experience_years} שנות ניסיון` : 'ניסיון לא צוין'}
-                {' · '}
-                {Array.isArray(seller.writing_samples) ? `${seller.writing_samples.length} דוגמאות כתיבה` : 'אין דוגמאות'}
-                {' · '}
-                {seller.certificate_url ? 'תעודה הועלתה' : 'ללא תעודה'}
-                {seller.stam_upgrade_requested_at ? ` · נשלח ${new Date(seller.stam_upgrade_requested_at).toLocaleDateString('he-IL')}` : ''}
-              </p>
-            </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <VerifyScribeDialog scribe={seller} db={db} />
-              <Button
-                onClick={() => handle(seller, true)}
-                disabled={busyId === seller.id}
-                className="h-9 rounded-full bg-emerald-500 px-5 text-[11px] font-black text-white hover:bg-emerald-600"
-              >
-                אשר שדרוג
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => handle(seller, false)}
-                disabled={busyId === seller.id}
-                className="h-9 rounded-full px-5 text-[11px] font-black text-destructive hover:bg-destructive/5"
-              >
-                דחה
-              </Button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </Card>
-  );
-}
-
-function ScribeTable({ scribes, onApprove, onDelete, isLoading, orders, totalCount, page, setPage, sellerKind = 'stam_scribe' }: any) {
-  const isJudaicaList = sellerKind === 'judaica_seller';
-  const db = useSupabaseClient();
-  const logoImg = PlaceHolderImages.find(img => img.id === 'site-logo')?.imageUrl || 'https://picsum.photos/seed/hotam-logo/400/400';
-
-  const paginatedData = scribes;
-
-  if (isLoading) return <div className="flex justify-center p-24"><Loader2 className="w-10 h-10 animate-spin text-primary/30" /></div>;
-  if (!scribes || scribes.length === 0) return (
-    <Card className="p-24 text-center bg-white rounded-[3rem] shadow-premium text-muted-foreground border-2 border-dashed border-muted italic">
-      {isJudaicaList ? 'אין מוכרי יודאיקה להצגה.' : 'אין סופרים להצגה.'}
-    </Card>
-  );
-
-  return (
-    <div className="space-y-4">
-      <Card className="border-none shadow-premium rounded-[2.5rem] overflow-hidden bg-white">
-        <Table>
-          <TableHeader className="bg-muted/30">
-            <TableRow className="hover:bg-transparent border-none">
-              <TableHead className="text-right font-black text-[10px] uppercase py-6 px-8">{isJudaicaList ? 'מוכר / מזהה אישי' : 'סופר / מזהה אישי'}</TableHead>
-              <TableHead className="text-right font-black text-[10px] uppercase py-6">מיקום</TableHead>
-              <TableHead className="text-right font-black text-[10px] uppercase py-6">{isJudaicaList ? 'חוב למוכר (החודש)' : 'חוב לסופר (החודש)'}</TableHead>
-              <TableHead className="text-right font-black text-[10px] uppercase py-6">תאריך הצטרפות</TableHead>
-              <TableHead className="text-right font-black text-[10px] uppercase py-6">סטטוס הסמכה</TableHead>
-              <TableHead className="text-left font-black text-[10px] uppercase py-6 px-8">ניהול</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginatedData.map((scribe: any) => {
-              const scribeOrders = (orders || []).filter((o: any) => o.seller_id === scribe.id && o.status === 'completed');
-              const currentMonth = new Date().getMonth();
-              const currentYear = new Date().getFullYear();
-              
-              const monthlyEarnings = scribeOrders
-                .filter((o: any) => {
-                  const date = o.created_at?.toDate ? o.created_at.toDate() : (o.created_at ? new Date(o.created_at) : new Date());
-                  return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
-                })
-                .reduce((acc: number, o: any) => acc + resolveSellerNet(o), 0);
-              const scribeCreatedAt =
-                scribe?.created_at?.toDate?.() ??
-                (scribe?.created_at ? new Date(scribe.created_at) : null);
-
-              return (
-                <TableRow key={scribe.id} className="hover:bg-muted/10 transition-colors border-muted/20">
-                  <TableCell className="py-6 px-8">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center border border-primary/10 overflow-hidden relative">
-                        <Image loader={unsplashLoader} src={scribe.profile_image || logoImg} alt="P" fill kind="avatar" sizes="40px" className="object-cover" />
-                      </div>
-                      <div className="text-right">
-                        <p className="font-black text-primary text-sm leading-none mb-1 flex items-center gap-2">
-                          {scribe.first_name} {scribe.last_name}
-                          {scribe.is_approved && <CheckCircle2 className="w-3 h-3 text-emerald-500" />}
-                        </p>
-                        <SellerTypeBadge seller={scribe} />
-                        <p className="text-[8px] text-muted-foreground font-bold font-mono bg-muted/50 px-2 py-0.5 rounded w-fit">ID: {scribe.id?.slice(0, 12)}</p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-[10px] font-bold text-primary/70">{scribe.address || '-'}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-col items-end">
-                      <span className="text-sm font-black text-emerald-600">₪{monthlyEarnings.toLocaleString()}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-[10px] font-bold text-muted-foreground">
-                    {scribeCreatedAt ? scribeCreatedAt.toLocaleDateString('he-IL') : '-'}
-                  </TableCell>
-                  <TableCell>
-                    {isJudaicaList ? (
-                      <span className="text-[10px] font-bold text-muted-foreground">לא רלוונטי</span>
-                    ) : (
-                    <Badge variant="outline" className={cn("text-[8px] font-black uppercase px-2 py-0.5 rounded-full", scribe.has_scribe_certificate === 'valid' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-orange-50 text-orange-600 border-orange-200')}>
-                      {certLabels[scribe.has_scribe_certificate] || scribe.has_scribe_certificate || 'לא צוין'}
-                    </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell className="px-8">
-                    <div className="flex items-center gap-2 justify-end">
-                      <VerifyScribeDialog scribe={scribe} db={db} />
-                      <EditSellerDialog scribe={scribe} db={db} />
-                      {!scribe.is_approved ? (
-                        <Button onClick={() => onApprove(scribe.id)} className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-full px-5 h-8 text-[9px] font-black uppercase tracking-widest">
-                          {resolveSellerType(scribe.seller_type) === 'judaica_seller' ? 'אשר מוכר' : 'אשר סופר'}
-                        </Button>
-                      ) : (
-                        <Badge className="bg-emerald-50 text-emerald-700 border-none px-4 py-1 text-[8px] font-black uppercase tracking-widest">
-                          {resolveSellerType(scribe.seller_type) === 'judaica_seller' ? 'מוכר פעיל' : 'סופר פעיל ומאומת'}
-                        </Badge>
-                      )}
-                      <Button variant="ghost" size="icon" onClick={() => onDelete(scribe.id)} className="h-10 w-10 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive"><Trash2 className="w-3.5 h-3.5" /></Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </Card>
-      <Pagination current={page} total={totalCount ?? scribes.length} onChange={setPage} />
-    </div>
-  );
-}
-
-function CustomerTable({ customers, orders, isLoading, onDelete, deletingCustomerId, totalCount, page, setPage, customerAuthCreatedAt }: any) {
-  const paginatedData = customers;
-  const resolveCreatedAt = (customer: any) => customer?.created_at || customerAuthCreatedAt?.[customer?.id] || null;
-  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
-  const customerStats = useMemo(() => {
-    const stats = new Map<string, { completedOrders: number; totalSpent: number }>();
-
-    for (const order of orders || []) {
-      if (!order?.buyer_id) continue;
-      const current = stats.get(order.buyer_id) || { completedOrders: 0, totalSpent: 0 };
-      if (order.status === 'completed') {
-        current.completedOrders += 1;
-        current.totalSpent += Number(order.amount || 0);
-      }
-      stats.set(order.buyer_id, current);
-    }
-
-    return stats;
-  }, [orders]);
-
-  const customerSummary = useMemo(() => {
-    const customersWithOrders = customers.filter((customer: any) => (customerStats.get(customer.id)?.completedOrders || 0) > 0).length;
-    const totalOrders = customers.reduce((sum: number, customer: any) => sum + (customerStats.get(customer.id)?.completedOrders || 0), 0);
-    const totalRevenue = customers.reduce((sum: number, customer: any) => sum + (customerStats.get(customer.id)?.totalSpent || 0), 0);
-
-    return {
-      customersWithOrders,
-      totalOrders,
-      totalRevenue,
-    };
-  }, [customers, customerStats]);
-
-  if (isLoading) return <div className="flex justify-center p-24"><Loader2 className="w-10 h-10 animate-spin text-primary/30" /></div>;
-  if (!customers || customers.length === 0) {
-    return (
-      <Card className="p-10 md:p-24 text-center bg-white rounded-[2.5rem] md:rounded-[3rem] shadow-premium text-muted-foreground border-2 border-dashed border-muted italic">
-        אין לקוחות להצגה.
-      </Card>
-    );
-  }
-
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Card className="border-none shadow-premium rounded-[2rem] bg-white">
-          <CardContent className="p-4 text-right space-y-1">
-            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">לקוחות מוצגים</p>
-            <p className="text-2xl font-black text-primary">{totalCount ?? customers.length}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-none shadow-premium rounded-[2rem] bg-white">
-          <CardContent className="p-4 text-right space-y-1">
-            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">לקוחות שרכשו</p>
-            <p className="text-2xl font-black text-primary">{customerSummary.customersWithOrders}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-none shadow-premium rounded-[2rem] bg-white">
-          <CardContent className="p-4 text-right space-y-1">
-            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">סה&quot;כ הזמנות</p>
-            <p className="text-2xl font-black text-primary">{customerSummary.totalOrders}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-none shadow-premium rounded-[2rem] bg-white">
-          <CardContent className="p-4 text-right space-y-1">
-            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">סה&quot;כ רכישות</p>
-            <p className="text-2xl font-black text-emerald-600">₪{customerSummary.totalRevenue.toLocaleString()}</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card className="border-none shadow-premium rounded-[2.5rem] overflow-hidden bg-white">
-        <div className="hidden md:block">
-          <Table>
-            <TableHeader className="bg-muted/30">
-              <TableRow className="border-none">
-                <TableHead className="text-right font-black text-[10px] uppercase py-6 px-8">לקוח / אימייל</TableHead>
-                <TableHead className="text-right font-black text-[10px] uppercase py-6">מזהה (ID)</TableHead>
-                <TableHead className="text-right font-black text-[10px] uppercase py-6">סך רכישות</TableHead>
-                <TableHead className="text-right font-black text-[10px] uppercase py-6">תאריך הצטרפות</TableHead>
-                <TableHead className="text-left font-black text-[10px] uppercase py-6 px-8">פעולות</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedData.map((cust: any) => {
-                const customerOrderData = customerStats.get(cust.id) || { completedOrders: 0, totalSpent: 0 };
-                const isDeleting = deletingCustomerId === cust.id;
-                return (
-                  <TableRow key={cust.id} className="border-muted/20">
-                    <TableCell className="py-6 px-8">
-                      <div className="text-right">
-                        <p className="font-black text-primary text-sm">{cust.first_name} {cust.last_name}</p>
-                        <p className="text-[9px] text-muted-foreground">{cust.email}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-[10px] font-mono text-primary/60 max-w-[220px] truncate">{cust.id}</TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex flex-col items-center gap-2">
-                        <Badge className="bg-primary/5 text-primary border-primary/10 rounded-full font-black text-[10px] px-3">{customerOrderData.completedOrders} הזמנות</Badge>
-                        <span className="text-[10px] font-black text-emerald-600">₪{customerOrderData.totalSpent.toLocaleString()}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-[10px] font-bold text-muted-foreground">{resolveCreatedAt(cust) ? new Date(resolveCreatedAt(cust)).toLocaleDateString('he-IL') : '-'}</TableCell>
-                    <TableCell className="px-8 text-left">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button variant="ghost" size="sm" onClick={() => setSelectedCustomer(cust)} aria-label={`צפה פרטי ${cust.first_name} ${cust.last_name}`} className="rounded-full h-8 px-4 text-[9px] font-black border-primary/5">
-                          צפה
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => onDelete(cust.id)}
-                          disabled={isDeleting}
-                          aria-label={`מחק את ${cust.first_name} ${cust.last_name}`}
-                          className="h-8 w-8 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
-                        >
-                          {isDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
-
-        <div className="grid gap-3 p-3 md:hidden">
-          {paginatedData.map((cust: any) => {
-            const customerOrderData = customerStats.get(cust.id) || { completedOrders: 0, totalSpent: 0 };
-            const isDeleting = deletingCustomerId === cust.id;
-            return (
-              <div key={cust.id} className="rounded-[1.75rem] border border-primary/10 bg-muted/10 p-4 space-y-4 text-right">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="text-right min-w-0">
-                    <p className="font-black text-primary text-sm break-words">{cust.first_name} {cust.last_name}</p>
-                    <p className="text-[11px] text-muted-foreground break-all">{cust.email || 'ללא אימייל'}</p>
-                  </div>
-                  <Badge className="bg-primary/5 text-primary border-primary/10 rounded-full font-black text-[10px] px-3 shrink-0">
-                    {customerOrderData.completedOrders} הזמנות
-                  </Badge>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 text-[11px] font-bold">
-                  <div className="rounded-2xl bg-white p-3 border border-primary/5">
-                    <p className="text-muted-foreground text-[9px] uppercase tracking-widest mb-1">סה&quot;כ רכישות</p>
-                    <p className="text-emerald-600 font-black">₪{customerOrderData.totalSpent.toLocaleString()}</p>
-                  </div>
-                  <div className="rounded-2xl bg-white p-3 border border-primary/5">
-                    <p className="text-muted-foreground text-[9px] uppercase tracking-widest mb-1">תאריך הצטרפות</p>
-                    <p className="text-primary">{resolveCreatedAt(cust) ? new Date(resolveCreatedAt(cust)).toLocaleDateString('he-IL') : '-'}</p>
-                  </div>
-                </div>
-
-                <div className="rounded-2xl bg-white p-3 border border-primary/5">
-                  <p className="text-muted-foreground text-[9px] uppercase tracking-widest mb-1">מזהה לקוח</p>
-                  <p className="text-[10px] font-mono text-primary/60 break-all">{cust.id}</p>
-                </div>
-
-                <div className="flex gap-2">
-                  <Button onClick={() => setSelectedCustomer(cust)} className="flex-1 rounded-2xl h-11 font-black text-xs">
-                    צפה בפרטים
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={() => onDelete(cust.id)}
-                    disabled={isDeleting}
-                    className="rounded-2xl h-11 px-4 font-black text-xs gap-2"
-                  >
-                    {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                    מחק
-                  </Button>
-                </div>
+            {activeTab === 'sales' && (
+              <div className="space-y-5">
+                <SalesFilterBar value={salesFilter} onChange={(f) => setSalesFilter(f)} stuckCount={stuckCount} />
+                {!allOrders && needOrders ? <AdminSectionTitle>טוען הזמנות…</AdminSectionTitle> : (
+                  <SalesList orders={salesOrders} allOrders={allOrders || []} sellers={sellerDirectory} filter={salesFilter} page={salesPage} setPage={setSalesPage} onOpenPerson={openPerson} filtered={filtered} />
+                )}
               </div>
-            );
-          })}
-        </div>
-      </Card>
-      <Pagination current={page} total={totalCount ?? customers.length} onChange={setPage} />
+            )}
 
-      {selectedCustomer && (
+            {activeTab === 'torah' && (
+              <TorahRequestsList orders={torahOrders} sellers={sellerDirectory} page={torahPage} setPage={setTorahPage} onOpenPerson={openPerson} filtered={filtered} />
+            )}
+
+            {activeTab === 'reports' && (
+              <ReportsList reports={reports} page={reportsPage} setPage={setReportsPage} onDelete={deleteReport} onOpenPerson={openPerson} filtered={filtered} />
+            )}
+
+            {activeTab === 'inquiries' && (
+              <div className="space-y-4">
+                <InquiryFilterBar value={inquiryFilter} onChange={setInquiryFilter} counts={inquiryCounts} />
+                <InquiriesList inquiries={inquiries} allInquiries={inquiriesAll} page={inquiriesPage} setPage={setInquiriesPage} onDelete={deleteInquiry} onUpdateStatus={updateInquiryStatus} filtered={filtered || inquiryFilter !== 'all'} />
+              </div>
+            )}
+
+            {activeTab === 'chats' && <AdminChatsPanel key={filterParam} initialFilter={filterParam} waitingChatIds={attention.waitingChatIds} />}
+            {activeTab === 'activity' && <AdminActivityPanel />}
+            {activeTab === 'broadcast' && <AdminBroadcastPanel />}
+            {activeTab === 'notifications' && <AdminNotificationsPanel key={filterParam} initialStatus={filterParam} />}
+            {activeTab === 'audit' && <AdminAuditLogPanel />}
+          </div>
+        </AdminShell>
+      </main>
+
+      {detail?.type === 'seller' && (
+        <SellerDetailDialog scribe={detail.row} open onOpenChange={(o) => { if (!o) setDetail(null); }} onShowInList={() => showSellerInList(detail.row)} />
+      )}
+      {detail?.type === 'customer' && (
         <CustomerDetailsDialog
-          customer={selectedCustomer}
-          customerCreatedAt={resolveCreatedAt(selectedCustomer)}
-          orders={(orders || []).filter((o: any) => o.buyer_id === selectedCustomer.id)}
-          isDeleting={deletingCustomerId === selectedCustomer.id}
-          onDelete={() => { onDelete(selectedCustomer.id); setSelectedCustomer(null); }}
-          onClose={() => setSelectedCustomer(null)}
+          customer={detail.row}
+          createdAt={resolveCreatedAt(detail.row)}
+          isDeleting={deletingCustomerId === detail.row.id}
+          onClose={() => setDetail(null)}
+          onDelete={async () => { if (await deleteCustomer(detail.row)) setDetail(null); }}
+          onShowInList={() => { const c = detail.row; setDetail(null); navigate('customers', { q: c.email || fullName(c) }); }}
         />
       )}
     </div>
   );
 }
 
-function CustomerDetailsDialog({ customer, customerCreatedAt, orders, onDelete, onClose, isDeleting }: any) {
-  return (
-    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="max-w-2xl rounded-[2rem] md:rounded-[2.5rem] p-0 border-none shadow-2xl bg-white max-h-[85vh] overflow-y-auto z-[150]" dir="rtl">
-        <div className="bg-primary p-5 md:p-6 text-white text-right sticky top-0 z-50">
-          <DialogHeader>
-            <DialogTitle className="text-lg md:text-xl font-headline font-black tracking-tight flex items-center gap-4 text-white">
-              <div className="w-11 h-11 md:w-12 md:h-12 rounded-full bg-white/10 flex items-center justify-center border border-white/20 shrink-0">
-                <UserRound className="w-6 h-6 text-white" />
-              </div>
-              <div className="min-w-0">
-                <p className="break-words">{customer.first_name} {customer.last_name}</p>
-                <p className="text-[11px] font-medium opacity-70 mt-0.5 break-all">{customer.email}</p>
-              </div>
-            </DialogTitle>
-          </DialogHeader>
+function approvalEmailHtml(firstName: string) {
+  const name = String(firstName || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+  return `
+    <div dir="rtl" style="margin:0;padding:32px 16px;background:#f5f1e8;font-family:Arial,'Segoe UI',sans-serif;color:#1f2937;">
+      <div style="max-width:620px;margin:0 auto;background:#ffffff;border-radius:24px;overflow:hidden;box-shadow:0 18px 50px rgba(15,23,42,0.12);border:1px solid rgba(212,175,55,0.18);">
+        <div style="background:#111827;padding:32px;text-align:center;">
+          <img src="https://hotam.shop/icon.svg" alt="Hotam" width="64" height="64" style="display:block;margin:0 auto 14px;" />
+          <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:900;">🎉 הפרופיל שלך אושר!</h1>
+          <p style="margin:10px 0 0;color:#d4af37;font-size:15px;font-weight:700;">ברוך הבא לקהילת המוכרים של חותם</p>
         </div>
-
-        <div className="p-5 md:p-8 space-y-6 text-right">
-          {/* Customer details */}
-          <div className="space-y-4">
-            <p className="text-[10px] font-black text-accent uppercase tracking-widest flex items-center gap-2"><IdCard className="w-4 h-4" /> פרטי לקוח</p>
-             <div className="bg-muted/30 p-5 rounded-2xl space-y-3 text-[11px] font-bold">
-               <div className="flex justify-between gap-4 border-b border-white/50 pb-2"><span className="break-words">{customer.first_name} {customer.last_name}</span><span className="text-muted-foreground shrink-0">שם מלא:</span></div>
-               <div className="flex justify-between gap-4 border-b border-white/50 pb-2"><span className="break-all">{customer.email}</span><span className="text-muted-foreground shrink-0">אימייל:</span></div>
-               <div className="flex justify-between gap-4 border-b border-white/50 pb-2"><span className="break-all">{customer.phone || '-'}</span><span className="text-muted-foreground shrink-0">טלפון:</span></div>
-               <div className="flex justify-between gap-4 border-b border-white/50 pb-2"><span className="break-words">{customer.address || '-'}</span><span className="text-muted-foreground shrink-0">כתובת:</span></div>
-               <div className="flex justify-between gap-4"><span>{customerCreatedAt ? new Date(customerCreatedAt).toLocaleDateString('he-IL') : '-'}</span><span className="text-muted-foreground shrink-0">תאריך הצטרפות:</span></div>
-             </div>
-           </div>
-
-          {/* Orders */}
-          <div className="space-y-4">
-            <p className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2"><ShoppingBag className="w-4 h-4" /> הזמנות ({orders.length})</p>
-            {orders.length === 0 ? (
-              <p className="text-sm text-muted-foreground italic bg-muted/20 p-4 rounded-xl">אין הזמנות עבור לקוח זה.</p>
-            ) : (
-              <div className="space-y-3 max-h-64 overflow-y-auto">
-                {orders.map((o: any) => {
-                  const date = o.created_at?.toDate ? o.created_at.toDate() : (o.created_at ? new Date(o.created_at) : null);
-                  return (
-                    <div key={o.id} className="bg-muted/20 p-4 rounded-2xl flex justify-between items-center text-[11px] font-bold border border-muted/30">
-                      <div className="flex items-center gap-3">
-                        <Badge className={cn("border-none font-black text-[8px] uppercase", o.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700')}>
-                          {o.status === 'completed' ? 'הושלם' : 'בהמתנה'}
-                        </Badge>
-                        <span className="text-primary/50 font-mono text-[9px]">#{o.id?.slice(0, 8)}</span>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-primary font-black">{o.product_name}</p>
-                        <p className="text-muted-foreground text-[9px]">{date ? date.toLocaleDateString('he-IL') : '-'}</p>
-                      </div>
-                      <p className="text-emerald-600 font-black">₪{o.amount?.toLocaleString()}</p>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+        <div style="padding:32px;text-align:right;">
+          <p style="margin:0 0 18px;font-size:17px;line-height:1.8;color:#111827;">שלום ${name},</p>
+          <p style="margin:0 0 20px;font-size:16px;line-height:1.9;color:#374151;">
+            הפרופיל שלך אושר על ידי צוות חותם. כעת תוכל להתחיל להעלות מוצרים ולמכור באתר.
+          </p>
+          <div style="background:#fff8e1;border-right:4px solid #d4af37;border-radius:14px;padding:18px 16px;margin-bottom:24px;">
+            <p style="margin:0;font-size:15px;line-height:1.8;color:#92400e;font-weight:700;">
+              כדי להתחיל, היכנס לדשבורד המוכר שלך והעלה את המוצר הראשון.
+            </p>
+          </div>
+          <div style="text-align:center;">
+            <a href="https://hotam.shop/seller/dashboard" style="display:inline-block;background:#111827;color:#ffffff;text-decoration:none;padding:14px 30px;border-radius:999px;font-size:15px;font-weight:800;">
+              מעבר לדשבורד המוכר
+            </a>
           </div>
         </div>
-
-        {/* Delete button — sticky footer so it stays reachable without scrolling past the order list */}
-        <div className="sticky bottom-0 z-40 bg-white p-5 md:p-6 border-t flex justify-end">
-          <Button variant="destructive" onClick={onDelete} disabled={isDeleting} className="rounded-full px-6 h-10 text-[10px] font-black uppercase gap-2">
-            {isDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />} מחק לקוח
-          </Button>
+        <div style="padding:18px 28px;background:#faf7f0;border-top:1px solid rgba(212,175,55,0.2);text-align:center;">
+          <p style="margin:0;font-size:12px;color:#6b7280;">Hotam Shop · זירת המסחר המאובטחת לכלי קודש וסת&quot;ם מהודרים</p>
         </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function SalesCards({ orders, sellers, onLinkToTab, page, setPage }: any) {
-  const paginatedData = orders.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
-
-  if (orders.length === 0) return <Card className="p-24 text-center bg-white rounded-[3rem] shadow-premium italic text-muted-foreground">אין מכירות רשומות במערכת.</Card>;
-
-  return (
-    <div className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {paginatedData.map((o: any) => {
-          const seller = sellers?.find((s: any) => s.id === o.seller_id);
-          const date = o.created_at?.toDate ? o.created_at.toDate() : new Date(o.created_at);
-          const formattedDate = date.toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric' });
-          const formattedTime = date.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
-
-          return (
-            <Card key={o.id} className="border-none shadow-premium rounded-[2rem] bg-white overflow-hidden group hover:shadow-2xl transition-all">
-              <div className="p-6 space-y-4">
-                <div className="flex justify-between items-start">
-                  <Badge className={cn("text-[8px] font-black uppercase", o.status === 'completed' ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600')}>
-                    {o.status === 'completed' ? 'עסקה הושלמה' : 'שולם - בהמתנה'}
-                  </Badge>
-                  <div className="text-right">
-                    <p className="text-[10px] font-black text-muted-foreground">{formattedDate}</p>
-                    <p className="text-[10px] font-bold text-primary/40">{formattedTime}</p>
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                   <p className="text-[9px] font-black text-primary bg-primary/5 px-2 py-0.5 rounded-full w-fit font-mono flex items-center gap-1.5"><Hash className="w-3 h-3" /> {o.id}</p>
-                   <div className="flex gap-4 items-center pt-1">
-                    <div className="relative w-14 h-14 rounded-xl overflow-hidden border bg-muted shrink-0 shadow-inner">
-                      <Image src={o.product_image} alt="P" fill kind="product" sizes="96px" className="object-cover" />
-                    </div>
-                    <div className="text-right flex-1 min-w-0">
-                      <p className="font-black text-primary truncate text-sm">{o.product_name}</p>
-                      <p className="text-base font-black text-emerald-600">₪{o.amount.toLocaleString()}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2 pt-2 border-t border-muted/50">
-                  <button type="button" className="flex w-full justify-between items-center group/btn cursor-pointer" onClick={() => onLinkToTab('customers', o.buyer_name)}>
-                     <div className="flex items-center gap-1.5"><UserRound className="w-3 h-3 text-accent" /><span className="text-[10px] font-bold text-primary/60 group-hover/btn:text-primary transition-colors underline decoration-primary/10">{o.buyer_name}</span></div>
-                     <span className="text-[8px] font-black text-muted-foreground uppercase">קונה</span>
-                  </button>
-                  <button type="button" className="flex w-full justify-between items-center group/btn cursor-pointer" onClick={() => onLinkToTab('active', `${seller?.first_name} ${seller?.last_name}`)}>
-                     <div className="flex items-center gap-1.5"><ShieldCheck className="w-3 h-3 text-primary/40" /><span className="text-[10px] font-bold text-primary/60 group-hover/btn:text-primary transition-colors underline decoration-primary/10">{seller ? `${seller.first_name} ${seller.last_name}` : 'סופר לא מזוהה'}</span></div>
-                     <span className="text-[8px] font-black text-muted-foreground uppercase">מוכר</span>
-                  </button>
-                </div>
-
-                <div className="pt-2 flex gap-2">
-                  <Button asChild variant="outline" className="flex-1 h-9 rounded-xl font-black text-[9px] uppercase gap-2 border-primary/5 hover:bg-accent hover:text-primary">
-                    <Link href={`/products/${o.product_id}`}>צפה במוצר</Link>
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          );
-        })}
-      </div>
-      <Pagination current={page} total={orders.length} onChange={setPage} />
-    </div>
-  );
-}
-
-// One card per request instead of a cramped table — a torah_request has 8 fields worth
-// showing (buyer name/phone/email, seller name/phone/email, product, date) and a 4-5 column
-// table just doesn't fit that without hiding half of it behind a click.
-function TorahContactBlock({ title, icon, name, phone, email }: { title: string; icon: any; name: string; phone?: string | null; email?: string | null }) {
-  return (
-    <div className="space-y-3 text-right">
-      <p className="text-[10px] font-black text-primary/50 uppercase tracking-widest flex items-center justify-end gap-2">
-        {title} {icon}
-      </p>
-      <div className="space-y-2 text-[12px] font-bold text-primary">
-        <p>{name || 'לא צוין'}</p>
-        {phone ? (
-          <a href={`tel:${phone}`} className="flex items-center justify-end gap-2 hover:text-accent transition-colors" dir="ltr">
-            {phone} <Phone className="w-3.5 h-3.5 shrink-0" />
-          </a>
-        ) : (
-          <p className="flex items-center justify-end gap-2 text-muted-foreground font-medium">
-            לא צוין <Phone className="w-3.5 h-3.5 shrink-0 opacity-30" />
-          </p>
-        )}
-        {email ? (
-          <a href={`mailto:${email}`} className="flex items-center justify-end gap-2 hover:text-accent transition-colors break-all" dir="ltr">
-            {email} <Mail className="w-3.5 h-3.5 shrink-0" />
-          </a>
-        ) : (
-          <p className="flex items-center justify-end gap-2 text-muted-foreground font-medium">
-            לא צוין <Mail className="w-3.5 h-3.5 shrink-0 opacity-30" />
-          </p>
-        )}
       </div>
     </div>
-  );
-}
-
-function TorahRequestsTable({ orders, sellers, page, setPage }: any) {
-  const paginatedData = orders.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
-
-  if (orders.length === 0) return <Card className="p-24 text-center bg-white rounded-[3rem] shadow-premium italic text-muted-foreground">אין בקשות לספרי תורה.</Card>;
-
-  return (
-    <div className="space-y-4">
-      {paginatedData.map((o: any) => {
-        const seller = sellers?.find((s: any) => s.id === o.seller_id);
-        const date = o.created_at?.toDate ? o.created_at.toDate() : new Date(o.created_at);
-        return (
-          <Card key={o.id} className="border-none shadow-premium rounded-[2.5rem] overflow-hidden bg-white p-6 md:p-8 space-y-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="text-right">
-                <p className="text-[9px] font-black text-primary/40 font-mono uppercase tracking-widest">#{o.id}</p>
-                <p className="text-[11px] font-bold text-muted-foreground">
-                  {date.toLocaleDateString('he-IL')} · {date.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}
-                </p>
-              </div>
-              <Button variant="ghost" size="sm" asChild className="rounded-full h-9 px-4 text-[10px] font-black border border-primary/5 gap-1.5">
-                <Link href={`/products/${o.product_id}`}>צפה במוצר <ExternalLink className="w-3 h-3" /></Link>
-              </Button>
-            </div>
-
-            <div className="flex items-center gap-2 justify-end text-primary">
-              <span className="font-black text-base">{o.product_name}</span>
-              <Scroll className="w-4 h-4 text-accent shrink-0" />
-            </div>
-
-            <div className="border-t border-primary/5 pt-5 grid md:grid-cols-2 gap-6">
-              <TorahContactBlock title="הלקוח" icon={<UserRound className="w-3.5 h-3.5" />} name={o.buyer_name} phone={o.buyer_phone} email={o.buyer_email} />
-              <div className="md:border-r md:pr-6 border-primary/5">
-                <TorahContactBlock title="הסופר" icon={<Scroll className="w-3.5 h-3.5" />} name={seller ? `${seller.first_name} ${seller.last_name}` : ''} phone={seller?.phone} email={seller?.email} />
-              </div>
-            </div>
-          </Card>
-        );
-      })}
-      <Pagination current={page} total={orders.length} onChange={setPage} />
-    </div>
-  );
-}
-
-function ReportsTable({ reports, sellers, onDelete, onLinkToTab, page, setPage }: any) {
-  const paginatedData = (reports || []).slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
-
-  if (!reports || reports.length === 0) return <Card className="p-24 text-center bg-white rounded-[3rem] shadow-premium italic text-muted-foreground">אין דיווחים במערכת.</Card>;
-
-  return (
-    <div className="space-y-4">
-      <Card className="border-none shadow-premium rounded-[2.5rem] overflow-hidden bg-white">
-        <Table>
-          <TableHeader className="bg-muted/30">
-            <TableRow className="border-none">
-              <TableHead className="text-right font-black text-[10px] uppercase py-6 px-8">תאריך</TableHead>
-              <TableHead className="text-right font-black text-[10px] uppercase py-6">המדווח</TableHead>
-              <TableHead className="text-right font-black text-[10px] uppercase py-6">על הסופר</TableHead>
-              <TableHead className="text-right font-black text-[10px] uppercase py-6">סיבת הדיווח</TableHead>
-              <TableHead className="text-left font-black text-[10px] uppercase py-6 px-8">ניהול</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginatedData.map((r: any) => {
-              const date = r.created_at?.toDate ? r.created_at.toDate() : new Date(r.created_at);
-              return (
-                <TableRow key={r.id} className="border-muted/20">
-                  <TableCell className="py-6 px-8 text-[10px] font-bold">{date.toLocaleDateString('he-IL')}</TableCell>
-                  <TableCell>
-                    <button
-                      onClick={() => onLinkToTab('customers', r.reporter_name)}
-                      className="text-[10px] font-bold text-primary underline decoration-primary/20 hover:text-accent transition-colors"
-                    >
-                      {r.reporter_name}
-                    </button>
-                  </TableCell>
-                  <TableCell>
-                    {r.seller_id ? (
-                      <Link
-                        href={`/sellers/${r.seller_id}`}
-                        className="text-[10px] font-bold text-primary underline decoration-primary/20 hover:text-accent transition-colors"
-                        target="_blank"
-                      >
-                        {r.seller_name}
-                      </Link>
-                    ) : (
-                      <span className="text-[10px] font-bold text-primary">{r.seller_name}</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-[10px] font-bold text-destructive max-w-xs truncate">{r.reason}</TableCell>
-                  <TableCell className="px-8 text-left">
-                    <Button variant="ghost" size="icon" onClick={() => onDelete(r.id)} className="h-10 w-10 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive"><Trash2 className="w-3.5 h-3.5" /></Button>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </Card>
-      <Pagination current={page} total={reports.length} onChange={setPage} />
-    </div>
-  );
-}
-
-const inquiryStatusLabels: Record<string, string> = {
-  new: 'חדשה',
-  read: 'נקראה',
-  resolved: 'טופלה',
-};
-
-const inquiryStatusStyles: Record<string, string> = {
-  new: 'bg-accent/10 text-accent border-accent/20',
-  read: 'bg-blue-50 text-blue-600 border-blue-200',
-  resolved: 'bg-emerald-50 text-emerald-600 border-emerald-200',
-};
-
-function InquiriesTable({ inquiries, onDelete, onUpdateStatus, page, setPage }: any) {
-  const paginatedData = (inquiries || []).slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
-
-  if (!inquiries || inquiries.length === 0) return <Card className="p-24 text-center bg-white rounded-[3rem] shadow-premium italic text-muted-foreground">אין פניות חדשות במערכת.</Card>;
-
-  return (
-    <div className="space-y-4">
-      <Card className="border-none shadow-premium rounded-[2.5rem] overflow-hidden bg-white">
-        <Table>
-          <TableHeader className="bg-muted/30">
-            <TableRow className="border-none">
-              <TableHead className="text-right font-black text-[10px] uppercase py-6 px-8">תאריך</TableHead>
-              <TableHead className="text-right font-black text-[10px] uppercase py-6">פונה</TableHead>
-              <TableHead className="text-right font-black text-[10px] uppercase py-6">הודעה</TableHead>
-              <TableHead className="text-right font-black text-[10px] uppercase py-6">סטטוס</TableHead>
-              <TableHead className="text-left font-black text-[10px] uppercase py-6 px-8">ניהול</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginatedData.map((m: any) => {
-              const date = m.created_at?.toDate ? m.created_at.toDate() : new Date(m.created_at);
-              return (
-                <TableRow key={m.id} className="border-muted/20">
-                  <TableCell className="py-6 px-8 text-[10px] font-bold whitespace-nowrap">{date.toLocaleDateString('he-IL')}</TableCell>
-                  <TableCell>
-                    <p className="text-[11px] font-black text-primary">{m.name}</p>
-                    <p className="text-[9px] font-bold text-muted-foreground" dir="ltr">{m.email}</p>
-                  </TableCell>
-                  <TableCell className="text-[10px] font-bold text-primary/70 max-w-xs truncate">{m.message}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className={cn("text-[8px] font-black uppercase px-2 py-0.5 rounded-full", inquiryStatusStyles[m.status] || inquiryStatusStyles.new)}>
-                      {inquiryStatusLabels[m.status] || 'חדשה'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="px-8">
-                    <div className="flex items-center gap-2 justify-end">
-                      <InquiryDetailDialog inquiry={m} onUpdateStatus={onUpdateStatus} />
-                      <Button variant="ghost" size="icon" onClick={() => onDelete(m.id)} className="h-10 w-10 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive"><Trash2 className="w-3.5 h-3.5" /></Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </Card>
-      <Pagination current={page} total={inquiries.length} onChange={setPage} />
-    </div>
-  );
-}
-
-function InquiryDetailDialog({ inquiry, onUpdateStatus }: any) {
-  const [open, setOpen] = useState(false);
-  const date = inquiry.created_at?.toDate ? inquiry.created_at.toDate() : new Date(inquiry.created_at);
-  const whatsappHref = inquiry.phone
-    ? `https://wa.me/${inquiry.phone.replace(/\D/g, '').replace(/^0/, '972')}`
-    : null;
-
-  const handleOpenChange = (next: boolean) => {
-    setOpen(next);
-    if (next && inquiry.status === 'new') {
-      onUpdateStatus(inquiry.id, 'read');
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="icon" className="h-10 w-10 rounded-full hover:bg-accent hover:text-primary transition-all border-primary/5 shadow-sm" aria-label="צפה בפנייה">
-          <Eye className="w-3.5 h-3.5" />
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-lg rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white max-h-[85vh] overflow-y-auto z-[150]" dir="rtl">
-        <div className="bg-primary p-6 text-white text-right sticky top-0 z-50">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-headline font-black tracking-tight text-white flex items-center gap-3">
-              <Inbox className="w-5 h-5 text-accent" />
-              {inquiry.name}
-            </DialogTitle>
-          </DialogHeader>
-          <p className="text-white/60 text-xs font-semibold mt-1">{date.toLocaleDateString('he-IL')} · {date.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}</p>
-        </div>
-
-        <div className="p-8 space-y-6 text-right">
-          <div className="bg-muted/30 p-5 rounded-2xl space-y-3 text-[11px] font-bold">
-            <div className="flex justify-between border-b border-white/50 pb-2"><span dir="ltr">{inquiry.email}</span><span className="text-muted-foreground">אימייל:</span></div>
-            {inquiry.phone && (
-              <div className="flex justify-between"><span dir="ltr">{inquiry.phone}</span><span className="text-muted-foreground">טלפון:</span></div>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <p className="text-[10px] font-black text-primary uppercase tracking-widest">תוכן ההודעה</p>
-            <p className="bg-accent/5 p-5 rounded-2xl text-sm font-medium text-primary/80 leading-relaxed whitespace-pre-wrap">{inquiry.message}</p>
-          </div>
-
-          <div className="flex flex-wrap gap-2 pt-2">
-            <Button asChild className="rounded-full h-11 px-6 bg-accent text-primary hover:bg-accent/90 gap-2 font-bold text-xs">
-              <a href={`mailto:${inquiry.email}`}><Mail className="w-4 h-4" /> השב באימייל</a>
-            </Button>
-            {whatsappHref && (
-              <Button asChild variant="outline" className="rounded-full h-11 px-6 gap-2 font-bold text-xs border-emerald-200 text-emerald-600 hover:bg-emerald-50">
-                <a href={whatsappHref} target="_blank" rel="noopener noreferrer"><MessageSquare className="w-4 h-4" /> וואטסאפ</a>
-              </Button>
-            )}
-          </div>
-
-          <div className="flex items-center justify-between pt-4 border-t">
-            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">סטטוס פנייה</p>
-            <div className="flex gap-2">
-              {(['new', 'read', 'resolved'] as const).map(status => (
-                <Button
-                  key={status}
-                  size="sm"
-                  variant={inquiry.status === status ? 'default' : 'outline'}
-                  onClick={() => onUpdateStatus(inquiry.id, status)}
-                  className="rounded-full text-[9px] font-black uppercase h-8"
-                >
-                  {inquiryStatusLabels[status]}
-                </Button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function EditSellerDialog({ scribe, db }: any) {
-  const { toast } = useToast();
-  const [open, setOpen] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const buildFormFromScribe = (s: any) => ({
-    first_name: s.first_name || '',
-    last_name: s.last_name || '',
-    email: s.email || '',
-    phone: s.phone || '',
-    city: s.city || '',
-    address: s.address || '',
-    business_name: s.business_name || '',
-    business_id: s.business_id || '',
-    bank_name: s.bank_name || '',
-    bank_branch: s.bank_branch || '',
-    bank_account_number: s.bank_account_number || '',
-    experience_years: s.experience_years ?? '',
-    notes: s.notes || '',
-  });
-  const [form, setForm] = useState(buildFormFromScribe(scribe));
-  // Judaica sellers have no scribal background: no years-of-experience field, and saving never touches it.
-  const isJudaicaSeller = resolveSellerType(scribe.seller_type) === 'judaica_seller';
-
-  // Re-sync the form to the latest DB values every time the dialog is (re)opened, so a
-  // stale in-memory copy never overwrites a change made elsewhere in the meantime.
-  useEffect(() => {
-    if (open) setForm(buildFormFromScribe(scribe));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-
-  const updateField = (key: string, value: string) => setForm((prev: any) => ({ ...prev, [key]: value }));
-
-  const handleSave = async () => {
-    setIsSaving(true);
-    const { experience_years: experienceInput, ...rest } = form;
-    const payload = isJudaicaSeller
-      ? rest
-      : { ...rest, experience_years: experienceInput === '' ? null : Number(experienceInput) };
-    const { error, count } = await db
-      .from('sellers')
-      .update(payload, { count: 'exact' })
-      .eq('id', scribe.id);
-    setIsSaving(false);
-
-    if (error || count === null || count === 0) {
-      toast({
-        variant: 'destructive',
-        title: 'שגיאה בעדכון פרטי הסופר',
-        description: error?.message ?? 'לא נמצאו שורות לעדכון',
-      });
-      return;
-    }
-
-    toast({ variant: "success", title: 'פרטי הסופר עודכנו בהצלחה' });
-    setOpen(false);
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="icon" className="h-10 w-10 rounded-full hover:bg-accent hover:text-primary transition-all border-primary/5 shadow-sm" aria-label={isJudaicaSeller ? "ערוך פרטי מוכר" : "ערוך פרטי סופר"}>
-          <Pencil className="w-3.5 h-3.5" />
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-2xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white max-h-[85vh] overflow-y-auto z-[150]" dir="rtl">
-        <div className="bg-primary p-6 text-white text-right sticky top-0 z-50">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-headline font-black tracking-tight text-white flex items-center gap-3">
-              <Pencil className="w-5 h-5 text-accent" />
-              עריכת פרטי {scribe.first_name} {scribe.last_name}
-            </DialogTitle>
-          </DialogHeader>
-          <p className="text-white/60 text-xs font-semibold mt-1">{isJudaicaSeller ? 'כמנהל, ניתן לערוך כאן את כל פרטי המוכר — כולל פרטי חשבון בנק שהמוכר עצמו אינו יכול לערוך' : 'כמנהל, ניתן לערוך כאן את כל פרטי הסופר — כולל פרטי חשבון בנק שהסופר עצמו אינו יכול לערוך'}</p>
-        </div>
-
-        <div className="p-8 space-y-8 text-right">
-          {/* Personal */}
-          <div className="space-y-4">
-            <p className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2"><UserCheck className="w-4 h-4" /> פרטים אישיים</p>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5"><Label className="text-xs font-semibold">שם פרטי</Label><Input value={form.first_name} onChange={e => updateField('first_name', e.target.value)} className="rounded-xl h-11" /></div>
-              <div className="space-y-1.5"><Label className="text-xs font-semibold">שם משפחה</Label><Input value={form.last_name} onChange={e => updateField('last_name', e.target.value)} className="rounded-xl h-11" /></div>
-              <div className="space-y-1.5"><Label className="text-xs font-semibold">אימייל</Label><Input type="email" value={form.email} onChange={e => updateField('email', e.target.value)} className="rounded-xl h-11" dir="ltr" /></div>
-              <div className="space-y-1.5"><Label className="text-xs font-semibold">טלפון</Label><Input value={form.phone} onChange={e => updateField('phone', e.target.value)} className="rounded-xl h-11" dir="ltr" /></div>
-              <div className="space-y-1.5"><Label className="text-xs font-semibold">עיר</Label><Input value={form.city} onChange={e => updateField('city', e.target.value)} className="rounded-xl h-11" /></div>
-              <div className="space-y-1.5"><Label className="text-xs font-semibold">כתובת</Label><Input value={form.address} onChange={e => updateField('address', e.target.value)} className="rounded-xl h-11" /></div>
-            </div>
-          </div>
-
-          {/* Business */}
-          <div className="space-y-4">
-            <p className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2"><Building2 className="w-4 h-4" /> פרטי עסק</p>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5"><Label className="text-xs font-semibold">שם עסק</Label><Input value={form.business_name} onChange={e => updateField('business_name', e.target.value)} className="rounded-xl h-11" /></div>
-              <div className="space-y-1.5"><Label className="text-xs font-semibold">ח.פ / עוסק מורשה</Label><Input value={form.business_id} onChange={e => updateField('business_id', e.target.value)} className="rounded-xl h-11" dir="ltr" /></div>
-            </div>
-          </div>
-
-          {/* Bank — admin-only override; sellers cannot edit these fields themselves */}
-          <div className="space-y-4">
-            <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-2"><Landmark className="w-4 h-4" /> פרטי חשבון בנק (לעריכת מנהל בלבד)</p>
-            <div className="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100/50 grid sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5"><Label className="text-xs font-semibold">שם בנק</Label><Input value={form.bank_name} onChange={e => updateField('bank_name', e.target.value)} className="rounded-xl h-11 bg-white" /></div>
-              <div className="space-y-1.5"><Label className="text-xs font-semibold">סניף</Label><Input value={form.bank_branch} onChange={e => updateField('bank_branch', e.target.value)} className="rounded-xl h-11 bg-white" /></div>
-              <div className="space-y-1.5 sm:col-span-2"><Label className="text-xs font-semibold">מספר חשבון</Label><Input value={form.bank_account_number} onChange={e => updateField('bank_account_number', e.target.value)} className="rounded-xl h-11 bg-white" dir="ltr" /></div>
-            </div>
-          </div>
-
-          {/* Professional */}
-          <div className="space-y-4">
-            <p className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2"><ShieldCheck className="w-4 h-4" /> {isJudaicaSeller ? 'על העסק' : 'רקע מקצועי'}</p>
-            {!isJudaicaSeller && (
-            <div className="grid sm:grid-cols-2 gap-4" data-admin-edit-scribal>
-              <div className="space-y-1.5"><Label className="text-xs font-semibold">שנות ניסיון</Label><Input type="number" min={0} value={form.experience_years} onChange={e => updateField('experience_years', e.target.value)} className="rounded-xl h-11" /></div>
-            </div>
-            )}
-            <div className="space-y-1.5"><Label className="text-xs font-semibold">הערות</Label><Textarea value={form.notes} onChange={e => updateField('notes', e.target.value)} className="rounded-xl min-h-24" /></div>
-          </div>
-        </div>
-
-        <div className="p-6 border-t bg-muted/20 flex justify-end gap-3 sticky bottom-0">
-          <Button variant="outline" onClick={() => setOpen(false)} className="rounded-full h-11 px-6" disabled={isSaving}>ביטול</Button>
-          <Button onClick={handleSave} disabled={isSaving} className="rounded-full h-11 px-8 bg-accent text-primary hover:bg-accent/90 gap-2">
-            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-            שמור שינויים
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function VerifyScribeDialog({ scribe, db }: any) {
-  // Scribal (halachic) details belong to סופרי סת"ם only. A Judaica seller shows none — unless they
-  // have a pending upgrade request, where the admin has to review exactly what they submitted.
-  const isJudaicaSeller = resolveSellerType(scribe.seller_type) === 'judaica_seller';
-  const upgradePending = isJudaicaSeller && scribe.stam_upgrade_status === 'pending';
-  const showScribal = !isJudaicaSeller || upgradePending;
-  // Scribe rating = profile-page ratings + post-purchase scribe ratings (reviews with an
-  // order_id) — same definition as the public profile and homepage card. Product-page
-  // reviews rate the product, so they're excluded.
-  const orderReviewsQuery = useMemoStable(() => query(collection(db, 'reviews'), where('seller_id', '==', scribe.id)), [db, scribe.id]);
-  const { data: orderReviewsData } = useCollection<any>(orderReviewsQuery);
-  const profileReviewsQuery = useMemoStable(() => query(collection(db, 'supermarket_reviews'), where('supermarket_id', '==', scribe.id)), [db, scribe.id]);
-  const { data: profileReviewsData } = useCollection<any>(profileReviewsQuery);
-  const reviews = useMemo(
-    () => [...(orderReviewsData || []).filter((r: any) => r.order_id), ...(profileReviewsData || [])],
-    [orderReviewsData, profileReviewsData]
-  );
-
-  const averageRating = useMemo(() => {
-    const ratings = reviews.map((r: any) => Number(r.rating)).filter((n: number) => Number.isFinite(n) && n > 0);
-    if (ratings.length === 0) return 0;
-    return ratings.reduce((acc: number, n: number) => acc + n, 0) / ratings.length;
-  }, [reviews]);
-
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="icon" className="h-10 w-10 rounded-full hover:bg-accent hover:text-primary transition-all border-primary/5 shadow-sm">
-          <Eye className="w-3.5 h-3.5" />
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-3xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white max-h-[85vh] overflow-y-auto z-[150]" dir="rtl">
-        <div className="bg-primary p-6 text-white text-right relative sticky top-0 z-50">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-headline font-black tracking-tight flex items-center gap-4 text-white">
-              <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center border border-white/20 relative overflow-hidden">
-                <Image src={scribe.profile_image || 'https://picsum.photos/seed/scribe/200/200'} alt="S" fill kind="avatar" sizes="48px" className="object-cover" />
-              </div>
-              <div>
-                <p>{scribe.first_name} {scribe.last_name}</p>
-                <div className="flex items-center gap-1 mt-1">
-                   {[1,2,3,4,5].map(s => <Star key={s} className={`w-3 h-3 ${s <= averageRating ? 'text-accent fill-accent' : 'text-white/20'}`} />)}
-                   <span className="text-[8px] opacity-60 mr-2">({reviews?.length || 0} ביקורות)</span>
-                </div>
-              </div>
-            </DialogTitle>
-          </DialogHeader>
-        </div>
-        
-        <div className="p-8 space-y-8 text-right">
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Business & Bank Info */}
-            <div className="space-y-6">
-               <div className="space-y-4">
-                  <p className="text-[10px] font-black text-accent uppercase tracking-widest flex items-center gap-2"><Building2 className="w-4 h-4" /> פרטי עסק רשמיים</p>
-                  <div className="bg-muted/30 p-5 rounded-2xl space-y-3 text-[11px] font-bold">
-                    <div className="flex justify-between border-b border-white/50 pb-2"><span>{scribe.business_name}</span><span className="text-muted-foreground">שם עסק:</span></div>
-                    <div className="flex justify-between border-b border-white/50 pb-2"><span>{scribe.business_id}</span><span className="text-muted-foreground">ח.פ / עוסק:</span></div>
-                    <div className="flex justify-between"><span>{scribe.business_type === 'osek_patur' ? 'עוסק פטור' : 'עוסק מורשה'}</span><span className="text-muted-foreground">סוג:</span></div>
-                  </div>
-               </div>
-               
-               <div className="space-y-4">
-                  <p className="text-[10px] font-black text-accent uppercase tracking-widest flex items-center gap-2"><Landmark className="w-4 h-4" /> פרטי חשבון בנק</p>
-                  <div className="bg-emerald-50/50 p-5 rounded-2xl space-y-3 text-[11px] font-bold border border-emerald-100/50">
-                    <div className="flex justify-between border-b border-emerald-100/50 pb-2"><span>{scribe.bank_name}</span><span className="text-muted-foreground">בנק:</span></div>
-                    <div className="flex justify-between border-b border-emerald-100/50 pb-2"><span>{scribe.bank_branch}</span><span className="text-muted-foreground">סניף:</span></div>
-                    <div className="flex justify-between"><span>{scribe.bank_account_number}</span><span className="text-muted-foreground">חשבון:</span></div>
-                  </div>
-               </div>
-
-               <div className="space-y-4">
-                  <p className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2"><Phone className="w-4 h-4" /> פרטי התקשרות</p>
-                  <div className="bg-blue-50/50 p-5 rounded-2xl space-y-3 text-[11px] font-bold border border-blue-100/50">
-                    <div className="flex justify-between border-b border-blue-100/50 pb-2"><span>{scribe.phone}</span><span className="text-muted-foreground">טלפון:</span></div>
-                    <div className="flex justify-between border-b border-blue-100/50 pb-2"><span>{scribe.email}</span><span className="text-muted-foreground">אימייל:</span></div>
-                    <div className="flex justify-between"><span>{scribe.address}</span><span className="text-muted-foreground">כתובת:</span></div>
-                  </div>
-               </div>
-            </div>
-
-            {/* Religious & Professional Info — scribes (and a pending upgrade request) only */}
-            <div className="space-y-6">
-               {showScribal ? (
-               <>
-               <div className="space-y-4" data-admin-view-scribal>
-                  <p className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2"><UserCheck className="w-4 h-4" /> {upgradePending ? 'פרטים שהוגשו בבקשת השדרוג לסופר סת"ם' : 'רקע מקצועי והנהגה'}</p>
-                  <div className="bg-primary/5 p-5 rounded-2xl space-y-3 text-[11px] font-bold border border-primary/10">
-                    <div className="flex justify-between border-b border-primary/10 pb-2"><span>{scribe.experience_years} שנים</span><span className="text-muted-foreground">ניסיון:</span></div>
-                    <div className="flex justify-between border-b border-primary/10 pb-2"><span>{scribe.script_level}</span><span className="text-muted-foreground">רמת הידור:</span></div>
-                    <div className="flex justify-between border-b border-primary/10 pb-2"><span>{scribe.torah_study_frequency === 'full-day' ? 'אברך יום שלם' : scribe.torah_study_frequency === 'half-day' ? 'אברך חצי יום' : 'קובע עיתים'}</span><span className="text-muted-foreground">לימוד:</span></div>
-                    <div className="flex justify-between border-b border-primary/10 pb-2"><span>{scribe.mikveh_frequency === 'daily' ? 'כל יום' : scribe.mikveh_frequency === 'before' ? 'לפני כתיבה' : 'טבילת עזרא'}</span><span className="text-muted-foreground">טבילה:</span></div>
-                    <div className="flex justify-between"><span>{scribe.marital_status === 'married' ? 'נשוי' : 'רווק'}</span><span className="text-muted-foreground">מצב משפחתי:</span></div>
-                  </div>
-               </div>
-               <div className="space-y-2">
-                  <p className="text-[10px] font-black text-primary uppercase tracking-widest">סוגי כתב</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {(scribe.script_types || []).map((t: string) => (
-                      <Badge key={t} className="bg-white border-primary/10 text-primary text-[9px] font-black px-3 py-1 rounded-full shadow-sm">{t}</Badge>
-                    ))}
-                  </div>
-               </div>
-               </>
-               ) : (
-               <div className="space-y-2" data-admin-view-judaica>
-                  <p className="text-[10px] font-black text-primary uppercase tracking-widest">סוג מוכר</p>
-                  <p className="bg-muted/30 p-4 rounded-2xl text-[11px] font-bold text-primary">מוכר יודאיקה — ללא פרטי הסמכה הלכתיים</p>
-               </div>
-               )}
-               <div className="space-y-4 pt-2">
-                  <p className="text-[10px] font-black text-primary uppercase tracking-widest">מזהה פנימי (UID)</p>
-                  <p className="bg-muted p-2 rounded-lg text-[9px] font-mono break-all text-primary/60">{scribe.id}</p>
-               </div>
-            </div>
-          </div>
-
-          <div className="pt-6 border-t space-y-4">
-             <p className="font-black text-sm text-primary underline decoration-accent/30 underline-offset-4">{showScribal ? 'אודות והסמכה אישית' : 'אודות העסק'}</p>
-             <p className="text-xs text-primary/70 leading-relaxed italic bg-muted/20 p-4 rounded-xl">"{scribe.notes || '-'}"</p>
-          </div>
-
-          {showScribal && (
-          <div className="grid md:grid-cols-2 gap-8">
-            {scribe.certificate_url && (
-              <div className="space-y-4">
-                 <p className="font-black text-[11px] uppercase text-primary/60 tracking-widest">תעודת סופר מועלה</p>
-                 <div className="relative aspect-[1.4/1] w-full rounded-2xl overflow-hidden border shadow-inner bg-white">
-                    <Image src={scribe.certificate_url} alt="Cert" fill kind="certificate" sizes="(max-width: 768px) 100vw, 720px" className="object-contain" />
-                 </div>
-              </div>
-            )}
-            
-            {(scribe.writing_samples || []).length > 0 && (
-              <div className="space-y-4">
-                 <p className="font-black text-[11px] uppercase text-primary/60 tracking-widest">דוגמאות כתיבה</p>
-                 <div className="grid grid-cols-2 gap-2">
-                    {scribe.writing_samples.slice(0, 4).map((sample: string, idx: number) => (
-                      <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border shadow-sm">
-                         <Image src={sample} alt={`Sample ${idx}`} fill kind="writing_sample" sizes="(max-width: 768px) 50vw, 360px" className="object-cover" />
-                      </div>
-                    ))}
-                 </div>
-              </div>
-            )}
-          </div>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function Pagination({ current, total, onChange }: any) {
-  const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
-  if (totalPages <= 1) return null;
-
-  return (
-    <div className="flex items-center justify-center gap-4 py-6">
-      <Button 
-        variant="outline" 
-        size="sm" 
-        onClick={() => onChange(current - 1)} 
-        disabled={current === 1}
-        className="rounded-xl h-10 px-4 font-bold border-primary/10 bg-white"
-      >
-        <ChevronRight className="w-4 h-4 ml-2" /> הקודם
-      </Button>
-      <span className="text-[10px] font-black text-primary/40 uppercase tracking-widest">עמוד {current} מתוך {totalPages}</span>
-      <Button 
-        variant="outline" 
-        size="sm" 
-        onClick={() => onChange(current + 1)} 
-        disabled={current === totalPages}
-        className="rounded-xl h-10 px-4 font-bold border-primary/10 bg-white"
-      >
-        הבא <ChevronLeft className="w-4 h-4 mr-2" />
-      </Button>
-    </div>
-  );
+  `;
 }

@@ -4,12 +4,14 @@ import { useEffect, useState, type ReactNode } from 'react';
 import {
   Package, Users, UserCheck, Clock, ShoppingBag, Banknote,
   Inbox, Flag, ShieldAlert, Eye, TrendingUp, LogIn, UserCog, Timer, PieChart, BarChart3,
-  CheckCircle2, ChevronLeft, Truck, Trophy, SlidersHorizontal, ShieldCheck, AlertTriangle, CreditCard,
+  CheckCircle2, ChevronLeft, Truck, Trophy, SlidersHorizontal, ShieldCheck, AlertTriangle, CreditCard, MessageSquare, BellRing,
 } from 'lucide-react';
-import { ABANDONED_PAYMENT_AFTER_MS, STUCK_STATUSES, classifyStuckOrder } from '@/lib/stuck-orders';
 import { useSupabaseClient } from '@/lib/supabase-hooks';
 import { cn } from '@/lib/utils';
 import { FunnelSummary } from '@/components/admin/AdminActivityPanel';
+import type { AdminNavigate } from './admin-nav';
+import type { AdminAttention } from './useAdminAttention';
+import { timeAgo } from './admin-ui';
 import {
   Accordion,
   AccordionContent,
@@ -44,15 +46,7 @@ export type AdminOverviewData = {
     products?: number;
     activeSellers?: number;
     activeJudaicaSellers?: number;
-    pendingSellers?: number;
     customers?: number;
-    openInquiries?: number;
-    openReports?: number;
-    flaggedChats?: number;
-    awaitingDelivery?: number;
-    stuckOrders?: number;
-    abandonedPayments?: number;
-    stamUpgrades?: number;
   };
   sales: { revenue30d: number; paidOrders30d: number; completed30d: number } | null;
   orderStatusCounts: Record<string, number> | null;
@@ -66,8 +60,7 @@ export type AdminOverviewData = {
   topSellers: RankedItem[] | null;
 };
 
-/** Target tabs of the admin page the overview links into. */
-export type AdminTabId = 'pending' | 'inquiries' | 'reports' | 'chats' | 'sales' | 'active' | 'judaica' | 'customers' | 'audit';
+export type { AdminTabId } from './admin-nav';
 
 function formatDuration(ms: number) {
   const minutes = Math.round(ms / 60000);
@@ -102,22 +95,15 @@ function useAdminOverviewData(): AdminOverviewData {
     const since7d = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
     const head = { count: 'exact' as const, head: true };
 
-    // ── Counts, 30-day sales and order-status breakdown ──
+    // ── Site counts, 30-day sales and order-status breakdown. (What needs the admin — pending
+    // sellers, stuck orders, inquiries… — is counted once in useAdminAttention and passed in.) ──
     Promise.all([
       db.from('products').select('id', head),
       db.from('sellers').select('id', head).eq('is_approved', true).eq('seller_type', 'stam_scribe'),
-      db.from('sellers').select('id', head).eq('is_approved', false),
       db.from('customers').select('id', head),
       db.from('orders').select('amount, created_at, status').gte('created_at', since30d),
-      db.from('contact_messages').select('id', head).eq('status', 'new'),
-      db.from('reports').select('id', head),
-      db.from('chats').select('id', head).eq('is_suspicious', true),
-      db.from('orders').select('id', head).eq('status', 'paid'),
-      db.from('sellers').select('id', head).eq('stam_upgrade_status', 'pending'),
       db.from('sellers').select('id', head).eq('is_approved', true).eq('seller_type', 'judaica_seller'),
-      db.from('orders').select('id, status, paid_at, created_at').in('status', STUCK_STATUSES).limit(2000),
-      db.from('orders').select('id', head).eq('status', 'pending_payment').lt('created_at', new Date(Date.now() - ABANDONED_PAYMENT_AFTER_MS).toISOString()),
-    ]).then(([products, activeSellers, pendingSellers, customers, orders, inquiries, reports, flaggedChats, awaitingDelivery, stamUpgrades, activeJudaica, stuckCandidates, abandonedPayments]) => {
+    ]).then(([products, activeSellers, customers, orders, activeJudaica]) => {
       const orderRows = orders.data || [];
       const paidRows = orderRows.filter((o: any) => PAID_ORDER_STATUSES.includes(o.status));
 
@@ -135,16 +121,7 @@ function useAdminOverviewData(): AdminOverviewData {
         products: products.count ?? 0,
         activeSellers: activeSellers.count ?? 0,
         activeJudaicaSellers: activeJudaica.error ? 0 : (activeJudaica.count ?? 0),
-        pendingSellers: pendingSellers.count ?? 0,
         customers: customers.count ?? 0,
-        openInquiries: inquiries.count ?? 0,
-        openReports: reports.count ?? 0,
-        flaggedChats: flaggedChats.count ?? 0,
-        awaitingDelivery: awaitingDelivery.count ?? 0,
-        stuckOrders: (stuckCandidates.data || []).filter((o: any) => classifyStuckOrder(o)).length,
-        abandonedPayments: abandonedPayments.count ?? 0,
-        // Errors before the seller-types migration (missing column) — count as none.
-        stamUpgrades: stamUpgrades.error ? 0 : (stamUpgrades.count ?? 0),
       });
     });
 
@@ -293,10 +270,10 @@ function useAdminOverviewData(): AdminOverviewData {
   };
 }
 
-export function AdminOverviewPanel({ onNavigate }: { onNavigate?: AdminNavigate }) {
+export function AdminOverviewPanel({ onNavigate, attention }: { onNavigate?: AdminNavigate; attention: AdminAttention }) {
   const db = useSupabaseClient();
   const data = useAdminOverviewData();
-  return <AdminOverviewView data={data} onNavigate={onNavigate} funnelSlot={<FunnelSummary db={db} />} />;
+  return <AdminOverviewView data={data} attention={attention} onNavigate={onNavigate} funnelSlot={<FunnelSummary db={db} />} />;
 }
 
 // ─── Presentation ─────────────────────────────────────────────────────────────
@@ -359,61 +336,68 @@ function StatPill({ icon, label, value }: { icon: ReactNode; label: string; valu
   );
 }
 
-type ActionItem = { key: string; count: number; label: string; icon: ReactNode; tab: AdminTabId; tone: 'warn' | 'accent'; salesFilter?: 'stuck' };
-export type AdminNavigate = (tab: AdminTabId, options?: { salesFilter?: 'stuck' }) => void;
+type QueueItem = { key: string; count: number; label: string; sub?: string; icon: ReactNode; go: () => void; tone: 'urgent' | 'normal' };
 
-function ActionCenter({ counts, onNavigate }: { counts: AdminOverviewData['counts']; onNavigate?: AdminNavigate }) {
-  const loaded = counts.pendingSellers !== undefined;
-  const items: ActionItem[] = [
-    { key: 'pendingSellers', count: counts.pendingSellers ?? 0, label: 'מוכרים ממתינים לאישור', icon: <Clock className="h-5 w-5" />, tab: 'pending', tone: 'accent' },
-    { key: 'stamUpgrades', count: counts.stamUpgrades ?? 0, label: 'בקשות שדרוג לסופר סת"ם', icon: <ShieldCheck className="h-5 w-5" />, tab: 'pending', tone: 'accent' },
-    { key: 'stuckOrders', count: counts.stuckOrders ?? 0, label: 'הזמנות תקועות', icon: <AlertTriangle className="h-5 w-5" />, tab: 'sales', tone: 'warn', salesFilter: 'stuck' },
-    { key: 'awaitingDelivery', count: counts.awaitingDelivery ?? 0, label: 'מכירות ממתינות למסירה', icon: <Truck className="h-5 w-5" />, tab: 'sales', tone: 'accent' },
-    { key: 'openInquiries', count: counts.openInquiries ?? 0, label: 'פניות חדשות', icon: <Inbox className="h-5 w-5" />, tab: 'inquiries', tone: 'warn' },
-    { key: 'openReports', count: counts.openReports ?? 0, label: 'דיווחים', icon: <Flag className="h-5 w-5" />, tab: 'reports', tone: 'warn' },
-    { key: 'flaggedChats', count: counts.flaggedChats ?? 0, label: 'שיחות חשודות', icon: <ShieldAlert className="h-5 w-5" />, tab: 'chats', tone: 'warn' },
+/** "דורש טיפול": one list of everything waiting for the admin, each with a count and a one-click jump. */
+function AttentionQueue({ attention: a, onNavigate }: { attention: AdminAttention; onNavigate?: AdminNavigate }) {
+  const nav: AdminNavigate = (tab, params) => onNavigate?.(tab, params);
+  const smsFailed = a.sms?.installed ? a.sms.failed24h : 0;
+  const items: QueueItem[] = [
+    { key: 'pendingStam', count: a.pendingStam, label: 'סופרי סת"ם ממתינים לאישור', sub: a.oldestPendingAt ? `הוותיק נרשם ${timeAgo(a.oldestPendingAt)}` : undefined, icon: <Clock className="h-5 w-5" />, go: () => nav('pending'), tone: 'normal' },
+    { key: 'pendingJudaica', count: a.pendingJudaica, label: 'מוכרי יודאיקה ממתינים לאישור', icon: <ShoppingBag className="h-5 w-5" />, go: () => nav('pending'), tone: 'normal' },
+    { key: 'stamUpgrades', count: a.stamUpgrades, label: 'בקשות שדרוג לסופר סת"ם', sub: 'מוכרי יודאיקה שביקשו אימות הלכתי', icon: <ShieldCheck className="h-5 w-5" />, go: () => nav('pending'), tone: 'normal' },
+    { key: 'stuckOrders', count: a.stuckOrders, label: 'הזמנות תקועות', sub: a.stuckMaxDays ? `שולמו ולא נמסרו / ספר תורה ללא טיפול · הוותיקה ${a.stuckMaxDays} ימים` : undefined, icon: <AlertTriangle className="h-5 w-5" />, go: () => nav('sales', { filter: 'stuck' }), tone: 'urgent' },
+    { key: 'newInquiries', count: a.newInquiries, label: 'פניות חדשות מטופס צור קשר', sub: a.oldestInquiryAt ? `הוותיקה ${timeAgo(a.oldestInquiryAt)}` : undefined, icon: <Inbox className="h-5 w-5" />, go: () => nav('inquiries', { filter: 'new' }), tone: 'urgent' },
+    { key: 'reports', count: a.reports, label: 'דיווחים על מוכרים', icon: <Flag className="h-5 w-5" />, go: () => nav('reports'), tone: 'urgent' },
+    { key: 'flaggedChats', count: a.flaggedChats, label: 'שיחות שסומנו כחשודות', sub: 'ניסיון להעביר פרטי קשר מחוץ לאתר', icon: <ShieldAlert className="h-5 w-5" />, go: () => nav('chats', { filter: 'flagged' }), tone: 'urgent' },
+    { key: 'waitingChats', count: a.waitingChatIds.length, label: 'קונים שמחכים לתשובת מוכר', sub: 'יותר מ-24 שעות בלי מענה', icon: <MessageSquare className="h-5 w-5" />, go: () => nav('chats', { filter: 'waiting' }), tone: 'normal' },
+    { key: 'smsFailed', count: smsFailed, label: 'הודעות SMS / שיחות שנכשלו', sub: '24 השעות האחרונות', icon: <BellRing className="h-5 w-5" />, go: () => nav('notifications', { filter: 'failed' }), tone: 'urgent' },
   ];
   const open = items.filter((i) => i.count > 0);
+  const total = open.reduce((sum, i) => sum + i.count, 0);
 
   return (
-    <section>
-      <SectionTitle hint={loaded && open.length > 0 ? `${open.length} נושאים פתוחים` : undefined}>דורש טיפול</SectionTitle>
-      {!loaded ? (
-        <div className="rounded-[1.5rem] border border-primary/5 bg-white p-5 shadow-premium"><Loading /></div>
+    <section className="rounded-[1.75rem] border border-primary/5 bg-white p-5 shadow-premium md:p-6" data-admin-attention>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h2 className="font-headline text-xl font-black text-primary">מה מחכה לך</h2>
+        {a.loaded && open.length > 0 && <span className="rounded-full bg-destructive/10 px-3 py-1 text-xs font-black tabular-nums text-destructive">{total} פריטים</span>}
+      </div>
+      {!a.loaded ? (
+        <Loading />
       ) : open.length === 0 ? (
-        <div className="flex items-center gap-3 rounded-[1.5rem] border border-emerald-100 bg-emerald-50/70 p-5">
-          <CheckCircle2 className="h-6 w-6 shrink-0 text-emerald-600" />
+        <div className="flex items-center gap-3 rounded-2xl bg-emerald-50/70 p-5" data-admin-attention-clear>
+          <CheckCircle2 className="h-7 w-7 shrink-0 text-emerald-600" />
           <div>
             <p className="font-black text-emerald-900">הכל מטופל</p>
-            <p className="text-xs font-semibold text-emerald-800/70">אין סופרים ממתינים, פניות, דיווחים או מסירות פתוחות.</p>
+            <p className="text-sm font-medium text-emerald-800/75">אין מוכרים ממתינים, פניות, דיווחים או הזמנות תקועות.</p>
           </div>
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <ul className="grid gap-2 xl:grid-cols-2">
           {open.map((item) => (
-            <button
-              key={item.key}
-              type="button"
-              onClick={() => onNavigate?.(item.tab, item.salesFilter ? { salesFilter: item.salesFilter } : undefined)}
-              className={cn(
-                "group flex items-center gap-4 rounded-[1.5rem] border bg-white p-4 text-right shadow-premium transition-all hover:-translate-y-0.5 hover:shadow-xl",
-                item.tone === 'warn' ? "border-destructive/15" : "border-accent/30",
-              )}
-            >
-              <span className={cn(
-                "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl",
-                item.tone === 'warn' ? "bg-destructive/10 text-destructive" : "bg-accent/15 text-accent-strong",
-              )}>
-                {item.icon}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-2xl font-black leading-none tabular-nums text-primary">{item.count}</p>
-                <p className="mt-1 text-xs font-bold text-muted-foreground">{item.label}</p>
-              </div>
-              <ChevronLeft className="h-5 w-5 shrink-0 text-primary/25 transition-transform group-hover:-translate-x-1 group-hover:text-primary/60" />
-            </button>
+            <li key={item.key}>
+              <button
+                type="button"
+                onClick={item.go}
+                data-attention-item={item.key}
+                className="group flex w-full items-center gap-3 rounded-2xl border border-primary/5 bg-[#FAFAF8] px-3 py-3 text-right transition-colors hover:border-accent/40 hover:bg-white md:gap-4 md:px-4"
+              >
+                <span className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-xl', item.tone === 'urgent' ? 'bg-destructive/10 text-destructive' : 'bg-accent/15 text-accent-strong')}>{item.icon}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[15px] font-black leading-snug text-primary">{item.label}</span>
+                  <span className="block truncate text-xs font-medium text-muted-foreground">{item.sub || 'לחץ לטיפול'}</span>
+                </span>
+                <span className={cn('min-w-[2.25rem] rounded-full px-2.5 py-1 text-center text-sm font-black tabular-nums', item.tone === 'urgent' ? 'bg-destructive text-white' : 'bg-primary text-primary-foreground')}>{item.count}</span>
+                <ChevronLeft className="hidden h-5 w-5 shrink-0 text-primary/25 transition-transform group-hover:-translate-x-1 group-hover:text-primary/60 sm:block" />
+              </button>
+            </li>
           ))}
-        </div>
+        </ul>
+      )}
+      {a.loaded && a.sms && a.sms.installed && !a.sms.configured.sms && !a.sms.configured.voice && (
+        <button type="button" onClick={() => nav('notifications')} className="mt-3 flex w-full items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-right text-xs font-bold text-amber-900 hover:bg-amber-100">
+          <BellRing className="h-4 w-4 shrink-0" /> Twilio עוד לא מחובר — הודעות SMS ושיחות לא יוצאות עד שיתווספו המפתחות ב-Vercel.
+        </button>
       )}
     </section>
   );
@@ -429,7 +413,7 @@ function GrowthChart({ growth }: { growth: AdminOverviewData['growth'] }) {
           <div key={w.label} className="flex h-full flex-1 flex-col items-center justify-end gap-1.5">
             <span className="text-[10px] font-black tabular-nums text-primary/60">{w.customers + w.sellers || ''}</span>
             <div className="flex w-full flex-1 flex-col justify-end gap-0.5">
-              <div className="w-full rounded-t-md bg-accent" style={{ height: `${(w.sellers / max) * 100}%`, minHeight: w.sellers ? 3 : 0 }} title={`${w.sellers} סופרים`} />
+              <div className="w-full rounded-t-md bg-accent" style={{ height: `${(w.sellers / max) * 100}%`, minHeight: w.sellers ? 3 : 0 }} title={`${w.sellers} מוכרים`} />
               <div className="w-full rounded-t-md bg-primary/15" style={{ height: `${(w.customers / max) * 100}%`, minHeight: w.customers ? 3 : 0 }} title={`${w.customers} לקוחות`} />
             </div>
             <span className="whitespace-nowrap text-[9px] font-bold text-muted-foreground">{w.label}</span>
@@ -438,7 +422,7 @@ function GrowthChart({ growth }: { growth: AdminOverviewData['growth'] }) {
       </div>
       <div className="mt-4 flex items-center gap-4 text-[11px] font-bold text-muted-foreground">
         <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-primary/15" /> לקוחות</span>
-        <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-accent" /> סופרים</span>
+        <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-accent" /> מוכרים</span>
       </div>
     </>
   );
@@ -519,20 +503,22 @@ function Leaderboard({ data }: { data: AdminOverviewData }) {
 }
 
 export function AdminOverviewView({
-  data, onNavigate, funnelSlot,
+  data, attention, onNavigate, funnelSlot,
 }: {
   data: AdminOverviewData;
+  attention: AdminAttention;
   onNavigate?: AdminNavigate;
   funnelSlot?: ReactNode;
 }) {
   const { counts, sales } = data;
+  const a = attention;
   const dash = (v: number | undefined | null, fmt: (n: number) => ReactNode = (n) => n) => (v == null ? '...' : fmt(v));
   const avgOrder = sales && sales.paidOrders30d > 0 ? sales.revenue30d / sales.paidOrders30d : null;
 
   // Explicit RTL: this renders inside the admin page's Radix Tabs, which default to dir="ltr".
   return (
     <div dir="rtl" className="space-y-10 text-right">
-      <ActionCenter counts={counts} onNavigate={onNavigate} />
+      <AttentionQueue attention={attention} onNavigate={onNavigate} />
 
       <section>
         <SectionTitle hint={`${RECENT_DAYS} הימים האחרונים · הזמנות ששולמו בלבד`}>מכירות</SectionTitle>
@@ -540,13 +526,13 @@ export function AdminOverviewView({
           <KpiCard emphasis icon={<Banknote className="h-4 w-4" />} label="הכנסות" value={sales ? formatShekels(sales.revenue30d) : '...'} sub={avgOrder != null ? `ממוצע להזמנה ${formatShekels(avgOrder)}` : undefined} />
           <KpiCard icon={<ShoppingBag className="h-4 w-4" />} label="הזמנות ששולמו" value={sales ? sales.paidOrders30d : '...'} />
           <KpiCard icon={<CheckCircle2 className="h-4 w-4" />} label="עסקאות שהושלמו" value={sales ? sales.completed30d : '...'} sub="המסירה אומתה בקוד" />
-          <KpiCard icon={<Truck className="h-4 w-4" />} label="ממתינות למסירה" value={dash(counts.awaitingDelivery)} sub="כל הזמנים" />
+          <KpiCard icon={<Truck className="h-4 w-4" />} label="ממתינות למסירה" value={a.loaded ? a.awaitingDelivery : '...'} sub="כל הזמנים" />
           <KpiCard
             className="col-span-2 lg:col-span-1"
             data-abandoned-payments
             icon={<CreditCard className="h-4 w-4" />}
-            label={counts.abandonedPayments == null ? 'נטישת תשלום' : `נטישת תשלום (${counts.abandonedPayments})`}
-            value={dash(counts.abandonedPayments)}
+            label="נטישת תשלום"
+            value={a.loaded ? a.abandonedPayments : '...'}
             sub="התחילו תשלום ולא סיימו (מעל 48 שעות) · כל הזמנים"
           />
         </div>

@@ -148,7 +148,7 @@ export function AdminNotificationsPanel({ initialStatus }: { initialStatus?: str
 
   return (
     <div className="space-y-8" dir="rtl" data-admin-notifications>
-      <section className="grid gap-3 md:grid-cols-2">
+      <section className="grid grid-cols-1 gap-3 md:grid-cols-2">
         <StatusCard
           ok={d.configured.sms}
           title={d.configured.sms ? 'SMS מחובר (Twilio)' : 'SMS לא מחובר'}

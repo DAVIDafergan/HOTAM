@@ -196,7 +196,7 @@ export function SellersTable({
       </div>
 
       {/* phones */}
-      <div className="grid gap-3 md:hidden">
+      <div className="grid grid-cols-1 gap-3 md:hidden">
         {sellers.map((s) => (
           <div key={s.id} className="space-y-3 rounded-[1.5rem] border border-primary/5 bg-white p-4 shadow-sm" data-admin-seller-card={s.id}>
             <div className="flex items-start gap-3">
@@ -292,7 +292,7 @@ export function EditSellerDialog({ scribe }: { scribe: any }) {
         <div className="space-y-7 p-5 text-right md:p-8">
           <section className="space-y-3">
             <h3 className="flex items-center gap-2 text-sm font-black text-primary"><UserCheck className="h-4 w-4" /> פרטים אישיים</h3>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {field('first_name', 'שם פרטי')}
               {field('last_name', 'שם משפחה')}
               {field('email', 'אימייל', { ltr: true, type: 'email' })}
@@ -303,14 +303,14 @@ export function EditSellerDialog({ scribe }: { scribe: any }) {
           </section>
           <section className="space-y-3">
             <h3 className="flex items-center gap-2 text-sm font-black text-primary"><Building2 className="h-4 w-4" /> פרטי עסק</h3>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {field('business_name', 'שם עסק')}
               {field('business_id', 'ח.פ / עוסק מורשה', { ltr: true })}
             </div>
           </section>
           <section className="space-y-3">
             <h3 className="flex items-center gap-2 text-sm font-black text-emerald-700"><Landmark className="h-4 w-4" /> פרטי חשבון בנק (עריכת מנהל בלבד)</h3>
-            <div className="grid gap-4 rounded-2xl border border-emerald-100/60 bg-emerald-50/50 p-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 rounded-2xl border border-emerald-100/60 bg-emerald-50/50 p-4 sm:grid-cols-2">
               {field('bank_name', 'שם בנק', { bg: true })}
               {field('bank_branch', 'סניף', { bg: true })}
               {field('bank_account_number', 'מספר חשבון', { ltr: true, bg: true, className: 'sm:col-span-2' })}
@@ -319,7 +319,7 @@ export function EditSellerDialog({ scribe }: { scribe: any }) {
           <section className="space-y-3">
             <h3 className="flex items-center gap-2 text-sm font-black text-primary"><ShieldCheck className="h-4 w-4" /> {isJudaicaSeller ? 'על העסק' : 'רקע מקצועי'}</h3>
             {!isJudaicaSeller && (
-              <div className="grid gap-4 sm:grid-cols-2" data-admin-edit-scribal>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2" data-admin-edit-scribal>
                 {field('experience_years', 'שנות ניסיון', { type: 'number' })}
               </div>
             )}
@@ -408,7 +408,7 @@ export function SellerDetailDialog({ scribe, orders, open: openProp, onOpenChang
         </div>
 
         <div className="space-y-7 p-5 text-right md:p-8">
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="space-y-5">
               <section className="space-y-2">
                 <h3 className="flex items-center gap-2 text-sm font-black text-primary"><Phone className="h-4 w-4 text-accent-strong" /> פרטי התקשרות</h3>
@@ -474,7 +474,7 @@ export function SellerDetailDialog({ scribe, orders, open: openProp, onOpenChang
           </div>
 
           {showScribal && (scribe.certificate_url || (scribe.writing_samples || []).length > 0) && (
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               {scribe.certificate_url && (
                 <section className="space-y-2">
                   <h3 className="text-sm font-black text-primary">תעודת סופר</h3>

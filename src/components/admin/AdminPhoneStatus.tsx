@@ -60,7 +60,7 @@ export function AdminPhoneStatus({ userId }: { userId: string }) {
             מספר מאומת: <span dir="ltr" className="font-mono">{state.channel.phone}</span>
             <span className="font-medium text-muted-foreground"> · אומת ב-{formatDate(state.channel.verified_at)}</span>
           </p>
-          <div className="grid gap-2 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
             <Toggle on={state.channel.sms_enabled} label="SMS" icon={<MessageSquareText className="h-4 w-4" />} since={state.channel.sms_consent_at} />
             <Toggle on={state.channel.voice_enabled} label="שיחה קולית" icon={<PhoneCall className="h-4 w-4" />} since={state.channel.voice_consent_at} />
             <Toggle on={state.channel.marketing_enabled} label="פרסומות" icon={<Megaphone className="h-4 w-4" />} since={state.channel.marketing_consent_at} />

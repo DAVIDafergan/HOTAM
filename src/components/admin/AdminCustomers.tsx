@@ -109,7 +109,7 @@ export function CustomersTable({
             </Table>
           </div>
 
-          <div className="grid gap-3 md:hidden">
+          <div className="grid grid-cols-1 gap-3 md:hidden">
             {customers.map((c) => {
               const s = stats.get(c.id) || { completedOrders: 0, totalSpent: 0, openOrders: 0 };
               const deleting = deletingCustomerId === c.id;

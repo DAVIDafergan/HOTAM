@@ -143,7 +143,7 @@ export function TorahRequestsList({ orders, sellers, page, setPage, onOpenPerson
                 </Button>
               )}
             </div>
-            <div className="grid gap-5 border-t border-primary/5 pt-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-5 border-t border-primary/5 pt-4 md:grid-cols-2">
               <ContactBlock title="הלקוח" icon={<UserRound className="h-3.5 w-3.5" />} name={o.buyer_name} phone={o.buyer_phone} email={o.buyer_email} onOpen={o.buyer_id ? () => onOpenPerson('customer', o.buyer_id) : undefined} />
               <div className="border-primary/5 md:border-r md:pr-6">
                 <ContactBlock title="הסופר" icon={<Scroll className="h-3.5 w-3.5" />} name={sellerName(seller)} phone={seller?.phone} email={seller?.email} onOpen={o.seller_id ? () => onOpenPerson('seller', o.seller_id) : undefined} />

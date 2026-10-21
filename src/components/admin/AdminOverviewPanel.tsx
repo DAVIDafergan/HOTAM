@@ -373,9 +373,9 @@ function AttentionQueue({ attention: a, onNavigate }: { attention: AdminAttentio
           </div>
         </div>
       ) : (
-        <ul className="grid gap-2 xl:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-2 xl:grid-cols-2">
           {open.map((item) => (
-            <li key={item.key}>
+            <li key={item.key} className="min-w-0">
               <button
                 type="button"
                 onClick={item.go}
@@ -385,7 +385,7 @@ function AttentionQueue({ attention: a, onNavigate }: { attention: AdminAttentio
                 <span className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-xl', item.tone === 'urgent' ? 'bg-destructive/10 text-destructive' : 'bg-accent/15 text-accent-strong')}>{item.icon}</span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-[15px] font-black leading-snug text-primary">{item.label}</span>
-                  <span className="block truncate text-xs font-medium text-muted-foreground">{item.sub || 'לחץ לטיפול'}</span>
+                  <span className="line-clamp-2 block text-xs font-medium text-muted-foreground">{item.sub || 'לחץ לטיפול'}</span>
                 </span>
                 <span className={cn('min-w-[2.25rem] rounded-full px-2.5 py-1 text-center text-sm font-black tabular-nums', item.tone === 'urgent' ? 'bg-destructive text-white' : 'bg-primary text-primary-foreground')}>{item.count}</span>
                 <ChevronLeft className="hidden h-5 w-5 shrink-0 text-primary/25 transition-transform group-hover:-translate-x-1 group-hover:text-primary/60 sm:block" />

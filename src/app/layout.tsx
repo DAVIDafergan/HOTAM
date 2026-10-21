@@ -18,11 +18,14 @@ const assistant = Assistant({
   fallback: ['Arial', 'sans-serif'],
 });
 
-// Frank Ruhl Libre (Hebrew/Latin serif) is used for h1-h3 headings only —
-// see tailwind.config.ts font-headline and globals.css's h1-h6 rules.
+// Frank Ruhl Libre (Hebrew/Latin serif) is used for headings only — see tailwind.config.ts
+// font-headline and globals.css's h1-h6 rules. 500 is the display weight (h1/h2, section
+// titles — lighter reads more refined at large sizes); 700 serves small headings and any
+// font-semibold/bold/black on the serif. To go back to the previous heavier look, set
+// weight: ['600', '700'] (500 then falls back to 600).
 const frankRuhlLibre = Frank_Ruhl_Libre({
   subsets: ['hebrew', 'latin'],
-  weight: ['600', '700'],
+  weight: ['500', '700'],
   variable: '--font-heading',
   display: 'swap',
   fallback: ['Georgia', 'serif'],
@@ -116,10 +119,9 @@ export default function RootLayout({
         <style
           dangerouslySetInnerHTML={{
             __html: `
-              html,body{margin:0;padding:0;background:#faf7f0;color:#0d1420}
+              html,body{margin:0;padding:0;background:#F5EDE0;color:#1C1815}
               body{font-family:var(--font-assistant),Arial,sans-serif;font-weight:400;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
-              h1,h2,h3,h4,h5,h6{font-family:var(--font-assistant),Arial,sans-serif;font-weight:700}
-              .section-shell{padding-top:2.5rem;padding-bottom:2.5rem}
+              h1,h2,h3,h4,h5,h6{font-family:var(--font-heading),Georgia,serif}
             `,
           }}
         />
@@ -141,7 +143,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="font-body antialiased min-h-screen selection:bg-accent/30 selection:text-primary">
+      <body className="font-body antialiased min-h-screen">
         <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[200] focus:bg-white focus:p-4 focus:rounded-xl focus:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary">
           דילוג לתוכן המרכזי
         </a>

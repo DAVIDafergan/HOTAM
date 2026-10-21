@@ -8,7 +8,26 @@ export default {
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
+    // One container width site-wide; `container mx-auto px-4` call sites keep their own padding.
+    container: {
+      center: true,
+      screens: { sm: '640px', md: '768px', lg: '1024px', xl: '1280px', '2xl': '1320px' },
+    },
     extend: {
+      // Hebrew must not be letter-spaced (it breaks the word shapes) — the default scale goes up
+      // to 0.1em, which the site applies to ~150 Hebrew labels. Retuned so `tracking-widest` etc.
+      // stay a subtle touch; the few Latin wordmarks that want real spacing use arbitrary values.
+      letterSpacing: {
+        tighter: '-0.02em',
+        tight: '-0.01em',
+        normal: '0',
+        wide: '0.01em',
+        wider: '0.02em',
+        widest: '0.03em',
+      },
+      fontSize: {
+        '2xs': ['0.6875rem', { lineHeight: '1rem' }],
+      },
       fontFamily: {
         sans: ['var(--font-assistant)', 'Arial', 'sans-serif'],
         body: ['var(--font-assistant)', 'Arial', 'sans-serif'],

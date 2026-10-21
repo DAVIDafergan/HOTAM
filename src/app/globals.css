@@ -14,15 +14,15 @@
        while staying visually indistinguishable from the requested hex. */
     --background: 37 51% 92%;         /* parchment #F5EDE0 */
     --foreground: 26 14% 10%;         /* ink-black #1C1815 */
-    --card: 0 0% 100%;
+    --card: 40 60% 99.4%;              /* warm white #FFFDFA — softer than pure white on parchment */
     --card-foreground: 26 14% 10%;
-    --popover: 0 0% 100%;
+    --popover: 40 60% 99.4%;
     --popover-foreground: 26 14% 10%;
     --primary: 26 14% 10%;            /* ink-black #1C1815 */
     --primary-foreground: 37 35% 97%;
-    --secondary: 37 28% 91%;
+    --secondary: 37 36% 89%;          /* deeper parchment, for chips / sunken surfaces */
     --secondary-foreground: 26 14% 10%;
-    --muted: 37 15% 93%;
+    --muted: 37 30% 94%;
     --muted-foreground: 37 13% 40%;   /* parchment-brown #7A6F5D, WCAG-adjusted (see note above) */
     /* "Vivid Gold" refresh (2026-08): same hue family as the original brass-gold, saturation
        raised 36%→62% — the 36% original tested as "dusty/muted" against the brand's own
@@ -35,8 +35,8 @@
     --accent: 38 62% 46%;             /* vivid gold #BE892D */
     --accent-foreground: 26 14% 10%;
     --accent-strong: 38 62% 33%;      /* darkened vivid gold for readable text, ~5.3:1 on parchment/white */
-    --border: 26 18% 87%;
-    --input: 26 18% 87%;
+    --border: 32 24% 85%;
+    --input: 32 20% 80%;              /* a touch darker than --border so empty fields read as fields (3:1 UI contrast vs card) */
     --destructive: 0 50% 36%;         /* ink-red #8B2E2E — 8.4:1 against white text, well past AA */
     --destructive-foreground: 0 0% 98%;
     --ring: 38 62% 46%;
@@ -48,6 +48,9 @@
        site-wide sweep of those specifically wasn't attempted this pass,
        see summary. */
     --radius: 0.5rem;
+    /* Surfaces & shadows (luxury refresh): one warm shadow recipe instead of cool slate ones. */
+    --surface-raised: 40 60% 99.4%;
+    --shadow-color: 26 30% 20%;
   }
 }
 
@@ -61,55 +64,57 @@
   }
   body {
     @apply bg-background text-foreground font-body antialiased;
-    line-height: 1.76;
+    font-size: 16px;
+    line-height: 1.75;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -webkit-tap-highlight-color: transparent;
+    font-feature-settings: 'kern' 1;
   }
   input, textarea, select {
     font-size: max(16px, 1rem); /* prevents auto-zoom on iOS */
   }
-  /* Fixed 12/14/16/20/28/40/56px scale (spec — no fluid/arbitrary sizes).
-     Each level steps up exactly one rung between mobile and desktop,
-     drawn from the same six values throughout. */
+  /* Type scale (luxury refresh, 2026-10). Headings use the serif (Frank Ruhl Libre):
+     display sizes (h1/h2) at the lighter 500 weight — at large sizes it reads as engraved
+     and refined rather than heavy; smaller headings (h3-h6) at 700 so they stay crisp.
+     Hebrew is never letter-spaced: tracking breaks the letter shapes' rhythm. */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-headline leading-tight;
+    @apply font-headline;
     text-wrap: balance;
     letter-spacing: 0;
   }
-  h1, h2 {
-    /* Slightly expanded tracking on large display headings only, per
-       spec — the previous site-wide -0.02em (condensed) is dropped for
-       these two levels; smaller headings stay neutral. */
-    letter-spacing: 0.01em;
-  }
-  h1 { font-size: 40px; line-height: 1.1; font-weight: 700; }
-  h2 { font-size: 28px; line-height: 1.15; font-weight: 700; }
-  h3 { font-size: 20px; line-height: 1.2; font-weight: 700; }
-  h4 { font-size: 16px; line-height: 1.3; font-weight: 600; }
-  h5 { font-size: 14px; line-height: 1.35; font-weight: 600; }
-  h6 { font-size: 12px; line-height: 1.4; font-weight: 600; }
+  h1 { font-size: 36px; line-height: 1.12; font-weight: 500; }
+  h2 { font-size: 30px; line-height: 1.18; font-weight: 500; }
+  h3 { font-size: 20px; line-height: 1.3; font-weight: 700; }
+  h4 { font-size: 17px; line-height: 1.35; font-weight: 700; }
+  h5 { font-size: 15px; line-height: 1.4; font-weight: 700; }
+  h6 { font-size: 13px; line-height: 1.4; font-weight: 700; }
   @media (min-width: 768px) {
     h1 { font-size: 56px; }
-    h2 { font-size: 40px; }
-    h3 { font-size: 28px; }
-    h4 { font-size: 20px; }
+    h2 { font-size: 42px; }
+    h3 { font-size: 24px; }
+    h4 { font-size: 19px; }
     h5 { font-size: 16px; }
     h6 { font-size: 14px; }
   }
   p {
-    @apply leading-relaxed;
     text-wrap: pretty;
-    line-height: 1.78;
-    max-width: 64ch;
+    line-height: 1.75;
+    max-width: 68ch;
   }
   h1 + p, h2 + p, h3 + p, h4 + p { margin-top: 1rem; }
   p + p { margin-top: 0.95rem; }
-  html[dir='rtl'] {
-    word-spacing: 0.02em;
-  }
   section {
     scroll-margin-top: 6rem;
+  }
+  /* Keyboard focus is always visible (components with their own ring utility override this). */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: hsl(var(--accent) / 0.28);
+    color: hsl(var(--foreground));
   }
 }
 
@@ -125,19 +130,60 @@
   }
 
   .shadow-premium {
-    box-shadow: 0 24px 55px -34px rgba(13, 20, 34, 0.2), 0 12px 28px -22px rgba(13, 20, 34, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.52) inset;
+    box-shadow: 0 1px 2px hsl(var(--shadow-color) / 0.05), 0 14px 32px -22px hsl(var(--shadow-color) / 0.28);
   }
 
   .shadow-premium-lg {
-    box-shadow: 0 40px 96px -36px rgba(13, 20, 34, 0.24), 0 18px 40px -26px rgba(13, 20, 34, 0.14), 0 0 0 1px rgba(255, 255, 255, 0.62) inset;
+    box-shadow: 0 2px 4px hsl(var(--shadow-color) / 0.05), 0 28px 60px -30px hsl(var(--shadow-color) / 0.34);
   }
 
+  /* One vertical rhythm for every homepage/landing section. */
   .section-shell {
-    @apply py-12 md:py-36;
+    @apply py-16 md:py-28;
   }
 
+  /* Was bg-white/40 + backdrop-blur — a blur over a full-width scrolling section costs
+     scroll smoothness on phones for no visible gain on a flat background. */
   .section-surface {
-    @apply bg-white/40 backdrop-blur-sm;
+    @apply bg-card/60;
+  }
+
+  /* ── Type scale utilities ──────────────────────────────────────────────
+     eyebrow  → small gold label above a section title
+     title-*  → serif headings at fixed sizes (independent of the tag used)
+     lead     → intro paragraph under a title
+     price    → tabular figures for prices / counts */
+  .eyebrow {
+    @apply inline-flex items-center gap-2 font-body text-[13px] font-semibold leading-none text-accent-strong;
+    letter-spacing: 0.02em;
+  }
+  .eyebrow::before {
+    content: '';
+    @apply inline-block h-px w-6 bg-accent/70;
+  }
+  .title-display {
+    @apply font-headline text-[40px] font-medium leading-[1.08] text-primary md:text-[64px];
+  }
+  .title-section {
+    @apply font-headline text-[30px] font-medium leading-[1.18] text-primary md:text-[44px];
+  }
+  .title-card {
+    @apply font-headline text-[19px] font-bold leading-snug text-primary md:text-[21px];
+  }
+  .lead {
+    @apply text-[17px] leading-[1.75] text-primary/75 md:text-[19px];
+  }
+  .price {
+    @apply font-body font-extrabold tabular-nums text-primary;
+    font-feature-settings: 'tnum' 1, 'lnum' 1;
+  }
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Hairline gold rule used under section titles. */
+  .rule-gold {
+    @apply mx-auto h-px w-16 bg-gradient-to-l from-transparent via-accent to-transparent;
   }
 
   /* Thin brass-gold hairline divider, for use instead of heavy borders/

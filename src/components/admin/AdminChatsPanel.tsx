@@ -57,7 +57,7 @@ function initials(name: string) {
 // new backend work. participants is a plain TEXT[] of auth user ids (not FK-typed), so display
 // names come from a single batched `profiles` lookup rather than per-chat seller/customer
 // queries — profiles.full_name exists for every user regardless of role.
-export function AdminChatsPanel() {
+export function AdminChatsPanel({ initialFilter, waitingChatIds = [] }: { initialFilter?: string; waitingChatIds?: string[] } = {}) {
   const db = useSupabaseClient();
 
   const chatsQuery = useMemoStable(
@@ -67,7 +67,8 @@ export function AdminChatsPanel() {
   const { data: allChats, isLoading } = useCollection<ChatRow>(chatsQuery);
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [flaggedOnly, setFlaggedOnly] = useState(false);
+  const [filter, setFilter] = useState<'all' | 'flagged' | 'waiting'>(initialFilter === 'flagged' || initialFilter === 'waiting' ? initialFilter : 'all');
+  const waitingSet = useMemo(() => new Set(waitingChatIds), [waitingChatIds]);
   const [page, setPage] = useState(1);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
 
@@ -97,7 +98,8 @@ export function AdminChatsPanel() {
 
   const filteredChats = useMemo(() => {
     let list = allChats || [];
-    if (flaggedOnly) list = list.filter((c) => c.is_suspicious);
+    if (filter === 'flagged') list = list.filter((c) => c.is_suspicious);
+    if (filter === 'waiting') list = list.filter((c) => waitingSet.has(c.id));
     if (searchTerm.trim()) {
       const term = searchTerm.trim().toLowerCase();
       list = list.filter((c) =>
@@ -106,7 +108,7 @@ export function AdminChatsPanel() {
     }
     return list;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allChats, flaggedOnly, searchTerm, profileNames]);
+  }, [allChats, filter, waitingSet, searchTerm, profileNames]);
 
   const paginatedChats = filteredChats.slice((page - 1) * CHATS_PAGE_SIZE, page * CHATS_PAGE_SIZE);
   const totalPages = Math.max(1, Math.ceil(filteredChats.length / CHATS_PAGE_SIZE));
@@ -121,37 +123,37 @@ export function AdminChatsPanel() {
           <Input
             value={searchTerm}
             onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
-            placeholder="חיפוש לפי שם לקוח או סופר..."
+            placeholder="חיפוש לפי שם לקוח או מוכר..."
             className="border-none bg-transparent h-auto p-0 shadow-none focus-visible:ring-0 text-sm font-bold"
           />
         </div>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => { setFlaggedOnly(false); setPage(1); }}
-            className={cn(
-              "px-4 h-9 rounded-full text-[11px] font-black border-2 transition-all",
-              !flaggedOnly ? "bg-primary text-primary-foreground border-primary" : "border-primary/10 text-primary/60",
-            )}
-          >
-            הכל
-          </button>
-          <button
-            type="button"
-            onClick={() => { setFlaggedOnly(true); setPage(1); }}
-            className={cn(
-              "px-4 h-9 rounded-full text-[11px] font-black border-2 transition-all flex items-center gap-1.5",
-              flaggedOnly ? "bg-destructive text-destructive-foreground border-destructive" : "border-destructive/25 text-destructive",
-            )}
-          >
-            <ShieldAlert className="w-3.5 h-3.5" /> מסומן כחשוד
-          </button>
+        <div className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1">
+          {([
+            { id: 'all', label: 'הכל' },
+            { id: 'waiting', label: `ממתינות לתשובת מוכר${waitingChatIds.length ? ` (${waitingChatIds.length})` : ''}` },
+            { id: 'flagged', label: 'מסומנות כחשודות' },
+          ] as const).map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              onClick={() => { setFilter(f.id); setPage(1); }}
+              aria-pressed={filter === f.id}
+              className={cn(
+                "flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-4 text-xs font-bold transition-all",
+                filter === f.id
+                  ? (f.id === 'flagged' ? "border-destructive bg-destructive text-destructive-foreground" : "border-primary bg-primary text-primary-foreground")
+                  : (f.id === 'flagged' ? "border-destructive/25 bg-white text-destructive" : "border-primary/10 bg-white text-primary/70"),
+              )}
+            >
+              {f.id === 'flagged' && <ShieldAlert className="h-3.5 w-3.5" />} {f.label}
+            </button>
+          ))}
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-5 items-start">
         <div className="rounded-[1.75rem] bg-white border shadow-premium overflow-hidden">
-          <div className="px-5 py-3 border-b text-[10px] font-black uppercase tracking-widest text-primary/50">
+          <div className="px-5 py-3 border-b text-xs font-bold text-primary/60">
             {isLoading ? 'טוען...' : `${filteredChats.length} שיחות`}
           </div>
           <div className="max-h-[560px] overflow-y-auto divide-y">
@@ -188,6 +190,11 @@ export function AdminChatsPanel() {
                     <p className="text-[11px] font-medium text-muted-foreground truncate mt-0.5">
                       {chat.last_message_text || 'אין הודעות עדיין'}
                     </p>
+                    {waitingSet.has(chat.id) && (
+                      <span className="inline-flex items-center gap-1 mt-1.5 ml-1 text-[11px] font-bold text-accent-strong bg-accent/10 rounded-full px-2 py-0.5">
+                        ממתין לתשובת המוכר
+                      </span>
+                    )}
                     {chat.is_suspicious && (
                       <span className="inline-flex items-center gap-1 mt-1.5 text-[9px] font-black text-destructive bg-destructive/5 rounded-full px-2 py-0.5">
                         <ShieldAlert className="w-2.5 h-2.5" /> ניסיון עקיפה — פרטי קשר
@@ -199,7 +206,7 @@ export function AdminChatsPanel() {
             })}
           </div>
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 p-3 border-t">
+            <div className="flex flex-wrap items-center justify-center gap-2 p-3 border-t">
               {Array.from({ length: totalPages }).map((_, i) => (
                 <button
                   key={i}

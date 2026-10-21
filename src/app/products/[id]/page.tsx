@@ -74,7 +74,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description = `${description.slice(0, MAX_DESCRIPTION_LENGTH - 1).trimEnd()}…`;
     }
 
-    let imageUrl = 'https://www.hotam.shop/og-image-v2.jpg';
+    let imageUrl = 'https://www.hotam.shop/og-image-v3.jpg';
     if (Array.isArray(fields.images) && fields.images.length > 0) {
       imageUrl = fields.images[0];
     }

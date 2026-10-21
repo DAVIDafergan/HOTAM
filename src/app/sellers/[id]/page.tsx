@@ -5,7 +5,7 @@ import { SiteFooter } from '@/components/SiteFooter';
 import { resolveSellerType } from '@/lib/product-catalog';
 import { getPublicSellerById, getPublicSellerPageData } from '@/lib/storefront-data';
 
-const DEFAULT_OG_IMAGE = 'https://www.hotam.shop/og-image-v2.jpg';
+const DEFAULT_OG_IMAGE = 'https://www.hotam.shop/og-image-v3.jpg';
 
 // Without this, notFound() renders the correct not-found content but Vercel
 // keeps serving it with a 200 status (confirmed live) — this route isn't a

@@ -78,7 +78,7 @@ export const metadata: Metadata = {
     images: [
       {
         // Versioned name: WhatsApp/Facebook cache link previews by image URL.
-        url: '/og-image-v2.jpg',
+        url: '/og-image-v3.jpg',
         width: 1200,
         height: 630,
         type: 'image/jpeg',
@@ -90,7 +90,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'חותם - כלי קודש מהודרים',
     description: 'זירת המסחר היוקרתית של עולם הסת\'\'ם.',
-    images: ['https://www.hotam.shop/og-image-v2.jpg'],
+    images: ['https://www.hotam.shop/og-image-v3.jpg'],
   },
   icons: {
     icon: [

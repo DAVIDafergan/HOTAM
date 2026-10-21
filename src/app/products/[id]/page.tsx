@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { ProductDetailsClient } from './ProductDetailsClient';
+import { SiteFooter } from '@/components/SiteFooter';
 import { isJudaicaProductType } from '@/lib/product-catalog';
 import { getPublicProductById, getPublicProductReviews, getPublicSellerById, getPublicSellerReviews } from '@/lib/storefront-data';
 
@@ -222,6 +223,7 @@ export default async function ProductPage({ params }: Props) {
         initialReviews={reviews}
         sellerRating={sellerRating}
       />
+      <SiteFooter className="pb-20 sm:pb-24 md:pb-28" />
     </>
   );
 }

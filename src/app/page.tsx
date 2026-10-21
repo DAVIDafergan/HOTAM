@@ -16,6 +16,7 @@ import { StaggerGrid, StaggerItem } from '@/components/StaggerGrid';
 import { MotionTap } from '@/components/MotionTap';
 import SignatureInkAnimation from '@/components/SignatureInkAnimationLoader';
 import { HomeJudaicaSection } from '@/components/HomeJudaicaSection';
+import { SiteFooter } from '@/components/SiteFooter';
 
 // The route no longer touches cookies() anywhere in its render tree (product/scribe data is
 // fetched with the public anon client in storefront-data.ts; the one per-user bit — whether to
@@ -117,34 +118,7 @@ export default function Home() {
         <HomeDeferredSections />
       </main>
 
-      <footer className="bg-white border-t py-10 md:py-16">
-        <div className="container mx-auto px-4 flex flex-col items-center justify-center space-y-6">
-          <Link href="/" aria-label="חותם - דף הבית" className="flex items-center gap-3 hover:opacity-80 transition-opacity whitespace-nowrap">
-            <svg
-              width="40"
-              height="40"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-primary w-10 h-10 shrink-0"
-            >
-              <path d="m12 19 7-7 3 3-7 7-3-3z" />
-              <path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
-              <path d="m2 2 5 5" />
-              <path d="m11 11l1 1" />
-            </svg>
-            <span className="text-3xl font-headline font-black text-primary tracking-tighter uppercase whitespace-nowrap shrink-0">HOTAM</span>
-          </Link>
-          <div className="text-center space-y-1">
-            <p className="text-sm font-bold text-primary/60">נבנה ע"י DA ניהול פרויקטים</p>
-            <p className="text-xs font-medium text-muted-foreground/30 tracking-[0.4em] uppercase">Sacred Scribal Art © 2024</p>
-            <Link href="/terms" className="text-xs font-bold text-muted-foreground/50 hover:text-primary transition-colors underline underline-offset-2">תקנון ותנאי שימוש</Link>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

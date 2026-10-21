@@ -1,4 +1,5 @@
 import { Navbar } from '@/components/Navbar';
+import { SiteFooter } from '@/components/SiteFooter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function TermsPage() {
@@ -112,6 +113,7 @@ export default function TermsPage() {
           </CardContent>
         </Card>
       </main>
+      <SiteFooter />
     </div>
   );
 }

@@ -44,7 +44,7 @@ const AlertDialogContent = React.forwardRef<
     >
       {children}
       <AlertDialogPrimitive.Cancel
-        className="absolute right-4 top-4 z-20 inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-primary/70 shadow-sm transition-colors hover:bg-secondary hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+        className="absolute left-4 top-4 z-20 inline-flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-primary/70 shadow-sm transition-colors hover:bg-secondary hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
         aria-label="סגור חלון"
       >
         <X className="h-4 w-4" />

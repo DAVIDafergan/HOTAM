@@ -1146,26 +1146,28 @@ function SellerDashboardContent() {
   return (
     <div className="flex flex-col w-full gap-6 md:gap-8">
       {/* ── Welcome Banner ────────────────────────────────────────────── */}
-      <div className="rounded-[2rem] bg-gradient-to-l from-primary to-primary/80 text-white p-6 md:p-8 shadow-xl">
+      <div className="relative overflow-hidden rounded-[2rem] bg-primary text-white p-6 md:p-8 shadow-premium-lg">
+        <div className="pointer-events-none absolute inset-x-10 bottom-0 h-px bg-gradient-to-l from-transparent via-[#E2B35B]/60 to-transparent" />
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
           <div className="flex items-center gap-4 text-start">
-            <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white/10 flex items-center justify-center shrink-0 border border-white/20 overflow-hidden">
+            <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-white/10 flex items-center justify-center shrink-0 ring-1 ring-[#E2B35B]/50 overflow-hidden">
               {profileData.profile_image
-                ? <Image src={profileData.profile_image} alt="profile" width={64} height={64} kind="avatar" sizes="64px" className="rounded-2xl object-cover w-full h-full" />
+                ? <Image src={profileData.profile_image} alt="profile" width={64} height={64} kind="avatar" sizes="64px" className="rounded-full object-cover w-full h-full" />
                 : <UserRound className="w-8 h-8 text-white/70" />}
             </div>
             <div>
-              <p className="text-xs font-bold text-white/70 uppercase tracking-widest mb-0.5">לוח בקרה</p>
-              <h1 className="text-2xl md:text-3xl font-headline font-black tracking-tight">שלום, {seller?.first_name} 👋</h1>
-              <div className="flex items-center gap-2 text-emerald-300 font-bold text-xs mt-1" data-seller-type-badge={sellerType}>
-                <CheckCircle2 className="w-3.5 h-3.5" />
+              <p className="text-[13px] font-semibold text-[#E2B35B] mb-1">לוח בקרה</p>
+              <h1 className="text-[28px] md:text-[38px] font-headline font-medium leading-tight">שלום, {seller?.first_name}</h1>
+              <div className="flex items-center gap-1.5 text-emerald-300 font-semibold text-[13px] mt-1.5" data-seller-type-badge={sellerType}>
+                <CheckCircle2 className="w-4 h-4" />
                 <span>{isStamSeller ? 'סופר סת"ם מאומת' : `${SELLER_TYPE_LABELS[sellerType]} מאושר`}</span>
               </div>
             </div>
           </div>
           <Button
             onClick={() => { resetForm(); setIsDialogOpen(true); }}
-            className="bg-accent text-primary hover:bg-accent/90 rounded-2xl px-6 h-12 font-black shadow-lg transition-all gap-2 shrink-0 w-full md:w-auto"
+            variant="gold"
+            className="px-6 h-12 gap-2 shrink-0 w-full md:w-auto"
           >
             <Plus className="w-5 h-5" /> העלאת מוצר חדש
           </Button>
@@ -1178,7 +1180,7 @@ function SellerDashboardContent() {
           data-stam-upgrade-status={stamUpgradeStatus}
           className={cn(
             "flex flex-col gap-4 rounded-[2rem] border p-5 shadow-premium md:flex-row md:items-center md:p-6",
-            stamUpgradeStatus === 'pending' ? "border-amber-200 bg-amber-50/70" : "border-accent/30 bg-white"
+            stamUpgradeStatus === 'pending' ? "border-amber-200 bg-amber-50/70" : "border-accent/30 bg-card"
           )}
         >
           <span className={cn(
@@ -1206,7 +1208,7 @@ function SellerDashboardContent() {
             )}
           </div>
           {stamUpgradeStatus !== 'pending' && (
-            <Button asChild className="h-12 shrink-0 rounded-2xl bg-primary px-6 font-black text-primary-foreground hover:bg-accent hover:text-primary">
+            <Button asChild className="h-12 shrink-0 px-6">
               <Link href="/onboarding/seller?upgrade=stam">{stamUpgradeStatus === 'rejected' ? 'הגשת בקשה חדשה' : 'לשדרוג לסופר סת"ם'}</Link>
             </Button>
           )}
@@ -1215,20 +1217,20 @@ function SellerDashboardContent() {
 
       {/* ── Quick Stats ───────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-        <QuickStat label="יתרה למוכר" value={`₪${totalNetEarnings.toFixed(0)}`} icon={<Banknote className="w-4 h-4" />} color="bg-emerald-50 text-emerald-600" />
-        <QuickStat label="מוצרים" value={String(products.length)} icon={<Package className="w-4 h-4" />} color="bg-blue-50 text-blue-600" />
-        <QuickStat label="הודעות" value={String(unreadCount)} icon={<MessageSquare className="w-4 h-4" />} color="bg-purple-50 text-purple-600" highlight={unreadCount > 0} />
-        <QuickStat label="סטטוס" value="פעיל" icon={<TrendingUp className="w-4 h-4" />} color="bg-orange-50 text-orange-600" />
+        <QuickStat label="יתרה למוכר" value={`₪${totalNetEarnings.toFixed(0)}`} icon={<Banknote className="w-4 h-4" />} color="bg-secondary/80 text-accent-strong" />
+        <QuickStat label="מוצרים" value={String(products.length)} icon={<Package className="w-4 h-4" />} color="bg-secondary/80 text-accent-strong" />
+        <QuickStat label="הודעות" value={String(unreadCount)} icon={<MessageSquare className="w-4 h-4" />} color="bg-secondary/80 text-accent-strong" highlight={unreadCount > 0} />
+        <QuickStat label="סטטוס" value="פעיל" icon={<TrendingUp className="w-4 h-4" />} color="bg-secondary/80 text-accent-strong" />
       </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           {/* Desktop tab bar */}
-          <TabsList className="hidden md:flex bg-white/60 backdrop-blur-md p-1.5 rounded-3xl shadow-premium h-16 border">
+          <TabsList className="hidden md:flex w-full bg-card p-1.5 rounded-full shadow-premium h-14 border border-border/70">
             {navItems.map((item) => (
-              <TabsTrigger key={item.id} value={item.id} className="flex-1 rounded-2xl data-[state=active]:bg-accent data-[state=active]:text-primary gap-2 text-xs font-black uppercase transition-all">
+              <TabsTrigger key={item.id} value={item.id} className="flex-1 h-full rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2 text-[15px] font-semibold transition-colors">
                 {item.icon}
                 {item.label}
-                {item.badge ? <Badge className="bg-destructive text-white border-none rounded-full px-1.5 py-0.5 text-2xs ml-1">{item.badge}</Badge> : null}
+                {item.badge ? <Badge className="bg-destructive text-white border-none rounded-full px-1.5 py-0.5 text-xs num">{item.badge}</Badge> : null}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -1237,7 +1239,7 @@ function SellerDashboardContent() {
           <div className="md:hidden">
             <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
               <SheetTrigger asChild>
-                <button className="w-full flex items-center justify-between bg-white rounded-2xl shadow-premium border border-primary/5 px-5 h-14 font-black text-primary text-sm">
+                <button className="w-full flex items-center justify-between bg-card rounded-2xl shadow-premium border border-border/70 px-5 h-14 font-bold text-primary text-[15px]">
                   <div className="flex items-center gap-3">
                     {navItems.find(i => i.id === activeTab)?.icon}
                     <span>{navItems.find(i => i.id === activeTab)?.label}</span>
@@ -1250,13 +1252,13 @@ function SellerDashboardContent() {
                   </div>
                 </button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[280px] p-0 border-none bg-white rounded-l-[2.5rem]">
+              <SheetContent side="right" className="w-[300px] p-0 border-none bg-card rounded-l-[2rem]">
                 <SheetHeader className="sr-only">
                   <SheetTitle>{isStamSeller ? 'תפריט ניהול סופר' : 'תפריט ניהול החנות'}</SheetTitle>
                   <SheetDescription>מעבר בין מלאי, מכירות, הודעות והגדרות חשבון</SheetDescription>
                 </SheetHeader>
-                <div className="bg-gradient-to-b from-primary to-primary/80 p-8 text-white">
-                  <h2 className="text-white font-headline font-black text-xl flex items-center gap-3">
+                <div className="bg-primary p-7 pl-16 text-white">
+                  <h2 className="text-white font-headline font-bold text-xl flex items-center gap-3">
                     <LayoutDashboard className="w-5 h-5 text-accent" /> {isStamSeller ? 'ניהול סופר' : 'ניהול החנות'}
                   </h2>
                   <p className="text-white/70 text-xs font-bold mt-1">{seller?.first_name} {seller?.last_name}</p>
@@ -1267,14 +1269,14 @@ function SellerDashboardContent() {
                       key={item.id}
                       onClick={() => { setActiveTab(item.id); setIsMobileNavOpen(false); }}
                       className={cn(
-                        "w-full flex items-center justify-between p-4 rounded-2xl transition-all font-black text-sm",
-                        activeTab === item.id ? "bg-accent text-primary shadow-lg" : "text-primary/60 hover:bg-primary/5"
+                        "w-full flex items-center justify-between min-h-[52px] px-4 rounded-2xl transition-colors font-semibold text-base",
+                        activeTab === item.id ? "bg-primary text-primary-foreground" : "text-primary/80 hover:bg-secondary/50"
                       )}
                     >
                       <div className="flex items-center gap-3">{item.icon}<span>{item.label}</span></div>
                       {item.badge
                         ? <Badge className="bg-destructive text-white border-none rounded-full px-2 py-0.5 text-xs">{item.badge}</Badge>
-                        : <ChevronLeft className="w-4 h-4 opacity-30" />}
+                        : <ChevronLeft className="w-4 h-4 opacity-50" />}
                     </button>
                   ))}
                 </div>
@@ -1286,30 +1288,30 @@ function SellerDashboardContent() {
              {isProductsLoading ? (
                <div className="py-24 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary/40" /></div>
              ) : products.length === 0 ? (
-               <div className="py-24 text-center bg-white rounded-[2rem] border-2 border-dashed text-muted-foreground">אין מוצרים במלאי. לחץ על כפתור הפלוס להוספה.</div>
+               <div className="py-20 px-6 text-center bg-card/60 rounded-[2rem] border border-dashed border-primary/20 text-[15px] text-primary/75">אין מוצרים במלאי. לחצו על "העלאת מוצר חדש" כדי להוסיף.</div>
              ) : null}
              {!isProductsLoading && paginatedProducts.map((p: any) => (
-               <Card key={p.id} className="border-none shadow-premium rounded-[2rem] bg-white p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
-                 <div className="w-20 h-20 bg-muted rounded-2xl shrink-0 overflow-hidden relative border"><Image src={p.images?.[0] || logoImg} alt="product" fill kind="product" sizes="80px" className="object-cover" /></div>
+               <Card key={p.id} className="border-border/70 shadow-premium rounded-[1.75rem] bg-card p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
+                 <div className="w-20 h-20 bg-secondary/60 rounded-2xl shrink-0 overflow-hidden relative border border-border/70"><Image src={p.images?.[0] || logoImg} alt="product" fill kind="product" sizes="80px" className="object-cover" /></div>
                  <div className="flex-1 text-right w-full">
-                    <p className="font-black text-lg text-primary">{p.product_type}</p>
-                    <p className="text-xs text-muted-foreground font-bold">
+                    <p className="font-headline font-bold text-lg text-primary">{p.product_type}</p>
+                    <p className="text-[13px] text-muted-foreground">
                       {isStamProductType(p.product_type)
                         ? `${p.script_type || ''} | ${p.script_level || ''}`
                         : [p.sub_type, ...Object.values(p.attributes || {}).filter((v) => typeof v === 'string')].filter(Boolean).slice(0, 3).join(' | ')}
                     </p>
-                    <div className="flex items-center justify-end gap-3 mt-2">
-                       <Badge variant="secondary" className="font-black text-xs">₪{Number(p.price || 0).toLocaleString('he-IL')}</Badge>
-                       <div className="flex items-center bg-muted/30 rounded-full px-2 py-1 gap-2 border">
-                          <button onClick={() => updateStock(p.id, -1)} disabled={p.quantity <= 0} aria-label="הפחת מהמלאי" className="w-9 h-9 rounded-full bg-white shadow-sm flex items-center justify-center hover:bg-destructive/10 text-destructive disabled:opacity-30"><Minus className="w-3.5 h-3.5" /></button>
-                          <span className="text-xs font-black text-primary px-1">מלאי: {p.quantity}</span>
-                          <button onClick={() => updateStock(p.id, 1)} aria-label="הוסף למלאי" className="w-9 h-9 rounded-full bg-white shadow-sm flex items-center justify-center hover:bg-emerald-100 text-emerald-600"><Plus className="w-3.5 h-3.5" /></button>
+                    <div className="flex flex-wrap items-center justify-start gap-3 mt-2.5">
+                       <Badge variant="secondary" className="text-[13px] font-bold num" dir="ltr">₪{Number(p.price || 0).toLocaleString('he-IL')}</Badge>
+                       <div className="flex items-center bg-secondary/40 rounded-full px-1.5 py-1 gap-2 border border-border">
+                          <button onClick={() => updateStock(p.id, -1)} disabled={p.quantity <= 0} aria-label="הפחת מהמלאי" className="w-10 h-10 rounded-full bg-card shadow-sm flex items-center justify-center hover:bg-destructive/10 text-destructive disabled:opacity-30"><Minus className="w-3.5 h-3.5" /></button>
+                          <span className="text-[13px] font-semibold text-primary px-1 num">מלאי: {p.quantity}</span>
+                          <button onClick={() => updateStock(p.id, 1)} aria-label="הוסף למלאי" className="w-10 h-10 rounded-full bg-card shadow-sm flex items-center justify-center hover:bg-emerald-100 text-emerald-700"><Plus className="w-3.5 h-3.5" /></button>
                        </div>
                     </div>
                  </div>
                  <div className="flex gap-2 shrink-0">
-                    <Button variant="outline" size="icon" onClick={() => openEditDialog(p)} className="rounded-full hover:bg-accent hover:text-primary transition-all"><Edit className="w-4 h-4" /></Button>
-                    <Button variant="outline" size="icon" onClick={() => handleDeleteProduct(p.id)} className="text-destructive rounded-full hover:bg-destructive hover:text-white transition-all"><Trash2 className="w-4 h-4" /></Button>
+                    <Button variant="outline" size="icon" onClick={() => openEditDialog(p)} aria-label="עריכת מוצר" className="rounded-full"><Edit className="w-4 h-4" /></Button>
+                    <Button variant="outline" size="icon" onClick={() => handleDeleteProduct(p.id)} aria-label="מחיקת מוצר" className="text-destructive rounded-full hover:bg-destructive hover:text-white hover:border-destructive"><Trash2 className="w-4 h-4" /></Button>
                   </div>
                 </Card>
               ))}
@@ -1329,7 +1331,7 @@ function SellerDashboardContent() {
                      productTypeById.get(o.product_id) ||
                      (isStamSeller ? 'מוצר קודש' : 'מוצר');
                    return (
-                     <Card key={o.id} className={cn("border-none shadow-premium rounded-[2rem] bg-white overflow-hidden text-right transition-all", isExpanded ? "ring-2 ring-primary/10" : "hover:shadow-lg")}>
+                     <Card key={o.id} className={cn("border-border/70 shadow-premium rounded-[1.75rem] bg-card overflow-hidden text-right transition-shadow", isExpanded ? "ring-1 ring-primary/30" : "hover:shadow-premium-lg")}>
                        <div 
                          className="p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 cursor-pointer group"
                          onClick={() => {
@@ -1340,27 +1342,27 @@ function SellerDashboardContent() {
                          }}
                        >
                          <div className="flex items-center gap-4 w-full sm:w-auto">
-                            <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center transition-colors", o.status === 'completed' ? 'bg-emerald-50 text-emerald-600' : isTorahRequest ? 'bg-accent/10 text-accent' : 'bg-primary/5 text-primary')}>
+                            <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center transition-colors", o.status === 'completed' ? 'bg-emerald-50 text-emerald-700' : isTorahRequest ? 'bg-accent/10 text-accent-strong' : 'bg-secondary/70 text-primary')}>
                               {isTorahRequest ? <Scroll className="w-6 h-6" /> : <ShoppingBag className="w-6 h-6" />}
                             </div>
                             <div className="text-right flex-1">
-                               <p className="font-black text-primary text-base leading-tight group-hover:text-accent transition-colors">{orderProductName}</p>
-                               <div className="flex items-center gap-2 mt-1">
-                                 <Badge className={cn("border-none font-black text-2xs uppercase px-2 py-0.5", o.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : isTorahRequest ? 'bg-accent/10 text-accent' : 'bg-blue-100 text-blue-700')}>
+                               <p className="font-headline font-bold text-primary text-[17px] leading-tight">{orderProductName}</p>
+                               <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                                 <Badge className={cn("border-none text-xs px-2.5 py-1", o.status === 'completed' ? 'bg-emerald-50 text-emerald-800' : isTorahRequest ? 'bg-accent/10 text-accent-strong' : 'bg-secondary text-primary')}>
                                    {o.status === 'completed' ? 'הושלם ושולם' : isTorahRequest ? 'בקשת תיאום והתרשמות' : 'ממתין למסירה'}
                                  </Badge>
-                                 <span className="text-xs text-muted-foreground font-bold">#{o.id?.slice(0, 8)}</span>
-                                 {!o.is_seen_by_seller && <Badge className="bg-accent text-primary border-none text-2xs font-black uppercase">חדש!</Badge>}
+                                 <span className="text-xs text-muted-foreground num" dir="ltr">#{o.id?.slice(0, 8)}</span>
+                                 {!o.is_seen_by_seller && <Badge className="bg-accent text-primary border-none text-xs">חדש!</Badge>}
                                </div>
                             </div>
                          </div>
                          
                          <div className="flex items-center justify-between w-full sm:w-auto gap-8">
                             <div className="text-right">
-                               <p className="text-lg font-black text-primary leading-none">₪{o.amount}</p>
-                               <p className="text-2xs text-muted-foreground font-bold uppercase mt-1">סה"כ בעסקה</p>
+                               <p className="price text-xl leading-none" dir="ltr">₪{o.amount}</p>
+                               <p className="text-xs text-muted-foreground mt-1">סה"כ בעסקה</p>
                             </div>
-                            <div className={cn("p-2 rounded-full transition-transform", isExpanded ? "rotate-180 bg-accent text-primary" : "bg-muted text-primary/40 group-hover:bg-accent group-hover:text-primary")}>
+                            <div className={cn("p-2 rounded-full transition-transform", isExpanded ? "rotate-180 bg-primary text-primary-foreground" : "bg-secondary/70 text-primary/70 group-hover:bg-secondary")}>
                                <ChevronDown className="w-4 h-4" />
                             </div>
                          </div>
@@ -1372,7 +1374,7 @@ function SellerDashboardContent() {
                              initial={{ height: 0, opacity: 0 }}
                              animate={{ height: 'auto', opacity: 1 }}
                              exit={{ height: 0, opacity: 0 }}
-                             className="overflow-hidden border-t border-primary/5 bg-secondary/40/30"
+                             className="overflow-hidden border-t border-border/70 bg-secondary/30"
                            >
                              {isTorahRequest ? (
                                <div className="p-10 text-center space-y-6">
@@ -1380,13 +1382,13 @@ function SellerDashboardContent() {
                                     <MessageCircle className="w-10 h-10 text-accent" />
                                   </div>
                                   <div className="max-w-md mx-auto space-y-3">
-                                    <h3 className="text-2xl font-headline font-black text-primary">מתעניינים בספר תורה שלך!</h3>
+                                    <h3 className="text-2xl font-headline font-bold text-primary">מתעניינים בספר תורה שלך!</h3>
                                     <p className="text-base text-primary/70 font-medium leading-relaxed">
                                       בשל אופי המוצר, הפרטים האישיים מנוהלים על ידי צוות 'חותם'. אנא צור איתנו קשר לתיאום פגישה אישית להתרשמות הלקוח מהספר.
                                     </p>
                                   </div>
                                   <div className="pt-4 space-y-2">
-                                    <Button asChild className="bg-accent text-primary hover:bg-accent/90 rounded-full px-12 h-14 font-black uppercase tracking-widest shadow-xl gap-3">
+                                    <Button asChild variant="gold" size="lg" className="px-10 gap-3">
                                       <a href={`https://wa.me/${PLATFORM_WHATSAPP_NUMBER}`} target="_blank" rel="noopener noreferrer">
                                         צרו קשר עם הנהלת האתר
                                       </a>
@@ -1398,38 +1400,38 @@ function SellerDashboardContent() {
                                <>
                                  <div className="p-6 md:p-8 grid md:grid-cols-2 gap-8">
                                     <div className="space-y-4">
-                                       <h4 className="font-black text-xs uppercase text-primary/60 flex items-center justify-end gap-2">פרטי לקוח למשלוח <Truck className="w-4 h-4" /></h4>
-                                       <div className="bg-white p-6 rounded-[2rem] border border-primary/5 space-y-3 shadow-sm">
-                                          <div className="flex justify-between items-center"><span className="text-sm font-bold text-primary">{o.buyer_name}</span><span className="text-xs text-muted-foreground font-black">שם מלא</span></div>
-                                          <div className="flex justify-between items-center"><span className="text-sm font-bold text-primary">{o.buyer_phone}</span><span className="text-xs text-muted-foreground font-black">טלפון</span></div>
-                                          <div className="flex justify-between items-center"><span className="text-sm font-bold text-primary">{o.buyer_address}</span><span className="text-xs text-muted-foreground font-black">כתובת</span></div>
+                                       <h4 className="font-bold text-[15px] text-primary flex items-center justify-start gap-2"><Truck className="w-4 h-4 text-accent-strong" /> פרטי לקוח למשלוח</h4>
+                                       <div className="bg-card p-5 rounded-2xl border border-border/70 space-y-3">
+                                          <div className="flex justify-between items-center gap-3"><span className="text-[13px] text-muted-foreground">שם מלא</span><span className="text-[15px] font-semibold text-primary">{o.buyer_name}</span></div>
+                                          <div className="flex justify-between items-center gap-3"><span className="text-[13px] text-muted-foreground">טלפון</span><span className="text-[15px] font-semibold text-primary" dir="ltr">{o.buyer_phone}</span></div>
+                                          <div className="flex justify-between items-center gap-3"><span className="text-[13px] text-muted-foreground">כתובת</span><span className="text-[15px] font-semibold text-primary text-left">{o.buyer_address}</span></div>
                                        </div>
                                     </div>
                                     <div className="space-y-4">
-                                       <h4 className="font-black text-xs uppercase text-primary/60 flex items-center justify-end gap-2">אישור מסירה <ShieldCheck className="w-4 h-4" /></h4>
-                                       <div className={cn("bg-white p-6 rounded-[2rem] border space-y-4 shadow-sm", o.status === 'completed' ? 'border-emerald-100' : 'border-blue-100')}>
+                                       <h4 className="font-bold text-[15px] text-primary flex items-center justify-start gap-2"><ShieldCheck className="w-4 h-4 text-accent-strong" /> אישור מסירה</h4>
+                                       <div className={cn("bg-card p-5 rounded-2xl border space-y-4", o.status === 'completed' ? 'border-emerald-200' : 'border-border/70')}>
                                           {o.status === 'completed' ? <div className="text-center py-4"><CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" /><p className="font-black text-emerald-600 text-sm mt-2">העסקה הושלמה והתשלום שוחרר</p></div> : (
                                             <>
-                                              <p className="text-xs font-bold text-primary/70">הזן קוד אימות מהלקוח לשחרור התשלום:</p>
+                                              <p className="text-sm font-medium text-primary/80">הזן קוד אימות מהלקוח לשחרור התשלום:</p>
                                               <div className="flex gap-3">
                                                 <Input placeholder="קוד 6 ספרות" className="text-center font-black h-12 rounded-xl" value={verificationCodes[o.id] || ''} onChange={e => setVerificationCodes({...verificationCodes, [o.id]: e.target.value})} />
-                                                <Button onClick={() => handleVerifyOrder(o)} disabled={isVerifying === o.id || !verificationCodes[o.id]} className="bg-accent text-primary h-12 rounded-xl px-8 font-black">אמת קוד</Button>
+                                                <Button onClick={() => handleVerifyOrder(o)} disabled={isVerifying === o.id || !verificationCodes[o.id]} className="h-12 px-8">אמת קוד</Button>
                                               </div>
-                                              <p className="text-2xs text-muted-foreground text-center">הקוד נשלח ללקוח בעת התשלום ומופיע לו בלוח הבקרה.</p>
+                                              <p className="text-[13px] text-muted-foreground text-center">הקוד נשלח ללקוח בעת התשלום ומופיע לו בלוח הבקרה.</p>
                                             </>
                                           )}
                                        </div>
                                     </div>
                                  </div>
-                                 <div className="px-8 pb-8 flex flex-col md:flex-row items-center justify-between gap-4 border-t border-primary/5 pt-6 bg-white/40">
-                                    <div className="flex items-center gap-6 text-xs font-bold text-primary/65">
+                                 <div className="px-6 md:px-8 pb-7 flex flex-col md:flex-row items-center justify-between gap-4 border-t border-border/70 pt-6 bg-card/50">
+                                    <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-[13px] text-primary/70 num">
                                        <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> נוצר ב: {o.created_at?.toDate ? o.created_at.toDate().toLocaleDateString('he-IL') : '-'}</span>
                                        {o.completed_at && <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> הושלם ב: {new Date(o.completed_at).toLocaleDateString('he-IL')}</span>}
                                     </div>
                                     <div className="flex items-center gap-4">
                                        <div className="text-right">
                                           <p className="text-2xs font-black text-muted-foreground uppercase leading-none">{isStamSeller ? 'הכנסה נטו לסופר (לאחר עמלת אתר):' : 'הכנסה נטו למוכר (לאחר עמלת אתר):'}</p>
-                                          <p className="text-xl font-black text-emerald-600">₪{resolveSellerNet(o).toFixed(0)}</p>
+                                          <p className="price text-xl text-emerald-800" dir="ltr">₪{resolveSellerNet(o).toFixed(0)}</p>
                                        </div>
                                     </div>
                                  </div>
@@ -1443,7 +1445,7 @@ function SellerDashboardContent() {
                  })}
                  <Pagination current={salesPage} total={orders.length} onChange={setSalesPage} />
                </div>
-             ) : <div className="py-20 text-center text-muted-foreground">אין מכירות רשומות.</div>}
+             ) : <div className="py-20 px-6 text-center bg-card/60 rounded-[2rem] border border-dashed border-primary/20 text-[15px] text-primary/75">אין מכירות רשומות עדיין.</div>}
           </TabsContent>
 
           <TabsContent value="chats" className="space-y-4">
@@ -1456,12 +1458,12 @@ function SellerDashboardContent() {
                  })}
                  <Pagination current={chatsPage} total={chats.length} onChange={setChatsPage} />
                </div>
-             ) : <div className="py-24 text-center bg-white rounded-[2rem] border-2 border-dashed text-muted-foreground">אין הודעות חדשות.</div>}
+             ) : <div className="py-20 px-6 text-center bg-card/60 rounded-[2rem] border border-dashed border-primary/20 text-[15px] text-primary/75">אין הודעות חדשות.</div>}
           </TabsContent>
 
           <TabsContent value="settings">
-             <Card className="p-5 sm:p-8 md:p-12 border-none shadow-premium rounded-[3rem] bg-white text-right">
-                <div className="flex items-center justify-between border-b pb-6 mb-10"><h2 className="text-2xl font-black text-primary">הגדרות ופרופיל אישי</h2><Settings className="w-6 h-6 text-accent" /></div>
+             <Card className="p-5 sm:p-8 md:p-12 border-border/70 shadow-premium rounded-[2rem] bg-card text-right">
+                <div className="flex items-center justify-start gap-3 border-b border-border pb-6 mb-10"><span className="flex h-11 w-11 items-center justify-center rounded-full bg-secondary/70"><Settings className="w-5 h-5 text-accent-strong" /></span><h2 className="font-headline text-2xl md:text-[28px] font-bold text-primary">הגדרות ופרופיל אישי</h2></div>
                 
                 <div className="grid md:grid-cols-3 gap-8 md:gap-12">
                    <div className="space-y-8">
@@ -1556,7 +1558,7 @@ function SellerDashboardContent() {
                       {isStamSeller ? (
                       <>
                       <div className="pt-8 border-t space-y-8">
-                        <h3 className="text-lg font-black text-primary flex items-center gap-2"><Scroll className="w-5 h-5 text-accent" /> פרטי הסופר</h3>
+                        <h3 className="font-headline text-xl font-bold text-primary flex items-center gap-2"><Scroll className="w-5 h-5 text-accent-strong" /> פרטי הסופר</h3>
                         <div className="space-y-4 text-right">
                           <Label className="font-bold block mb-2">הסמכת סופר סת''ם *</Label>
                           <RadioGroup value={profileData.has_scribe_certificate} onValueChange={v => setProfileData({...profileData, has_scribe_certificate: v})} className="grid gap-2">
@@ -1581,7 +1583,7 @@ function SellerDashboardContent() {
                           {(profileData.has_scribe_certificate === 'valid' || profileData.has_scribe_certificate === 'expired') && (
                             <div className="mt-4 p-6 bg-accent/5 rounded-2xl border-2 border-dashed border-accent/20 text-center space-y-4">
                               {(profileData.certificate_url || certLocalPreview) ? (
-                                <div className="relative w-full h-40 rounded-xl overflow-hidden border bg-white shadow-sm">
+                                <div className="relative w-full h-40 rounded-xl overflow-hidden border bg-card shadow-sm">
                                   {profileData.certificate_url ? (
                                     isPdfUrl(profileData.certificate_url) ? (
                                       <a
@@ -1591,7 +1593,7 @@ function SellerDashboardContent() {
                                         className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-primary hover:bg-primary/5 transition-colors"
                                       >
                                         <FileText className="w-10 h-10 text-accent-strong" />
-                                        <span className="text-xs font-black">קובץ PDF הועלה — לחץ/י לצפייה</span>
+                                        <span className="text-xs font-bold">קובץ PDF הועלה — לחץ/י לצפייה</span>
                                       </a>
                                     ) : (
                                       <Image src={profileData.certificate_url} alt="Cert" fill kind="certificate" sizes="(max-width: 768px) 100vw, 720px" className="object-contain" />
@@ -1599,7 +1601,7 @@ function SellerDashboardContent() {
                                   ) : certLocalIsPdf ? (
                                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-primary">
                                       <FileText className="w-10 h-10 text-accent-strong" />
-                                      <span className="text-xs font-black">מעלה קובץ PDF...</span>
+                                      <span className="text-xs font-bold">מעלה קובץ PDF...</span>
                                     </div>
                                   ) : certLocalIsHeic ? (
                                     // Browsers can't decode HEIC/HEIF in an <img>, so the raw blob: URL would
@@ -1607,7 +1609,7 @@ function SellerDashboardContent() {
                                     // instead until the server hands back a converted, displayable URL.
                                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-primary">
                                       <ImageIcon className="w-10 h-10 text-accent-strong" />
-                                      <span className="text-xs font-black">ממיר תמונה לתצוגה...</span>
+                                      <span className="text-xs font-bold">ממיר תמונה לתצוגה...</span>
                                     </div>
                                   ) : (
                                     <Image src={certLocalPreview!} alt="Cert" fill kind="certificate" sizes="(max-width: 768px) 100vw, 720px" className="object-contain" unoptimized />
@@ -1616,7 +1618,7 @@ function SellerDashboardContent() {
                                     <div className="absolute inset-0 bg-black/45 backdrop-blur-[1px] flex flex-col items-center justify-center gap-3 px-8">
                                       <Loader2 className="w-6 h-6 text-white animate-spin" />
                                       <Progress value={uploadProgress.certificate} className="h-1.5 w-full max-w-[180px]" />
-                                      <span className="text-xs font-black text-white uppercase tracking-widest">מעלה תעודה... {uploadProgress.certificate}%</span>
+                                      <span className="text-xs font-bold text-white">מעלה תעודה... {uploadProgress.certificate}%</span>
                                     </div>
                                   ) : (
                                     <button onClick={() => { void cleanupImages(profileData.certificate_url ? [profileData.certificate_url] : []); setProfileData({...profileData, certificate_url: ''}); }} aria-label="הסר תעודה" className="absolute top-2 right-2 bg-destructive text-white rounded-full p-1.5 shadow-lg hover:scale-110 transition-transform"><X className="w-4 h-4" /></button>
@@ -1628,7 +1630,7 @@ function SellerDashboardContent() {
                                     <ImageIcon className="w-10 h-10" />
                                     <Camera className="w-10 h-10" />
                                   </div>
-                                  <span className="font-black text-xs uppercase tracking-widest">לחץ להעלאת צילום התעודה או קובץ PDF</span>
+                                  <span className="font-bold text-xs">לחץ להעלאת צילום התעודה או קובץ PDF</span>
                                 </button>
                               )}
                               <input type="file" ref={certInputRef} onChange={handleCertificateUpload} className="hidden" accept="image/*,application/pdf" />
@@ -1766,14 +1768,14 @@ function SellerDashboardContent() {
                                 <div className="absolute inset-0 bg-black/45 flex flex-col items-center justify-center gap-2 px-3">
                                   <Loader2 className="w-5 h-5 text-white animate-spin" />
                                   <Progress value={uploadProgress.samples ?? 0} className="h-1 w-full" />
-                                  <span className="text-2xs font-black text-white">{uploadProgress.samples ?? 0}%</span>
+                                  <span className="text-xs font-bold text-white">{uploadProgress.samples ?? 0}%</span>
                                 </div>
                               </div>
                             ))}
                             {profileData.writing_samples.length < 8 && samplesLocalPreviews.length === 0 && (
                               <button onClick={() => writingSamplesInputRef.current?.click()} className="aspect-square border-2 border-dashed border-primary/10 rounded-2xl flex flex-col items-center justify-center text-primary/30 hover:bg-primary/5 transition-all">
                                 <ImageIcon className="w-6 h-6 mb-1" />
-                                <span className="text-2xs font-black uppercase">הוסף דוגמה</span>
+                                <span className="text-xs font-bold">הוסף דוגמה</span>
                               </button>
                             )}
                           </div>
@@ -1783,7 +1785,7 @@ function SellerDashboardContent() {
                       </>
                       ) : (
                       <div className="pt-8 border-t space-y-4" data-judaica-profile-section>
-                        <h3 className="text-lg font-black text-primary flex items-center gap-2"><Store className="w-5 h-5 text-accent" /> על העסק</h3>
+                        <h3 className="font-headline text-xl font-bold text-primary flex items-center gap-2"><Store className="w-5 h-5 text-accent-strong" /> על העסק</h3>
                         <div className="space-y-2 text-right">
                           <Label className="font-bold">ספר בקצרה על העסק והמוצרים שלך (מוצג בדף המוכר)</Label>
                           <Textarea
@@ -1798,28 +1800,28 @@ function SellerDashboardContent() {
 
                       <div className="pt-8 border-t space-y-8">
                          <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-black text-primary flex items-center gap-2"><Building2 className="w-5 h-5 text-accent" /> פרטי עסק וחשבון (ללא אפשרות שינוי)</h3>
-                            <Button asChild variant="link" className="text-accent font-black text-xs uppercase tracking-tighter gap-2">
+                            <h3 className="font-headline text-xl font-bold text-primary flex items-center gap-2"><Building2 className="w-5 h-5 text-accent-strong" /> פרטי עסק וחשבון (ללא אפשרות שינוי)</h3>
+                            <Button asChild variant="link" className="text-accent font-bold text-xs tracking-tighter gap-2">
                                <Link href="/contact">צור קשר לשינוי פרטים <ExternalLink className="w-3 h-3" /></Link>
                             </Button>
                          </div>
 
                          <div className="grid md:grid-cols-2 gap-8">
                             <div className="space-y-4 p-6 bg-muted/30 rounded-2xl border">
-                               <p className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-2">פרטי עסק רשמיים</p>
+                               <p className="text-xs font-bold text-muted-foreground mb-2">פרטי עסק רשמיים</p>
                                <div className="space-y-3">
-                                   <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.business_name}</span><span className="text-xs font-black uppercase text-primary/65">שם עסק</span></div>
-                                   <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.business_id}</span><span className="text-xs font-black uppercase text-primary/65">ח.פ / עוסק</span></div>
-                                   <div className="flex justify-between"><span className="text-sm font-bold opacity-60">{seller?.business_type === 'osek_patur' ? 'עוסק פטור' : 'עוסק מורשה/חברה'}</span><span className="text-xs font-black uppercase text-primary/65">סוג</span></div>
+                                   <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.business_name}</span><span className="text-xs font-bold text-primary/65">שם עסק</span></div>
+                                   <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.business_id}</span><span className="text-xs font-bold text-primary/65">ח.פ / עוסק</span></div>
+                                   <div className="flex justify-between"><span className="text-sm font-bold opacity-60">{seller?.business_type === 'osek_patur' ? 'עוסק פטור' : 'עוסק מורשה/חברה'}</span><span className="text-xs font-bold text-primary/65">סוג</span></div>
                                </div>
                             </div>
 
                             <div className="space-y-4 p-6 bg-muted/30 rounded-2xl border">
-                               <p className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-2">פרטי חשבון בנק</p>
+                               <p className="text-xs font-bold text-muted-foreground mb-2">פרטי חשבון בנק</p>
                                <div className="space-y-3">
-                                   <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.bank_name}</span><span className="text-xs font-black uppercase text-primary/65">בנק</span></div>
-                                   <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.bank_branch}</span><span className="text-xs font-black uppercase text-primary/65">סניף</span></div>
-                                   <div className="flex justify-between"><span className="text-sm font-bold opacity-60">{seller?.bank_account_number}</span><span className="text-xs font-black uppercase text-primary/65">חשבון</span></div>
+                                   <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.bank_name}</span><span className="text-xs font-bold text-primary/65">בנק</span></div>
+                                   <div className="flex justify-between border-b pb-2"><span className="text-sm font-bold opacity-60">{seller?.bank_branch}</span><span className="text-xs font-bold text-primary/65">סניף</span></div>
+                                   <div className="flex justify-between"><span className="text-sm font-bold opacity-60">{seller?.bank_account_number}</span><span className="text-xs font-bold text-primary/65">חשבון</span></div>
                                </div>
                             </div>
                          </div>
@@ -1830,7 +1832,7 @@ function SellerDashboardContent() {
                 <div className="pt-10 flex justify-end">
                    <Button 
                     onClick={handleSaveProfile} 
-                    className="rounded-full px-16 h-14 bg-accent text-primary font-black shadow-xl hover:bg-accent/90 transition-all"
+                    className="rounded-full px-16 h-14 bg-accent text-primary font-bold shadow-xl hover:bg-accent/90 transition-all"
                     disabled={isSavingProfile}
                    >
                      {isSavingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : 'שמור שינויים'}
@@ -1839,7 +1841,7 @@ function SellerDashboardContent() {
                 <div className="pt-6 border-t mt-6">
                   <div className="p-4 bg-red-50 rounded-xl border border-red-100 flex items-center justify-between gap-4">
                     <div className="text-right">
-                      <p className="text-sm font-black text-red-700">מחיקת חשבון</p>
+                      <p className="text-sm font-bold text-red-700">מחיקת חשבון</p>
                       <p className="text-xs text-red-500 font-medium mt-0.5">פעולה זו בלתי הפיכה — כל הנתונים והמודעות שלך יימחקו לצמיתות</p>
                     </div>
                     <Button variant="destructive" onClick={() => setIsDeleteAccountDialogOpen(true)} className="rounded-full gap-2 shrink-0">
@@ -1852,15 +1854,15 @@ function SellerDashboardContent() {
         </Tabs>
 
         <Dialog open={isDeleteAccountDialogOpen} onOpenChange={setIsDeleteAccountDialogOpen}>
-          <DialogContent className="rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl max-w-md bg-white text-primary max-h-[90vh] flex flex-col" dir="rtl">
+          <DialogContent className="w-[calc(100%-2rem)] rounded-[2rem] p-0 overflow-hidden border-none shadow-premium-lg max-w-md bg-card text-primary max-h-[90vh] flex flex-col" dir="rtl">
             <div className="flex-1 overflow-y-auto min-h-0">
-              <div className="bg-red-600 p-8 text-white text-right">
-                <DialogTitle className="text-2xl font-headline font-black">מחיקת חשבון</DialogTitle>
-                <DialogDescription className="text-white/70 mt-1">פעולה זו בלתי הפיכה. כל הנתונים והמודעות שלך יימחקו לצמיתות.</DialogDescription>
+              <div className="bg-destructive p-7 pl-16 text-white text-right">
+                <DialogTitle className="text-2xl font-headline font-bold">מחיקת חשבון</DialogTitle>
+                <DialogDescription className="text-white/85 mt-1 text-[15px]">פעולה זו בלתי הפיכה. כל הנתונים והמודעות שלך יימחקו לצמיתות.</DialogDescription>
               </div>
               <div className="p-8 space-y-5 text-right">
                 <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-primary/65">למה אתה רוצה למחוק את החשבון? (אופציונלי)</Label>
+                  <Label>למה אתה רוצה למחוק את החשבון? (אופציונלי)</Label>
                   <Textarea
                     placeholder="ספר לנו את הסיבה..."
                     value={deleteAccountReason}
@@ -1870,17 +1872,17 @@ function SellerDashboardContent() {
                 </div>
               </div>
             </div>
-            <DialogFooter className="p-6 bg-muted/30 border-t flex gap-3 shrink-0">
+            <DialogFooter className="p-6 bg-secondary/40 border-t border-border flex gap-3 shrink-0">
               <Button
                 variant="destructive"
                 onClick={handleDeleteAccount}
                 disabled={isDeletingAccount}
-                className="flex-1 h-12 font-black uppercase gap-2"
+                className="flex-1 h-12 font-bold gap-2"
               >
                 {isDeletingAccount ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                 אישור מחיקה
               </Button>
-              <Button variant="ghost" onClick={() => setIsDeleteAccountDialogOpen(false)} disabled={isDeletingAccount} className="h-12 font-bold">
+              <Button variant="outline" onClick={() => setIsDeleteAccountDialogOpen(false)} disabled={isDeletingAccount} className="h-12">
                 ביטול
               </Button>
             </DialogFooter>
@@ -1888,19 +1890,19 @@ function SellerDashboardContent() {
         </Dialog>
 
         <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) setProductPublishError(null); }}>
-          <DialogContent className="max-w-2xl rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl bg-white max-h-[95vh] flex flex-col" dir="rtl">
-            <div className="bg-primary p-6 text-white text-right relative shrink-0">
-              <div className="absolute top-4 left-6 flex gap-1.5">
+          <DialogContent className="w-[calc(100%-1rem)] max-w-2xl rounded-[2rem] p-0 overflow-hidden border-none shadow-premium-lg bg-card max-h-[95vh] flex flex-col" dir="rtl">
+            <div className="bg-primary p-6 pl-16 text-white text-right relative shrink-0">
+              <div className="absolute bottom-5 left-6 flex gap-1.5" aria-hidden="true">
                 {[1, 2, 3, 4].map(s => (
-                  <div key={s} className={cn("h-1 rounded-full transition-all duration-500", formStep === s ? "w-8 bg-accent shadow-sm" : "w-2 bg-white/20")} />
+                  <div key={s} className={cn("h-1 rounded-full transition-all duration-500", formStep === s ? "w-8 bg-accent shadow-sm" : "w-2 bg-card/20")} />
                 ))}
               </div>
               <DialogHeader>
-                <DialogTitle className="text-xl font-headline font-black flex items-center gap-3">
-                  <ClipboardList className="w-6 h-6 text-accent" />
+                <DialogTitle className="text-2xl font-headline font-bold flex items-center gap-3">
+                  <ClipboardList className="w-6 h-6 text-[#E2B35B]" />
                   {editingProduct ? (productKind === 'judaica' ? 'עדכון מוצר' : 'עדכון מלאכת קודש') : 'פרסום מוצר חדש'}
                 </DialogTitle>
-                <p className="text-xs text-white/70 font-bold uppercase tracking-widest mt-1">
+                <p className="text-sm text-white/75 font-medium mt-1 num">
                   שלב {formStep} מתוך {totalFormSteps}
                 </p>
               </DialogHeader>
@@ -1914,7 +1916,7 @@ function SellerDashboardContent() {
                       {/* A סופר סת"ם chooses the product kind first; a Judaica seller never sees scribal categories. */}
                       {isStamSeller && !editingProduct && (
                         <div className="space-y-2">
-                          <Label className="text-xs font-black uppercase text-primary/65 tracking-wider">איזה סוג מוצר אתה מוסיף? *</Label>
+                          <Label>איזה סוג מוצר אתה מוסיף? *</Label>
                           <div className="grid grid-cols-2 gap-3">
                             {([
                               { kind: 'stam', title: 'כתב קודש (סת"ם)', sub: 'מזוזה, תפילין, מגילה, ספר תורה' },
@@ -1932,10 +1934,10 @@ function SellerDashboardContent() {
                                 }}
                                 className={cn(
                                   "rounded-2xl border-2 p-4 text-right transition-all",
-                                  productKind === option.kind ? "border-accent bg-accent/10 shadow-md" : "border-primary/5 bg-white hover:border-accent/40"
+                                  productKind === option.kind ? "border-accent bg-accent/10 shadow-md" : "border-primary/5 bg-card hover:border-accent/40"
                                 )}
                               >
-                                <p className="text-sm font-black text-primary">{option.title}</p>
+                                <p className="text-sm font-bold text-primary">{option.title}</p>
                                 <p className="mt-1 text-xs font-medium text-muted-foreground">{option.sub}</p>
                               </button>
                             ))}
@@ -1945,7 +1947,7 @@ function SellerDashboardContent() {
 
                       {productKind && (
                       <div className="space-y-2">
-                        <Label className="text-xs font-black uppercase text-primary/65 tracking-wider">{productKind === 'judaica' ? 'קטגוריה *' : 'סוג המוצר *'}</Label>
+                        <Label>{productKind === 'judaica' ? 'קטגוריה *' : 'סוג המוצר *'}</Label>
                         <div className="relative">
                            <Select value={formType} onValueChange={v => {
                              setFormType(v);
@@ -1968,7 +1970,7 @@ function SellerDashboardContent() {
                               {productKind === 'judaica'
                                 ? groupJudaicaCategories().map(({ section, categories }) => (
                                     <SelectGroup key={section}>
-                                      <SelectLabel className="pt-3 pb-1 pr-8 text-xs font-black uppercase tracking-widest text-muted-foreground">{section}</SelectLabel>
+                                      <SelectLabel className="pt-3 pb-1 pr-8 text-xs font-bold text-muted-foreground">{section}</SelectLabel>
                                       {categories.map((category) => (
                                         <SelectItem key={category.value} value={category.value} className="font-bold py-3">
                                           {category.value}
@@ -1990,7 +1992,7 @@ function SellerDashboardContent() {
 
                       {getJudaicaCategory(formType)?.subtypes && (
                         <div className="space-y-3 animate-in slide-in-from-top-2">
-                          <Label className="text-xs font-black uppercase text-primary/65 tracking-wider">מה אתה מוכר? *</Label>
+                          <Label>מה אתה מוכר? *</Label>
                           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                             {getJudaicaCategory(formType)!.subtypes!.map(opt => (
                               <button
@@ -1998,8 +2000,8 @@ function SellerDashboardContent() {
                                 type="button"
                                 onClick={() => setFormSubType(opt)}
                                 className={cn(
-                                  "px-4 py-3 rounded-xl border-2 text-xs font-black transition-all",
-                                  formSubType === opt ? "bg-accent text-primary border-accent shadow-lg scale-[1.02]" : "bg-white border-primary/5 hover:border-accent/40"
+                                  "px-4 py-3 rounded-xl border-2 text-xs font-bold transition-all",
+                                  formSubType === opt ? "bg-accent text-primary border-accent shadow-lg scale-[1.02]" : "bg-card border-primary/5 hover:border-accent/40"
                                 )}
                               >
                                 {opt}
@@ -2015,7 +2017,7 @@ function SellerDashboardContent() {
 
                       {formType !== '' && isStamProductType(formType) && (
                         <div className="space-y-3 animate-in slide-in-from-top-2">
-                          <Label className="text-xs font-black uppercase text-primary/65 tracking-wider">תת-סוג / דגם *</Label>
+                          <Label>תת-סוג / דגם *</Label>
                           {PRODUCT_SUBTYPES[formType] ? (
                             <div className="grid grid-cols-2 gap-2">
                               {PRODUCT_SUBTYPES[formType].map(opt => (
@@ -2024,8 +2026,8 @@ function SellerDashboardContent() {
                                   type="button"
                                   onClick={() => setFormSubType(opt)}
                                   className={cn(
-                                    "px-4 py-3 rounded-xl border-2 text-xs font-black transition-all",
-                                    formSubType === opt ? "bg-accent text-primary border-accent shadow-lg scale-[1.02]" : "bg-white border-primary/5 hover:border-accent/40"
+                                    "px-4 py-3 rounded-xl border-2 text-xs font-bold transition-all",
+                                    formSubType === opt ? "bg-accent text-primary border-accent shadow-lg scale-[1.02]" : "bg-card border-primary/5 hover:border-accent/40"
                                   )}
                                 >
                                   {opt}
@@ -2050,7 +2052,7 @@ function SellerDashboardContent() {
                       </AnimatePresence>
 
                       <div className="space-y-2">
-                        <Label className="text-xs font-black uppercase text-primary/65 tracking-wider">תיאור והערות נוספות</Label>
+                        <Label>תיאור והערות נוספות</Label>
                         <Textarea 
                           value={formDescription} 
                           onChange={e => setFormDescription(e.target.value)} 
@@ -2074,7 +2076,7 @@ function SellerDashboardContent() {
                     <>
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label className="text-xs font-black uppercase text-primary/65 tracking-wider">סוג כתב (מסורת) *</Label>
+                        <Label>סוג כתב (מסורת) *</Label>
                         <Select value={formScript} onValueChange={v => { setFormScript(v); setFormParchmentSize(''); }}>
                           <SelectTrigger className="h-14 rounded-2xl border-2 border-primary/5"><SelectValue placeholder="בחר מסורת..." /></SelectTrigger>
                           <SelectContent className="rounded-2xl shadow-xl">
@@ -2086,7 +2088,7 @@ function SellerDashboardContent() {
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-xs font-black uppercase text-primary/65 tracking-wider">רמת הידור *</Label>
+                        <Label>רמת הידור *</Label>
                         <Select value={formQuality} onValueChange={setFormQuality}>
                           <SelectTrigger className="h-14 rounded-2xl border-2 border-primary/5"><SelectValue placeholder="בחר הידור..." /></SelectTrigger>
                           <SelectContent className="rounded-2xl shadow-xl">
@@ -2099,7 +2101,7 @@ function SellerDashboardContent() {
                     </div>
 
                     <div className="space-y-2">
-                       <Label className="text-xs font-black uppercase text-primary/65 tracking-wider">רמת הגהה שבוצעה *</Label>
+                       <Label>רמת הגהה שבוצעה *</Label>
                        <Select value={formProofreading} onValueChange={setFormProofreading}>
                          <SelectTrigger className="h-14 rounded-2xl border-2 border-primary/5"><SelectValue placeholder="בחר רמת הגהה..." /></SelectTrigger>
                          <SelectContent className="rounded-2xl shadow-xl">
@@ -2113,7 +2115,7 @@ function SellerDashboardContent() {
                     {formType === 'מגילה' ? (
                       <div className="grid grid-cols-2 gap-4 animate-in fade-in">
                          <div className="space-y-2">
-                            <Label className="text-xs font-black text-primary/65">מס' שורות *</Label>
+                            <Label>מס' שורות *</Label>
                             <Select value={megRows} onValueChange={setMegRows}>
                                <SelectTrigger className="h-14 rounded-2xl border-2 border-primary/5"><SelectValue placeholder="שורות..." /></SelectTrigger>
                                <SelectContent className="rounded-xl">
@@ -2122,7 +2124,7 @@ function SellerDashboardContent() {
                             </Select>
                          </div>
                          <div className="space-y-2">
-                            <Label className="text-xs font-black text-primary/65">גובה קלף *</Label>
+                            <Label>גובה קלף *</Label>
                             <Select value={megHeight} onValueChange={setMegHeight}>
                                <SelectTrigger className="h-14 rounded-2xl border-2 border-primary/5"><SelectValue placeholder="גובה (ס''מ)..." /></SelectTrigger>
                                <SelectContent className="rounded-xl">
@@ -2140,7 +2142,7 @@ function SellerDashboardContent() {
                       </div>
                     ) : (
                       <div className="space-y-2">
-                        <Label className="text-xs font-black uppercase text-primary/65 tracking-wider">גודל הקלף / בתים (ס"מ) *</Label>
+                        <Label>גודל הקלף / בתים (ס"מ) *</Label>
                         <div className="relative">
                           <Input 
                             value={formParchmentSize} 
@@ -2161,13 +2163,13 @@ function SellerDashboardContent() {
                   <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6 text-right">
                     <div className="bg-emerald-50/50 p-6 rounded-3xl border-2 border-emerald-100/50 space-y-5 shadow-sm">
                       <div className="space-y-2">
-                        <Label className="text-xs font-black uppercase text-emerald-700 tracking-wider">מחיר למוכר (₪) *</Label>
+                        <Label className="text-xs font-bold text-emerald-700">מחיר למוכר (₪) *</Label>
                         <div className="relative">
                           <Input 
                             type="number" 
                             value={formPrice} 
                             onChange={e => setFormPrice(e.target.value)} 
-                            className="h-16 rounded-2xl border-2 border-emerald-200/50 bg-white pr-14 text-2xl font-black text-emerald-600" 
+                            className="h-16 rounded-2xl border-2 border-emerald-200/50 bg-card pr-14 text-2xl font-bold text-emerald-600" 
                           />
                           <Banknote className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 text-emerald-300" />
                         </div>
@@ -2176,7 +2178,7 @@ function SellerDashboardContent() {
                              <Info className="w-3.5 h-3.5" />
                              <span className="text-xs font-bold">עמלת אתר ({(getCommissionRate(formType) * 100).toFixed(0)}%): ₪{formPrice !== '' ? Math.round(Number(formPrice) * getCommissionRate(formType)).toLocaleString('he-IL') : '---'}</span>
                           </div>
-                          <div className="bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-black uppercase">
+                          <div className="bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-bold">
                             הרווח שלך: ₪{formPrice !== '' ? Math.round(Number(formPrice) * getSellerPayoutRate(formType)).toLocaleString('he-IL') : '---'}
                           </div>
                         </div>
@@ -2201,7 +2203,7 @@ function SellerDashboardContent() {
 
                     <div className="grid grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label className="text-xs font-black uppercase text-primary/65 tracking-wider">כמות זמינה במלאי *</Label>
+                        <Label>כמות זמינה במלאי *</Label>
                         <div className="relative">
                           <Input 
                             type="number" 
@@ -2213,7 +2215,7 @@ function SellerDashboardContent() {
                         </div>
                       </div>
                       <div className="space-y-2">
-                         <Label className="text-xs font-black uppercase text-primary/65 tracking-wider">
+                         <Label>
                            {formType === 'ספר תורה' ? 'זמן אספקה משוער *' : 'זמן אספקה (ימי עסקים) *'}
                          </Label>
                          <Select value={formDeliveryTime} onValueChange={setFormDeliveryTime}>
@@ -2237,7 +2239,7 @@ function SellerDashboardContent() {
                     </div>
 
                     <div className="space-y-4 p-5 rounded-[2rem] border-2 border-dashed border-primary/10">
-                       <Label className="text-xs font-black uppercase text-primary/65">הגדרות משלוח ואיסוף</Label>
+                       <Label>הגדרות משלוח ואיסוף</Label>
                        <RadioGroup value={formDeliveryType} onValueChange={setFormDeliveryType} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                            <button 
                              type="button" 
@@ -2245,7 +2247,7 @@ function SellerDashboardContent() {
                             className={cn("flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all", formDeliveryType === 'pickup' ? 'bg-accent text-primary border-accent shadow-lg' : 'bg-white border-primary/5')}
                           >
                             <MapPin className="w-5 h-5" />
-                            <span className="text-xs font-black">איסוף עצמי בלבד</span>
+                            <span className="text-xs font-bold">איסוף עצמי בלבד</span>
                           </button>
                           <button 
                             type="button" 
@@ -2253,7 +2255,7 @@ function SellerDashboardContent() {
                             className={cn("flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all", formDeliveryType === 'shipping' ? 'bg-accent text-primary border-accent shadow-lg' : 'bg-white border-primary/5')}
                           >
                              <Truck className="w-5 h-5" />
-                             <span className="text-xs font-black">משלוח עד הבית</span>
+                             <span className="text-xs font-bold">משלוח עד הבית</span>
                            </button>
                            <button 
                              type="button" 
@@ -2264,23 +2266,23 @@ function SellerDashboardContent() {
                                <MapPin className="w-4 h-4" />
                                <Truck className="w-4 h-4" />
                              </div>
-                             <span className="text-xs font-black">איסוף + משלוח</span>
+                             <span className="text-xs font-bold">איסוף + משלוח</span>
                            </button>
                         </RadioGroup>
                         
                         {(formDeliveryType === 'shipping' || formDeliveryType === 'both') && (
                             <div className="space-y-4 pt-2 animate-in slide-in-from-top-1">
                              <div className="space-y-1">
-                               <Label className="text-2xs font-black">עלות משלוח (₪)</Label>
+                               <Label className="text-xs font-bold">עלות משלוח (₪)</Label>
                                <Input type="number" value={formDeliveryFee} onChange={e => setFormDeliveryFee(e.target.value)} className="h-10 rounded-xl" />
                              </div>
                              <div className="space-y-2">
-                               <Label className="text-2xs font-black">ערים לשירות משלוח</Label>
-                               <p className="text-2xs text-primary/65 font-medium leading-tight">בחר אחת או יותר מרשימת הערים. סמן "כל הארץ" לכיסוי מלא.</p>
+                               <Label className="text-xs font-bold">ערים לשירות משלוח</Label>
+                               <p className="text-xs text-primary/65 font-medium leading-tight">בחר אחת או יותר מרשימת הערים. סמן "כל הארץ" לכיסוי מלא.</p>
                                {formDeliveryArea.length > 0 && !formDeliveryArea.includes('כל הארץ') && (
                                  <div className="flex flex-wrap gap-1.5 p-2 bg-primary/5 rounded-xl border border-primary/10 min-h-[40px]">
                                    {formDeliveryArea.map(city => (
-                                     <span key={city} className="inline-flex items-center gap-1 px-2.5 py-1 bg-accent text-primary text-xs font-black rounded-full">
+                                     <span key={city} className="inline-flex items-center gap-1 px-2.5 py-1 bg-accent text-primary text-xs font-bold rounded-full">
                                        {city}
                                        <button type="button" aria-label={`הסר ${city}`} onClick={() => setFormDeliveryArea(prev => prev.filter(c => c !== city))} className="hover:opacity-60 transition-opacity ml-0.5">×</button>
                                      </span>
@@ -2293,7 +2295,7 @@ function SellerDashboardContent() {
                                  placeholder="חפש עיר..."
                                  className="h-10 rounded-xl text-sm"
                                />
-                               <div className="max-h-44 overflow-y-auto border rounded-xl bg-white divide-y divide-primary/5">
+                               <div className="max-h-44 overflow-y-auto border rounded-xl bg-card divide-y divide-primary/5">
                                  {ISRAEL_CITIES
                                    .filter(city => !citySearch || city.includes(citySearch))
                                    .map(city => {
@@ -2328,7 +2330,7 @@ function SellerDashboardContent() {
                         )}
                         {(formDeliveryType === 'pickup' || formDeliveryType === 'both') && (
                           <div className="space-y-1">
-                            <Label className="text-2xs font-black">כתובת לאיסוף עצמי *</Label>
+                            <Label className="text-xs font-bold">כתובת לאיסוף עצמי *</Label>
                             <Input
                               ref={formPickupAddressInputRef}
                               value={formPickupAddress}
@@ -2346,7 +2348,7 @@ function SellerDashboardContent() {
                   <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6 text-right">
                     <div className="bg-primary/5 p-8 rounded-[2.5rem] border-2 border-dashed border-primary/10 text-center space-y-5">
                        <div className="space-y-2">
-                          <Label className="text-xs font-black uppercase text-primary tracking-widest block">צילומי המוצר (עד 6) *</Label>
+                          <Label className="text-xs font-bold text-primary block">צילומי המוצר (עד 6) *</Label>
                           <p className="text-xs font-bold text-primary/65 leading-relaxed">{productKind === 'judaica' ? 'חובה להעלות צילום ברור של המוצר, רצוי מכמה זוויות' : 'חובה להעלות צילום תקריב של הכתב וצילום כללי של המוצר'}</p>
                        </div>
 
@@ -2368,7 +2370,7 @@ function SellerDashboardContent() {
                              <div className="absolute inset-0 bg-black/45 flex flex-col items-center justify-center gap-2 px-3">
                                <Loader2 className="w-5 h-5 text-white animate-spin" />
                                <Progress value={uploadProgress.product ?? 0} className="h-1 w-full" />
-                               <span className="text-2xs font-black text-white">{uploadProgress.product ?? 0}%</span>
+                               <span className="text-xs font-bold text-white">{uploadProgress.product ?? 0}%</span>
                              </div>
                            </div>
                          ))}
@@ -2376,10 +2378,10 @@ function SellerDashboardContent() {
                            <button
                             type="button"
                             onClick={() => document.getElementById('wizard-img-up')?.click()}
-                            className="aspect-square border-2 border-dashed border-primary/10 rounded-2xl flex flex-col items-center justify-center text-primary/30 hover:bg-white hover:border-accent/40 hover:text-accent transition-all bg-white/40"
+                            className="aspect-square border-2 border-dashed border-primary/10 rounded-2xl flex flex-col items-center justify-center text-primary/30 hover:bg-white hover:border-accent/40 hover:text-accent transition-all bg-card/40"
                            >
                              <Camera className="w-8 h-8 mb-2" />
-                             <span className="text-xs font-black uppercase">הוסף תמונה</span>
+                             <span className="text-xs font-bold">הוסף תמונה</span>
                            </button>
                          )}
                        </div>
@@ -2397,7 +2399,7 @@ function SellerDashboardContent() {
                     <div className="p-5 bg-orange-50/50 rounded-2xl border border-orange-100 flex items-start gap-4">
                        <ShieldAlert className="w-6 h-6 text-orange-600 shrink-0" />
                        <div className="space-y-1">
-                          <p className="text-xs font-black text-orange-900 leading-none">{productKind === 'judaica' ? 'הצהרת אחריות' : 'הצהרת כשרות ואחריות'}</p>
+                          <p className="text-xs font-bold text-orange-900 leading-none">{productKind === 'judaica' ? 'הצהרת אחריות' : 'הצהרת כשרות ואחריות'}</p>
                           <p className="text-xs font-medium text-orange-800/70 leading-relaxed">
                             {productKind === 'judaica'
                               ? 'בלחיצה על פרסום, הנך מצהיר כי פרטי המוצר ותמונותיו מדויקים ונכונים, וכי הינך רשאי למכור אותו.'
@@ -2415,7 +2417,7 @@ function SellerDashboardContent() {
                 <div className="w-full rounded-2xl border border-destructive/20 bg-destructive/10 p-3 text-right flex items-start gap-2 sm:order-last">
                   <AlertCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-xs font-black text-destructive">{productPublishError.title}</p>
+                    <p className="text-xs font-bold text-destructive">{productPublishError.title}</p>
                     <p className="text-xs font-medium text-destructive/90">{productPublishError.description}</p>
                   </div>
                 </div>
@@ -2424,7 +2426,7 @@ function SellerDashboardContent() {
                 <Button 
                   variant="outline" 
                   onClick={() => setFormStep(s => s - 1)} 
-                  className="flex-1 h-14 rounded-2xl border-primary/10 bg-white font-black text-xs uppercase"
+                  className="flex-1 h-14"
                 >
                   חזור
                 </Button>
@@ -2432,14 +2434,15 @@ function SellerDashboardContent() {
               {formStep < totalFormSteps ? (
                 <Button 
                   onClick={() => setFormStep(s => s + 1)} 
-                  className="flex-[2] bg-accent text-primary h-14 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg hover:scale-[1.02] transition-transform"
+                  className="flex-[2] h-14 text-base"
                 >
                   המשך לשלב הבא <ChevronLeft className="w-4 h-4 mr-2" />
                 </Button>
               ) : (
                 <Button 
                   onClick={handleSubmitProduct} 
-                  className="flex-[2] bg-accent text-primary h-14 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl hover:scale-[1.02] transition-transform"
+                  variant="gold"
+                  className="flex-[2] h-14 text-base"
                 >
                   <Sparkles className="w-4 h-4 ml-2" /> פרסם עכשיו באתר
                 </Button>
@@ -2465,7 +2468,7 @@ function JudaicaAttributeFields({
         // Conditional fields (e.g. knot type) appear only once their condition holds.
         if (!isJudaicaFieldVisible(field, values)) return null;
         const label = (
-          <Label className="text-xs font-black uppercase text-primary/65 tracking-wider">
+          <Label>
             {field.label}{'required' in field && field.required ? ' *' : ''}
           </Label>
         );
@@ -2497,8 +2500,8 @@ function JudaicaAttributeFields({
                       aria-pressed={isOn}
                       onClick={() => onChange(field.key, isOn ? selected.filter((o) => o !== opt) : [...selected, opt])}
                       className={cn(
-                        "rounded-full border-2 px-4 py-2 text-xs font-black transition-all",
-                        isOn ? "border-accent bg-accent text-primary" : "border-primary/5 bg-white hover:border-accent/40"
+                        "rounded-full border-2 px-4 py-2 text-xs font-bold transition-all",
+                        isOn ? "border-accent bg-accent text-primary" : "border-primary/5 bg-card hover:border-accent/40"
                       )}
                     >
                       {opt}
@@ -2521,8 +2524,8 @@ function JudaicaAttributeFields({
                     type="button"
                     onClick={() => onChange(field.key, opt.on)}
                     className={cn(
-                      "h-14 rounded-2xl border-2 text-xs font-black transition-all",
-                      (values[field.key] === undefined ? !opt.on : isOn === opt.on) ? "border-accent bg-accent text-primary" : "border-primary/5 bg-white hover:border-accent/40"
+                      "h-14 rounded-2xl border-2 text-xs font-bold transition-all",
+                      (values[field.key] === undefined ? !opt.on : isOn === opt.on) ? "border-accent bg-accent text-primary" : "border-primary/5 bg-card hover:border-accent/40"
                     )}
                   >
                     {opt.text}
@@ -2563,10 +2566,12 @@ function JudaicaNotice({ notice }: { notice: { text: string; linkLabel: string; 
 
 function QuickStat({ label, value, icon, color, highlight = false }: any) {
   return (
-    <Card className={cn("group border-none shadow-premium rounded-[2rem] p-4 bg-white flex flex-col items-center justify-center text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-xl", highlight ? "ring-2 ring-primary/20" : "")}>
-      <div className={cn("p-3 rounded-2xl shadow-sm mb-2 transition-transform duration-300 group-hover:scale-110", color)}>{icon}</div>
-      <p className="text-2xs text-muted-foreground font-black uppercase tracking-widest">{label}</p>
-      <p className="text-lg font-black text-primary tabular-nums">{value}</p>
+    <Card className={cn("border-border/70 shadow-premium rounded-[1.5rem] p-4 md:p-5 bg-card flex flex-col items-start gap-3 text-right", highlight ? "ring-2 ring-accent/50" : "")}>
+      <div className={cn("p-2.5 rounded-full", color)}>{icon}</div>
+      <div>
+        <p className="text-[13px] text-muted-foreground font-medium">{label}</p>
+        <p className="font-headline text-2xl md:text-[28px] font-medium text-primary num leading-tight" dir="auto">{value}</p>
+      </div>
     </Card>
   );
 }
@@ -2577,9 +2582,9 @@ function Pagination({ current, total, onChange }: { current: number, total: numb
 
   return (
     <div className="flex items-center justify-center gap-4 mt-8 pb-4">
-      <Button variant="outline" size="sm" onClick={() => onChange(current - 1)} disabled={current === 1} className="rounded-xl h-10 px-4 font-bold border-primary/10 bg-white"><ChevronRight className="w-4 h-4 ml-2" /> הקודם</Button>
-      <span className="text-xs font-black text-primary/65 uppercase tracking-widest">עמוד {current} מתוך {totalPages}</span>
-      <Button variant="outline" size="sm" onClick={() => onChange(current + 1)} disabled={current === totalPages} className="rounded-xl h-10 px-4 font-bold border-primary/10 bg-white">הבא <ChevronLeft className="w-4 h-4 mr-2" /></Button>
+      <Button variant="outline" size="sm" onClick={() => onChange(current - 1)} disabled={current === 1} className="h-10 px-4 text-[13px]"><ChevronRight className="w-4 h-4" /> הקודם</Button>
+      <span className="text-sm font-medium text-primary/70 num">עמוד {current} מתוך {totalPages}</span>
+      <Button variant="outline" size="sm" onClick={() => onChange(current + 1)} disabled={current === totalPages} className="h-10 px-4 text-[13px]">הבא <ChevronLeft className="w-4 h-4" /></Button>
     </div>
   );
 }
@@ -2592,19 +2597,19 @@ function SellerChatListItem({ chat, otherUserId, userId }: any) {
 
   return (
     <Link href={`/chat/${otherUserId}`}>
-      <Card className={cn("p-5 bg-white rounded-3xl shadow-premium hover:shadow-xl transition-all border border-transparent hover:border-accent/10", isUnread && "ring-2 ring-accent/20")}>
-        <div className="flex items-center gap-5 text-right">
-          <Avatar className="h-14 w-14 border-2 border-primary/5 shadow-sm relative">
+      <Card className={cn("p-4 md:p-5 bg-card rounded-2xl shadow-premium hover:shadow-premium-lg transition-shadow border border-border/70", isUnread && "ring-2 ring-accent/40")}>
+        <div className="flex items-center gap-4 text-right">
+          <Avatar className="h-12 w-12 border border-border relative">
             <AvatarImage src={otherUser?.profile_image} />
             <AvatarFallback className="bg-primary/5 text-primary font-black">{otherUser?.first_name?.charAt(0) || '?'}</AvatarFallback>
             {isUnread && <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-destructive rounded-full border-2 border-white" />}
           </Avatar>
           <div className="flex-1 overflow-hidden">
             <div className="flex justify-between items-baseline">
-              <p className="font-black text-primary text-base truncate">{otherUser ? `${otherUser.first_name} ${otherUser.last_name}` : 'טוען...'}</p>
-              <span className="text-2xs text-muted-foreground font-bold whitespace-nowrap bg-muted/30 px-2 py-0.5 rounded-full">{chat.last_message_at ? new Date(chat.last_message_at).toLocaleDateString('he-IL') : ''}</span>
+              <p className="font-bold text-primary text-[15px] truncate">{otherUser ? `${otherUser.first_name} ${otherUser.last_name}` : 'טוען...'}</p>
+              <span className="text-xs text-muted-foreground whitespace-nowrap num">{chat.last_message_at ? new Date(chat.last_message_at).toLocaleDateString('he-IL') : ''}</span>
             </div>
-            <p className={cn("text-xs truncate mt-1", isUnread ? "font-black text-primary" : "text-muted-foreground font-medium")}>{chat.last_message_text || 'תחילת שיחה'}</p>
+            <p className={cn("text-sm truncate mt-1", isUnread ? "font-bold text-primary" : "text-muted-foreground")}>{chat.last_message_text || 'תחילת שיחה'}</p>
           </div>
         </div>
       </Card>
@@ -2614,9 +2619,9 @@ function SellerChatListItem({ chat, otherUserId, userId }: any) {
 
 export default function SellerDashboard() {
   return (
-    <div className="min-h-screen bg-secondary/50 flex flex-col" dir="rtl">
+    <div className="min-h-screen bg-background flex flex-col" dir="rtl">
       <Navbar />
-      <main className="container mx-auto px-4 py-20 md:py-28 max-w-6xl flex-1">
+      <main className="container mx-auto px-4 pt-24 pb-16 md:pt-32 md:pb-24 max-w-6xl flex-1">
         <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>}>
           <SellerDashboardContent />
         </Suspense>

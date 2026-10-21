@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
-import { afterResponse, getChannelPrefs, notifyUser } from '@/lib/notify-channels';
+import { afterResponse, getChannelPrefs, notifyUser, safeName, shortSite } from '@/lib/notify-channels';
 
 // "You have new messages" email to the other side of a chat. The browser only sends the chat id:
 // the recipient, their email and their notification preference are looked up here, so no one's
@@ -71,14 +71,19 @@ export async function POST(req: Request) {
     await service.from('chats').update({ last_email_notif_at: new Date().toISOString() }).eq('id', chatId);
 
     if (phoneOn) {
+      // The chat row's hourly mark can be changed by participants, so phone alerts have their own
+      // per-recipient limit on the server (notification_log). The sender's display name is free
+      // text: only letters go into an SMS or a call (no links, no numbers, 25 characters max).
+      const name = safeName(senderName);
       afterResponse(() => notifyUser({
         userId: recipientId,
         kind: 'chat',
         service,
         prefs: phonePrefs,
+        throttle: { perHour: 1, perDay: 6 },
         message: {
-          sms: `חותם: הודעה חדשה מ${senderName}. לצפייה ולהשבה: hotam.shop/chat/${user.id}`,
-          voice: `קיבלת הודעה חדשה מ${senderName}. כדי לקרוא ולהשיב, היכנסו לאתר חותם, לתיבת ההודעות.`,
+          sms: `חותם: הודעה חדשה מ${name}. ${shortSite()}/chat/${user.id}`,
+          voice: `קיבלת הודעה חדשה מ${name}. כדי לקרוא ולהשיב, היכנסו לאתר חותם, לתיבת ההודעות.`,
         },
       }));
     }

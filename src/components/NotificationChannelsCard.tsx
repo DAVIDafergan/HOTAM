@@ -30,7 +30,7 @@ export function NotificationChannelsCard({ defaultPhone = '', className = '' }: 
   const [loadError, setLoadError] = useState(false);
   const [editing, setEditing] = useState(false);
   const [phone, setPhone] = useState(defaultPhone);
-  const [want, setWant] = useState({ sms: true, voice: false, marketing: false });
+  const [want, setWant] = useState({ sms: false, voice: false, marketing: false });
   const [codeSentTo, setCodeSentTo] = useState<{ phone: string; channel: 'sms' | 'voice' } | null>(null);
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState<string | null>(null);
@@ -69,7 +69,7 @@ export function NotificationChannelsCard({ defaultPhone = '', className = '' }: 
     let v: View = await call('POST', { action: 'verify', code });
     // apply the channels the user picked before verifying
     if (!view?.verified || editing) {
-      v = await call('POST', { action: 'prefs', sms: want.sms && v.isMobile, voice: want.voice, marketing: want.marketing });
+      v = await call('POST', { action: 'prefs', sms: want.sms && v.isMobile && v.available.sms, voice: want.voice && v.available.voice, marketing: want.marketing });
     }
     setView(v);
     setCodeSentTo(null);

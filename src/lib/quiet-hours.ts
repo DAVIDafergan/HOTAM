@@ -29,7 +29,8 @@ function restWindows(now: Date) {
 }
 
 export function isShabbatOrYomTov(now = new Date()) {
-  try { return restWindows(now).some((w) => now >= w.from && now < w.to); } catch { return false; }
+  // if the calendar can't be computed, err on the side of not ringing anyone
+  try { return restWindows(now).some((w) => now >= w.from && now < w.to); } catch { return true; }
 }
 
 /** Minutes since midnight, Israel time. */
@@ -40,11 +41,14 @@ function israelMinutes(now: Date) {
   return h * 60 + m;
 }
 
-/** Why this channel must not be used right now, or null when it's fine. */
-export function quietReason(channel: 'sms' | 'voice', opts: { marketing?: boolean } = {}, now = new Date()): string | null {
+/**
+ * Why this channel must not be used right now, or null when it's fine. `bulk` = mailings and
+ * promotions (no SMS at night either); transactional SMS (order paid, new message) may go at night.
+ */
+export function quietReason(channel: 'sms' | 'voice', opts: { bulk?: boolean } = {}, now = new Date()): string | null {
   if (isShabbatOrYomTov(now)) return 'shabbat';
   const min = israelMinutes(now);
   if (channel === 'voice' && (min >= 21 * 60 + 30 || min < 8 * 60)) return 'night';
-  if (channel === 'sms' && opts.marketing && (min >= 21 * 60 || min < 8 * 60)) return 'night';
+  if (channel === 'sms' && opts.bulk && (min >= 21 * 60 || min < 8 * 60)) return 'night';
   return null;
 }

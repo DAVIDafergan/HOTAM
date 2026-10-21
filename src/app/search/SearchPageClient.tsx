@@ -605,8 +605,8 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
   const renderFilterContent = () => (
     <div className="space-y-4 text-right">
       <div className="rounded-[1.75rem] border border-primary/10 bg-primary/5 p-4">
-        <p className="text-sm font-black text-primary">סינון חכם ומהיר</p>
-        <p className="mt-1 text-xs font-medium leading-relaxed text-primary/60">
+        <p className="text-[15px] font-bold text-primary">סינון חכם ומהיר</p>
+        <p className="mt-1 text-sm leading-relaxed text-primary/70">
           בחרו קטגוריה, טווח מחירים, משלוח או איסוף עצמי, וסננו לפי מאפייני הסופר.
         </p>
       </div>
@@ -620,10 +620,10 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
             <WizardSmallCard value="ספר תורה" selected={selectedProduct === 'ספר תורה'} icon={<BookOpen className="w-5 h-5" />} label="ספר תורה" />
             <WizardSmallCard value="מוצרי יודאיקה שונים" selected={selectedProduct === 'מוצרי יודאיקה שונים'} icon={<Palette className="w-5 h-5" />} label="מוצרי קלף" />
           </div>
-          <p className="pt-4 pb-1 text-xs font-black uppercase tracking-widest text-muted-foreground">יודאיקה</p>
+          <p className="pt-4 pb-1 text-sm font-bold text-primary">יודאיקה</p>
           {groupJudaicaCategories().map(({ section, categories }) => (
           <div key={section} className="pt-2" data-judaica-filter-section={section}>
-          <p className="pb-1.5 text-xs font-bold text-primary/45">{section}</p>
+          <p className="pb-1.5 text-[13px] font-semibold text-primary/65">{section}</p>
           <div className="flex flex-wrap gap-2">
             {categories.map((category) => (
               <Label
@@ -651,7 +651,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
       <FilterSection title="מאפייני כתיבה" icon={<Scroll className="w-3.5 h-3.5 text-accent" />} defaultOpen>
         <div className="space-y-4 pt-2">
           <div className="space-y-2">
-            <Label className="font-black text-muted-foreground text-xs uppercase tracking-widest">סוג כתב ומסורת</Label>
+            <Label className="text-sm font-bold text-primary/85">סוג כתב ומסורת</Label>
             <RadioGroup value={scriptType} onValueChange={setScriptType} className="grid grid-cols-1 gap-1.5">
               {[
                 { v: 'all', l: 'כל המסורות' },
@@ -667,7 +667,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
 
           {getParchmentSizes(selectedProduct, scriptType).length > 0 && (
             <div className="space-y-2 animate-in fade-in">
-              <Label className="font-black text-muted-foreground text-xs uppercase tracking-widest">גודל (ס"מ)</Label>
+              <Label className="text-sm font-bold text-primary/85">גודל (ס"מ)</Label>
               <RadioGroup value={scrollSize} onValueChange={setScrollSize} className="grid grid-cols-2 gap-1.5">
                 <CustomFilterTile value="other" label="שאר הגדלים" active={scrollSize === 'other'} />
                 {getParchmentSizes(selectedProduct, scriptType).map((size) => (
@@ -683,7 +683,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
         <div className="space-y-4 pt-2">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label className="text-xs font-black uppercase tracking-widest text-primary/30">מחיר מינימום</Label>
+              <Label className="text-sm font-semibold text-primary/80">מחיר מינימום</Label>
               <Input
                 inputMode="numeric"
                 value={String(activePriceRange[0])}
@@ -691,11 +691,11 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                   const nextMin = Number(sanitizePriceInput(event.target.value)) || priceBounds.min;
                   setPriceRange([Math.min(nextMin, activePriceRange[1]), activePriceRange[1]]);
                 }}
-                className="h-11 rounded-2xl border-primary/10 bg-white text-right font-bold"
+                className="h-12 rounded-2xl text-right font-semibold num"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-black uppercase tracking-widest text-primary/30">מחיר מקסימום</Label>
+              <Label className="text-sm font-semibold text-primary/80">מחיר מקסימום</Label>
               <Input
                 inputMode="numeric"
                 value={String(activePriceRange[1])}
@@ -703,11 +703,11 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                   const nextMax = Number(sanitizePriceInput(event.target.value)) || priceBounds.max;
                   setPriceRange([activePriceRange[0], Math.max(nextMax, activePriceRange[0])]);
                 }}
-                className="h-11 rounded-2xl border-primary/10 bg-white text-right font-bold"
+                className="h-12 rounded-2xl text-right font-semibold num"
               />
             </div>
           </div>
-          <div className="rounded-2xl border border-primary/10 bg-white px-4 py-5">
+          <div className="rounded-2xl border border-border bg-card px-4 py-5">
             <Slider
               min={priceBounds.min}
               max={priceBounds.max}
@@ -723,7 +723,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
               }}
               className="w-full"
             />
-            <div className="mt-4 flex items-center justify-between text-xs font-black text-primary/60">
+            <div className="mt-4 flex items-center justify-between text-sm font-semibold text-primary/70 num">
               <span>₪{activePriceRange[1].toLocaleString('he-IL')}</span>
               <span>₪{activePriceRange[0].toLocaleString('he-IL')}</span>
             </div>
@@ -733,7 +733,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
 
       <FilterSection title="מיקום, משלוח ואיסוף" icon={<MapPin className="w-3.5 h-3.5 text-accent" />} defaultOpen>
         <div className="flex flex-col gap-3 pt-2">
-          <Button onClick={detectLocation} disabled={isDetecting} variant="outline" className={cn("h-11 w-full gap-3 rounded-2xl text-xs font-bold border-2 transition-all", userCoords ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'hover:border-primary/20')}>
+          <Button onClick={detectLocation} disabled={isDetecting} variant="outline" className={cn("h-12 w-full gap-3 rounded-2xl text-sm font-semibold border transition-all", userCoords ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'hover:border-primary/30')}>
             {isDetecting ? <Loader2 className="w-3 h-3 animate-spin" /> : <LocateFixed className="w-3 h-3" />}
             {detectedCity ? `זוהית ב: ${detectedCity}` : 'זהה מיקום נוכחי'}
           </Button>
@@ -744,10 +744,10 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
             onChange={(city) => { setSelectedCity(city); if (city) setIncludeNearbyCities(true); }}
             layout="inline"
           />
-          <Label className="flex items-center justify-between rounded-2xl border border-primary/10 bg-white px-4 py-4 transition-all cursor-pointer hover:border-primary/20">
+          <Label className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-4 transition-colors cursor-pointer hover:border-primary/30">
             <div className="space-y-1 text-right">
               <span className="block text-sm font-bold text-primary">חפש גם בערים קרובות</span>
-              <span className="block text-xs font-medium text-primary/45">מוצרים מערים עד {NEARBY_RADIUS_KM} ק״מ</span>
+              <span className="block text-[13px] font-medium text-primary/65">מוצרים מערים עד {NEARBY_RADIUS_KM} ק״מ</span>
             </div>
             <Checkbox checked={includeNearbyCities} onCheckedChange={(value) => setIncludeNearbyCities(!!value)} />
           </Label>
@@ -762,7 +762,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
       <FilterSection title="מסנני סופר" icon={<GraduationCap className="w-3.5 h-3.5 text-accent" />}>
         <div className="grid grid-cols-1 gap-4 pt-2">
           <div className="space-y-2">
-            <Label className="text-2xs font-black text-primary/30">הסמכת הסופר</Label>
+            <Label className="text-sm font-semibold text-primary/80">הסמכת הסופר</Label>
             <div className="grid gap-1.5">
               <CustomFilterTile value="valid" label="תעודה בתוקף" active={certStatus === 'valid'} onClick={() => setCertStatus(certStatus === 'valid' ? '' : 'valid')} />
               <CustomFilterTile value="expired" label="תעודה בעבר" active={certStatus === 'expired'} onClick={() => setCertStatus(certStatus === 'expired' ? '' : 'expired')} />
@@ -770,7 +770,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
             </div>
           </div>
           <div className="space-y-2">
-            <Label className="text-2xs font-black text-primary/30">לימוד תורה</Label>
+            <Label className="text-sm font-semibold text-primary/80">לימוד תורה</Label>
             <div className="grid gap-1.5">
               <CustomFilterTile value="fixed" label="קובע עיתים" active={studyFreq === 'fixed'} onClick={() => setStudyFreq(studyFreq === 'fixed' ? '' : 'fixed')} />
               <CustomFilterTile value="half-day" label="אברך חצי יום" active={studyFreq === 'half-day'} onClick={() => setStudyFreq(studyFreq === 'half-day' ? '' : 'half-day')} />
@@ -778,13 +778,13 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
             </div>
           </div>
           <div className="space-y-2">
-            <Label className="text-2xs font-black text-primary/30">מנהג טבילה</Label>
+            <Label className="text-sm font-semibold text-primary/80">מנהג טבילה</Label>
             <div className="grid gap-1.5">
               <CustomFilterTile value="daily" label="טובל יומיום" active={mikvehFreq === 'daily'} onClick={() => setMikvehFreq(mikvehFreq === 'daily' ? '' : 'daily')} />
               <CustomFilterTile value="never" label="ללא טבילה" active={mikvehFreq === 'never'} onClick={() => setMikvehFreq(mikvehFreq === 'never' ? '' : 'never')} />
             </div>
           </div>
-          <Label className="flex items-center justify-between rounded-2xl border border-primary/10 bg-white px-4 py-4 transition-all cursor-pointer hover:border-primary/20">
+          <Label className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-4 transition-colors cursor-pointer hover:border-primary/30">
             <div className="flex items-center gap-2">
               <UserCheck className="w-4 h-4 text-accent" />
               <span className="text-sm font-bold text-primary">סופר נשוי</span>
@@ -800,11 +800,11 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
   // footer bar) instead of scrolling away with the filter list on short viewports.
   const renderFilterActions = () => (
     <div className="grid grid-cols-2 gap-3">
-      <Button variant="outline" onClick={resetFilters} className="h-12 rounded-2xl border-primary/10 font-black">
+      <Button variant="outline" onClick={resetFilters} className="h-12">
         <RotateCcw className="ml-2 h-4 w-4" />
         אפס
       </Button>
-      <Button onClick={() => setIsFilterPanelOpen(false)} className="h-12 rounded-2xl bg-accent text-primary font-black shadow-lg">
+      <Button onClick={() => setIsFilterPanelOpen(false)} className="h-12">
         הצג {filteredProducts.length} מוצרים
       </Button>
     </div>
@@ -813,18 +813,18 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="w-full pt-20">
+      <main className="w-full pt-24 md:pt-28">
         {isDesktopFilters ? (
           <Sheet open={isFilterPanelOpen} onOpenChange={setIsFilterPanelOpen}>
-            <SheetContent side="right" className="w-full border-l border-primary/10 bg-[#FCFBF7] p-0 sm:max-w-[430px]" dir="rtl">
+            <SheetContent side="right" className="w-full border-l border-border bg-background p-0 sm:max-w-[430px]" dir="rtl">
               <div className="flex h-full flex-col">
-                <SheetHeader className="border-b border-primary/10 bg-white px-6 py-5 text-right">
-                  <SheetTitle className="font-headline text-2xl font-black text-primary">סינון מותאם</SheetTitle>
+                <SheetHeader className="border-b border-border bg-card px-6 py-5 text-right">
+                  <SheetTitle className="font-headline text-2xl font-bold text-primary">סינון מותאם</SheetTitle>
                 </SheetHeader>
                 <div className="flex-1 overflow-y-auto min-h-0 px-5 py-5">
                   {renderFilterContent()}
                 </div>
-                <div className="shrink-0 border-t border-primary/10 bg-white px-5 py-4">
+                <div className="shrink-0 border-t border-border bg-card px-5 py-4">
                   {renderFilterActions()}
                 </div>
               </div>
@@ -832,17 +832,17 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
           </Sheet>
         ) : (
           <Dialog open={isFilterPanelOpen} onOpenChange={setIsFilterPanelOpen}>
-            <DialogContent className="max-h-[92vh] w-[calc(100vw-1rem)] max-w-[95vw] overflow-hidden rounded-[2rem] border-none bg-white p-0 shadow-2xl ring-1 ring-primary/5 sm:max-w-[560px] flex flex-col" dir="rtl">
-              <div className="shrink-0 border-b border-primary/10 bg-primary px-5 py-5 text-right text-white">
+            <DialogContent className="max-h-[92vh] w-[calc(100vw-1rem)] max-w-[95vw] overflow-hidden rounded-[2rem] border-none bg-background p-0 shadow-2xl sm:max-w-[560px] flex flex-col" dir="rtl">
+              <div className="shrink-0 border-b border-white/10 bg-primary px-5 py-5 pl-16 text-right text-white">
                 <DialogHeader>
-                  <DialogTitle className="text-xl font-headline font-black">סינון מתקדם</DialogTitle>
-                  <p className="text-xs font-medium text-white/70">מסך מסודר ונוח לנייד עם כל המסננים במקום אחד.</p>
+                  <DialogTitle className="text-2xl font-headline font-bold">סינון מתקדם</DialogTitle>
+                  <p className="text-sm font-medium text-white/75">מסך מסודר ונוח לנייד עם כל המסננים במקום אחד.</p>
                 </DialogHeader>
               </div>
               <div className="flex-1 overflow-y-auto min-h-0 px-5 py-5">
                 {renderFilterContent()}
               </div>
-              <div className="shrink-0 border-t border-primary/10 bg-white px-5 py-4">
+              <div className="shrink-0 border-t border-border bg-card px-5 py-4">
                 {renderFilterActions()}
               </div>
             </DialogContent>
@@ -855,29 +855,27 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
           </div>
         ) : !showResults ? (
           <div className="container mx-auto px-4 pt-12 pb-12">
-            <section className="bg-white/60 backdrop-blur-2xl p-6 sm:p-10 md:p-20 rounded-[2.5rem] md:rounded-[4rem] shadow-premium-lg text-center relative overflow-hidden max-w-5xl mx-auto border border-white/70 ring-1 ring-primary/5">
-              <div className="absolute -top-20 -right-20 w-64 h-64 bg-accent/5 rounded-full blur-3xl" />
-              <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
+            <section className="bg-card p-7 sm:p-10 md:p-20 rounded-[2.5rem] md:rounded-[3.5rem] shadow-premium-lg text-center relative overflow-hidden max-w-5xl mx-auto border border-border/70">
               
-              <h1 className="text-4xl md:text-7xl font-headline font-black text-primary mb-6 tracking-tighter leading-tight">חיפוש קדושה <span className="text-accent underline decoration-accent/20 underline-offset-[12px]">מדויק</span></h1>
-              <p className="text-primary/60 text-lg md:text-xl mb-12 font-medium max-w-2xl mx-auto leading-relaxed">הגדירו את המפרט המדויק וקבלו את כלי הקודש המושלם עבורכם ישירות מהסופר המאומת.</p>
+              <h1 className="text-[40px] md:text-7xl font-headline font-medium text-primary mb-6 leading-tight">חיפוש קדושה <span className="text-accent-strong">מדויק</span></h1>
+              <p className="lead mb-10 md:mb-12 max-w-2xl mx-auto">הגדירו את המפרט המדויק וקבלו את כלי הקודש המושלם עבורכם ישירות מהסופר המאומת.</p>
               
               <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
-                <Button onClick={() => setIsFilterPanelOpen(true)} size="lg" className="w-full sm:w-auto rounded-full px-10 sm:px-16 h-16 sm:h-20 font-black text-base sm:text-lg uppercase tracking-wider shadow-2xl hover:scale-105 active:scale-95 focus:ring-4 focus:ring-accent/30 transition-all duration-300 group">
-                  <SearchIcon className="ml-4 w-6 h-6 group-hover:rotate-12 transition-transform" /> התחל חיפוש מותאם
+                <Button onClick={() => setIsFilterPanelOpen(true)} size="lg" variant="gold" className="w-full sm:w-auto px-12 h-16 text-[17px] group">
+                  <SearchIcon className="ml-2 !w-5 !h-5" /> התחל חיפוש מותאם
                 </Button>
-                <Button onClick={() => setShowResults(true)} variant="outline" size="lg" className="w-full sm:w-auto rounded-full px-8 sm:px-12 h-14 sm:h-20 font-black uppercase text-sm tracking-widest border-primary/10 bg-white shadow-premium hover:border-primary/20 hover:shadow-lg active:scale-95 transition-all duration-300">צפה בכל הקטלוג</Button>
+                <Button onClick={() => setShowResults(true)} variant="outline" size="lg" className="w-full sm:w-auto px-12 h-16 text-[17px]">צפה בכל הקטלוג</Button>
               </div>
             </section>
           </div>
         ) : (
           <div className="space-y-0">
             <div className="container mx-auto px-4 pt-8 pb-6 md:pb-8">
-              <div className="flex flex-col justify-between gap-4 border-b border-primary/5 pb-5 md:flex-row md:items-end md:gap-6 md:pb-8">
+              <div className="flex flex-col justify-between gap-4 border-b border-border/70 pb-5 md:flex-row md:items-end md:gap-6 md:pb-7">
                 <div className="relative w-full">
                   <div className="no-scrollbar -mb-2 w-full overflow-x-auto pb-2 touch-pan-x">
                     <div className="flex min-w-max snap-x snap-mandatory items-center gap-2 px-1 md:gap-3">
-                    <div className="flex snap-start items-center rounded-full border border-primary/10 bg-white p-1 shadow-sm">
+                    <div className="flex snap-start items-center rounded-full border border-border bg-card p-1">
                       <ToolbarChoiceButton active={shippingPreference === 'all'} onClick={() => setShippingPreference('all')}>
                         הכל
                         </ToolbarChoiceButton>
@@ -891,25 +889,25 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                         </ToolbarChoiceButton>
                       </div>
                       <Select value={sortOrder} onValueChange={setSortOrder}>
-                        <SelectTrigger className="h-11 w-[196px] shrink-0 snap-start rounded-full border border-primary/10 bg-white px-3 text-xs font-black text-primary shadow-sm transition-all duration-300 hover:border-primary/20 hover:bg-primary/[0.03] hover:shadow-md focus:ring-0 focus:ring-offset-0 data-[state=open]:border-accent/30 data-[state=open]:bg-accent/5 data-[state=open]:shadow-lg md:h-10">
+                        <SelectTrigger className="h-12 w-[210px] shrink-0 snap-start rounded-full border border-border bg-card px-3 text-sm font-semibold text-primary transition-colors duration-300 hover:border-primary/30 focus:ring-0 focus:ring-offset-0 data-[state=open]:border-accent">
                           <div className="flex min-w-0 items-center gap-2">
-                            <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent">
+                            <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary/70 text-primary">
                               <ArrowUpNarrowWide className="h-3.5 w-3.5" />
                             </span>
                             <div className="flex min-w-0 flex-col items-start leading-none">
-                              <span className="text-2xs font-black uppercase tracking-wider text-primary/40">מיון</span>
-                              <span className="min-w-0 truncate text-xs text-primary">
+                              <span className="text-xs font-medium text-primary/60">מיון</span>
+                              <span className="min-w-0 truncate text-sm font-semibold text-primary">
                                 <SelectValue placeholder="מוצרים חדשים" />
                               </span>
                             </div>
                           </div>
                         </SelectTrigger>
-                        <SelectContent className="rounded-[1.5rem] border border-primary/10 bg-white/97 p-2 shadow-[0_24px_80px_-30px_rgba(15,23,42,0.45)] backdrop-blur-xl">
+                        <SelectContent className="rounded-[1.5rem] border border-border bg-card p-2 shadow-premium-lg">
                           {SORT_OPTIONS.map((option) => (
                             <SelectItem
                               key={option.value}
                               value={option.value}
-                              className="rounded-2xl py-3 pr-4 pl-9 text-right text-xs font-black text-primary transition-colors focus:bg-accent/10 focus:text-primary data-[state=checked]:bg-primary/5 data-[state=checked]:text-primary md:text-sm"
+                              className="rounded-2xl py-3 pr-4 pl-9 text-right text-sm font-semibold text-primary transition-colors focus:bg-secondary/60 focus:text-primary data-[state=checked]:bg-secondary data-[state=checked]:text-primary"
                             >
                               {option.label}
                             </SelectItem>
@@ -917,7 +915,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                         </SelectContent>
                       </Select>
 
-                      <Button variant="ghost" onClick={resetFilters} className="h-11 shrink-0 snap-start rounded-full px-4 text-xs font-black text-primary/40 transition-all hover:bg-destructive/5 hover:text-destructive md:h-10">
+                      <Button variant="ghost" onClick={resetFilters} className="h-12 shrink-0 snap-start rounded-full px-4 text-sm font-semibold text-primary/65 hover:bg-destructive/5 hover:text-destructive">
                         <RotateCcw className="ml-2 h-4 w-4" /> איפוס
                       </Button>
                     </div>
@@ -931,12 +929,12 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                   </div>
                 </div>
                 <div className="order-first w-full shrink-0 px-1 text-right md:order-none md:w-auto">
-                  <h2 className="text-2xl md:text-4xl font-headline font-black text-primary tracking-tighter">מוצרים שנמצאו ({filteredProducts.length})</h2>
+                  <h2 className="flex items-baseline gap-3 text-[28px] md:text-[40px] font-headline font-medium text-primary leading-tight">מוצרים שנמצאו <span className="font-body text-base md:text-lg font-semibold text-muted-foreground num">({filteredProducts.length})</span></h2>
                 </div>
               </div>
 
               <div className="mt-3 flex items-center justify-between gap-2">
-                <div className="flex items-center rounded-full border border-primary/10 bg-white p-1 shadow-sm" role="group" aria-label="תצוגת תוצאות">
+                <div className="flex items-center rounded-full border border-border bg-card p-1" role="group" aria-label="תצוגת תוצאות">
                   <button
                     type="button"
                     onClick={() => handleViewModeChange('grid')}
@@ -944,7 +942,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                     aria-label="תצוגת רשת"
                     className={cn(
                       "flex h-11 w-11 items-center justify-center rounded-full transition-all duration-200 active:scale-90",
-                      viewMode === 'grid' ? "bg-accent text-primary shadow-sm" : "text-primary/40 hover:bg-primary/5 hover:text-primary"
+                      viewMode === 'grid' ? "bg-primary text-primary-foreground" : "text-primary/60 hover:bg-primary/5 hover:text-primary"
                     )}
                   >
                     <LayoutGrid className="h-4 w-4" />
@@ -956,17 +954,17 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                     aria-label="תצוגת רשימה"
                     className={cn(
                       "flex h-11 w-11 items-center justify-center rounded-full transition-all duration-200 active:scale-90",
-                      viewMode === 'list' ? "bg-accent text-primary shadow-sm" : "text-primary/40 hover:bg-primary/5 hover:text-primary"
+                      viewMode === 'list' ? "bg-primary text-primary-foreground" : "text-primary/60 hover:bg-primary/5 hover:text-primary"
                     )}
                   >
                     <Rows3 className="h-4 w-4" />
                   </button>
                 </div>
-                <Button variant="outline" onClick={() => setIsFilterPanelOpen(true)} className="group h-11 rounded-full border border-primary/10 bg-white px-4 text-xs font-black text-primary shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:bg-primary/[0.03] hover:text-primary hover:shadow-md active:scale-95">
-                  <SlidersHorizontal className="ml-1.5 h-3 w-3 text-accent transition-transform duration-300 group-hover:rotate-6" />
+                <Button variant="outline" onClick={() => setIsFilterPanelOpen(true)} className="group h-12 px-5 text-sm">
+                  <SlidersHorizontal className="ml-1 text-accent-strong" />
                   <span>סינון</span>
                   {activeFiltersCount > 0 && (
-                    <span className="mr-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-2xs text-primary">
+                    <span className="mr-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-bold text-primary-foreground num">
                       {activeFiltersCount}
                     </span>
                   )}
@@ -975,38 +973,38 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
 
               <div className="mt-4 flex flex-wrap items-center justify-end gap-2.5">
                 {selectedGroup && (
-                  <div data-search-group-chip className="flex items-center gap-1 rounded-full bg-primary px-2 py-1 pr-4 text-xs font-black text-primary-foreground">
+                  <div data-search-group-chip className="flex items-center gap-1 rounded-full bg-primary px-1.5 py-1 pr-4 text-sm font-semibold text-primary-foreground">
                     {selectedGroup.label}
                     <button
                       type="button"
                       onClick={() => setSelectedGroupKey('')}
                       aria-label={`הסרת הסינון ${selectedGroup.label}`}
-                      className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-white/15"
+                      className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-white/15"
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 )}
                 {detectedCity && (
-                  <div className="animate-in fade-in flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-xs font-black text-emerald-600">
+                  <div className="animate-in fade-in flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800">
                     <CheckCircle2 className="w-3.5 h-3.5" /> זיהינו: {detectedCity}
                   </div>
                 )}
                 {selectedCity && (
-                  <div className="flex items-center gap-2 rounded-full bg-primary/5 px-4 py-2 text-xs font-black text-primary">
-                    <MapPin className="h-3.5 w-3.5 text-accent" />
+                  <div className="flex items-center gap-2 rounded-full bg-secondary/70 px-4 py-2 text-sm font-semibold text-primary">
+                    <MapPin className="h-3.5 w-3.5 text-accent-strong" />
                     מחפש ב{selectedCity}
                   </div>
                 )}
                 {includeNearbyCities && selectedCity && (
-                  <div className="rounded-full bg-amber-50 px-4 py-2 text-xs font-black text-amber-700">
+                  <div className="rounded-full bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-800">
                     כולל ערים קרובות עד {NEARBY_RADIUS_KM} ק״מ
                   </div>
                 )}
               </div>
 
               {includeNearbyCities && nearbyCityLabels.length > 1 && (
-                <div className="mt-3 text-right text-sm font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                <div className="mt-3 text-right text-sm font-semibold text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
                   מציג גם ערים קרובות: {nearbyCityLabels.join(' • ')}
                 </div>
               )}
@@ -1016,7 +1014,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
             {selectedProduct === 'ספר תורה' && <TorahExpertBanner />}
 
             <div className="container mx-auto px-4 pb-20 pt-6 md:pt-8">
-              <div className={cn(viewMode === 'grid' ? "grid grid-cols-1 gap-3 sm:grid-cols-2 md:gap-5 xl:grid-cols-3 xl:gap-7" : "flex flex-col gap-3")}>
+              <div className={cn(viewMode === 'grid' ? "grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6 xl:grid-cols-3 xl:gap-7" : "flex flex-col gap-3")}>
                 {filteredProducts.slice(0, visibleCount).map((p, i) => (
                   <motion.div
                     key={p.id}
@@ -1029,23 +1027,20 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                 ))}
                 
                 {filteredProducts.length === 0 && (
-                  <div className="col-span-full py-20 md:py-40 text-center space-y-6 md:space-y-8 bg-white/40 rounded-[2.5rem] md:rounded-[4rem] border-4 border-dashed border-primary/5 shadow-inner">
-                    <div className="relative w-20 h-20 md:w-28 md:h-28 mx-auto">
-                      <div className="absolute inset-0 bg-primary/5 rounded-full animate-ping" />
-                      <div className="relative bg-white rounded-full w-20 h-20 md:w-28 md:h-28 flex items-center justify-center shadow-xl">
-                        <SearchIcon className="w-8 h-8 md:w-12 md:h-12 text-primary/10" />
-                      </div>
+                  <div className="col-span-full flex flex-col items-center py-16 md:py-28 px-6 text-center bg-card/60 rounded-[2.5rem] border border-dashed border-primary/20">
+                    <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-secondary/70 text-primary/60 md:h-24 md:w-24">
+                      <SearchIcon className="h-8 w-8 md:h-10 md:w-10" strokeWidth={1.5} />
                     </div>
-                    <div className="space-y-2 md:space-y-3 p-4 text-center bg-accent/10 rounded-md mx-auto max-w-md">
+                    <div className="mb-8 max-w-md space-y-3">
                       {selectedGroup ? (
                         <>
-                          <p className="text-2xl md:text-3xl font-headline font-black text-primary tracking-tight">{selectedGroup.label} - בקרוב באתר</p>
-                          <p className="text-primary/60 max-w-sm mx-auto font-medium text-base md:text-lg leading-relaxed">מוכרים מצטרפים לחותם בימים אלה. בינתיים אפשר לראות את כל המוצרים באתר.</p>
+                          <p className="text-2xl md:text-3xl font-headline font-bold text-primary">{selectedGroup.label} - בקרוב באתר</p>
+                          <p className="text-primary/70 text-base md:text-lg leading-relaxed">מוכרים מצטרפים לחותם בימים אלה. בינתיים אפשר לראות את כל המוצרים באתר.</p>
                         </>
                       ) : (
                         <>
-                          <p className="text-2xl md:text-3xl font-headline font-black text-primary tracking-tight">לא נמצאה התאמה מדויקת</p>
-                          <p className="text-primary/60 max-w-sm mx-auto font-medium text-base md:text-lg leading-relaxed">נסו להסיר חלק מהמסננים או לאפס את החיפוש כדי לראות עוד אפשרויות קודש.</p>
+                          <p className="text-2xl md:text-3xl font-headline font-bold text-primary">לא נמצאה התאמה מדויקת</p>
+                          <p className="text-primary/70 text-base md:text-lg leading-relaxed">נסו להסיר חלק מהמסננים או לאפס את החיפוש כדי לראות עוד אפשרויות קודש.</p>
                         </>
                       )}
                     </div>
@@ -1061,7 +1056,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                   <Button
                     onClick={() => setVisibleCount(prev => prev + PRODUCTS_PAGE_SIZE)}
                     variant="outline"
-                    className="rounded-full px-12 h-14 border-2 border-primary/10 text-primary font-black text-sm hover:bg-accent hover:border-accent hover:text-primary transition-all shadow-lg gap-3"
+                    size="lg" className="px-10 gap-2"
                   >
                     <ChevronRight className="w-4 h-4 rotate-[-90deg]" />
                     טען עוד ({filteredProducts.length - visibleCount} נוספים)
@@ -1087,14 +1082,14 @@ export default function SearchPageClient({ initialProducts, initialSellers }: { 
 function WizardSmallCard({ value, selected, icon, label }: any) {
   return (
     <Label className={cn(
-      "group flex min-h-24 cursor-pointer flex-col items-center justify-center gap-2 rounded-[1.5rem] border-2 p-4 transition-all duration-200",
+      "group flex min-h-24 cursor-pointer flex-col items-center justify-center gap-2 rounded-[1.5rem] border p-4 transition-all duration-200",
       selected 
-        ? "border-primary bg-primary/5 shadow-xl scale-105 z-10" 
-        : "border-primary/5 hover:border-accent/30 hover:shadow-md bg-white shadow-sm"
+        ? "border-primary bg-card ring-1 ring-primary shadow-premium" 
+        : "border-border hover:border-primary/30 bg-card"
     )}>
       <div className={cn(
         "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300",
-        selected ? "bg-accent text-primary shadow-lg" : "bg-primary/5 text-primary group-hover:bg-accent/10 group-hover:scale-110"
+        selected ? "bg-primary text-primary-foreground" : "bg-secondary/70 text-primary"
       )}>
         {React.cloneElement(icon as React.ReactElement<{ className?: string }>, { className: "w-5 h-5" })}
       </div>
@@ -1110,16 +1105,16 @@ function WizardSmallCard({ value, selected, icon, label }: any) {
 
 function CustomFilterTile({ value, label, active, onClick }: any) {
   const className = cn(
-    "group flex min-h-11 cursor-pointer items-center justify-between rounded-xl border-2 px-4 py-3 transition-all duration-200",
-    active ? "border-primary bg-primary/5 shadow-sm scale-[1.01]" : "border-primary/5 bg-white hover:bg-secondary/40 hover:border-primary/15"
+    "group flex min-h-12 cursor-pointer items-center justify-between gap-2 rounded-xl border px-4 py-3 transition-colors duration-200",
+    active ? "border-primary bg-primary/[0.04] ring-1 ring-primary" : "border-border bg-card hover:border-primary/30"
   );
   const content = (
     <>
       {!onClick && <RadioGroupItem value={value} className="hidden" />}
-      <span className={cn("font-bold text-xs transition-colors", active ? "text-primary" : "text-primary/50 group-hover:text-primary/70")}>{label}</span>
+      <span className={cn("text-sm text-right transition-colors", active ? "font-bold text-primary" : "font-semibold text-primary/75 group-hover:text-primary")}>{label}</span>
       <div className={cn(
-        "w-3 h-3 rounded-full border-2 transition-all duration-200",
-        active ? "bg-accent border-accent scale-110 shadow-sm" : "border-primary/10 group-hover:border-primary/30"
+        "w-4 h-4 shrink-0 rounded-full border transition-all duration-200",
+        active ? "border-[5px] border-primary" : "border-primary/30 group-hover:border-primary/50"
       )} />
     </>
   );
@@ -1153,8 +1148,8 @@ function ToolbarChoiceButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex h-11 min-w-[74px] touch-manipulation items-center justify-center rounded-full px-3 text-xs font-black transition-all md:h-8 md:min-w-0 md:text-xs",
-        active ? "bg-accent text-primary shadow-sm" : "text-primary/55 hover:text-primary",
+        "flex h-10 min-w-[74px] touch-manipulation items-center justify-center rounded-full px-4 text-sm font-semibold transition-colors",
+        active ? "bg-primary text-primary-foreground" : "text-primary/70 hover:text-primary",
       )}
     >
       {children}
@@ -1165,7 +1160,7 @@ function ToolbarChoiceButton({
 function FilterSection({ title, icon, children, defaultOpen = false }: { title: string; icon: React.ReactNode; children: React.ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = React.useState(defaultOpen);
   return (
-    <div className="overflow-hidden rounded-2xl border-2 border-primary/5 bg-white">
+    <div className="overflow-hidden rounded-2xl border border-border bg-card">
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
@@ -1173,9 +1168,9 @@ function FilterSection({ title, icon, children, defaultOpen = false }: { title: 
       >
         <div className="flex items-center gap-2">
           {icon}
-          <span className="font-black text-xs uppercase tracking-widest text-primary/70">{title}</span>
+          <span className="font-bold text-[15px] text-primary">{title}</span>
         </div>
-        <ChevronRight className={cn("w-3.5 h-3.5 text-primary/30 transition-transform duration-200", open ? "rotate-90" : "rotate-0")} />
+        <ChevronRight className={cn("w-4 h-4 text-primary/50 transition-transform duration-200", open ? "rotate-90" : "rotate-0")} />
       </button>
       {open && (
         <div className="px-4 pb-4">

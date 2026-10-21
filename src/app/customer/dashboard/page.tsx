@@ -511,7 +511,7 @@ export default function CustomerDashboard() {
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs dir="rtl" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           {/* Tab Navigation */}
           <TabsList className="bg-card p-1.5 rounded-2xl shadow-premium border border-border/70 h-auto w-full grid grid-cols-4 gap-1">
             {navItems.map((item) => (

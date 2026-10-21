@@ -1223,7 +1223,7 @@ function SellerDashboardContent() {
         <QuickStat label="סטטוס" value="פעיל" icon={<TrendingUp className="w-4 h-4" />} color="bg-secondary/80 text-accent-strong" />
       </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs dir="rtl" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           {/* Desktop tab bar */}
           <TabsList className="hidden md:flex w-full bg-card p-1.5 rounded-full shadow-premium h-14 border border-border/70">
             {navItems.map((item) => (
@@ -1570,7 +1570,7 @@ function SellerDashboardContent() {
                               <div
                                 key={opt.id}
                                 className={cn(
-                                  "flex min-h-[56px] items-center space-x-reverse space-x-3 p-4 border rounded-2xl transition-all duration-200 cursor-pointer hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98]",
+                                  "flex min-h-[56px] items-center gap-3 p-4 border rounded-2xl transition-all duration-200 cursor-pointer hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98]",
                                   profileData.has_scribe_certificate === opt.value ? 'border-primary bg-primary/5 ring-2 ring-primary/5' : 'border-input/60'
                                 )}
                                 onClick={() => setProfileData({...profileData, has_scribe_certificate: opt.value})}
@@ -1650,7 +1650,7 @@ function SellerDashboardContent() {
                                 <div
                                   key={opt.id}
                                   className={cn(
-                                    "flex min-h-[48px] items-center space-x-reverse space-x-3 rounded-xl border p-3 transition-all duration-200 cursor-pointer hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98]",
+                                    "flex min-h-[48px] items-center gap-3 rounded-xl border p-3 transition-all duration-200 cursor-pointer hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98]",
                                     profileData.torah_study_frequency === opt.value ? 'border-primary bg-primary/5 ring-2 ring-primary/5' : 'border-input/60 bg-white'
                                   )}
                                   onClick={() => setProfileData({...profileData, torah_study_frequency: opt.value})}
@@ -1674,7 +1674,7 @@ function SellerDashboardContent() {
                                 <div
                                   key={opt.id}
                                   className={cn(
-                                    "flex min-h-[48px] items-center space-x-reverse space-x-3 rounded-xl border p-3 transition-all duration-200 cursor-pointer hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98]",
+                                    "flex min-h-[48px] items-center gap-3 rounded-xl border p-3 transition-all duration-200 cursor-pointer hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98]",
                                     profileData.mikveh_frequency === opt.value ? 'border-primary bg-primary/5 ring-2 ring-primary/5' : 'border-input/60 bg-white'
                                   )}
                                   onClick={() => setProfileData({...profileData, mikveh_frequency: opt.value})}
@@ -1704,7 +1704,7 @@ function SellerDashboardContent() {
                                 <div
                                   key={level}
                                   className={cn(
-                                    "flex min-h-[48px] items-center space-x-reverse space-x-2 rounded-xl border p-3 transition-all duration-200 cursor-pointer hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98]",
+                                    "flex min-h-[48px] items-center gap-2 rounded-xl border p-3 transition-all duration-200 cursor-pointer hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98]",
                                     profileData.script_level === level ? 'border-primary bg-primary/5 ring-2 ring-primary/5' : 'border-input/60 bg-white'
                                   )}
                                   onClick={() => setProfileData({...profileData, script_level: level})}
@@ -1732,7 +1732,7 @@ function SellerDashboardContent() {
                                 <div
                                   key={type}
                                   className={cn(
-                                    "flex min-h-[48px] items-center space-x-reverse space-x-2 p-3 border rounded-xl transition-all duration-200 cursor-pointer hover:border-primary/40 active:scale-[0.98]",
+                                    "flex min-h-[48px] items-center gap-2 p-3 border rounded-xl transition-all duration-200 cursor-pointer hover:border-primary/40 active:scale-[0.98]",
                                     profileData.script_types.includes(type) ? 'bg-primary/5 border-primary ring-2 ring-primary/5' : 'bg-white border-input/60 hover:bg-primary/5'
                                   )}
                                   onClick={toggleThisType}

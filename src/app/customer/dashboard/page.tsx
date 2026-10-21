@@ -491,7 +491,7 @@ export default function CustomerDashboard() {
             </div>
             <div className="flex-1 text-right">
               <p className="text-[13px] font-medium text-[#E2B35B] mb-2">האזור האישי</p>
-              <h1 className="text-[36px] md:text-[54px] font-headline font-medium text-white leading-[1.08]">
+              <h1 className="text-[36px] md:text-[54px] font-headline font-semibold text-white leading-[1.08]">
                 שלום, {customer?.first_name || (user?._raw?.user_metadata?.first_name as string | undefined) || 'לקוח'} {customer?.last_name || (user?._raw?.user_metadata?.last_name as string | undefined) || ''}
               </h1>
                   <p className="text-white/85 text-[15px] mt-1" dir="ltr" style={{ textAlign: 'right' }}>{user?.email}</p>
@@ -514,7 +514,7 @@ export default function CustomerDashboard() {
 
         <Tabs dir="rtl" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           {/* Tab Navigation */}
-          <TabsList className="bg-card p-1.5 rounded-2xl shadow-premium border border-border/70 h-auto w-full grid grid-cols-4 gap-1">
+          <TabsList indicatorClassName="rounded-xl bg-primary shadow-none" className="bg-card p-1.5 rounded-2xl shadow-premium border border-border/70 h-auto w-full grid grid-cols-4 gap-1">
             {navItems.map((item) => (
               <TabsTrigger
                 key={item.id}

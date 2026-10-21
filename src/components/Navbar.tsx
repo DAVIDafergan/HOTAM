@@ -191,7 +191,7 @@ export function Navbar() {
             <path d="m2 2l5 5" />
             <path d="m11 11l1 1" />
           </svg>
-          <span className={`font-headline font-medium text-primary leading-none tracking-[0.16em] uppercase whitespace-nowrap shrink-0 ${compact ? 'text-[17px]' : 'text-[20px]'}`}>HOTAM</span>
+          <span className={`font-numbers font-normal text-primary leading-none tracking-[0.16em] uppercase whitespace-nowrap shrink-0 ${compact ? 'text-[17px]' : 'text-[20px]'}`}>HOTAM</span>
         </div>
       </Link>
     );

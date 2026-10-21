@@ -92,7 +92,7 @@ export default function ResetPasswordPageClient() {
               <div className="pointer-events-none absolute inset-y-10 left-0 hidden w-px bg-gradient-to-b from-transparent via-[#E2B35B]/50 to-transparent md:block" />
               <div className="relative z-10 space-y-4 md:space-y-6">
                 <div className="space-y-2 md:space-y-3">
-                  <h1 className="text-[30px] md:text-[38px] font-headline font-medium leading-tight text-white">
+                  <h1 className="text-[30px] md:text-[38px] font-headline font-semibold leading-tight text-white">
                     חותם
                   </h1>
                   <p className="text-white/85 text-base md:text-base leading-relaxed">בחר סיסמה חדשה וחזק את אבטחת חשבונך.</p>

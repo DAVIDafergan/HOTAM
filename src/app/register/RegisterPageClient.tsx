@@ -250,7 +250,7 @@ export default function RegisterPageClient() {
           <div className="w-full max-w-3xl space-y-8 text-right" dir="rtl">
             <div className="text-center space-y-3">
               <p className="eyebrow eyebrow-center">הצטרפות</p>
-              <h1 className="text-[40px] md:text-[60px] font-headline font-medium text-primary leading-[1.06]">הצטרפות לחותם</h1>
+              <h1 className="text-[40px] md:text-[60px] font-headline font-semibold text-primary leading-[1.06]">הצטרפות לחותם</h1>
               <p className="text-muted-foreground text-[17px] font-light">בחר את סוג החשבון שברצונך לפתוח</p>
             </div>
             <div className="grid sm:grid-cols-2 gap-4 md:gap-6">
@@ -314,7 +314,7 @@ export default function RegisterPageClient() {
                 <Mail className="w-10 h-10 text-primary" />
               </div>
               <div className="space-y-2">
-                <h2 className="text-[28px] font-headline font-medium text-primary">בדוק את תיבת הדואר שלך</h2>
+                <h2 className="text-[28px] font-headline font-semibold text-primary">בדוק את תיבת הדואר שלך</h2>
                 <p className="text-primary/85 text-base leading-relaxed">
                   שלחנו קישור אישור לכתובת <span className="font-bold text-primary" dir="ltr">{email}</span>.<br />
                   לחץ על הקישור כדי להשלים את ההרשמה ולהיכנס לאתר.
@@ -353,8 +353,8 @@ export default function RegisterPageClient() {
               <div className="pointer-events-none absolute inset-y-10 left-0 w-px bg-gradient-to-b from-transparent via-[#E2B35B]/50 to-transparent" />
               <div className="relative z-10 space-y-6">
                 <div className="space-y-4">
-                  <p className="font-headline text-sm font-medium uppercase tracking-[0.28em] text-[#E2B35B]">HOTAM</p>
-                  <h1 className="text-[46px] font-headline font-medium leading-[1.08] text-white">
+                  <p className="font-numbers text-[15px] font-normal uppercase tracking-[0.28em] text-[#E2B35B]">HOTAM</p>
+                  <h1 className="text-[46px] font-headline font-semibold leading-[1.08] text-white">
                     מצטרפים למשפחת חותם
                   </h1>
                   <p className="text-white/85 text-base leading-relaxed">גלו את הדרך הבטוחה והמהודרת ביותר לרכישת כלי קודש ישירות מהסופר.</p>
@@ -375,8 +375,8 @@ export default function RegisterPageClient() {
             {/* Right/Form Side */}
             <CardContent className="order-1 md:order-2 md:col-span-3 p-6 sm:p-8 md:p-10 space-y-6 text-right flex flex-col justify-center">
               <div className="md:hidden text-center">
-                <p className="font-headline text-sm font-medium uppercase tracking-[0.28em] text-accent-strong">HOTAM</p>
-                <h1 className="mt-2 text-[36px] font-headline font-medium text-primary leading-tight">הצטרפות לחותם</h1>
+                <p className="font-numbers text-[15px] font-normal uppercase tracking-[0.28em] text-accent-strong">HOTAM</p>
+                <h1 className="mt-2 text-[36px] font-headline font-semibold text-primary leading-tight">הצטרפות לחותם</h1>
               </div>
               <div className="space-y-1.5 text-center md:text-right">
                 <h2 className="text-[22px] md:text-[30px] font-body font-semibold md:font-semibold text-primary">הרשמה כלקוח</h2>

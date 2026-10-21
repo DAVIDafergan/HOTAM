@@ -36,7 +36,7 @@ export function TorahExpertBanner() {
                 </span>
               </motion.div>
 
-              <h2 id="torah-concierge-heading" className="font-headline text-[32px] font-medium leading-[1.12] text-primary md:text-[46px]">
+              <h2 id="torah-concierge-heading" className="font-headline text-[32px] font-semibold leading-[1.12] text-primary md:text-[46px]">
                 ספר תורה? נלווה אתכם אישית
               </h2>
               <p className="mx-auto max-w-2xl text-[17px] font-light leading-relaxed text-primary/85 md:mx-0 md:text-[19px]">

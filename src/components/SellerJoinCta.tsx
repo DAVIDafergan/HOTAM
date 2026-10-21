@@ -33,7 +33,7 @@ export function SellerJoinCta() {
           <PenTool className="w-7 h-7 md:w-8 md:h-8" strokeWidth={1.5} />
         </div>
         <div className="space-y-4 md:space-y-6">
-          <h2 className="text-[38px] md:text-[60px] font-headline font-medium leading-[1.08]">סופרי סת״ם, הצטרפו לחותם</h2>
+          <h2 className="text-[38px] md:text-[60px] font-headline font-semibold leading-[1.08]">סופרי סת״ם, הצטרפו לחותם</h2>
           <p className="text-[17px] md:text-xl font-light text-white/85 max-w-xl mx-auto leading-relaxed">
             פתחו חנות אישית, נהלו הזמנות בקלות ומכרו את מלאכת הקודש שלכם ישירות ללקוחות — בלי פערי תיווך.
           </p>

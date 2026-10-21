@@ -858,7 +858,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
             <section className="bg-card p-7 sm:p-10 md:p-20 rounded-[2.5rem] md:rounded-[3.5rem] shadow-premium-lg text-center relative overflow-hidden max-w-5xl mx-auto border border-border/70">
               
               <p className="eyebrow eyebrow-center mb-6">חיפוש מותאם</p>
-              <h1 className="text-[42px] md:text-[76px] font-headline font-medium text-primary mb-6 leading-[1.06]">מצאו בדיוק את<br />מה שחיפשתם</h1>
+              <h1 className="text-[42px] md:text-[76px] font-headline font-semibold text-primary mb-6 leading-[1.06]">מצאו בדיוק את<br />מה שחיפשתם</h1>
               <p className="lead mb-10 md:mb-12 max-w-2xl mx-auto">בחרו סוג כתב, רמת הידור, גודל ומיקום — ונציג לכם כלי קודש מסופרים מאומתים.</p>
               
               <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
@@ -931,7 +931,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                 </div>
                 <div className="order-first w-full shrink-0 px-1 text-right md:order-none md:w-auto">
                   <p className="eyebrow mb-3">הקטלוג</p>
-                  <h2 className="flex items-baseline gap-3 text-[34px] md:text-[52px] font-headline font-medium text-primary leading-[1.1]">כלי קודש <span className="font-numbers font-semibold text-[20px] md:text-[24px] text-muted-foreground num">{filteredProducts.length}</span></h2>
+                  <h2 className="flex items-baseline gap-3 text-[34px] md:text-[52px] font-headline font-semibold text-primary leading-[1.1]">כלי קודש <span className="font-numbers font-normal text-[22px] md:text-[26px] text-muted-foreground num">{filteredProducts.length}</span></h2>
                 </div>
               </div>
 

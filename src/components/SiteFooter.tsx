@@ -32,9 +32,11 @@ export function SiteFooter({ className = '' }: { className?: string }) {
                 <path d="m2 2 5 5" />
                 <path d="m11 11l1 1" />
               </svg>
-              <span className="font-headline text-[24px] font-medium uppercase tracking-[0.16em]">HOTAM</span>
+              <span className="font-numbers text-[24px] font-normal uppercase tracking-[0.16em]">HOTAM</span>
+              {/* The one decorative STaM touch outside the hero: the name, as a scribe writes it. */}
+              <span aria-hidden="true" className="border-r border-accent/40 pr-3 font-stam text-[26px] leading-none text-accent-strong">חותם</span>
             </Link>
-            <p className="mx-auto max-w-xs text-base font-light leading-relaxed text-muted-foreground md:mx-0">
+            <p className="mx-auto max-w-xs text-base font-normal leading-relaxed text-muted-foreground md:mx-0">
               סת״ם מהודר ויודאיקה, ישירות מסופרים ומוכרים מאומתים.
             </p>
           </div>

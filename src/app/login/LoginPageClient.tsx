@@ -138,8 +138,8 @@ function LoginContent() {
               <div className="pointer-events-none absolute inset-y-10 left-0 w-px bg-gradient-to-b from-transparent via-[#E2B35B]/50 to-transparent" />
               <div className="relative z-10 space-y-6 text-right">
                 <div className="space-y-2 md:space-y-3">
-                  <p className="font-headline text-sm font-medium uppercase tracking-[0.28em] text-[#E2B35B]">HOTAM</p>
-                  <h1 className="text-[46px] font-headline font-medium leading-[1.08] text-white">
+                  <p className="font-numbers text-[15px] font-normal uppercase tracking-[0.28em] text-[#E2B35B]">HOTAM</p>
+                  <h1 className="text-[46px] font-headline font-semibold leading-[1.08] text-white">
                     ברוכים השבים לחותם
                   </h1>
                   <p className="text-white/85 text-base leading-relaxed">זירת מסחר מאובטחת ונוחה לכלי קודש וסת"ם מהודרים.</p>
@@ -164,8 +164,8 @@ function LoginContent() {
             {/* Right/Form Side */}
             <CardContent className="order-2 md:col-span-3 p-6 sm:p-8 md:p-10 space-y-6 text-right flex flex-col justify-center">
               <div className="md:hidden text-center">
-                <p className="font-headline text-sm font-medium uppercase tracking-[0.28em] text-accent-strong">HOTAM</p>
-                <h1 className="mt-2 text-[36px] font-headline font-medium text-primary leading-tight">ברוכים השבים</h1>
+                <p className="font-numbers text-[15px] font-normal uppercase tracking-[0.28em] text-accent-strong">HOTAM</p>
+                <h1 className="mt-2 text-[36px] font-headline font-semibold text-primary leading-tight">ברוכים השבים</h1>
               </div>
               <div className="space-y-1.5 text-center md:text-right">
                 <h2 className="text-[22px] md:text-[30px] font-body font-semibold md:font-semibold text-primary">כניסה לחשבון</h2>

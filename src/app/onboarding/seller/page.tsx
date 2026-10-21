@@ -916,7 +916,7 @@ export default function SellerOnboarding() {
       <div className="container mx-auto px-4 pb-16 max-w-3xl pt-28 md:pt-32">
         <div className="mb-10 text-center space-y-5">
           <p className="eyebrow eyebrow-center">הצטרפות למוכרים</p>
-          <h1 className="text-[32px] md:text-[44px] font-headline font-medium text-primary leading-tight">{PATH_TITLES[path]}</h1>
+          <h1 className="text-[32px] md:text-[44px] font-headline font-semibold text-primary leading-tight">{PATH_TITLES[path]}</h1>
           <div className="flex items-center justify-center gap-2 max-w-md mx-auto">
             {activeSteps.map((stepId, idx) => (
               <div key={stepId} className={cn("flex items-center gap-2", idx < totalSteps - 1 && "flex-1")}>
@@ -1445,7 +1445,7 @@ function SellerTypeChoice({ onChoose }: { onChoose: (type: SellerType) => void }
       <div className="container mx-auto max-w-4xl px-4 pb-16 pt-28 md:pt-32">
         <div className="mb-10 space-y-4 text-center">
           <p className="eyebrow eyebrow-center">הצטרפות למוכרים</p>
-          <h1 className="font-headline text-[34px] font-medium leading-tight text-primary md:text-[46px]">הצטרפות כמוכר בחותם</h1>
+          <h1 className="font-headline text-[34px] font-semibold leading-tight text-primary md:text-[46px]">הצטרפות כמוכר בחותם</h1>
           <p className="lead mx-auto max-w-xl">בחר את סוג החשבון שמתאים לך — אפשר לשדרג מיודאיקה לסופר סת״ם בהמשך.</p>
         </div>
         <div className="grid gap-5 md:grid-cols-2">

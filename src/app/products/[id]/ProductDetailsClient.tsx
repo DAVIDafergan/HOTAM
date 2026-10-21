@@ -620,7 +620,7 @@ export function ProductDetailsClient({
         <div className="mb-4 flex justify-end md:hidden">
           <div className="flex gap-2">
             <Button variant="outline" size="icon" onClick={handleShare} className="rounded-full bg-card border-border shadow-none" aria-label="שיתוף"><Share2 className="w-4 h-4" /></Button>
-            <Button variant="outline" size="icon" onClick={handleToggleFavorite} aria-label={isFavorite ? 'הסר ממועדפים' : 'הוסף למועדפים'} className={cn("rounded-full bg-card border-border shadow-none", isFavorite ? 'text-rose-600' : '')}><Heart className={cn("w-4 h-4 transition-transform duration-200", isFavorite ? 'fill-current' : '')} /></Button>
+            <Button variant="outline" size="icon" onClick={handleToggleFavorite} aria-label={isFavorite ? 'הסר ממועדפים' : 'הוסף למועדפים'} data-fav={isFavorite ? 'true' : 'false'} className={cn("fav-btn rounded-full bg-card border-border shadow-none", isFavorite ? 'text-rose-600' : '')}><Heart className={cn("w-4 h-4 transition-transform duration-200", isFavorite ? 'fill-current' : '')} /></Button>
           </div>
         </div>
 
@@ -639,7 +639,7 @@ export function ProductDetailsClient({
                     type="button"
                     aria-label={`פתח תצוגת זום לתמונה ${i + 1} מתוך ${images.length}`}
                     onClick={() => openImageZoom(i)}
-                    className="relative w-full h-full shrink-0 snap-center text-right"
+                    className={cn("relative w-full h-full shrink-0 snap-center text-right", i === 0 && "media-settle")}
                   >
                     <Image loader={unsplashLoader} src={img} alt={`${productAltDescription} - תמונה ${i + 1} מתוך ${images.length}`} fill priority={i === 0} loading={i === 0 ? undefined : 'lazy'} kind="product" sizes="(max-width: 768px) 100vw, 50vw" className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]" />
                   </button>
@@ -735,7 +735,7 @@ export function ProductDetailsClient({
                   {product.sub_type && product.sub_type !== 'all' && (
                     <p className="eyebrow mb-1">{product.product_type}</p>
                   )}
-                  <h1 className="text-[38px] md:text-[56px] font-headline font-medium text-primary leading-[1.08]">
+                  <h1 className="text-[38px] md:text-[56px] font-headline font-semibold text-primary leading-[1.08]">
                     {productDisplayTitle}
                   </h1>
                   <button
@@ -766,8 +766,9 @@ export function ProductDetailsClient({
                   <button
                     onClick={handleToggleFavorite}
                     aria-label={isFavorite ? 'הסר ממועדפים' : 'הוסף למועדפים'}
+                    data-fav={isFavorite ? 'true' : 'false'}
                     className={cn(
-                      "flex h-11 w-11 items-center justify-center rounded-full border border-border transition-colors duration-200 hover:bg-primary/5 active:scale-95",
+                      "fav-btn flex h-11 w-11 items-center justify-center rounded-full border border-border transition-colors duration-200 hover:bg-primary/5 active:scale-95",
                       isFavorite ? "text-rose-600" : "text-primary/70 hover:text-primary"
                     )}
                   >
@@ -923,7 +924,7 @@ export function ProductDetailsClient({
         {/* Technical Details Tabs */}
         <div ref={detailsSectionRef} className="mt-16 md:mt-28 scroll-mt-28">
           <Tabs value={detailsTab} onValueChange={setDetailsTab} dir="rtl" className="text-right">
-            <TabsList className="mb-8 md:mb-10 inline-flex h-auto w-full max-w-full justify-start gap-1 overflow-x-auto no-scrollbar rounded-full border border-border/70 bg-card p-1.5 shadow-premium sm:w-auto">
+            <TabsList indicatorClassName="bg-primary shadow-none" className="mb-8 md:mb-10 inline-flex h-auto w-full max-w-full justify-start gap-1 overflow-x-auto no-scrollbar rounded-full border border-border/70 bg-card p-1.5 shadow-premium sm:w-auto">
              <TabsTrigger value="specs" className="flex-none rounded-full px-5 py-2.5 text-[15px] font-semibold text-primary/70 transition-colors duration-300 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">מפרט טכני</TabsTrigger>
              <TabsTrigger value="seller" className="flex-none rounded-full px-5 py-2.5 text-[15px] font-semibold text-primary/70 transition-colors duration-300 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">{judaicaCategory ? 'המוכר' : 'הסופר הכותב'}</TabsTrigger>
              <TabsTrigger value="reviews" className="flex-none rounded-full px-5 py-2.5 text-[15px] font-semibold text-primary/70 transition-colors duration-300 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">ביקורות ({(reviews || []).length})</TabsTrigger>
@@ -960,7 +961,7 @@ export function ProductDetailsClient({
                           <Image src={seller.profile_image} alt="" fill kind="avatar" sizes="112px" className="object-cover" />
                         ) : (
                           <div className="w-full h-full bg-gradient-to-br from-primary/10 to-accent/15 flex items-center justify-center">
-                            <span className="text-3xl font-headline font-medium text-primary/50">
+                            <span className="text-3xl font-headline font-semibold text-primary/50">
                               {`${seller.first_name?.[0] ?? ''}${seller.last_name?.[0] ?? ''}` || <UserRound className="w-10 h-10 text-primary/20" />}
                             </span>
                           </div>
@@ -1014,7 +1015,7 @@ export function ProductDetailsClient({
                 {productRatings.length > 0 && (
                   <div className="mb-8 flex flex-col items-center gap-6 rounded-[1.75rem] border border-border/70 bg-card p-6 shadow-premium sm:flex-row sm:items-center">
                     <div className="shrink-0 text-center">
-                      <p className="font-headline text-5xl font-medium num text-primary">{productRatingAvg.toFixed(1)}</p>
+                      <p className="font-headline text-5xl font-semibold num text-primary">{productRatingAvg.toFixed(1)}</p>
                       <div className="mt-1 flex justify-center gap-0.5">
                         {[1, 2, 3, 4, 5].map((s) => (
                           <Star key={s} className={cn("h-4 w-4", s <= Math.round(productRatingAvg) ? 'fill-accent text-accent' : 'text-primary/15')} />

@@ -28,6 +28,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { CitySelect } from '@/components/CitySelect';
 import { COMMON_CITY_OPTIONS, NEARBY_RADIUS_KM } from '@/lib/location-utils';
+import { AmbientBackdrop } from '@/components/motion/AmbientBackdrop';
 
 type ProductType = 'מזוזה' | 'תפילין' | 'מגילה' | 'ספר תורה' | 'מוצרי יודאיקה שונים' | '';
 type ShippingPreference = 'all' | 'shipping' | 'pickup';
@@ -580,14 +581,19 @@ export function HeroAnimation() {
 
   return (
     <section className="relative w-full overflow-hidden bg-background pt-[calc(8rem+env(safe-area-inset-top))] pb-6 md:pt-40 md:pb-24 lg:min-h-[92vh] lg:flex lg:items-center" aria-labelledby="hero-heading">
-      {/* A single, very soft gold glow — no photo, no blur filter (cheap to paint, LCP is text). */}
-      <div aria-hidden="true" className="pointer-events-none absolute -top-40 right-[-10%] h-[520px] w-[520px] rounded-full bg-[radial-gradient(closest-side,hsl(var(--accent)/0.10),transparent)]" />
+      {/* Ambient light: warm parchment/gold gradients drifting very slowly (transform-only,
+          paused off-screen, static with reduced motion). No photo — the LCP element is text. */}
+      <AmbientBackdrop />
 
       <div className="container mx-auto px-5 md:px-8 relative z-10 grid items-center gap-12 lg:grid-cols-[1.15fr_1fr] lg:gap-16">
         <div className="text-right">
           <p className="eyebrow fade-up">ספרי תורה · תפילין · מזוזות · יודאיקה</p>
-          <h1 id="hero-heading" className="mt-6 md:mt-8 font-headline text-[clamp(34px,10.3vw,56px)] md:text-[72px] lg:text-[58px] xl:text-[74px] font-medium leading-[1.15] text-primary">
-            <span className="hero-line"><span>סת״ם מהודר,</span></span>
+          {/* Set in Stam Ashkenaz CLM (scribal STaM letters with tagin). The face has Hebrew
+              letters only — no gershayim, no Latin — so the abbreviation uses an ASCII quote
+              and every glyph here is covered (nothing falls back mid-word). Its ink sits low in
+              a tall line box, hence the slight negative top margin and the roomy mask. */}
+          <h1 id="hero-heading" className="mt-4 md:mt-6 font-stam font-normal text-[clamp(38px,11.6vw,64px)] md:text-[84px] lg:text-[64px] xl:text-[80px] leading-[1.2] text-primary">
+            <span className="hero-line"><span>סת"ם מהודר,</span></span>
             <span className="hero-line"><span>ישירות מיד הסופר</span></span>
           </h1>
           <p className="lead fade-up fade-up-1 mt-6 md:mt-8 max-w-xl">

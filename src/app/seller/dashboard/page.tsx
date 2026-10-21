@@ -1156,7 +1156,7 @@ function SellerDashboardContent() {
             </div>
             <div>
               <p className="text-[13px] font-semibold text-[#E2B35B] mb-1">לוח בקרה</p>
-              <h1 className="text-[34px] md:text-[50px] font-headline font-medium leading-[1.08]">שלום, {seller?.first_name}</h1>
+              <h1 className="text-[34px] md:text-[50px] font-headline font-semibold leading-[1.08]">שלום, {seller?.first_name}</h1>
               <div className="flex items-center gap-1.5 text-emerald-300 font-semibold text-[13px] mt-1.5" data-seller-type-badge={sellerType}>
                 <CheckCircle2 className="w-4 h-4" />
                 <span>{isStamSeller ? 'סופר סת"ם מאומת' : `${SELLER_TYPE_LABELS[sellerType]} מאושר`}</span>
@@ -1224,7 +1224,7 @@ function SellerDashboardContent() {
 
         <Tabs dir="rtl" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           {/* Desktop tab bar */}
-          <TabsList className="hidden md:flex w-full bg-card p-1.5 rounded-full shadow-premium h-14 border border-border/70">
+          <TabsList indicatorClassName="bg-primary shadow-none" className="hidden md:flex w-full bg-card p-1.5 rounded-full shadow-premium h-14 border border-border/70">
             {navItems.map((item) => (
               <TabsTrigger key={item.id} value={item.id} className="flex-1 h-full rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2 text-[15px] font-semibold transition-colors">
                 {item.icon}
@@ -2550,7 +2550,7 @@ function QuickStat({ label, value, icon, color, highlight = false }: any) {
       <div className={cn("p-2.5 rounded-full", color)}>{icon}</div>
       <div>
         <p className="text-[13px] text-muted-foreground font-medium">{label}</p>
-        <p className="font-numbers font-bold text-[28px] md:text-[32px] text-primary num leading-tight" dir="auto">{value}</p>
+        <p className="font-numbers font-normal text-[30px] md:text-[34px] text-primary num leading-tight" dir="auto">{value}</p>
       </div>
     </Card>
   );

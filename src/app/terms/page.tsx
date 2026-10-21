@@ -9,7 +9,7 @@ export default function TermsPage() {
       <main className="container mx-auto px-4 py-32 max-w-4xl">
         <Card className="border-none shadow-premium rounded-[3rem] overflow-hidden bg-white">
           <CardHeader className="text-center bg-primary text-white p-12">
-            <CardTitle className="text-4xl font-headline font-medium tracking-tight">תקנון ותנאי שימוש</CardTitle>
+            <CardTitle className="text-4xl font-headline font-semibold tracking-tight">תקנון ותנאי שימוש</CardTitle>
             <p className="text-white/85 mt-2 font-medium">Hotam.shop</p>
           </CardHeader>
           <CardContent className="p-8 md:p-12 space-y-10 text-right leading-relaxed">
@@ -60,7 +60,7 @@ export default function TermsPage() {
             </section>
 
             <div className="border-t-4 border-primary/10 pt-10">
-              <h2 className="text-3xl font-headline font-medium text-primary mb-8">מדיניות פרטיות (Privacy Policy)</h2>
+              <h2 className="text-3xl font-headline font-semibold text-primary mb-8">מדיניות פרטיות (Privacy Policy)</h2>
 
               <div className="space-y-8">
                 <section className="space-y-4">

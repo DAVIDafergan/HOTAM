@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { EASE } from '@/lib/motion';
+import { CountUp } from '@/components/motion/CountUp';
 
 // Cards are revealed a page at a time; "load more" appends the next page.
 const SCRIBES_PAGE_SIZE = 6;
@@ -54,9 +55,9 @@ function extractCity(address: string | null | undefined): string {
 function ProfileStat({ value, label, icon }: { value: string | number; label: string; icon?: ReactNode }) {
   return (
     <div className="flex-1 min-w-0 text-center">
-      <p className="flex items-center justify-center gap-0.5 font-numbers font-bold text-lg sm:text-xl text-primary tabular-nums leading-none">
+      <p className="flex items-center justify-center gap-0.5 font-body font-bold text-lg sm:text-xl text-primary tabular-nums leading-none">
         {icon}
-        {value}
+        <CountUp value={value} />
       </p>
       <p className="mt-1 text-2xs sm:text-xs font-semibold text-muted-foreground">{label}</p>
     </div>

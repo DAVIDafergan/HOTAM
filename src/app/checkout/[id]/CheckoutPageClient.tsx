@@ -505,7 +505,7 @@ export default function CheckoutPageClient() {
             <div className="md:col-span-3 space-y-5 md:space-y-6">
               <div className="space-y-2">
                 <p className="eyebrow">תשלום מאובטח בנאמנות</p>
-                <h1 className="text-[36px] md:text-[52px] font-headline font-medium text-primary leading-[1.08]">סיכום ותשלום</h1>
+                <h1 className="text-[36px] md:text-[52px] font-headline font-semibold text-primary leading-[1.08]">סיכום ותשלום</h1>
               </div>
 
               <Card className="border-border/70 shadow-premium rounded-[2rem] bg-card p-5 sm:p-8 space-y-6">
@@ -685,7 +685,7 @@ export default function CheckoutPageClient() {
             <div className="flex justify-center mb-4">
               <CheckCircle2 className="w-24 h-24 text-emerald-500" />
             </div>
-            <h1 className="text-[30px] font-headline font-medium text-primary mb-2">התשלום עבר בהצלחה!</h1>
+            <h1 className="text-[30px] font-headline font-semibold text-primary mb-2">התשלום עבר בהצלחה!</h1>
             <p className="text-muted-foreground">מייד תועבר לאישור ההזמנה.</p>
           </Card>
         )}

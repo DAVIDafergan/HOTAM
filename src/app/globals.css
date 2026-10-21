@@ -34,6 +34,8 @@
     --surface-raised: 0 0% 100%;
     --shadow-color: 34 30% 15%;
     --ease-lux: cubic-bezier(0.22, 1, 0.36, 1);
+    /* Apple-like "expo out" — long, soft landing. Used for reveals and the hero. */
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   }
 }
 
@@ -59,16 +61,16 @@
     font-size: max(16px, 1rem); /* prevents auto-zoom on iOS */
   }
   /* Type scale — readability pass (2026-10). The display serif (--font-display) is used for
-     h1/h2 only, at 500, line-height ~1.15. h3 and below are the body sans (--font-body) at
+     h1/h2 only, at 600, line-height ~1.15. h3 and below are the body sans (--font-body) at
      600-700. No 300 weights anywhere. Hebrew is never letter-spaced. */
-  h1, h2, .font-headline {
+  h1, h2, .font-headline, .font-numbers, .font-stam, .price {
     font-synthesis: none;
   }
   h1, h2, h3, h4, h5, h6 {
     text-wrap: balance;
     letter-spacing: 0;
   }
-  h1, h2 { @apply font-headline; font-weight: 500; }
+  h1, h2 { @apply font-headline; font-weight: 600; }
   h3, h4, h5, h6 { @apply font-body; }
   h1 { font-size: 42px; line-height: 1.15; }
   h2 { font-size: 32px; line-height: 1.18; }
@@ -139,7 +141,7 @@
      eyebrow  → gold label with a 28px hairline before it
      title-*  → display serif (display/section) or sans (card) at fixed sizes
      lead     → intro paragraph: 17-19px, regular, near-ink
-     price    → numbers face (--font-numbers), bold tabular figures */
+     price    → accent numerals face (--font-numbers, Bellefair, single 400 weight) */
   .eyebrow {
     @apply inline-flex items-center gap-2.5 font-body text-[14px] font-semibold leading-none text-accent-strong;
     letter-spacing: 0.01em;
@@ -150,10 +152,10 @@
     @apply inline-block h-px w-7 bg-accent;
   }
   .title-display {
-    @apply font-headline text-[44px] font-medium leading-[1.12] text-primary md:text-[76px];
+    @apply font-headline text-[44px] font-semibold leading-[1.12] text-primary md:text-[76px];
   }
   .title-section {
-    @apply font-headline text-[32px] font-medium leading-[1.16] text-primary md:text-[48px];
+    @apply font-headline text-[32px] font-semibold leading-[1.16] text-primary md:text-[48px];
   }
   .title-card {
     @apply font-body text-[19px] font-semibold leading-snug text-primary md:text-[20px];
@@ -162,8 +164,9 @@
     @apply text-[17px] font-normal leading-[1.7] text-primary/90 md:text-[19px];
   }
   .price {
-    @apply font-numbers font-bold tabular-nums text-primary;
+    @apply font-numbers font-normal tabular-nums text-primary;
     font-feature-settings: 'tnum' 1, 'lnum' 1;
+    letter-spacing: 0.005em;
   }
   .num {
     font-variant-numeric: tabular-nums;
@@ -176,21 +179,51 @@
   .hero-line {
     display: block;
     overflow: hidden;
-    padding-bottom: 0.08em;
-    margin-bottom: -0.08em;
+    /* Room for scribal crowns (tagin) and descenders inside the mask, without moving the
+       lines: the padding is cancelled by an equal negative margin. */
+    padding: 0.06em 0.04em 0.14em;
+    margin: -0.06em -0.04em -0.14em;
   }
   .hero-line > span {
     display: block;
-    animation: hero-rise 900ms var(--ease-lux) both;
+    animation: hero-reveal 950ms var(--ease-out-expo) both;
   }
-  .hero-line:nth-child(2) > span { animation-delay: 90ms; }
-  .hero-line:nth-child(3) > span { animation-delay: 180ms; }
+  .hero-line:nth-child(2) > span { animation-delay: 110ms; }
+  .hero-line:nth-child(3) > span { animation-delay: 220ms; }
   .fade-up {
-    animation: fade-up 650ms var(--ease-lux) both;
+    animation: fade-up 800ms var(--ease-out-expo) both;
   }
-  .fade-up-1 { animation-delay: 160ms; }
-  .fade-up-2 { animation-delay: 260ms; }
-  .fade-up-3 { animation-delay: 360ms; }
+  .fade-up-1 { animation-delay: 260ms; }
+  .fade-up-2 { animation-delay: 380ms; }
+  .fade-up-3 { animation-delay: 500ms; }
+
+  /* Gold CTA: a soft light sweep across the button on hover (desktop pointers only). */
+  .btn-sheen {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .btn-sheen::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(105deg, transparent 30%, hsl(0 0% 100% / 0.28) 50%, transparent 70%);
+    transform: translateX(110%);
+    pointer-events: none;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .btn-sheen:hover::after {
+      transform: translateX(-110%);
+      transition: transform 900ms var(--ease-out-expo);
+    }
+  }
+
+  /* Favourite heart: one small pop when an item is added (the button keeps focus after the
+     click, so already-saved hearts never pop on page load). */
+  .fav-btn[data-fav='true']:focus svg {
+    animation: heart-pop 460ms var(--ease-out-expo);
+  }
 
   /* Skeleton shimmer: a gradient sweep moved with transform (compositor-only). */
   .shimmer {
@@ -215,6 +248,36 @@
   .zoom-on-hover {
     transition: transform 900ms var(--ease-lux);
     will-change: transform;
+  }
+
+  /* Scroll reveal (see components/motion/Reveal.tsx). Content is server-rendered visible;
+     only blocks that start below the fold are switched to "pending" after hydration, so
+     nothing above the fold ever waits for JS. */
+  [data-reveal] {
+    transition: opacity 900ms var(--ease-out-expo), transform 1000ms var(--ease-out-expo);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+  [data-reveal='pending'] {
+    opacity: 0;
+    transform: translate3d(0, 22px, 0);
+  }
+  /* Section eyebrows: the gold hairline draws in toward the label. */
+  [data-reveal] .eyebrow::before,
+  [data-reveal] .eyebrow-center::after {
+    transition: transform 1100ms var(--ease-out-expo) 200ms;
+  }
+  [data-reveal] .eyebrow::before { transform-origin: right center; }
+  [data-reveal] .eyebrow-center::after { transform-origin: left center; }
+  [data-reveal='pending'] .eyebrow::before,
+  [data-reveal='pending'] .eyebrow-center::after {
+    transform: scaleX(0);
+  }
+
+  /* Tabs with a sliding indicator (ui/tabs.tsx): once the indicator is measured it paints the
+     active pill, so the trigger's own active background steps aside. */
+  [data-tabs-ready] > [role='tab'][data-state='active'] {
+    background-color: transparent !important;
+    box-shadow: none !important;
   }
 
   /* Hairline gold rule used under section titles. */
@@ -303,29 +366,149 @@
 
 }
 
-/* Homepage category photos: a slow settle-in zoom as the tile scrolls into view (browsers with
-   scroll-driven animations only; hover zoom works everywhere). Off for reduced motion. */
+/* ── Scroll-linked image motion (compositor-only; browsers with scroll-driven animations).
+   media-rise     → image settles from 1.06 to 1 as its frame enters the viewport.
+   media-parallax → large atmospheric photos drift ≤ ~3% (≤ 30px) against the scroll; the
+                    image is held at ≥1.08 so the drift never uncovers the frame's edge.
+   Browsers without view timelines (and reduced motion) simply show the image at rest. */
 @media (prefers-reduced-motion: no-preference) {
   @supports (animation-timeline: view()) {
-    .judaica-scroll-zoom {
-      animation: judaica-scroll-zoom linear both;
+    .media-rise {
+      animation: media-rise linear both;
       animation-timeline: view();
-      animation-range: entry 0% cover 55%;
+      animation-range: entry 0% entry 100%;
+    }
+    .media-parallax {
+      animation: media-parallax linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
     }
   }
+  /* Product gallery: the first photo settles into its frame on load (no opacity change, so
+     it still paints — and counts for LCP — immediately). */
+  .media-settle {
+    animation: media-settle 1400ms var(--ease-out-expo) both;
+  }
 }
-@keyframes judaica-scroll-zoom {
-  from { transform: scale(1.1); }
+@keyframes media-rise {
+  from { transform: scale(1.06); }
+  to { transform: scale(1); }
+}
+@keyframes media-parallax {
+  from { transform: translate3d(0, -3%, 0) scale(1.14); }
+  40% { transform: translate3d(0, -0.6%, 0) scale(1.08); }
+  to { transform: translate3d(0, 3%, 0) scale(1.08); }
+}
+@keyframes media-settle {
+  from { transform: scale(1.05); }
   to { transform: scale(1); }
 }
 
-@keyframes hero-rise {
-  from { transform: translateY(55%); opacity: 0.35; }
-  to { transform: translateY(0); opacity: 1; }
+/* ── Ambient background (components/motion/AmbientBackdrop.tsx): three pre-softened radial
+   gradients drifting on 26–40s loops. Transform-only, so the compositor does all the work;
+   paused off-screen / in hidden tabs, static with reduced motion. */
+.ambient {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+  /* Feather the bottom so the light never ends in a visible edge against the next section. */
+  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+}
+.ambient-blob {
+  position: absolute;
+  border-radius: 9999px;
+  will-change: transform;
+}
+.ambient-a {
+  width: min(78vmax, 980px);
+  height: min(78vmax, 980px);
+  top: -32%;
+  right: -22%;
+  background: radial-gradient(closest-side, hsl(39 70% 62% / 0.16), hsl(39 70% 62% / 0.06) 55%, hsl(39 70% 62% / 0));
+  animation: ambient-drift-a 34s ease-in-out infinite alternate;
+}
+.ambient-b {
+  width: min(70vmax, 860px);
+  height: min(70vmax, 860px);
+  bottom: -38%;
+  left: -24%;
+  background: radial-gradient(closest-side, hsl(33 58% 80% / 0.55), hsl(33 58% 80% / 0.18) 55%, hsl(33 58% 80% / 0));
+  animation: ambient-drift-b 40s ease-in-out infinite alternate;
+}
+.ambient-c {
+  width: min(46vmax, 560px);
+  height: min(46vmax, 560px);
+  top: 18%;
+  left: 30%;
+  background: radial-gradient(closest-side, hsl(42 80% 70% / 0.12), hsl(42 80% 70% / 0));
+  animation: ambient-drift-c 27s ease-in-out infinite alternate;
+}
+.ambient[data-paused] .ambient-blob {
+  animation-play-state: paused;
+}
+@keyframes ambient-drift-a {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(-9%, 7%, 0) scale(1.08); }
+}
+@keyframes ambient-drift-b {
+  from { transform: translate3d(0, 0, 0) scale(1.05); }
+  to { transform: translate3d(10%, -8%, 0) scale(0.96); }
+}
+@keyframes ambient-drift-c {
+  from { transform: translate3d(0, 0, 0) scale(0.95); }
+  to { transform: translate3d(-14%, 10%, 0) scale(1.1); }
+}
+
+/* ── Lenis smooth scrolling (desktop pointers only; see components/motion/SmoothScroll.tsx).
+   Mirrors lenis/dist/lenis.css. Native smooth-scrolling must be off while Lenis drives the
+   scroll position, otherwise every frame's scrollTo is itself animated. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+html.lenis {
+  scroll-behavior: auto !important;
+}
+.lenis:not(.lenis-autoToggle).lenis-stopped {
+  overflow: clip;
+}
+.lenis [data-lenis-prevent],
+.lenis [data-lenis-prevent-wheel] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+/* ── Route transitions (app/template.tsx): a short opacity fade on client-side navigation
+   only. Opacity, never transform — a transformed ancestor would break the fixed navbar. */
+.page-enter {
+  animation: page-enter 220ms var(--ease-lux) both;
+}
+@keyframes page-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Starts partly visible (opacity .35) so the headline paints — and counts for LCP — on the
+   first frame; the blur clears as the line rises into its mask. */
+@keyframes hero-reveal {
+  from { transform: translate3d(0, 62%, 0); opacity: 0.35; filter: blur(10px); }
+  60% { filter: blur(0); }
+  to { transform: translate3d(0, 0, 0); opacity: 1; filter: blur(0); }
 }
 @keyframes fade-up {
-  from { transform: translateY(12px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from { transform: translate3d(0, 16px, 0); opacity: 0; }
+  to { transform: translate3d(0, 0, 0); opacity: 1; }
+}
+@keyframes heart-pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.32); }
+  65% { transform: scale(0.92); }
+  100% { transform: scale(1); }
 }
 @keyframes shimmer {
   to { transform: translateX(100%); }
@@ -342,4 +525,6 @@
     scroll-behavior: auto !important;
   }
   .shimmer::after { display: none; }
+  .ambient-blob { animation: none !important; }
+  [data-reveal='pending'] { opacity: 1; transform: none; }
 }

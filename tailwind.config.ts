@@ -42,7 +42,8 @@ export default {
         body: ['var(--font-body)', 'Arial', 'sans-serif'],
         headline: ['var(--font-display)', 'Georgia', 'serif'],
         display: ['var(--font-display)', 'Georgia', 'serif'],
-        numbers: ['var(--font-numbers)', 'var(--font-body)', 'Arial', 'sans-serif'],
+        numbers: ['var(--font-numbers)', 'var(--font-display)', 'Georgia', 'serif'],
+        stam: ['var(--font-stam)', 'var(--font-display)', 'Georgia', 'serif'],
         code: ['monospace'],
       },
       colors: {

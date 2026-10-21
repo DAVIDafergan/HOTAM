@@ -106,13 +106,14 @@ export function ProductCard({
     <button
       onClick={handleToggleFavorite}
       className={cn(
-        "absolute z-10 flex items-center justify-center rounded-full transition-colors duration-200 touch-manipulation active:scale-90",
+        "fav-btn absolute z-10 flex items-center justify-center rounded-full transition-colors duration-200 touch-manipulation active:scale-90",
         // Keep the visible chip compact on the small list thumbnail, but expand the
         // actual tap target to ~44px via an invisible hit-area, per touch-target guidance.
         isList ? "left-1.5 top-1.5 h-7 w-7 before:absolute before:-inset-2.5 before:content-['']" : "left-3 top-3 h-11 w-11",
         isFavorite ? 'bg-card text-rose-600 shadow-md' : 'bg-card/90 text-primary/70 shadow-sm hover:bg-card hover:text-rose-600'
       )}
       aria-label={isFavorite ? 'הסר ממועדפים' : 'הוסף למועדפים'}
+      data-fav={isFavorite ? 'true' : 'false'}
     >
       <Heart className={cn(isList ? "h-3.5 w-3.5" : "h-4 w-4", "transition-transform duration-200", isFavorite ? 'fill-current' : '')} />
     </button>
@@ -204,15 +205,19 @@ export function ProductCard({
         )}
 
         <div className={cn("relative aspect-[4/5] w-full shrink-0 overflow-hidden bg-secondary/60", !seller && "rounded-t-[1.75rem]")}>
-          <Image
-            src={mainImage}
-            alt={displayTitle}
-            fill
-            kind="product"
-            priority={priority}
-            sizes="(max-width: 640px) 70vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-cover zoom-on-hover"
-          />
+          {/* Scroll-linked settle (outer) and desktop hover zoom (image) live on separate layers
+              so the two transforms never fight. */}
+          <div className="media-rise absolute inset-0">
+            <Image
+              src={mainImage}
+              alt={displayTitle}
+              fill
+              kind="product"
+              priority={priority}
+              sizes="(max-width: 640px) 70vw, (max-width: 1024px) 33vw, 25vw"
+              className="object-cover zoom-on-hover"
+            />
+          </div>
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/30 to-transparent" />
           {favoriteButton}
           {product.product_type && (

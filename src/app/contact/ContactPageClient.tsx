@@ -70,7 +70,7 @@ export default function ContactPageClient() {
       <section className="relative overflow-hidden bg-gradient-to-b from-secondary/80 via-secondary/30 to-background pb-28 pt-32 text-primary md:pb-36 md:pt-40">
         <div className="container relative mx-auto max-w-5xl px-4 text-center">
           <p className="eyebrow eyebrow-center">אנחנו כאן בשבילכם</p>
-          <h1 className="mt-4 font-headline text-[40px] font-medium leading-tight md:text-[60px]">דברו עם חותם</h1>
+          <h1 className="mt-4 font-headline text-[40px] font-semibold leading-tight md:text-[60px]">דברו עם חותם</h1>
           <p className="lead mx-auto mt-4 max-w-xl">
             שאלה על רכישה, כשרות או הצטרפות כסופר? בחרו את הדרך הנוחה לכם — ואנחנו נחזור אליכם.
           </p>
@@ -269,7 +269,7 @@ function ContactForm() {
         <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">
           <CheckCircle2 className="h-10 w-10" />
         </div>
-        <h2 className="mt-6 font-headline text-[30px] font-medium text-primary">הפנייה התקבלה!</h2>
+        <h2 className="mt-6 font-headline text-[30px] font-semibold text-primary">הפנייה התקבלה!</h2>
         <p className="mt-2 max-w-sm text-primary/85">תודה שפניתם אלינו. צוות חותם יחזור אליכם בהקדם האפשרי.</p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Button variant="outline" onClick={() => setIsSubmitted(false)} className="px-6">

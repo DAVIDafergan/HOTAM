@@ -157,7 +157,8 @@
     @apply inline-flex items-center gap-2 font-body text-[13px] font-semibold leading-none text-accent-strong;
     letter-spacing: 0.02em;
   }
-  .eyebrow::before {
+  .eyebrow::before,
+  .eyebrow-center::after {
     content: '';
     @apply inline-block h-px w-6 bg-accent/70;
   }

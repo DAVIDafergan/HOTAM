@@ -584,7 +584,7 @@ export function HeroAnimation() {
   );
 
   return (
-    <section className="relative min-h-0 md:min-h-screen w-full flex items-center justify-center overflow-hidden bg-background pt-[calc(7.5rem+env(safe-area-inset-top))] pb-16 md:pt-36 md:pb-24">
+    <section className="relative min-h-0 md:min-h-screen w-full flex items-center justify-center overflow-hidden bg-background pt-[calc(7.5rem+env(safe-area-inset-top))] pb-4 md:pt-36 md:pb-24">
       <div className="absolute inset-0 z-0">
         {heroImg?.imageUrl && (
           <Image
@@ -613,7 +613,7 @@ export function HeroAnimation() {
         >
 
           <motion.div variants={shouldReduceMotion ? undefined : heroItemVariants} className="flex flex-col items-center gap-4 md:gap-6">
-            <p className="eyebrow">ספרי תורה · תפילין · מזוזות · יודאיקה</p>
+            <p className="eyebrow eyebrow-center">ספרי תורה · תפילין · מזוזות · יודאיקה</p>
             <h1 className="text-[44px] sm:text-6xl md:text-7xl lg:text-[88px] font-headline font-medium text-primary leading-[1.05]">
               קדושה <span className="text-accent-strong">בכל תג</span>
             </h1>

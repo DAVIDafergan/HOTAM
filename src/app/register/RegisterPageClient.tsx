@@ -249,7 +249,7 @@ export default function RegisterPageClient() {
         <main className="flex-1 flex items-start justify-center px-4 pt-[calc(7rem+env(safe-area-inset-top))] pb-12 md:items-center md:pt-28">
           <div className="w-full max-w-3xl space-y-8 text-right" dir="rtl">
             <div className="text-center space-y-3">
-              <p className="eyebrow">הצטרפות</p>
+              <p className="eyebrow eyebrow-center">הצטרפות</p>
               <h1 className="text-[36px] md:text-[48px] font-headline font-medium text-primary leading-tight">הצטרפות לחותם</h1>
               <p className="text-muted-foreground text-base">בחר את סוג החשבון שברצונך לפתוח</p>
             </div>

@@ -34,7 +34,7 @@ export function SectionHeading({
       )}
     >
       <div className={cn('space-y-3 md:space-y-4', centered ? 'flex flex-col items-center' : 'text-right')}>
-        {eyebrow && <p className={cn('eyebrow', tone === 'dark' && 'text-[#E2B35B] before:bg-[#E2B35B]/70')}>{eyebrow}</p>}
+        {eyebrow && <p className={cn('eyebrow', centered && 'eyebrow-center', tone === 'dark' && 'text-[#E2B35B] before:bg-[#E2B35B]/70 after:bg-[#E2B35B]/70')}>{eyebrow}</p>}
         <h2
           id={id}
           className={cn(

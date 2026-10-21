@@ -69,7 +69,7 @@ export default function ContactPageClient() {
       {/* Hero */}
       <section className="relative overflow-hidden bg-gradient-to-b from-secondary/80 via-secondary/30 to-background pb-28 pt-32 text-primary md:pb-36 md:pt-40">
         <div className="container relative mx-auto max-w-5xl px-4 text-center">
-          <p className="eyebrow">אנחנו כאן בשבילכם</p>
+          <p className="eyebrow eyebrow-center">אנחנו כאן בשבילכם</p>
           <h1 className="mt-4 font-headline text-[40px] font-medium leading-tight md:text-[60px]">דברו עם חותם</h1>
           <p className="lead mx-auto mt-4 max-w-xl">
             שאלה על רכישה, כשרות או הצטרפות כסופר? בחרו את הדרך הנוחה לכם — ואנחנו נחזור אליכם.

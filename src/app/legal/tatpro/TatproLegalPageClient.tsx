@@ -17,7 +17,7 @@ export default function TatproLegalPageClient() {
               <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/20">
                 <FileText className="w-10 h-10 text-accent" />
               </div>
-              <CardTitle className="text-3xl md:text-4xl font-headline font-black tracking-tight leading-tight">הסכם למתן שירותי תוכנה (SaaS)<br />מערכת TATPRO</CardTitle>
+              <CardTitle className="text-3xl md:text-4xl font-headline font-normal tracking-tight leading-tight">הסכם למתן שירותי תוכנה (SaaS)<br />מערכת TATPRO</CardTitle>
               <div className="inline-block px-6 py-2 bg-accent text-primary font-black rounded-full text-sm uppercase tracking-widest">מסר גו בע"מ</div>
             </div>
           </CardHeader>
@@ -25,11 +25,11 @@ export default function TatproLegalPageClient() {
             
             <div className="grid md:grid-cols-2 gap-6 bg-muted/30 p-8 rounded-3xl border border-primary/5">
               <div className="space-y-2">
-                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">תאריך חתימה</p>
+                <p className="text-xs font-black uppercase text-muted-foreground tracking-widest">תאריך חתימה</p>
                 <div className="h-10 border-b border-primary/20 flex items-end font-bold">_______ / _______ / _______</div>
               </div>
               <div className="space-y-2">
-                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">סוכן מחתים</p>
+                <p className="text-xs font-black uppercase text-muted-foreground tracking-widest">סוכן מחתים</p>
                 <div className="h-10 border-b border-primary/20 flex items-end font-bold">______________________</div>
               </div>
             </div>
@@ -93,7 +93,7 @@ export default function TatproLegalPageClient() {
                   </tbody>
                 </table>
               </div>
-              <div className="bg-muted/20 p-6 rounded-2xl space-y-2 text-xs italic text-muted-foreground">
+              <div className="bg-muted/20 p-6 rounded-2xl space-y-2 text-xs text-muted-foreground">
                 <p>* המחירים אינם כוללים מע"מ כחוק.</p>
                 <p>* אי תשלום במועד יאפשר לחברה להשעות את השירות עד להסדרת החוב.</p>
               </div>
@@ -102,16 +102,16 @@ export default function TatproLegalPageClient() {
             <div className="pt-12 grid grid-cols-2 gap-12 border-t border-primary/10">
               <div className="text-center space-y-6">
                 <p className="font-black text-lg underline decoration-accent decoration-2 underline-offset-8 uppercase tracking-widest">חתימת מסר גו בע"מ</p>
-                <div className="h-24 bg-muted/30 rounded-2xl border border-dashed border-primary/20 flex items-center justify-center opacity-50 italic text-xs">חותמת החברה</div>
+                <div className="h-24 bg-muted/30 rounded-2xl border border-dashed border-primary/20 flex items-center justify-center opacity-50 text-xs">חותמת החברה</div>
               </div>
               <div className="text-center space-y-6">
                 <p className="font-black text-lg underline decoration-accent decoration-2 underline-offset-8 uppercase tracking-widest">חתימת וחותמת הלקוח</p>
-                <div className="h-24 bg-muted/30 rounded-2xl border border-dashed border-primary/20 flex items-center justify-center opacity-50 italic text-xs">חתימת המוסד</div>
+                <div className="h-24 bg-muted/30 rounded-2xl border border-dashed border-primary/20 flex items-center justify-center opacity-50 text-xs">חתימת המוסד</div>
               </div>
             </div>
 
             <div className="text-center pt-8 opacity-30">
-              <p className="text-[10px] font-black uppercase tracking-[0.5em]">TATPRO • SaaS Agreement • 2024</p>
+              <p className="text-xs font-black uppercase tracking-[0.5em]">TATPRO • SaaS Agreement • 2024</p>
             </div>
           </CardContent>
         </Card>

@@ -4,26 +4,37 @@ import './globals.css';
 import { SupabaseClientProvider } from '@/lib/supabase-hooks';
 import { ClientWrapper } from '@/components/ClientWrapper';
 import { Analytics } from '@vercel/analytics/next';
-import { Assistant, Frank_Ruhl_Libre } from 'next/font/google';
+import { IBM_Plex_Sans_Hebrew, Noto_Serif_Hebrew, Bellefair } from 'next/font/google';
 import { AccessibilityButton } from '@/components/AccessibilityButton';
 import { SplashScreen } from '@/components/SplashScreen';
 
-// Assistant (geometric sans) is used site-wide for body/UI copy — see
-// tailwind.config.ts font-body/sans.
-const assistant = Assistant({
+// Typography — direction B ("luxury fashion"), chosen by David (2026-10):
+//   body / UI  → IBM Plex Sans Hebrew (300 long text, 400 UI, 500 labels, 600 buttons/emphasis)
+//   headings   → Noto Serif Hebrew Light (300 display, 400 small headings) — large and airy
+//   accent     → Bellefair (prices, numbers/stats, HOTAM wordmark) — thin lining figures
+// Max three families. To revert to the previous system, swap these three loaders back to
+// Assistant (--font-body) + Frank_Ruhl_Libre weight ['500','700'] (--font-heading) and point
+// --font-accent at --font-heading in globals.css.
+const bodyFont = IBM_Plex_Sans_Hebrew({
   subsets: ['hebrew', 'latin'],
-  weight: ['400', '500', '600', '700', '800'],
-  variable: '--font-assistant',
+  weight: ['300', '400', '500', '600'],
+  variable: '--font-body',
   display: 'swap',
   fallback: ['Arial', 'sans-serif'],
 });
 
-// Frank Ruhl Libre (Hebrew/Latin serif) is used for h1-h3 headings only —
-// see tailwind.config.ts font-headline and globals.css's h1-h6 rules.
-const frankRuhlLibre = Frank_Ruhl_Libre({
+const headingFont = Noto_Serif_Hebrew({
   subsets: ['hebrew', 'latin'],
-  weight: ['600', '700'],
+  weight: ['300', '400'],
   variable: '--font-heading',
+  display: 'swap',
+  fallback: ['Georgia', 'serif'],
+});
+
+const accentFont = Bellefair({
+  subsets: ['hebrew', 'latin'],
+  weight: '400',
+  variable: '--font-accent',
   display: 'swap',
   fallback: ['Georgia', 'serif'],
 });
@@ -108,7 +119,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="he" dir="rtl" className={`${assistant.variable} ${frankRuhlLibre.variable}`}>
+    <html lang="he" dir="rtl" className={`${bodyFont.variable} ${headingFont.variable} ${accentFont.variable}`}>
       <head>
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -116,10 +127,9 @@ export default function RootLayout({
         <style
           dangerouslySetInnerHTML={{
             __html: `
-              html,body{margin:0;padding:0;background:#faf7f0;color:#0d1420}
-              body{font-family:var(--font-assistant),Arial,sans-serif;font-weight:400;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
-              h1,h2,h3,h4,h5,h6{font-family:var(--font-assistant),Arial,sans-serif;font-weight:700}
-              .section-shell{padding-top:2.5rem;padding-bottom:2.5rem}
+              html,body{margin:0;padding:0;background:#FBF8F3;color:#14110D}
+              body{font-family:var(--font-body),Arial,sans-serif;font-weight:400;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+              h1,h2,h3,h4,h5,h6{font-family:var(--font-heading),Georgia,serif;font-weight:300}
             `,
           }}
         />
@@ -141,7 +151,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="font-body antialiased min-h-screen selection:bg-accent/30 selection:text-primary">
+      <body className="font-body antialiased min-h-screen">
         <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[200] focus:bg-white focus:p-4 focus:rounded-xl focus:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary">
           דילוג לתוכן המרכזי
         </a>

@@ -54,6 +54,7 @@ import unsplashLoader from '@/lib/unsplashLoader';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { loadGoogleMapsPlacesScript } from '@/lib/google-maps';
 import { logEvent } from '@/lib/log-event';
+import { Price } from '@/components/Price';
 
 const orderStatusLabels: Record<string, string> = {
   torah_request: 'בקשת תיאום',
@@ -422,15 +423,15 @@ export default function CustomerDashboard() {
           <Card className="w-full max-w-xl border-none shadow-premium rounded-[2.5rem] bg-white">
             <CardContent className="p-8 space-y-6 text-right">
               <div className="space-y-2">
-                <p className="text-[10px] font-black text-accent uppercase tracking-widest">השלמת פרופיל</p>
-                <h1 className="text-2xl font-headline font-black text-primary">חובה להזין שם מלא</h1>
+                <p className="text-xs font-black text-accent uppercase tracking-widest">השלמת פרופיל</p>
+                <h1 className="text-2xl font-headline font-normal text-primary">חובה להזין שם מלא</h1>
                 <p className="text-sm text-muted-foreground font-medium">
                   כדי להמשיך כלקוח באתר, יש להזין שם פרטי ושם משפחה.
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-primary/70">שם פרטי</Label>
+                  <Label className="text-xs font-black uppercase tracking-widest text-primary/70">שם פרטי</Label>
                   <Input
                     value={formData.first_name}
                     onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
@@ -439,7 +440,7 @@ export default function CustomerDashboard() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-primary/70">שם משפחה</Label>
+                  <Label className="text-xs font-black uppercase tracking-widest text-primary/70">שם משפחה</Label>
                   <Input
                     value={formData.last_name}
                     onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
@@ -473,57 +474,58 @@ export default function CustomerDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F8F9FA] via-[#F0F4F8] to-[#F8F9FA] flex flex-col" dir="rtl">
+    <div className="min-h-screen bg-background flex flex-col" dir="rtl">
       <Navbar />
 
-      <main className="container mx-auto px-4 py-20 md:py-28 max-w-5xl flex-1">
+      <main className="container mx-auto px-4 pt-24 pb-16 md:pt-32 md:pb-24 max-w-5xl flex-1">
         {/* Profile Hero Header */}
-        <div className="relative mb-8 rounded-[2.5rem] overflow-hidden shadow-premium">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/95 to-primary/80" />
+        <div className="relative mb-8 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden shadow-premium-lg">
+          <div className="absolute inset-0 bg-primary" />
+          <div className="pointer-events-none absolute inset-x-10 bottom-0 h-px bg-gradient-to-l from-transparent via-[#E2B35B]/60 to-transparent" />
           <div className="absolute inset-0 opacity-5">
             <svg width="100%" height="100%"><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="white"/></pattern><rect width="100%" height="100%" fill="url(#dots)"/></svg>
           </div>
           <div className="relative z-10 p-6 md:p-10 flex flex-col md:flex-row items-start md:items-center gap-6">
-            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-white/10 border-4 border-white/20 flex items-center justify-center shadow-xl shrink-0">
-              <UserRound className="w-10 h-10 md:w-12 md:h-12 text-white/70" />
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/10 ring-1 ring-[#E2B35B]/50 flex items-center justify-center shrink-0">
+              <UserRound className="w-8 h-8 md:w-10 md:h-10 text-white/80" strokeWidth={1.5} />
             </div>
             <div className="flex-1 text-right">
-              <p className="text-white/50 text-[10px] font-black uppercase tracking-[0.3em] mb-1">אזור אישי</p>
-              <h1 className="text-3xl md:text-4xl font-headline font-black text-white tracking-tight leading-tight">
+              <p className="text-[13px] font-medium text-[#E2B35B] mb-2">האזור האישי</p>
+              <h1 className="text-[36px] md:text-[54px] font-headline font-light text-white leading-[1.08]">
                 שלום, {customer?.first_name || (user?._raw?.user_metadata?.first_name as string | undefined) || 'לקוח'} {customer?.last_name || (user?._raw?.user_metadata?.last_name as string | undefined) || ''}
               </h1>
-                  <p className="text-white/80 text-sm font-medium mt-1">{user?.email}</p>
-              <div className="flex items-center gap-4 mt-4">
-                <div className="flex items-center gap-2 bg-white/10 rounded-full px-4 py-1.5">
-                  <ShoppingBag className="w-3.5 h-3.5 text-accent" />
-                  <span className="text-[11px] font-black text-white">{orders?.length ?? 0} הזמנות</span>
+                  <p className="text-white/75 text-[15px] mt-1" dir="ltr" style={{ textAlign: 'right' }}>{user?.email}</p>
+              <div className="flex flex-wrap items-center gap-2.5 mt-5">
+                <div className="flex items-center gap-2 border border-white/15 rounded-full px-4 py-1.5">
+                  <ShoppingBag className="w-4 h-4 text-[#E2B35B]" />
+                  <span className="text-sm font-semibold text-white num">{orders?.length ?? 0} הזמנות</span>
                 </div>
-                <div className="flex items-center gap-2 bg-white/10 rounded-full px-4 py-1.5">
-                  <MessageSquare className="w-3.5 h-3.5 text-accent" />
-                  <span className="text-[11px] font-black text-white">{chats.length} שיחות</span>
+                <div className="flex items-center gap-2 border border-white/15 rounded-full px-4 py-1.5">
+                  <MessageSquare className="w-4 h-4 text-[#E2B35B]" />
+                  <span className="text-sm font-semibold text-white num">{chats.length} שיחות</span>
                 </div>
               </div>
             </div>
-            <Button variant="outline" asChild size="sm" className="gap-2 rounded-full text-xs h-10 px-6 bg-white/10 border-white/20 text-white hover:bg-white/20 shrink-0">
-              <Link href="/search?view=all"><ArrowRight className="w-3.5 h-3.5" /> המשך בקניות</Link>
+            <Button variant="outline" asChild className="gap-2 h-11 px-6 bg-transparent border-white/25 text-white hover:bg-white/10 hover:border-white/40 shrink-0">
+              <Link href="/search?view=all">המשך בקניות <ArrowRight className="w-4 h-4 rotate-180" /></Link>
             </Button>
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs dir="rtl" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           {/* Tab Navigation */}
-          <TabsList className="bg-white p-1.5 rounded-2xl shadow-sm border border-primary/5 h-auto w-full grid grid-cols-4 gap-1">
+          <TabsList className="bg-card p-1.5 rounded-2xl shadow-premium border border-border/70 h-auto w-full grid grid-cols-4 gap-1">
             {navItems.map((item) => (
               <TabsTrigger
                 key={item.id}
                 value={item.id}
-                className="relative rounded-xl data-[state=active]:bg-accent data-[state=active]:text-primary data-[state=active]:shadow-lg gap-2 text-xs font-black uppercase tracking-wider transition-all py-3 flex flex-col sm:flex-row items-center"
+                className="relative rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-1.5 sm:gap-2 text-[13px] sm:text-[15px] font-semibold transition-colors min-h-[52px] py-2.5 flex flex-col sm:flex-row items-center"
               >
                 {item.icon}
                 <span className="hidden sm:inline">{item.label}</span>
-                <span className="sm:hidden text-[9px]">{item.label}</span>
+                <span className="sm:hidden text-xs">{item.label}</span>
                 {item.count > 0 && (
-                  <span className="absolute -top-1 -left-1 w-4 h-4 bg-accent text-primary text-[8px] font-black rounded-full flex items-center justify-center shadow-sm">{item.count}</span>
+                  <span className="absolute -top-1 -left-1 min-w-5 h-5 px-1 bg-accent text-primary text-2xs font-bold rounded-full flex items-center justify-center shadow-sm num">{item.count}</span>
                 )}
               </TabsTrigger>
             ))}
@@ -536,45 +538,45 @@ export default function CustomerDashboard() {
             ) : orders && orders.length > 0 ? (
               <div className="grid gap-3">
                 {orders.map((order: any) => (
-                  <Card key={order.id} className="border-none shadow-sm rounded-2xl bg-white p-4 sm:p-5 hover:shadow-md transition-all group">
-                    <div className="flex items-start gap-4">
-                      <div className="relative w-16 h-16 rounded-xl overflow-hidden border border-primary/5 shrink-0 shadow-sm">
+                  <Card key={order.id} className="border-border/70 shadow-premium rounded-2xl bg-card p-4 sm:p-5 group">
+                    <div className="flex flex-wrap sm:flex-nowrap items-start gap-4">
+                      <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border border-border/70 bg-secondary/50 shrink-0">
                         <Image loader={unsplashLoader} src={order.product_image || 'https://picsum.photos/seed/order/200/200'} alt={order.product_name} fill sizes="64px" className="object-cover" />
                       </div>
                       <div className="flex-1 text-right min-w-0">
                         <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
                           <div className="flex items-center gap-2 flex-wrap">
                             {order.status === 'paid' ? (
-                              <Badge className="bg-blue-50 text-blue-600 border-none font-black text-[9px] uppercase px-2 py-0.5 rounded-full"><ShieldCheck className="w-3 h-3 ml-1" /> בהקפאה</Badge>
+                              <Badge className="bg-secondary text-primary border-none text-xs px-2.5 py-1 rounded-full"><ShieldCheck className="w-3.5 h-3.5 text-accent-strong" /> בהקפאה</Badge>
                             ) : order.status === 'completed' ? (
-                              <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[9px] uppercase px-2 py-0.5 rounded-full"><CheckCircle2 className="w-3 h-3 ml-1" /> הושלמה</Badge>
-                            ) : <Badge variant="outline" className="text-[9px] font-black uppercase rounded-full px-2">{orderStatusLabels[order.status] || 'בטיפול'}</Badge>}
+                              <Badge className="bg-emerald-50 text-emerald-800 border-none text-xs px-2.5 py-1 rounded-full"><CheckCircle2 className="w-3.5 h-3.5" /> הושלמה</Badge>
+                            ) : <Badge variant="outline" className="text-xs rounded-full px-2.5 py-1">{orderStatusLabels[order.status] || 'בטיפול'}</Badge>}
                           </div>
-                          <span className="text-[10px] text-muted-foreground font-bold flex items-center gap-1"><Clock className="w-3 h-3" /> {order.created_at ? new Date(order.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
+                          <span className="text-[13px] text-muted-foreground flex items-center gap-1 num"><Clock className="w-3.5 h-3.5" /> {order.created_at ? new Date(order.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
                         </div>
-                         <p className="font-black text-primary text-base leading-tight mb-1 truncate">{order.product_name}</p>
-                        <p className="text-sm font-black text-accent">₪{Number(order.amount || 0).toLocaleString('he-IL')}</p>
+                         <p className="font-headline font-normal text-primary text-[17px] leading-snug mb-1 truncate">{order.product_name}</p>
+                        <Price value={Number(order.amount || 0).toLocaleString('he-IL')} className="text-[26px] leading-none" />
 
                         {order.status === 'paid' && (
-                          <div className="mt-3 p-3 bg-blue-50/50 rounded-xl border border-blue-100 space-y-1">
+                          <div className="mt-3 p-3.5 bg-secondary/50 rounded-xl border border-border space-y-1.5">
                             <div className="flex items-center justify-between">
-                              <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">קוד אימות:</span>
-                              <span className="text-xl font-black text-primary tracking-[0.2em] tabular-nums">{order.verification_code}</span>
+                              <span className="text-[13px] font-semibold text-primary/75">קוד אימות:</span>
+                              <span className="text-xl font-bold text-primary tracking-[0.2em] tabular-nums" dir="ltr">{order.verification_code}</span>
                             </div>
-                            <p className="text-[9px] font-bold text-primary/50 leading-tight">
-                              <Info className="w-3 h-3 inline ml-1" /> מסור לסופר רק לאחר קבלת המוצר.
+                            <p className="text-[13px] text-primary/70 leading-snug">
+                              <Info className="w-3.5 h-3.5 inline ml-1 text-accent-strong" /> מסור לסופר רק לאחר קבלת המוצר.
                             </p>
                           </div>
                         )}
                       </div>
-                      <div className="flex flex-col gap-2 shrink-0">
+                      <div className="flex w-full sm:w-auto flex-row sm:flex-col gap-2 shrink-0 [&>*]:flex-1 sm:[&>*]:flex-none">
                         {order.product_id && (
-                          <Button variant="outline" asChild size="sm" className="rounded-xl h-9 px-4 border-primary/20 bg-transparent font-bold text-xs">
+                          <Button variant="outline" asChild size="sm" className="h-10 px-4 text-[13px]">
                             <Link href={`/products/${order.product_id}`}>צפה במוצר שוב</Link>
                           </Button>
                         )}
                         {order.status === 'completed' && !order.is_rated && (
-                          <Button variant="secondary" size="sm" onClick={() => setRatingOrderId(order)} className="rounded-xl h-9 px-4 bg-accent/10 text-accent font-black text-xs gap-1"><Star className="w-3 h-3 fill-current" /> דרג</Button>
+                          <Button variant="gold" size="sm" onClick={() => setRatingOrderId(order)} className="h-10 px-4 text-[13px] gap-1"><Star className="w-3.5 h-3.5 fill-current" /> דרג</Button>
                         )}
                       </div>
                     </div>
@@ -582,10 +584,10 @@ export default function CustomerDashboard() {
                 ))}
               </div>
             ) : (
-              <div className="py-20 text-center bg-white rounded-2xl border-2 border-dashed border-primary/5">
-                <ShoppingBag className="w-12 h-12 text-primary/10 mx-auto mb-4" />
-                <p className="text-muted-foreground font-medium">אין הזמנות פעילות.</p>
-                <Button asChild variant="outline" className="mt-4 rounded-full px-8 h-10 text-xs font-black border-primary/10"><Link href="/search?view=all">גלה כלי קודש</Link></Button>
+              <div className="py-16 px-6 text-center bg-card/60 rounded-[2rem] border border-dashed border-primary/20">
+                <ShoppingBag className="w-11 h-11 text-primary/30 mx-auto mb-4" strokeWidth={1.5} />
+                <p className="font-headline text-2xl font-light text-primary mb-2">עוד אין הזמנות</p><p className="text-primary/70 text-[15px] font-light mx-auto">כשתזמינו, תוכלו לעקוב כאן אחרי כל שלב.</p>
+                <Button asChild className="mt-5 px-8"><Link href="/search?view=all">לכל כלי הקודש</Link></Button>
               </div>
             )}
           </TabsContent>
@@ -604,16 +606,16 @@ export default function CustomerDashboard() {
                 </div>
                 {totalChatPages > 1 && (
                   <div className="flex items-center justify-center gap-3 pt-4">
-                    <Button variant="outline" size="sm" onClick={() => setChatsPage(p => Math.max(1, p - 1))} disabled={chatsPage === 1} className="rounded-xl h-9 px-4 font-bold border-primary/10 bg-white text-xs"><ArrowRight className="w-3.5 h-3.5 ml-1.5" /> הקודם</Button>
-                    <span className="text-[11px] font-black text-primary/40 uppercase tracking-widest">עמוד {chatsPage} / {totalChatPages}</span>
-                    <Button variant="outline" size="sm" onClick={() => setChatsPage(p => Math.min(totalChatPages, p + 1))} disabled={chatsPage === totalChatPages} className="rounded-xl h-9 px-4 font-bold border-primary/10 bg-white text-xs">הבא <ArrowRight className="w-3.5 h-3.5 mr-1.5 rotate-180" /></Button>
+                    <Button variant="outline" size="sm" onClick={() => setChatsPage(p => Math.max(1, p - 1))} disabled={chatsPage === 1} className="h-10 px-4 text-[13px]"><ArrowRight className="w-3.5 h-3.5 ml-1.5" /> הקודם</Button>
+                    <span className="text-sm font-medium text-primary/70 num">עמוד {chatsPage} / {totalChatPages}</span>
+                    <Button variant="outline" size="sm" onClick={() => setChatsPage(p => Math.min(totalChatPages, p + 1))} disabled={chatsPage === totalChatPages} className="h-10 px-4 text-[13px]">הבא <ArrowRight className="w-3.5 h-3.5 mr-1.5 rotate-180" /></Button>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="py-20 text-center bg-white rounded-2xl border-2 border-dashed border-primary/5">
-                <MessageCircle className="w-12 h-12 text-primary/10 mx-auto mb-4" />
-                <p className="text-muted-foreground font-medium">אין הודעות עדיין.</p>
+              <div className="py-16 px-6 text-center bg-card/60 rounded-[2rem] border border-dashed border-primary/20">
+                <MessageCircle className="w-11 h-11 text-primary/30 mx-auto mb-4" strokeWidth={1.5} />
+                <p className="font-headline text-2xl font-light text-primary mb-2">עוד אין שיחות</p><p className="text-primary/70 text-[15px] font-light mx-auto">שאלה לסופר? אפשר לפנות אליו מכל עמוד מוצר.</p>
               </div>
             )}
           </TabsContent>
@@ -627,24 +629,24 @@ export default function CustomerDashboard() {
                 {favoriteProducts.map((p: any) => <ProductCard key={p.id} product={p} />)}
               </div>
             ) : (
-              <div className="py-20 text-center bg-white rounded-2xl border-2 border-dashed border-primary/5">
-                <Heart className="w-12 h-12 text-primary/10 mx-auto mb-4" />
-                <p className="text-muted-foreground font-medium">אין מועדפים שמורים.</p>
-                <Button asChild variant="outline" className="mt-4 rounded-full px-8 h-10 text-xs font-black border-primary/10"><Link href="/search?view=all">גלה כלי קודש</Link></Button>
+              <div className="py-16 px-6 text-center bg-card/60 rounded-[2rem] border border-dashed border-primary/20">
+                <Heart className="w-11 h-11 text-primary/30 mx-auto mb-4" strokeWidth={1.5} />
+                <p className="font-headline text-2xl font-light text-primary mb-2">עוד אין מועדפים</p><p className="text-primary/70 text-[15px] font-light mx-auto">לחצו על הלב בכל מוצר כדי לשמור אותו כאן.</p>
+                <Button asChild className="mt-5 px-8"><Link href="/search?view=all">לכל כלי הקודש</Link></Button>
               </div>
             )}
           </TabsContent>
 
           {/* Settings Tab */}
           <TabsContent value="settings" className="focus-visible:outline-none">
-            <Card className="border-none shadow-sm rounded-2xl bg-white p-6 sm:p-8">
-              <div className="flex items-center justify-end gap-3 border-b pb-5 mb-8">
-                <div className="text-right">
-                  <h2 className="text-xl font-headline font-black text-primary">הגדרות חשבון</h2>
-                  <p className="text-xs text-muted-foreground font-medium mt-0.5">עדכן את הפרטים האישיים שלך</p>
+            <Card className="border-border/70 shadow-premium rounded-2xl bg-card p-6 sm:p-8">
+              <div className="flex items-center justify-start gap-3 border-b border-border pb-5 mb-8">
+                <div className="w-11 h-11 rounded-full bg-secondary/70 flex items-center justify-center shrink-0">
+                  <Lock className="w-5 h-5 text-accent-strong" />
                 </div>
-                <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center">
-                  <Lock className="w-5 h-5 text-primary" />
+                <div className="text-right">
+                  <h2 className="text-2xl font-headline font-normal text-primary">הגדרות חשבון</h2>
+                  <p className="text-sm text-muted-foreground mt-0.5">עדכן את הפרטים האישיים שלך</p>
                 </div>
               </div>
               <div className="grid md:grid-cols-2 gap-8">
@@ -716,15 +718,15 @@ export default function CustomerDashboard() {
 
       {/* Delete Account Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl max-w-md bg-white text-slate-900 max-h-[90vh] flex flex-col" dir="rtl">
+        <DialogContent className="w-[calc(100%-2rem)] rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl max-w-md bg-card text-primary max-h-[90vh] flex flex-col" dir="rtl">
           <div className="flex-1 overflow-y-auto min-h-0">
-            <div className="bg-red-600 p-8 text-white text-right">
-              <DialogTitle className="text-2xl font-headline font-black">מחיקת חשבון</DialogTitle>
-              <DialogDescription className="text-white/70 mt-1">פעולה זו בלתי הפיכה. כל הנתונים שלך יימחקו לצמיתות.</DialogDescription>
+            <div className="bg-destructive p-7 pl-16 text-white text-right">
+              <DialogTitle className="text-2xl font-headline font-normal">מחיקת חשבון</DialogTitle>
+              <DialogDescription className="text-white/85 mt-1 text-[15px]">פעולה זו בלתי הפיכה. כל הנתונים שלך יימחקו לצמיתות.</DialogDescription>
             </div>
-            <div className="p-8 space-y-5 text-right">
+            <div className="p-7 space-y-5 text-right">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-primary/50">למה אתה רוצה למחוק את החשבון? (אופציונלי)</Label>
+                <Label>למה אתה רוצה למחוק את החשבון? (אופציונלי)</Label>
                 <Textarea
                   placeholder="ספר לנו את הסיבה..."
                   value={deleteReason}
@@ -734,17 +736,17 @@ export default function CustomerDashboard() {
               </div>
             </div>
           </div>
-          <DialogFooter className="p-6 bg-muted/30 border-t flex gap-3 shrink-0">
+          <DialogFooter className="p-6 bg-secondary/40 border-t border-border flex gap-3 shrink-0">
             <Button
               variant="destructive"
               onClick={handleDeleteAccount}
               disabled={isDeletingAccount}
-              className="flex-1 h-12 font-black uppercase gap-2"
+              className="flex-1 h-12 gap-2"
             >
               {isDeletingAccount ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
               אישור מחיקה
             </Button>
-            <Button variant="ghost" onClick={() => setIsDeleteDialogOpen(false)} disabled={isDeletingAccount} className="h-12 font-bold">
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)} disabled={isDeletingAccount} className="h-12">
               ביטול
             </Button>
           </DialogFooter>
@@ -753,30 +755,30 @@ export default function CustomerDashboard() {
 
       {/* Rating Dialog */}
       <Dialog open={!!ratingOrderId} onOpenChange={() => setRatingOrderId(null)}>
-        <DialogContent className="rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl max-w-md bg-white text-slate-900 max-h-[90vh] flex flex-col" dir="rtl">
+        <DialogContent className="w-[calc(100%-2rem)] rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl max-w-md bg-card text-primary max-h-[90vh] flex flex-col" dir="rtl">
           <div className="flex-1 overflow-y-auto min-h-0">
-            <div className="bg-primary p-8 text-white text-right">
-              <DialogTitle className="text-2xl font-headline font-black">דרג את החוויה שלך</DialogTitle>
-              <DialogDescription className="text-white/60">המשוב שלך עוזר לסופר וגם ללקוחות הבאים.</DialogDescription>
+            <div className="bg-primary p-7 pl-16 text-white text-right">
+              <DialogTitle className="text-2xl font-headline font-normal">דרג את החוויה שלך</DialogTitle>
+              <DialogDescription className="text-white/75 text-[15px]">המשוב שלך עוזר לסופר וגם ללקוחות הבאים.</DialogDescription>
             </div>
             <div className="p-8 space-y-8 text-right">
                <div className="space-y-4">
-                  <Label className="text-xs font-black uppercase tracking-widest text-primary">איך אתה מדרג את הסופר והמוצר?</Label>
-                  <div className="flex justify-center gap-3">
+                  <Label>איך אתה מדרג את הסופר והמוצר?</Label>
+                  <div className="flex justify-center gap-1">
                     {[1, 2, 3, 4, 5].map((s) => (
-                      <button key={s} onClick={() => setScribeRatingVal(s)}><Star className={`w-8 h-8 ${s <= scribeRatingVal ? 'fill-accent text-accent' : 'text-muted-foreground/30'}`} /></button>
+                      <button key={s} type="button" aria-label={`${s} כוכבים`} onClick={() => setScribeRatingVal(s)} className="rounded-full p-2 hover:bg-accent/10"><Star className={`w-8 h-8 ${s <= scribeRatingVal ? 'fill-accent text-accent' : 'text-primary/20'}`} /></button>
                     ))}
                   </div>
                </div>
                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase text-slate-500 mr-1">כתוב ביקורת</Label>
+                  <Label>כתוב ביקורת</Label>
                   <Textarea placeholder="שתף את חווית השירות והכתיבה..." value={ratingComment} onChange={(e) => setRatingComment(e.target.value)} className="rounded-2xl min-h-[100px]" />
                </div>
             </div>
           </div>
-          <DialogFooter className="p-6 bg-muted/30 border-t flex gap-3 shrink-0">
-            <Button onClick={handleManualRating} disabled={isRatingSubmitting} className="flex-1 bg-accent text-primary h-12 font-black uppercase">{isRatingSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'שלח ביקורת'}</Button>
-            <Button variant="ghost" onClick={() => setRatingOrderId(null)} className="h-12 font-bold">ביטול</Button>
+          <DialogFooter className="p-6 bg-secondary/40 border-t border-border flex gap-3 shrink-0">
+            <Button onClick={handleManualRating} disabled={isRatingSubmitting} className="flex-1 h-12">{isRatingSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'שלח ביקורת'}</Button>
+            <Button variant="outline" onClick={() => setRatingOrderId(null)} className="h-12">ביטול</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -790,10 +792,10 @@ function CustomerChatListItem({ chat, otherUserId, currentUserId }: any) {
   const isUnread = chat?.unread_state?.[currentUserId] === true;
   return (
     <Link href={`/chat/${otherUserId}`}>
-      <Card className={`p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-all border border-transparent hover:border-accent/10 ${isUnread ? 'ring-2 ring-accent/20' : ''}`}>
+      <Card className={`p-4 bg-card rounded-2xl shadow-premium transition-shadow hover:shadow-premium-lg border border-border/70 ${isUnread ? 'ring-2 ring-accent/40' : ''}`}>
         <div className="flex items-center gap-4 text-right">
           <div className="relative shrink-0">
-            <Avatar className="h-12 w-12 border-2 border-primary/5 shadow-sm">
+            <Avatar className="h-12 w-12 border border-border">
               <AvatarImage src={otherUser?.profile_image} />
               <AvatarFallback className="bg-primary/5 text-primary font-black text-sm">{otherUser?.first_name?.charAt(0) || '?'}</AvatarFallback>
             </Avatar>
@@ -801,12 +803,12 @@ function CustomerChatListItem({ chat, otherUserId, currentUserId }: any) {
           </div>
           <div className="flex-1 overflow-hidden">
             <div className="flex justify-between items-baseline gap-2">
-              <span className="text-[10px] text-muted-foreground font-bold whitespace-nowrap bg-muted/30 px-2 py-0.5 rounded-full">
+              <p className="font-bold text-primary text-[15px] truncate">{otherUser ? `${otherUser.first_name} ${otherUser.last_name}` : 'טוען...'}</p>
+              <span className="text-xs text-muted-foreground whitespace-nowrap num">
                 {chat.last_message_at ? new Date(chat.last_message_at).toLocaleDateString('he-IL') : ''}
               </span>
-              <p className="font-black text-primary text-sm truncate">{otherUser ? `${otherUser.first_name} ${otherUser.last_name}` : 'טוען...'}</p>
             </div>
-            <p className={`text-xs truncate mt-1 ${isUnread ? 'font-black text-primary' : 'text-muted-foreground font-medium'}`}>{chat.last_message_text || 'אין הודעות עדיין'}</p>
+            <p className={`text-sm truncate mt-1 ${isUnread ? 'font-bold text-primary' : 'text-muted-foreground'}`}>{chat.last_message_text || 'אין הודעות עדיין'}</p>
           </div>
         </div>
       </Card>

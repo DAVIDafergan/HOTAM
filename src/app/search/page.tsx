@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { SEARCH_SELLER_COLUMNS } from '@/lib/constants';
 import { fromPublicView } from '@/lib/public-views';
 import SearchPageClient from './SearchPageClient';
+import { SiteFooter } from '@/components/SiteFooter';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 
 // This page's content is entirely search-param-driven (useSearchParams), which
@@ -45,5 +46,10 @@ export default async function SearchPage() {
     console.error('Search page initial data fetch failed:', e);
   }
 
-  return <SearchPageClient initialProducts={initialProducts} initialSellers={initialSellers} />;
+  return (
+    <>
+      <SearchPageClient initialProducts={initialProducts} initialSellers={initialSellers} />
+      <SiteFooter />
+    </>
+  );
 }

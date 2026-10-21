@@ -17,27 +17,27 @@ function SuccessContent() {
   return (
     <div className="min-h-screen bg-background pb-20 text-right" dir="rtl">
       <Navbar />
-      <main className="container mx-auto px-4 py-20 md:py-28 max-w-xl">
-        <Card className="border-none shadow-premium rounded-[2.5rem] bg-white p-10 text-center space-y-6">
+      <main className="container mx-auto px-4 pt-28 pb-16 md:pt-36 max-w-xl">
+        <Card className="border-border/70 shadow-premium-lg rounded-[2.5rem] bg-card p-8 md:p-12 text-center space-y-6">
           <div className="flex justify-center">
-            <CheckCircle2 className="w-24 h-24 text-emerald-500" />
+            <span className="flex h-24 w-24 items-center justify-center rounded-full bg-emerald-50 ring-1 ring-emerald-200"><CheckCircle2 className="w-12 h-12 text-emerald-700" strokeWidth={1.6} /></span>
           </div>
           <div className="space-y-2">
-            <h1 className="text-3xl font-black text-primary">התשלום עבר בהצלחה!</h1>
-            <p className="text-muted-foreground font-bold text-lg">ההזמנה שלך אושרה ונרשמה במערכת.</p>
+            <h1 className="text-[32px] md:text-[40px] font-headline font-light text-primary leading-tight">התשלום עבר בהצלחה!</h1>
+            <p className="lead mx-auto">ההזמנה שלך אושרה ונרשמה במערכת.</p>
           </div>
           {orderId && (
             <div className="rounded-2xl bg-emerald-50 border border-emerald-200 px-6 py-4 text-center">
-              <p className="text-sm font-bold text-emerald-700 mb-1">מספר הזמנה</p>
-              <p className="text-xl font-black text-emerald-800 tracking-widest">{orderId}</p>
+              <p className="text-sm font-semibold text-emerald-800 mb-1">מספר הזמנה</p>
+              <p className="text-xl font-bold text-emerald-900 tracking-wider num break-all" dir="ltr">{orderId}</p>
             </div>
           )}
-          <p className="text-sm text-muted-foreground font-bold">
+          <p className="text-[15px] text-muted-foreground mx-auto">
             תקבל/י אישור ופרטי קבלה בהמשך. תוכל/י לעקוב אחר ההזמנה באיזור האישי.
           </p>
           <Button
             onClick={() => router.push('/customer/dashboard')}
-            className="w-full bg-accent text-primary hover:bg-accent/90 h-14 rounded-2xl font-black text-lg"
+            size="lg" className="w-full"
           >
             עבור לאיזור האישי
           </Button>

@@ -38,14 +38,14 @@ export default function UnsubscribeClient({ email, token }: { email: string | nu
           {!email ? (
             <>
               <AlertCircle className="w-12 h-12 mx-auto text-destructive/70" />
-              <h1 className="text-2xl font-headline font-black text-primary">הקישור אינו תקין</h1>
+              <h1 className="text-2xl font-headline font-normal text-primary">הקישור אינו תקין</h1>
               <p className="text-muted-foreground font-medium leading-relaxed">ייתכן שהקישור נקטע בהעתקה. אפשר ללחוץ שוב על הקישור שבתחתית המייל, או לפנות אלינו בעמוד יצירת הקשר.</p>
               <Button asChild variant="outline" className="rounded-full font-black"><Link href="/contact">יצירת קשר</Link></Button>
             </>
           ) : state === 'done' ? (
             <>
               <CheckCircle2 className="w-12 h-12 mx-auto text-emerald-600" />
-              <h1 className="text-2xl font-headline font-black text-primary">הוסרת מרשימת התפוצה</h1>
+              <h1 className="text-2xl font-headline font-normal text-primary">הוסרת מרשימת התפוצה</h1>
               <p className="text-muted-foreground font-medium leading-relaxed">
                 לא נשלח עוד עדכונים כלליים לכתובת <span dir="ltr" className="font-bold text-primary">{email}</span>.
                 הודעות על הזמנות, הודעות בצ׳אט ועדכוני חשבון ימשיכו להגיע כרגיל.
@@ -57,7 +57,7 @@ export default function UnsubscribeClient({ email, token }: { email: string | nu
               <div className="w-16 h-16 mx-auto rounded-2xl bg-accent/15 flex items-center justify-center">
                 <MailX className="w-8 h-8 text-primary" />
               </div>
-              <h1 className="text-2xl font-headline font-black text-primary">הסרה מרשימת התפוצה</h1>
+              <h1 className="text-2xl font-headline font-normal text-primary">הסרה מרשימת התפוצה</h1>
               <p className="text-muted-foreground font-medium leading-relaxed">
                 להפסיק לשלוח עדכונים ומבצעים מ-HOTAM לכתובת <span dir="ltr" className="font-bold text-primary">{email}</span>?
               </p>

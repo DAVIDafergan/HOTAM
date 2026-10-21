@@ -65,7 +65,7 @@ export function CitySelect({
           </button>
 
           {filteredOptions.length === 0 ? (
-            <div className="px-3 py-6 text-center text-sm font-medium text-primary/45">{emptyLabel}</div>
+            <div className="px-3 py-6 text-center text-sm font-medium text-primary/65">{emptyLabel}</div>
           ) : (
             filteredOptions.map((option) => (
               <button
@@ -133,7 +133,7 @@ export function CitySelect({
               </button>
 
               {filteredOptions.length === 0 ? (
-                <div className="px-3 py-6 text-center text-sm font-medium text-primary/45">{emptyLabel}</div>
+                <div className="px-3 py-6 text-center text-sm font-medium text-primary/65">{emptyLabel}</div>
               ) : (
                 filteredOptions.map((option) => (
                   <button

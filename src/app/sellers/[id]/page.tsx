@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import SellerProfileClient from './SellerProfileClient';
+import { SiteFooter } from '@/components/SiteFooter';
 import { resolveSellerType } from '@/lib/product-catalog';
 import { getPublicSellerById, getPublicSellerPageData } from '@/lib/storefront-data';
 
@@ -125,6 +126,7 @@ export default async function SellerPage({ params }: Props) {
         initialProducts={products}
         initialReviews={reviews}
       />
+      <SiteFooter />
     </>
   );
 }

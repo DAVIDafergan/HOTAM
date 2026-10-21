@@ -6,12 +6,12 @@ import { EASE } from '@/lib/motion';
 
 const containerVariants = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.1 } },
+  visible: { transition: { staggerChildren: 0.07 } },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE } },
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: EASE } },
 };
 
 // Client-side stagger primitives so Server Components (e.g. src/app/page.tsx) can still
@@ -29,7 +29,7 @@ export function StaggerGrid({ children, className }: { children: ReactNode; clas
       variants={containerVariants}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, amount: 0.2 }}
+      viewport={{ once: true, amount: 0.15 }}
       className={className}
     >
       {children}

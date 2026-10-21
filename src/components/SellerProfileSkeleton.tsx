@@ -9,10 +9,10 @@ export function SellerProfileSkeleton() {
   return (
     <div className="min-h-screen bg-background" dir="rtl">
       <Navbar />
-      <main className="container mx-auto px-4 py-20 md:py-28 max-w-6xl">
+      <main className="container mx-auto px-4 pt-24 pb-16 md:pt-32 md:pb-24 max-w-6xl">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           <div className="lg:col-span-4 space-y-6">
-            <div className="rounded-[2.5rem] bg-white p-8 md:p-10 shadow-premium text-center">
+            <div className="rounded-[2.5rem] border border-border/70 bg-card p-7 md:p-9 shadow-premium text-center">
               <Skeleton className="w-32 h-32 md:w-40 md:h-40 mx-auto mb-6 rounded-full" />
               <Skeleton className="h-7 w-40 mx-auto mb-3 rounded" />
               <Skeleton className="h-3 w-24 mx-auto mb-6 rounded" />
@@ -25,7 +25,7 @@ export function SellerProfileSkeleton() {
             </div>
           </div>
           <div className="lg:col-span-8 space-y-6">
-            <Skeleton className="h-14 w-full rounded-2xl" />
+            <Skeleton className="h-12 w-full rounded-full" />
             <ProductCardSkeletonGrid count={6} />
           </div>
         </div>

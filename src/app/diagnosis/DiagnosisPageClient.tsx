@@ -85,7 +85,7 @@ export default function DiagnosisPageClient() {
       <main className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto pt-24">
           <div className="text-center mb-12">
-            <h1 className="text-4xl font-headline font-bold text-primary mb-4">אבחון מזוזה ב-AI</h1>
+            <h1 className="text-4xl font-headline font-normal text-primary mb-4">אבחון מזוזה ב-AI</h1>
             <p className="text-muted-foreground text-lg">
               העלה צילום ברור של המזוזה שלך וקבל הערכה ראשונית על מצב הכתב והכשרות מהסופר הדיגיטלי שלנו.
             </p>
@@ -103,7 +103,7 @@ export default function DiagnosisPageClient() {
                     <Skeleton className="absolute inset-0" />
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
                       <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                      <p className="text-xs font-bold text-primary/60">מעבד תמונה...</p>
+                      <p className="text-xs font-bold text-primary/65">מעבד תמונה...</p>
                     </div>
                   </div>
                 ) : preview ? (

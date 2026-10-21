@@ -118,7 +118,7 @@ export function SplashScreen() {
               transition={{ duration: 0.45, delay: 0.68, ease: "easeOut" }}
               className="flex flex-col items-center text-center"
             >
-              <h1 className="text-6xl md:text-7xl font-headline font-black text-primary tracking-tight leading-none mb-2">
+              <h1 className="text-6xl md:text-7xl font-headline font-normal text-primary tracking-tight leading-none mb-2">
                 חותם
               </h1>
               <motion.div
@@ -127,7 +127,7 @@ export function SplashScreen() {
                 transition={{ duration: 0.56, delay: 0.94, ease: "easeInOut" }}
                 className="h-1 bg-accent rounded-full"
               />
-              <p className="text-xs md:text-sm font-black text-primary/60 mt-6 tracking-[0.4em] uppercase">
+              <p className="text-xs md:text-sm font-black text-primary/65 mt-6 tracking-wider uppercase">
                 מלאכת שמיים וקדושה
               </p>
             </motion.div>

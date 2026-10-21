@@ -5,49 +5,35 @@
 
 @layer base {
   :root {
-    /* Brand palette (spec): ink-black #1C1815, parchment #F5EDE0,
-       brass-gold #B08D57 (superseded — see --accent below), parchment-brown
-       #7A6F5D, ink-red #8B2E2E.
-       muted-foreground uses 40% lightness instead of the spec's literal
-       42% (#7A6F5D) — verified 4.29:1 against --background, just under
-       WCAG AA's 4.5:1 for body/caption text; 40% clears it (4.63:1)
-       while staying visually indistinguishable from the requested hex. */
-    --background: 37 51% 92%;         /* parchment #F5EDE0 */
-    --foreground: 26 14% 10%;         /* ink-black #1C1815 */
+    /* Direction B palette ("luxury fashion", 2026-10): warm off-white #FBF8F3, ink #14110D,
+       gold #A67C2E used sparingly (rules, icons, rings). Text-on-light gold uses
+       --accent-strong (5.7:1 on the background); the gold button uses --gold-deep with white
+       text (4.9:1) so both clear WCAG AA. */
+    --background: 38 49% 97%;         /* #FBF8F3 */
+    --foreground: 34 21% 6%;          /* ink #14110D */
     --card: 0 0% 100%;
-    --card-foreground: 26 14% 10%;
+    --card-foreground: 34 21% 6%;
     --popover: 0 0% 100%;
-    --popover-foreground: 26 14% 10%;
-    --primary: 26 14% 10%;            /* ink-black #1C1815 */
-    --primary-foreground: 37 35% 97%;
-    --secondary: 37 28% 91%;
-    --secondary-foreground: 26 14% 10%;
-    --muted: 37 15% 93%;
-    --muted-foreground: 37 13% 40%;   /* parchment-brown #7A6F5D, WCAG-adjusted (see note above) */
-    /* "Vivid Gold" refresh (2026-08): same hue family as the original brass-gold, saturation
-       raised 36%→62% — the 36% original tested as "dusty/muted" against the brand's own
-       bar. --accent (button/background use, paired with ink text) verified 5.71:1 against
-       --foreground; --accent-strong (text-on-light use, e.g. hero accent word, spec
-       labels — those specific spots were previously wired to plain --accent and failed
-       WCAG AA at ~2.9-3.0:1) verified 5.27-5.34:1 against parchment/white/card
-       backgrounds — both comfortably clear the 4.5:1 text minimum, not just the 3:1 large-
-       text/UI-component one. */
-    --accent: 38 62% 46%;             /* vivid gold #BE892D */
-    --accent-foreground: 26 14% 10%;
-    --accent-strong: 38 62% 33%;      /* darkened vivid gold for readable text, ~5.3:1 on parchment/white */
-    --border: 26 18% 87%;
-    --input: 26 18% 87%;
-    --destructive: 0 50% 36%;         /* ink-red #8B2E2E — 8.4:1 against white text, well past AA */
+    --popover-foreground: 34 21% 6%;
+    --primary: 34 21% 6%;
+    --primary-foreground: 38 49% 97%;
+    --secondary: 37 38% 93%;          /* #F3EEE6 — sunken / chip surfaces */
+    --secondary-foreground: 34 21% 6%;
+    --muted: 37 33% 94%;
+    --muted-foreground: 34 9% 37%;    /* ≈6:1 on the background */
+    --accent: 39 57% 42%;             /* gold #A67C2E */
+    --accent-foreground: 34 21% 6%;
+    --accent-strong: 39 60% 31%;      /* deep gold for text, ≈5.7:1 */
+    --gold-deep: 39 57% 36%;          /* gold button surface, white text 4.9:1 */
+    --border: 36 22% 88%;
+    --input: 36 18% 80%;
+    --destructive: 0 50% 36%;
     --destructive-foreground: 0 0% 98%;
-    --ring: 38 62% 46%;
-    /* 4/6/8px across the sm/md/lg scale — the spec's 4-8px radius range,
-       applied via the shared token so every standard rounded-sm/md/lg
-       usage site-wide picks it up automatically. Component-level
-       oversized arbitrary radii (rounded-[2rem] etc., an intentional
-       "premium" treatment used across dashboards) are untouched — a
-       site-wide sweep of those specifically wasn't attempted this pass,
-       see summary. */
+    --ring: 39 57% 42%;
     --radius: 0.5rem;
+    --surface-raised: 0 0% 100%;
+    --shadow-color: 34 30% 15%;
+    --ease-lux: cubic-bezier(0.22, 1, 0.36, 1);
   }
 }
 
@@ -61,55 +47,60 @@
   }
   body {
     @apply bg-background text-foreground font-body antialiased;
-    line-height: 1.76;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.75;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -webkit-tap-highlight-color: transparent;
+    font-feature-settings: 'kern' 1;
   }
   input, textarea, select {
     font-size: max(16px, 1rem); /* prevents auto-zoom on iOS */
   }
-  /* Fixed 12/14/16/20/28/40/56px scale (spec — no fluid/arbitrary sizes).
-     Each level steps up exactly one rung between mobile and desktop,
-     drawn from the same six values throughout. */
+  /* Type scale — direction B. Headings: Noto Serif Hebrew Light, large and airy with tight
+     leading; only 300/400 are loaded, so synthetic bold is disabled (a stray font-bold on a
+     heading renders at 400 instead of a smeared faux-bold). Hebrew is never letter-spaced. */
+  h1, h2, h3, h4, h5, h6, .font-headline {
+    font-synthesis: none;
+  }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-headline leading-tight;
+    @apply font-headline;
     text-wrap: balance;
     letter-spacing: 0;
   }
-  h1, h2 {
-    /* Slightly expanded tracking on large display headings only, per
-       spec — the previous site-wide -0.02em (condensed) is dropped for
-       these two levels; smaller headings stay neutral. */
-    letter-spacing: 0.01em;
-  }
-  h1 { font-size: 40px; line-height: 1.1; font-weight: 700; }
-  h2 { font-size: 28px; line-height: 1.15; font-weight: 700; }
-  h3 { font-size: 20px; line-height: 1.2; font-weight: 700; }
-  h4 { font-size: 16px; line-height: 1.3; font-weight: 600; }
-  h5 { font-size: 14px; line-height: 1.35; font-weight: 600; }
-  h6 { font-size: 12px; line-height: 1.4; font-weight: 600; }
+  h1 { font-size: 44px; line-height: 1.06; font-weight: 300; }
+  h2 { font-size: 34px; line-height: 1.12; font-weight: 300; }
+  h3 { font-size: 22px; line-height: 1.3; font-weight: 400; }
+  h4 { font-size: 18px; line-height: 1.35; font-weight: 400; }
+  h5 { font-size: 16px; line-height: 1.4; font-weight: 400; }
+  h6 { font-size: 14px; line-height: 1.4; font-weight: 400; }
   @media (min-width: 768px) {
-    h1 { font-size: 56px; }
-    h2 { font-size: 40px; }
-    h3 { font-size: 28px; }
+    h1 { font-size: 76px; }
+    h2 { font-size: 52px; }
+    h3 { font-size: 26px; }
     h4 { font-size: 20px; }
-    h5 { font-size: 16px; }
-    h6 { font-size: 14px; }
+    h5 { font-size: 17px; }
+    h6 { font-size: 15px; }
   }
   p {
-    @apply leading-relaxed;
     text-wrap: pretty;
-    line-height: 1.78;
-    max-width: 64ch;
+    line-height: 1.75;
+    max-width: 68ch;
   }
   h1 + p, h2 + p, h3 + p, h4 + p { margin-top: 1rem; }
   p + p { margin-top: 0.95rem; }
-  html[dir='rtl'] {
-    word-spacing: 0.02em;
-  }
   section {
     scroll-margin-top: 6rem;
+  }
+  /* Keyboard focus is always visible (components with their own ring utility override this). */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: hsl(var(--accent) / 0.28);
+    color: hsl(var(--foreground));
   }
 }
 
@@ -125,19 +116,110 @@
   }
 
   .shadow-premium {
-    box-shadow: 0 24px 55px -34px rgba(13, 20, 34, 0.2), 0 12px 28px -22px rgba(13, 20, 34, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.52) inset;
+    box-shadow: 0 1px 2px hsl(var(--shadow-color) / 0.05), 0 14px 32px -22px hsl(var(--shadow-color) / 0.28);
   }
 
   .shadow-premium-lg {
-    box-shadow: 0 40px 96px -36px rgba(13, 20, 34, 0.24), 0 18px 40px -26px rgba(13, 20, 34, 0.14), 0 0 0 1px rgba(255, 255, 255, 0.62) inset;
+    box-shadow: 0 2px 4px hsl(var(--shadow-color) / 0.05), 0 28px 60px -30px hsl(var(--shadow-color) / 0.34);
   }
 
+  /* One vertical rhythm for every homepage/landing section. */
   .section-shell {
-    @apply py-12 md:py-36;
+    @apply py-20 md:py-36;
   }
 
+  /* Was bg-white/40 + backdrop-blur — a blur over a full-width scrolling section costs
+     scroll smoothness on phones for no visible gain on a flat background. */
   .section-surface {
-    @apply bg-white/40 backdrop-blur-sm;
+    @apply bg-card/60;
+  }
+
+  /* ── Type scale utilities (direction B) ─────────────────────────────
+     eyebrow  → gold label with a 28px hairline before it
+     title-*  → light serif headings at fixed sizes (independent of the tag used)
+     lead     → light intro paragraph
+     price    → Bellefair lining tabular figures (accent face) */
+  .eyebrow {
+    @apply inline-flex items-center gap-2.5 font-body text-[13px] font-medium leading-none text-accent-strong;
+    letter-spacing: 0.01em;
+  }
+  .eyebrow::before,
+  .eyebrow-center::after {
+    content: '';
+    @apply inline-block h-px w-7 bg-accent;
+  }
+  .title-display {
+    @apply font-headline text-[48px] font-light leading-[1.05] text-primary md:text-[88px];
+  }
+  .title-section {
+    @apply font-headline text-[34px] font-light leading-[1.12] text-primary md:text-[54px];
+  }
+  .title-card {
+    @apply font-headline text-[21px] font-normal leading-snug text-primary md:text-[23px];
+  }
+  .lead {
+    @apply text-[17px] font-light leading-[1.7] text-primary/80 md:text-[19px];
+  }
+  .price {
+    @apply font-accent font-normal tabular-nums text-primary;
+    font-feature-settings: 'tnum' 1, 'lnum' 1;
+    letter-spacing: 0.01em;
+  }
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── Motion (smooth, transform/opacity only) ──────────────────────────── */
+  /* Hero headline: each line rises inside a mask. Starts half-visible so the text is
+     painted (and counts for LCP) on the very first frame; pure CSS, so it runs before
+     hydration and never waits on JS. */
+  .hero-line {
+    display: block;
+    overflow: hidden;
+    padding-bottom: 0.08em;
+    margin-bottom: -0.08em;
+  }
+  .hero-line > span {
+    display: block;
+    animation: hero-rise 900ms var(--ease-lux) both;
+  }
+  .hero-line:nth-child(2) > span { animation-delay: 90ms; }
+  .hero-line:nth-child(3) > span { animation-delay: 180ms; }
+  .fade-up {
+    animation: fade-up 650ms var(--ease-lux) both;
+  }
+  .fade-up-1 { animation-delay: 160ms; }
+  .fade-up-2 { animation-delay: 260ms; }
+  .fade-up-3 { animation-delay: 360ms; }
+
+  /* Skeleton shimmer: a gradient sweep moved with transform (compositor-only). */
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  .shimmer::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, hsl(0 0% 100% / 0.55), transparent);
+    animation: shimmer 1.4s ease-in-out infinite;
+  }
+
+  /* Desktop-only image zoom on hover (hover-capable pointers only). */
+  @media (hover: hover) and (pointer: fine) {
+    .group:hover .zoom-on-hover {
+      transform: scale(1.03);
+    }
+  }
+  .zoom-on-hover {
+    transition: transform 900ms var(--ease-lux);
+    will-change: transform;
+  }
+
+  /* Hairline gold rule used under section titles. */
+  .rule-gold {
+    @apply mx-auto h-px w-16 bg-gradient-to-l from-transparent via-accent to-transparent;
   }
 
   /* Thin brass-gold hairline divider, for use instead of heavy borders/
@@ -154,7 +236,7 @@
 
   /* Google Places Autocomplete dropdown — restyle to match the app instead of Google's default look */
   .pac-container {
-    font-family: var(--font-assistant), Arial, sans-serif;
+    font-family: var(--font-body), Arial, sans-serif;
     border: 1px solid hsl(var(--border));
     border-radius: 1rem;
     margin-top: 6px;
@@ -235,4 +317,29 @@
 @keyframes judaica-scroll-zoom {
   from { transform: scale(1.1); }
   to { transform: scale(1); }
+}
+
+@keyframes hero-rise {
+  from { transform: translateY(55%); opacity: 0.35; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes fade-up {
+  from { transform: translateY(12px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes shimmer {
+  to { transform: translateX(100%); }
+}
+
+/* Respect reduced motion everywhere: CSS animations/transitions collapse to an instant change
+   (framer-motion components check useReducedMotion themselves). */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .shimmer::after { display: none; }
 }

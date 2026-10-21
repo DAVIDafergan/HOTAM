@@ -401,7 +401,7 @@ function ChatContent() {
   const displayName = otherUserData ? `${otherUserData.first_name} ${otherUserData.last_name}` : 'טוען...';
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-[#F8F9FA] overflow-hidden" dir="rtl">
+    <div className="flex flex-col h-[100dvh] bg-secondary/50 overflow-hidden" dir="rtl">
       <Navbar />
       <main className="flex-1 flex flex-col max-w-3xl mx-auto w-full pt-20 sm:pt-24 pb-2 px-2 sm:px-4 overflow-hidden relative" role="main">
         <Card className="flex-1 flex flex-col shadow-premium border-none rounded-[2rem] sm:rounded-[3rem] overflow-hidden bg-white relative">
@@ -418,9 +418,9 @@ function ChatContent() {
                 )}
               </div>
               <div className="text-right">
-                <CardTitle className="text-base font-headline font-black tracking-tight leading-tight">{displayName}</CardTitle>
+                <CardTitle className="text-base font-headline font-normal tracking-tight leading-tight">{displayName}</CardTitle>
                 <div className="flex items-center gap-1.5 opacity-70">
-                  <span className="text-[9px] font-bold uppercase tracking-widest">
+                  <span className="text-2xs font-bold uppercase tracking-widest">
                     {isOtherUserPresent ? 'מחובר/ת כעת' : (otherSellerData ? 'מוכר מוסמך' : 'לקוח')}
                   </span>
                   {otherSellerData?.is_approved && <ShieldCheck className="w-3 h-3 text-accent" aria-label="מאומת" />}
@@ -431,14 +431,14 @@ function ChatContent() {
 
           <div className="bg-orange-50 border-b border-orange-100 p-3 flex items-center justify-center gap-3 shrink-0" role="alert">
             <ShieldAlert className="w-4 h-4 text-orange-600 shrink-0" />
-            <p className="text-[10px] font-black text-orange-800 text-center leading-tight">
+            <p className="text-xs font-black text-orange-800 text-center leading-tight">
               חל איסור מוחלט על העברת פרטי קשר. כל ניסיון עקיפת מערכת יגרום לחסימה מיידית לצמיתות.
             </p>
           </div>
 
           <CardContent 
             ref={scrollRef}
-            className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 bg-slate-50/50 scroll-smooth"
+            className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 bg-secondary/40/50 scroll-smooth"
             aria-live="polite"
           >
             {messages.map((msg) => {
@@ -457,7 +457,7 @@ function ChatContent() {
                       <div className="space-y-3 min-w-[220px]">
                         <div className="flex items-center gap-2 border-b border-white/10 pb-2">
                           <PackageCheck className="w-4 h-4 text-accent" />
-                          <span className="font-black text-[10px] uppercase tracking-tight">בקשת רכישה</span>
+                          <span className="font-black text-xs uppercase tracking-tight">בקשת רכישה</span>
                         </div>
                         <div className="flex gap-3 items-center">
                           {msg.product_image && (
@@ -466,7 +466,7 @@ function ChatContent() {
                             </div>
                           )}
                           <div className="space-y-0.5 text-right">
-                            <p className="text-[10px] opacity-80 leading-tight">מוצר: <span className="font-bold">{msg.product_name}</span></p>
+                            <p className="text-xs opacity-80 leading-tight">מוצר: <span className="font-bold">{msg.product_name}</span></p>
                             <p className="text-xl font-black leading-none">₪{Number(msg.amount || 0).toLocaleString('he-IL')}</p>
                           </div>
                         </div>
@@ -474,7 +474,7 @@ function ChatContent() {
                           variant="outline"
                           asChild
                           className={cn(
-                            "w-full h-9 rounded-xl text-[10px] font-black transition-all duration-200",
+                            "w-full h-9 rounded-xl text-xs font-black transition-all duration-200",
                             isMine
                               ? "bg-white/10 border-white/20 text-white hover:bg-white/20"
                               : "bg-primary/5 border-primary/20 text-primary hover:bg-primary/10"
@@ -487,9 +487,9 @@ function ChatContent() {
                       <p className="leading-relaxed font-medium text-right whitespace-pre-wrap">{msg.text}</p>
                     )}
                     <div className="flex items-center justify-end gap-1 mt-1.5">
-                      <p className="text-[8px] opacity-40 font-bold">{timeString}</p>
+                      <p className="text-2xs opacity-40 font-bold">{timeString}</p>
                       {isMine && (
-                        <p className={`text-[9px] font-black leading-none ${msg.is_read ? 'text-blue-300 opacity-100' : 'text-white/40'}`}>
+                        <p className={`text-2xs font-black leading-none ${msg.is_read ? 'text-blue-300 opacity-100' : 'text-white/70'}`}>
                           {msg.is_read ? '✓✓' : '✓'}
                         </p>
                       )}
@@ -503,14 +503,14 @@ function ChatContent() {
                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/5">
                    <Send className="h-5 w-5 text-primary/25" />
                  </div>
-                 <p className="text-muted-foreground/40 italic text-xs">תחילת התכתבות עם {displayName}...</p>
+                 <p className="text-muted-foreground text-xs">תחילת התכתבות עם {displayName}...</p>
                </div>
             )}
           </CardContent>
 
           <div className="p-3 sm:p-4 border-t bg-white space-y-2 shrink-0">
             {securityViolation && (
-              <div className="flex items-center gap-2 text-[10px] font-black text-destructive bg-destructive/5 p-3 rounded-xl border border-destructive/10 mb-2 animate-bounce" role="alert">
+              <div className="flex items-center gap-2 text-xs font-black text-destructive bg-destructive/5 p-3 rounded-xl border border-destructive/10 mb-2 animate-bounce" role="alert">
                 <AlertTriangle className="w-4 h-4" />
                 <span>ההודעה נחסמה! חל איסור על העברת פרטי קשר.</span>
               </div>
@@ -534,7 +534,7 @@ function ChatContent() {
                 }}
                 placeholder="כתוב הודעה..."
                 rows={1}
-                className="flex-1 rounded-2xl bg-slate-100 border border-transparent text-right py-3.5 px-4 text-base font-medium focus:ring-2 focus:ring-primary/15 focus:border-primary/10 focus:bg-white resize-none max-h-32 transition-all duration-200 overflow-hidden"
+                className="flex-1 rounded-2xl bg-secondary border border-transparent text-right py-3.5 px-4 text-base font-medium focus:ring-2 focus:ring-primary/15 focus:border-primary/10 focus:bg-white resize-none max-h-32 transition-all duration-200 overflow-hidden"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -557,7 +557,7 @@ function ChatContent() {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="gap-2 rounded-full border-accent/20 text-accent hover:bg-accent/5 text-[10px] h-9 px-4 font-black uppercase tracking-tight"
+                      className="gap-2 rounded-full border-accent/20 text-accent hover:bg-accent/5 text-xs h-9 px-4 font-black uppercase tracking-tight"
                     >
                       <CreditCard className="w-3.5 h-3.5" /> צור בקשת תשלום
                     </Button>
@@ -565,7 +565,7 @@ function ChatContent() {
                   <DialogContent className="max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl" dir="rtl">
                     <div className="bg-primary p-6 text-white text-right">
                       <DialogHeader>
-                        <DialogTitle className="text-xl font-headline font-black flex items-center gap-3">
+                        <DialogTitle className="text-xl font-headline font-normal flex items-center gap-3">
                           <Package className="w-6 h-6 text-accent" /> שליחת בקשת תשלום
                         </DialogTitle>
                       </DialogHeader>
@@ -575,14 +575,14 @@ function ChatContent() {
                         <div className="grid gap-3">
                           {effectiveOriginProductId && sellerProducts.find((p: any) => p.id === effectiveOriginProductId) && (
                             <div className="space-y-2 mb-2">
-                              <p className="text-[9px] font-black text-accent uppercase tracking-widest">המוצר ממנו התחילה השיחה:</p>
+                              <p className="text-2xs font-black text-accent uppercase tracking-widest">המוצר ממנו התחילה השיחה:</p>
                               <PaymentProductItem 
                                 product={sellerProducts.find((p: any) => p.id === effectiveOriginProductId)} 
                                 onSelect={sendPaymentRequest} 
                                 highlight 
                               />
                               <div className="h-px bg-muted my-4" />
-                              <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">מוצרים נוספים שלך:</p>
+                              <p className="text-2xs font-black text-muted-foreground uppercase tracking-widest">מוצרים נוספים שלך:</p>
                             </div>
                           )}
                           {sellerProducts
@@ -604,7 +604,7 @@ function ChatContent() {
               <div className="flex items-center gap-1.5 text-muted-foreground mr-auto opacity-40">
                 <div className="flex items-center gap-1">
                   <ShieldCheck className="w-3 h-3 text-emerald-500" />
-                  <span className="text-[8px] font-bold uppercase">מוצפן ומבוטח</span>
+                  <span className="text-2xs font-bold uppercase">מוצפן ומבוטח</span>
                 </div>
               </div>
             </div>
@@ -626,7 +626,7 @@ function PaymentProductItem({ product, onSelect, highlight = false }: any) {
       </div>
       <div className="flex-1 space-y-0.5">
         <h4 className="font-bold text-sm text-primary group-hover:text-accent transition-colors">{product.product_type}</h4>
-        <p className="text-[10px] text-muted-foreground font-medium">{product.script_type}</p>
+        <p className="text-xs text-muted-foreground font-medium">{product.script_type}</p>
         <p className="text-sm font-black text-primary">₪{Number(product.price || 0).toLocaleString('he-IL')}</p>
       </div>
       <Plus className="w-5 h-5 text-accent opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:rotate-90" />

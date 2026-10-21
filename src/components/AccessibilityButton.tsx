@@ -254,22 +254,21 @@ export function AccessibilityButton() {
             <Accessibility className="h-[18px] w-[18px] md:h-6 md:w-6" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-72 p-3 rounded-[2rem] shadow-2xl border-none bg-white/95 backdrop-blur-xl text-right overflow-hidden">
+        <DropdownMenuContent align="start" className="w-72 p-3 rounded-3xl shadow-premium-lg border border-border/70 bg-card text-right overflow-hidden">
           <div dir="rtl">
-            <div className="absolute top-0 right-0 w-full h-12 bg-primary/5 -z-10" />
-            <DropdownMenuLabel className="text-sm font-black uppercase text-primary flex items-center justify-between py-4 px-2">
+                        <DropdownMenuLabel className="text-base font-bold text-primary flex items-center justify-start gap-2 py-3 px-2">
+              <Accessibility className="w-4 h-4 text-accent-strong" />
               <span>הגדרות נגישות</span>
-              <Accessibility className="w-4 h-4 text-accent" />
             </DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-primary/5" />
+            <DropdownMenuSeparator className="bg-border" />
             
             <div className="p-2 space-y-2">
                <div className="flex items-center justify-between p-2 rounded-xl hover:bg-primary/5 transition-colors">
-                  <span className="text-xs font-bold text-primary">גודל טקסט</span>
+                  <span className="text-sm font-semibold text-primary">גודל טקסט</span>
                   <div className="flex items-center gap-1">
-                    <Button variant="outline" size="icon" className="w-9 h-9 rounded-lg border-primary/10" onClick={() => setFontSize(prev => Math.max(prev - 10, 80))}><Minus className="w-4 h-4" /></Button>
-                    <span className="text-[10px] font-black w-8 text-center">{fontSize}%</span>
-                    <Button variant="outline" size="icon" className="w-9 h-9 rounded-lg border-primary/10" onClick={() => setFontSize(prev => Math.min(prev + 10, 150))}><Plus className="w-4 h-4" /></Button>
+                    <Button variant="outline" size="icon" aria-label="הקטנת טקסט" className="w-10 h-10 rounded-full" onClick={() => setFontSize(prev => Math.max(prev - 10, 80))}><Minus className="w-4 h-4" /></Button>
+                    <span className="text-sm font-bold w-10 text-center num">{fontSize}%</span>
+                    <Button variant="outline" size="icon" aria-label="הגדלת טקסט" className="w-10 h-10 rounded-full" onClick={() => setFontSize(prev => Math.min(prev + 10, 150))}><Plus className="w-4 h-4" /></Button>
                   </div>
                </div>
 
@@ -303,7 +302,7 @@ export function AccessibilityButton() {
 
                <Button 
                  variant="ghost" 
-                 className="w-full justify-center gap-2 h-12 rounded-xl text-destructive hover:bg-destructive/5 font-black text-xs uppercase mt-2"
+                 className="w-full justify-center gap-2 h-11 rounded-xl text-destructive hover:bg-destructive/5 text-sm mt-2"
                  onClick={reset}
                >
                  <RotateCcw className="w-4 h-4" /> איפוס כל ההגדרות
@@ -320,18 +319,19 @@ function AccessOption({ label, active, onClick, icon }: any) {
   return (
     <button 
       onClick={onClick}
+      aria-pressed={active}
       className={cn(
-        "w-full flex items-center justify-between p-3 rounded-xl transition-all border-2",
-        active ? "bg-accent text-primary border-accent shadow-md" : "bg-white border-transparent hover:border-primary/10 text-primary"
+        "w-full flex items-center justify-between min-h-[48px] px-3 py-2 rounded-xl transition-colors border",
+        active ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border/70 hover:border-primary/30 text-primary"
       )}
     >
       <div className="flex items-center gap-3">
-        <div className={cn("p-1.5 rounded-lg", active ? "bg-white/40" : "bg-primary/5")}>
+        <div className={cn("p-1.5 rounded-lg", active ? "bg-white/15" : "bg-secondary/70")}>
           {icon}
         </div>
-        <span className="text-xs font-bold">{label}</span>
+        <span className="text-sm font-semibold">{label}</span>
       </div>
-      <div className={cn("w-3.5 h-3.5 rounded-full border-2 transition-all", active ? "bg-accent border-white scale-110" : "border-primary/10")} />
+      <div className={cn("w-4 h-4 rounded-full border transition-all", active ? "bg-accent border-accent" : "border-primary/30")} />
     </button>
   );
 }

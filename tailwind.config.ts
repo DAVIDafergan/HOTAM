@@ -8,11 +8,43 @@ export default {
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
+    // One container width site-wide; `container mx-auto px-4` call sites keep their own padding.
+    container: {
+      center: true,
+      screens: { sm: '640px', md: '768px', lg: '1024px', xl: '1280px', '2xl': '1320px' },
+    },
     extend: {
+      // Hebrew must not be letter-spaced (it breaks the word shapes) — the default scale goes up
+      // to 0.1em, which the site applies to ~150 Hebrew labels. Retuned so `tracking-widest` etc.
+      // stay a subtle touch; the few Latin wordmarks that want real spacing use arbitrary values.
+      letterSpacing: {
+        tighter: '-0.02em',
+        tight: '-0.01em',
+        normal: '0',
+        wide: '0.01em',
+        wider: '0.02em',
+        widest: '0.03em',
+      },
+      fontSize: {
+        '2xs': ['0.6875rem', { lineHeight: '1rem' }],
+      },
+      // Direction B is light: the body face (IBM Plex Sans Hebrew) is loaded at 300-600, so
+      // "bold-everything" utilities resolve one step lighter (no 700/800/900 shouting) and the
+      // headline serif only exists at 300/400 (font-synthesis is off for it in globals.css).
+      fontWeight: {
+        semibold: '500',
+        bold: '600',
+        extrabold: '600',
+        black: '600',
+      },
+      transitionTimingFunction: {
+        lux: 'cubic-bezier(0.22, 1, 0.36, 1)',
+      },
       fontFamily: {
-        sans: ['var(--font-assistant)', 'Arial', 'sans-serif'],
-        body: ['var(--font-assistant)', 'Arial', 'sans-serif'],
+        sans: ['var(--font-body)', 'Arial', 'sans-serif'],
+        body: ['var(--font-body)', 'Arial', 'sans-serif'],
         headline: ['var(--font-heading)', 'Georgia', 'serif'],
+        accent: ['var(--font-accent)', 'var(--font-heading)', 'Georgia', 'serif'],
         code: ['monospace'],
       },
       colors: {
@@ -47,6 +79,7 @@ export default {
           DEFAULT: 'hsl(var(--destructive))',
           foreground: 'hsl(var(--destructive-foreground))',
         },
+        'gold-deep': 'hsl(var(--gold-deep))',
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',

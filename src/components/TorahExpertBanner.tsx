@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { MessageCircle, Gem, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { MessageCircle, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PLATFORM_WHATSAPP_NUMBER } from '@/lib/constants';
 
@@ -11,76 +11,46 @@ export function TorahExpertBanner() {
   const whatsappNumber = PLATFORM_WHATSAPP_NUMBER;
   const message = encodeURIComponent("שלום, אני מעוניין בייעוץ לרכישת ספר תורה דרך מערכת חותם.");
 
+  // Light band (was a navy block): it sits right above the dark seller CTA, and two dark
+  // slabs in a row read heavy. Ink + gold hairline keeps it premium on parchment.
   return (
-    <section className="relative w-full overflow-hidden border-y border-white/10 bg-[#0D111A] py-8 shadow-[0_22px_60px_rgba(6,10,18,0.45)] md:py-10">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_40%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.04),transparent_35%)]" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-l from-transparent via-white/30 to-transparent" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-l from-transparent via-white/20 to-transparent" />
-
-      <div className="container mx-auto px-4 md:px-5 max-w-7xl relative z-10">
-        <div className="flex flex-col items-center justify-between gap-7 md:flex-row md:gap-12">
-          
-          <div className="flex flex-1 flex-col items-center gap-5 text-right md:flex-row md:gap-7">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.94 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.45, ease: 'easeOut' }}
-              className="hidden h-14 w-14 items-center justify-center rounded-2xl border border-white/15 bg-white/5 text-white shadow-inner lg:flex"
-            >
-              <Gem className="h-6 w-6" />
-            </motion.div>
-
+    <section className="relative w-full py-14 md:py-20" aria-labelledby="torah-concierge-heading">
+      <div className="container mx-auto px-4 md:px-6 max-w-6xl">
+        <div className="relative overflow-hidden rounded-[2rem] border border-accent/30 bg-card px-6 py-9 shadow-premium md:rounded-[2.5rem] md:px-14 md:py-12">
+          <div className="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-l from-transparent via-accent/60 to-transparent" />
+          <div className="flex flex-col items-center gap-8 text-center md:flex-row md:justify-between md:text-right">
             <div className="space-y-4">
-              <div className="mb-1 flex items-center justify-center gap-3 md:justify-start">
-                <motion.div 
-                  initial={{ opacity: 0, y: 4 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, ease: 'easeOut' }}
-                  className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-[10px] font-semibold tracking-[0.22em] text-white/80"
-                >
-                  TORAH CONCIERGE
-                </motion.div>
-                <div className="flex items-center gap-3 text-[10px] font-semibold tracking-widest text-white/55">
-                   <div className="flex items-center gap-1">
-                     <CheckCircle2 className="h-3.5 w-3.5 text-white/75" /> ליווי אישי
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <ShieldCheck className="h-3.5 w-3.5 text-white/75" /> אחריות כשרות
-                    </div>
-                 </div>
-               </div>
-
-              <motion.h2 
-                initial={{ y: 6, opacity: 0 }}
-                whileInView={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.5, ease: 'easeOut' }}
-                className="text-center font-headline text-[2rem] font-black leading-tight tracking-tight text-white md:text-right lg:text-[2.45rem]"
+              <motion.div
+                initial={{ opacity: 0, y: 4 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, ease: 'easeOut' }}
+                className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 md:justify-start"
               >
-                רכישת ספר תורה יוקרתי בליווי אישי של צוות חותם
-              </motion.h2>
-              <p className="max-w-3xl text-center text-[0.95rem] font-medium leading-relaxed text-white/70 md:text-right md:text-[1.05rem]">
+                <span className="font-headline text-xs font-normal uppercase tracking-[0.22em] text-accent-strong">TORAH CONCIERGE</span>
+                <span className="flex items-center gap-1.5 text-[13px] font-semibold text-primary/70">
+                  <CheckCircle2 className="h-4 w-4 text-accent-strong" aria-hidden="true" /> ליווי אישי
+                </span>
+                <span className="flex items-center gap-1.5 text-[13px] font-semibold text-primary/70">
+                  <ShieldCheck className="h-4 w-4 text-accent-strong" aria-hidden="true" /> אחריות כשרות
+                </span>
+              </motion.div>
+
+              <h2 id="torah-concierge-heading" className="font-headline text-[32px] font-light leading-[1.12] text-primary md:text-[46px]">
+                ספר תורה? נלווה אתכם אישית
+              </h2>
+              <p className="mx-auto max-w-2xl text-[17px] font-light leading-relaxed text-primary/75 md:mx-0 md:text-[19px]">
                 ייעוץ דיסקרטי, בחירת כתב והידור, תיאום התרשמות מלאה וליווי מדויק עד למסירת ספר התורה.
               </p>
             </div>
-          </div>
 
-          <motion.div 
-            initial={{ opacity: 0, x: -14 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.45, ease: 'easeOut' }}
-            className="w-full shrink-0 md:w-auto"
-          >
-            <Button 
-              asChild
-              className="h-14 w-full rounded-2xl border border-white/25 bg-white/5 px-9 text-base font-bold tracking-tight text-white shadow-[0_16px_34px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/10 active:scale-95 group md:w-auto"
-            >
+            <Button asChild size="lg" className="w-full shrink-0 gap-2.5 md:w-auto">
               <a href={`https://wa.me/${whatsappNumber}?text=${message}`} target="_blank" rel="noopener noreferrer">
-                <MessageCircle className="ml-2.5 h-5 w-5 transition-transform duration-300 group-hover:rotate-6" />
-                תיאום ייעוץ לרכישת ספר תורה
+                <MessageCircle className="h-5 w-5" aria-hidden="true" />
+                לתיאום ייעוץ בוואטסאפ
               </a>
             </Button>
-          </motion.div>
-
+          </div>
         </div>
       </div>
     </section>

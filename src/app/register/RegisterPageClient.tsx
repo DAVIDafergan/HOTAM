@@ -246,52 +246,53 @@ export default function RegisterPageClient() {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
-        <main className="flex-1 flex items-start justify-center p-4 pt-[calc(7.5rem+env(safe-area-inset-top))] md:items-center md:pt-24">
-          <div className="w-full max-w-2xl space-y-6 text-right" dir="rtl">
-            <div className="text-center space-y-2">
-              <h1 className="text-3xl font-black text-primary">הצטרפות לחותם</h1>
-              <p className="text-muted-foreground font-bold text-sm">בחר את סוג החשבון שברצונך לפתוח</p>
+        <main className="flex-1 flex items-start justify-center px-4 pt-[calc(7rem+env(safe-area-inset-top))] pb-12 md:items-center md:pt-28">
+          <div className="w-full max-w-3xl space-y-8 text-right" dir="rtl">
+            <div className="text-center space-y-3">
+              <p className="eyebrow eyebrow-center">הצטרפות</p>
+              <h1 className="text-[40px] md:text-[60px] font-headline font-light text-primary leading-[1.06]">הצטרפות לחותם</h1>
+              <p className="text-muted-foreground text-[17px] font-light">בחר את סוג החשבון שברצונך לפתוח</p>
             </div>
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid sm:grid-cols-2 gap-4 md:gap-6">
               <button
                 onClick={() => setSelectedRole('customer')}
-                className="group relative flex flex-col items-center gap-4 p-8 bg-white rounded-[2rem] shadow-premium border-2 border-transparent hover:border-primary/30 transition-all text-center cursor-pointer"
+                className="group relative flex flex-col items-center gap-5 p-7 md:p-9 bg-card rounded-[2rem] shadow-premium border border-border/70 hover:border-primary/40 hover:shadow-premium-lg transition-all text-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
               >
-                <div className="w-16 h-16 bg-primary/5 rounded-full flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                  <ShoppingBag className="w-8 h-8 text-primary" />
+                <div className="w-16 h-16 bg-secondary/70 rounded-full flex items-center justify-center">
+                  <ShoppingBag className="w-7 h-7 text-primary" strokeWidth={1.6} />
                 </div>
                 <div className="space-y-1">
-                  <h2 className="text-xl font-black text-primary">לקוח</h2>
-                  <p className="text-muted-foreground text-sm font-bold leading-relaxed">
+                  <h2 className="font-headline text-2xl font-normal text-primary">לקוח</h2>
+                  <p className="text-primary/70 text-[15px] leading-relaxed">
                     רוצה לרכוש מזוזות, תפילין, ספרי תורה וכלי קודש מסופרים מוסמכים
                   </p>
                 </div>
-                <div className="mt-auto w-full bg-primary/5 hover:bg-primary/10 text-primary font-black text-sm py-3 px-6 rounded-full group-hover:bg-accent group-hover:text-primary transition-all">
+                <div className="mt-auto flex h-12 w-full items-center justify-center rounded-full bg-primary text-[15px] font-semibold text-primary-foreground transition-colors group-hover:bg-primary/90">
                   הרשמה כלקוח
                 </div>
               </button>
 
               <button
                 onClick={() => router.push('/onboarding/seller')}
-                className="group relative flex flex-col items-center gap-4 p-8 bg-white rounded-[2rem] shadow-premium border-2 border-transparent hover:border-accent/40 transition-all text-center cursor-pointer"
+                className="group relative flex flex-col items-center gap-5 p-7 md:p-9 bg-card rounded-[2rem] shadow-premium border border-accent/30 hover:border-accent/60 hover:shadow-premium-lg transition-all text-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
               >
-                <div className="w-16 h-16 bg-accent/5 rounded-full flex items-center justify-center group-hover:bg-accent/10 transition-colors">
-                  <PenTool className="w-8 h-8 text-accent" />
+                <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center">
+                  <PenTool className="w-7 h-7 text-accent-strong" strokeWidth={1.6} />
                 </div>
                 <div className="space-y-1">
-                  <h2 className="text-xl font-black text-accent">סופר סת&quot;ם</h2>
-                  <p className="text-muted-foreground text-sm font-bold leading-relaxed">
+                  <h2 className="font-headline text-2xl font-normal text-accent-strong">סופר סת&quot;ם</h2>
+                  <p className="text-primary/70 text-[15px] leading-relaxed">
                     סופר מוסמך שרוצה למכור את יצירותיו ישירות ללקוחות דרך הפלטפורמה
                   </p>
                 </div>
-                <div className="mt-auto w-full bg-accent/5 hover:bg-accent/10 text-accent font-black text-sm py-3 px-6 rounded-full group-hover:bg-accent group-hover:text-primary transition-all">
+                <div className="mt-auto flex h-12 w-full items-center justify-center rounded-full bg-accent text-[15px] font-semibold text-primary transition-colors group-hover:bg-[hsl(38_62%_42%)]">
                   הרשמה כסופר
                 </div>
               </button>
             </div>
-            <p className="text-center text-sm text-muted-foreground font-bold">
+            <p className="text-center text-[15px] text-primary/75">
               כבר יש לך חשבון?{' '}
-              <Link href="/login" className="text-primary font-black hover:underline">
+              <Link href="/login" className="font-bold text-primary underline underline-offset-4">
                 התחברות
               </Link>
             </p>
@@ -306,31 +307,31 @@ export default function RegisterPageClient() {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
-        <main className="flex-1 flex items-start justify-center p-4 pt-[calc(7.5rem+env(safe-area-inset-top))] md:items-center md:pt-24">
-          <Card className="w-full max-w-md shadow-premium border-none rounded-[2.5rem] overflow-hidden bg-white">
+        <main className="flex-1 flex items-start justify-center px-4 pt-[calc(7rem+env(safe-area-inset-top))] pb-12 md:items-center md:pt-28">
+          <Card className="w-full max-w-md shadow-premium-lg border-border/70 rounded-[2.5rem] overflow-hidden bg-card">
             <CardContent className="p-10 text-center space-y-6">
-              <div className="w-20 h-20 bg-primary/5 rounded-full flex items-center justify-center mx-auto">
+              <div className="w-20 h-20 bg-secondary/70 rounded-full flex items-center justify-center mx-auto">
                 <Mail className="w-10 h-10 text-primary" />
               </div>
               <div className="space-y-2">
-                <h2 className="text-2xl font-black text-primary">בדוק את תיבת הדואר שלך</h2>
-                <p className="text-muted-foreground font-medium text-sm leading-relaxed">
-                  שלחנו קישור אישור לכתובת <span className="font-black text-primary">{email}</span>.<br />
+                <h2 className="text-[28px] font-headline font-light text-primary">בדוק את תיבת הדואר שלך</h2>
+                <p className="text-primary/75 text-[15px] leading-relaxed">
+                  שלחנו קישור אישור לכתובת <span className="font-bold text-primary" dir="ltr">{email}</span>.<br />
                   לחץ על הקישור כדי להשלים את ההרשמה ולהיכנס לאתר.
                 </p>
               </div>
               <div className="p-4 bg-accent/5 rounded-2xl border border-accent/10 flex items-start gap-3 text-right">
-                <CheckCircle2 className="w-5 h-5 text-accent shrink-0 mt-0.5" />
-                <p className="text-xs font-bold text-primary/70">לא קיבלת? בדוק את תיקיית הספאם, או חזור לדף זה ונסה שנית.</p>
+                <CheckCircle2 className="w-5 h-5 text-accent-strong shrink-0 mt-0.5" />
+                <p className="text-sm text-primary/80">לא קיבלת? בדוק את תיקיית הספאם, או חזור לדף זה ונסה שנית.</p>
               </div>
-              <Button variant="outline" asChild className="w-full h-12 rounded-full font-black border-primary/10">
+              <Button variant="outline" asChild className="w-full h-12">
                 <Link href="/login">חזרה לדף הכניסה</Link>
               </Button>
               <Button
                 variant="secondary"
                 onClick={handleResendVerification}
                 disabled={isResendingVerification}
-                className="w-full h-12 rounded-full font-black"
+                className="w-full h-12"
               >
                 {isResendingVerification ? <Loader2 className="w-4 h-4 animate-spin" /> : 'שליחה חוזרת של מייל אימות'}
               </Button>
@@ -344,41 +345,42 @@ export default function RegisterPageClient() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      <main className="flex-1 flex items-start justify-center p-3 sm:p-4 pt-[calc(7.5rem+env(safe-area-inset-top))] sm:items-center sm:pt-24 pb-6 sm:pb-10">
-        <Card className="w-full max-w-4xl shadow-premium border-none rounded-[2.5rem] overflow-hidden bg-white">
+      <main className="flex-1 flex items-start justify-center px-4 pt-[calc(6.5rem+env(safe-area-inset-top))] sm:items-center sm:pt-28 pb-10">
+        <Card className="w-full max-w-4xl shadow-premium-lg border-border/70 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden bg-card">
           <div className="grid md:grid-cols-5 md:min-h-[500px]">
             {/* Left/Info Side */}
-            <div className="hidden md:flex md:order-1 md:col-span-2 bg-primary text-white p-5 sm:p-8 md:p-10 flex-col justify-center text-right relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl" />
+            <div className="hidden md:flex md:order-1 md:col-span-2 bg-primary text-white p-10 flex-col justify-center text-right relative overflow-hidden">
+              <div className="pointer-events-none absolute inset-y-10 left-0 w-px bg-gradient-to-b from-transparent via-[#E2B35B]/50 to-transparent" />
               <div className="relative z-10 space-y-6">
                 <div className="space-y-4">
-                  <h1 className="text-3xl md:text-5xl font-headline font-black tracking-tight leading-tight bg-clip-text text-transparent bg-gradient-to-r from-accent via-white to-accent/80">
+                  <p className="font-accent text-sm font-normal uppercase tracking-[0.32em] text-[#E2B35B]">HOTAM</p>
+                  <h1 className="text-[46px] font-headline font-light leading-[1.08] text-white">
                     מצטרפים למשפחת חותם
                   </h1>
-                  <p className="text-white/70 font-black text-base md:text-lg leading-relaxed">גלו את הדרך הבטוחה והמהודרת ביותר לרכישת כלי קודש ישירות מהסופר.</p>
+                  <p className="text-white/75 text-base leading-relaxed">גלו את הדרך הבטוחה והמהודרת ביותר לרכישת כלי קודש ישירות מהסופר.</p>
                 </div>
-                <div className="flex flex-wrap justify-end gap-x-6 gap-y-3 pt-4 border-t border-white/10">
-                   <div className="flex items-center gap-2 text-[10px] md:text-xs font-black">
+                <div className="flex flex-col items-start gap-3 pt-5 border-t border-white/15">
+                   <div className="flex items-center gap-2.5 text-[15px] font-medium text-white/90">
+                    <Heart className="w-4 h-4 shrink-0 text-[#E2B35B] fill-current" />
                     <span>קנייה ישירה ללא פערי תיווך</span>
-                    <Heart className="w-4 h-4 text-accent fill-current" />
                   </div>
-                  <div className="flex items-center gap-2 text-[10px] md:text-xs font-black">
+                  <div className="flex items-center gap-2.5 text-[15px] font-medium text-white/90">
+                    <ShieldCheck className="w-4 h-4 shrink-0 text-[#E2B35B]" />
                     <span>אחריות כשרות ושקיפות מלאה</span>
-                    <ShieldCheck className="w-4 h-4 text-accent" />
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Right/Form Side */}
-            <CardContent className="order-1 md:order-2 md:col-span-3 p-5 sm:p-7 md:p-10 space-y-5 text-right flex flex-col justify-center">
-              <div className="md:hidden rounded-[2rem] bg-gradient-to-br from-primary via-primary to-primary/90 px-5 py-6 text-center text-white shadow-premium">
-                <p className="text-[10px] font-black uppercase tracking-[0.35em] text-white/55">HOTAM</p>
-                <h1 className="mt-2 text-2xl font-headline font-black tracking-tight">ברוכים הבאים לחותם</h1>
+            <CardContent className="order-1 md:order-2 md:col-span-3 p-6 sm:p-8 md:p-10 space-y-6 text-right flex flex-col justify-center">
+              <div className="md:hidden text-center">
+                <p className="font-accent text-sm font-normal uppercase tracking-[0.32em] text-accent-strong">HOTAM</p>
+                <h1 className="mt-2 text-[36px] font-headline font-light text-primary leading-tight">הצטרפות לחותם</h1>
               </div>
-              <div className="space-y-1">
-                <h2 className="text-2xl md:text-3xl font-black text-primary">הרשמה כלקוח</h2>
-                <p className="text-muted-foreground text-sm font-black">הצטרפו לקהילת חותם עוד היום</p>
+              <div className="space-y-1.5 text-center md:text-right">
+                <h2 className="text-[22px] md:text-[30px] font-headline font-normal md:font-light text-primary">הרשמה כלקוח</h2>
+                <p className="text-muted-foreground text-[15px] font-light">חשבון אחד לכל ההזמנות, ההודעות והמועדפים שלכם.</p>
               </div>
 
               <div className="space-y-4">
@@ -386,21 +388,21 @@ export default function RegisterPageClient() {
                   variant="outline" 
                   onClick={handleGoogleRegister}
                   disabled={loading}
-                  className="w-full rounded-xl h-12 border-muted-foreground/20 font-black gap-3 text-sm uppercase tracking-tight hover:bg-muted/50 transition-all shadow-sm"
+                  className="w-full h-12 gap-3"
                 >
                   <GoogleIcon /> הרשמה עם Google
                 </Button>
 
                 <div className="relative flex items-center gap-4 py-2">
-                  <div className="flex-1 h-px bg-muted" />
-                  <span className="text-[10px] font-black text-primary/30 uppercase tracking-widest">או הרשמה ידנית</span>
-                  <div className="flex-1 h-px bg-muted" />
+                  <div className="flex-1 h-px bg-border" />
+                  <span className="text-[13px] font-medium text-muted-foreground">או הרשמה ידנית</span>
+                  <div className="flex-1 h-px bg-border" />
                 </div>
 
                 <form onSubmit={handleRegister} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label htmlFor="firstName" className="font-black text-[10px] uppercase text-primary/60 tracking-wider">שם פרטי</Label>
+                      <Label htmlFor="firstName">שם פרטי</Label>
                       <Input
                         id="firstName"
                         placeholder="ישראל"
@@ -409,15 +411,15 @@ export default function RegisterPageClient() {
                         onChange={(e) => { setFirstName(e.target.value); handleFieldChange('firstName', e.target.value); }}
                         onBlur={() => handleFieldBlur('firstName')}
                         aria-invalid={!!fieldErrors.firstName}
-                        className={cn("rounded-xl h-12 text-right border-muted-foreground/20 focus:ring-primary/10 font-bold", fieldErrors.firstName && "border-destructive focus-visible:ring-destructive/30")}
+                        className={cn("text-right", fieldErrors.firstName && "border-destructive focus-visible:ring-destructive/30")}
                         required
                       />
                       {fieldErrors.firstName && (
-                        <p className="flex items-center gap-1 text-[11px] font-bold text-destructive"><AlertCircle className="w-3 h-3 shrink-0" />{fieldErrors.firstName}</p>
+                        <p className="flex items-center gap-1.5 text-[13px] font-semibold text-destructive"><AlertCircle className="w-3.5 h-3.5 shrink-0" />{fieldErrors.firstName}</p>
                       )}
                     </div>
                     <div className="space-y-1.5">
-                      <Label htmlFor="lastName" className="font-black text-[10px] uppercase text-primary/60 tracking-wider">שם משפחה</Label>
+                      <Label htmlFor="lastName">שם משפחה</Label>
                       <Input
                         id="lastName"
                         placeholder="ישראלי"
@@ -426,17 +428,17 @@ export default function RegisterPageClient() {
                         onChange={(e) => { setLastName(e.target.value); handleFieldChange('lastName', e.target.value); }}
                         onBlur={() => handleFieldBlur('lastName')}
                         aria-invalid={!!fieldErrors.lastName}
-                        className={cn("rounded-xl h-12 text-right border-muted-foreground/20 focus:ring-primary/10 font-bold", fieldErrors.lastName && "border-destructive focus-visible:ring-destructive/30")}
+                        className={cn("text-right", fieldErrors.lastName && "border-destructive focus-visible:ring-destructive/30")}
                         required
                       />
                       {fieldErrors.lastName && (
-                        <p className="flex items-center gap-1 text-[11px] font-bold text-destructive"><AlertCircle className="w-3 h-3 shrink-0" />{fieldErrors.lastName}</p>
+                        <p className="flex items-center gap-1.5 text-[13px] font-semibold text-destructive"><AlertCircle className="w-3.5 h-3.5 shrink-0" />{fieldErrors.lastName}</p>
                       )}
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="email" className="font-black text-[10px] uppercase text-primary/60 tracking-wider">דואר אלקטרוני</Label>
+                    <Label htmlFor="email">דואר אלקטרוני</Label>
                     <Input
                       id="email"
                       type="email"
@@ -447,27 +449,27 @@ export default function RegisterPageClient() {
                       onChange={(e) => { setEmail(e.target.value); handleFieldChange('email', e.target.value); }}
                       onBlur={() => handleFieldBlur('email')}
                       aria-invalid={!!fieldErrors.email}
-                      className={cn("rounded-xl h-12 text-right border-muted-foreground/20 focus:ring-primary/10 font-bold", fieldErrors.email && "border-destructive focus-visible:ring-destructive/30")}
+                      className={cn("text-right", fieldErrors.email && "border-destructive focus-visible:ring-destructive/30")}
                       required
                     />
                     {fieldErrors.email && (
-                      <p className="flex items-center gap-1 text-[11px] font-bold text-destructive"><AlertCircle className="w-3 h-3 shrink-0" />{fieldErrors.email}</p>
+                      <p className="flex items-center gap-1.5 text-[13px] font-semibold text-destructive"><AlertCircle className="w-3.5 h-3.5 shrink-0" />{fieldErrors.email}</p>
                     )}
                   </div>
 
                   <div className="space-y-1.5">
                     <div className="flex justify-between items-center">
+                      <Label htmlFor="password">סיסמה</Label>
                       <button 
                         type="button" 
                         onClick={() => {
                           setResetEmail(email);
                           setIsResetDialogOpen(true);
                         }}
-                        className="text-[10px] text-muted-foreground hover:text-primary underline font-black"
+                        className="min-h-[36px] text-[13px] font-medium text-primary/70 underline underline-offset-4 hover:text-primary"
                       >
                         שכחת סיסמה?
                       </button>
-                      <Label htmlFor="password" className="font-black text-[10px] uppercase text-primary/60 tracking-wider">סיסמה</Label>
                     </div>
                     <Input
                       id="password"
@@ -478,24 +480,24 @@ export default function RegisterPageClient() {
                       onChange={(e) => { setPassword(e.target.value); handleFieldChange('password', e.target.value); }}
                       onBlur={() => handleFieldBlur('password')}
                       aria-invalid={!!fieldErrors.password}
-                      className={cn("rounded-xl h-12 text-right border-muted-foreground/20 focus:ring-primary/10 font-bold", fieldErrors.password && "border-destructive focus-visible:ring-destructive/30")}
+                      className={cn("text-right", fieldErrors.password && "border-destructive focus-visible:ring-destructive/30")}
                       required
                     />
                     {fieldErrors.password && (
-                      <p className="flex items-center gap-1 text-[11px] font-bold text-destructive"><AlertCircle className="w-3 h-3 shrink-0" />{fieldErrors.password}</p>
+                      <p className="flex items-center gap-1.5 text-[13px] font-semibold text-destructive"><AlertCircle className="w-3.5 h-3.5 shrink-0" />{fieldErrors.password}</p>
                     )}
                   </div>
 
-                  <div className="flex items-start gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10">
+                  <div className="flex items-start gap-3 p-4 bg-secondary/40 rounded-2xl border border-border">
                     <Checkbox 
                       id="terms" 
                       checked={termsAccepted}
                       onCheckedChange={(v) => setTermsAccepted(!!v)}
                       className="mt-0.5 shrink-0"
                     />
-                    <Label htmlFor="terms" className="text-[11px] font-bold leading-relaxed cursor-pointer">
+                    <Label htmlFor="terms" className="text-sm font-medium leading-relaxed cursor-pointer">
                       קראתי ואני מאשר את{' '}
-                      <Link href="/terms" target="_blank" className="underline font-black text-primary hover:text-primary/70">
+                      <Link href="/terms" target="_blank" className="underline underline-offset-4 font-bold text-primary hover:text-primary/80">
                         תנאי השימוש ומדיניות הפרטיות
                       </Link>{' '}
                       של האתר
@@ -506,7 +508,7 @@ export default function RegisterPageClient() {
                     <Button 
                       type="submit" 
                       disabled={loading || isUserLoading}
-                      className="w-full bg-accent hover:bg-accent/90 h-14 text-base font-black uppercase tracking-widest rounded-full shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3"
+                      size="lg" className="w-full gap-2.5"
                     >
                       {loading || isUserLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>צרו חשבון עכשיו <Heart size={18} fill="currentColor" /></>}
                     </Button>
@@ -514,14 +516,14 @@ export default function RegisterPageClient() {
                 </form>
               </div>
 
-              <div className="pt-4 border-t border-muted space-y-3 text-right">
-                <p className="text-[12px] text-muted-foreground font-bold">
+              <div className="pt-5 border-t border-border space-y-3 text-center md:text-right">
+                <p className="text-[15px] text-primary/75">
                   כבר יש לכם חשבון?{' '}
-                  <Link href="/login" className="text-primary font-black hover:underline tracking-tight">
+                  <Link href="/login" className="font-bold text-primary underline underline-offset-4">
                     התחברות
                   </Link>
                 </p>
-                <Button variant="ghost" onClick={() => setSelectedRole(null)} className="w-full h-11 rounded-xl font-black text-muted-foreground hover:text-primary gap-2">
+                <Button variant="ghost" onClick={() => setSelectedRole(null)} className="w-full h-11 font-semibold text-primary/70 hover:text-primary gap-2">
                   <ArrowRight className="w-4 h-4" /> חזרה לבחירת סוג חשבון
                 </Button>
               </div>
@@ -532,37 +534,38 @@ export default function RegisterPageClient() {
 
       {/* Password Reset Dialog */}
       <Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
-        <DialogContent className="max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white" dir="rtl">
-          <div className="bg-primary p-8 text-white text-right">
+        <DialogContent className="w-[calc(100%-2rem)] max-w-md rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl bg-card" dir="rtl">
+          <div className="bg-primary p-8 pl-16 text-white text-right">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-headline font-black flex items-center gap-3">
+              <DialogTitle className="text-2xl font-headline font-normal flex items-center gap-3">
                 <Mail className="w-6 h-6 text-accent" /> איפוס סיסמה
               </DialogTitle>
-              <DialogDescription className="text-white/60 text-sm mt-1 font-bold">
+              <DialogDescription className="text-white/75 text-[15px] mt-1">
                 נשלח אליך קישור לאימייל שיאפשר לך לבחור סיסמה חדשה.
               </DialogDescription>
             </DialogHeader>
           </div>
           <div className="p-6 sm:p-8 space-y-6 text-right">
-            <p className="text-xs sm:text-sm text-muted-foreground font-bold">
+            <p className="text-[15px] text-muted-foreground">
               הזן את כתובת האימייל של החשבון שלך ונשלח אליך קישור מאובטח לאיפוס סיסמה.
             </p>
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-primary/60">כתובת אימייל</Label>
+              <Label>כתובת אימייל</Label>
               <Input 
                 type="email"
                 value={resetEmail} 
                 onChange={(e) => setResetEmail(e.target.value)} 
                 placeholder="your@email.com" 
-                className="h-12 rounded-xl text-right font-bold"
+                dir="ltr"
+                className="text-left"
               />
             </div>
           </div>
-          <DialogFooter className="p-4 sm:p-6 bg-muted/30 border-t flex flex-col-reverse sm:flex-row gap-3">
-            <Button onClick={handlePasswordReset} disabled={isResetting} className="flex-1 bg-accent text-primary h-12 rounded-xl font-black uppercase shadow-lg">
+          <DialogFooter className="p-5 sm:p-6 bg-secondary/40 border-t border-border flex flex-col-reverse sm:flex-row gap-3">
+            <Button onClick={handlePasswordReset} disabled={isResetting} className="flex-1 h-12">
               {isResetting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'שלח קישור לאיפוס'}
             </Button>
-            <Button variant="ghost" onClick={() => setIsResetDialogOpen(false)} className="h-12 rounded-xl font-black">ביטול</Button>
+            <Button variant="outline" onClick={() => setIsResetDialogOpen(false)} className="h-12">ביטול</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

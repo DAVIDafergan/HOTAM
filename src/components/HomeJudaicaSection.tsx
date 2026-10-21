@@ -8,6 +8,8 @@ import {
   PRODUCT_GROUPS, daysLeftInSeason, getActiveSeasons, type ProductGroup, type Season,
 } from '@/lib/product-catalog';
 import { SeasonIllustration } from '@/components/judaica/JudaicaIllustrations';
+import { SectionHeading } from '@/components/SectionHeading';
+import { Button } from '@/components/ui/button';
 import tallitPhoto from '../../public/images/home/tallit.jpg';
 import shabbatSilverPhoto from '../../public/images/home/shabbat-silver.jpg';
 import mezuzahCasePhoto from '../../public/images/home/mezuzah-case.jpg';
@@ -25,15 +27,6 @@ const TILE_PHOTO: Record<TileKey, { photo: StaticImageData; alt: string; note: s
 
 const groupHref = (key: string) => `/search?view=results&group=${key}`;
 const typeHref = (type: string) => `/search?view=results&product=${encodeURIComponent(type)}`;
-
-function SectionEyebrow({ children }: { children: string }) {
-  return (
-    <div className="flex items-center gap-3 text-[11px] font-black tracking-[0.2em] text-accent-strong md:text-xs">
-      <span className="h-px w-6 bg-accent md:w-9" aria-hidden="true" />
-      {children}
-    </div>
-  );
-}
 
 function daysLeftLabel(days: number): string {
   if (days <= 1) return 'יום אחרון';
@@ -63,13 +56,13 @@ function SeasonBanner({ season, compact, tone }: { season: Season; compact: bool
       </svg>
       <div className="relative z-10 flex flex-1 flex-col justify-center gap-3 p-6 pl-32 md:gap-4 md:py-0 md:pr-14 md:pl-8">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-full bg-accent px-3 py-1 text-[11px] font-black text-primary md:text-xs">עונתי · {season.until}</span>
-          <span className="flex items-center gap-1.5 rounded-full border border-[#E2B35B]/45 px-3 py-1 text-[11px] font-bold text-[#E2B35B] md:text-xs">
+          <span className="rounded-full bg-accent px-3 py-1 text-xs font-black text-primary md:text-xs">עונתי · {season.until}</span>
+          <span className="flex items-center gap-1.5 rounded-full border border-[#E2B35B]/45 px-3 py-1 text-xs font-bold text-[#E2B35B] md:text-xs">
             <Clock className="h-3.5 w-3.5" aria-hidden="true" />
             {daysLeftLabel(days)}
           </span>
         </div>
-        <h3 className={cn('font-headline font-black leading-none text-primary-foreground', compact ? 'text-4xl md:text-5xl' : 'text-4xl md:text-6xl')}>
+        <h3 className={cn('font-headline font-light leading-none text-primary-foreground', compact ? 'text-4xl md:text-5xl' : 'text-4xl md:text-6xl')}>
           {season.title}
         </h3>
         <p className="max-w-md text-sm font-medium text-primary-foreground/75 md:text-lg">{season.description}</p>
@@ -106,8 +99,8 @@ function TileProductThumb({ product }: { product: any }) {
           <span className="absolute inset-0 flex items-center justify-center text-white/25" aria-hidden="true"><ImageIcon className="h-6 w-6" /></span>
         )}
       </span>
-      <span className="truncate text-[11px] font-semibold text-white/70">{productTitle(product)}</span>
-      <span className="-mt-1 text-xs font-black text-[#E2B35B]">₪{price}</span>
+      <span className="truncate text-xs font-semibold text-white/75">{productTitle(product)}</span>
+      <span className="-mt-1 text-[13px] font-extrabold tabular-nums text-[#E2B35B]">₪{price}</span>
     </Link>
   );
 }
@@ -120,7 +113,7 @@ function CategoryTile({ group, products }: { group: ProductGroup & { key: TileKe
   const chips = types.slice(0, TILE_CHIPS_MAX);
   const more = types.length - chips.length;
   const shown = products.slice(0, TILE_PREVIEW_MAX);
-  const chipClass = 'relative z-10 inline-flex h-8 shrink-0 items-center rounded-full border border-white/25 bg-white/10 px-3.5 text-xs font-bold text-white backdrop-blur-sm transition-colors hover:border-[#E2B35B]/80 hover:bg-white/20';
+  const chipClass = 'relative z-10 inline-flex h-11 shrink-0 items-center rounded-full border border-white/30 bg-black/25 px-3.5 text-[13px] font-semibold text-white transition-colors hover:border-[#E2B35B]/80 hover:bg-black/40';
 
   return (
     <div
@@ -145,15 +138,15 @@ function CategoryTile({ group, products }: { group: ProductGroup & { key: TileKe
         <Link href={groupHref(group.key)} aria-label={group.label} className="absolute inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-3 p-5 md:p-6">
           {products.length > 0 && (
-            <span className="text-[11px] font-black tracking-[0.18em] text-[#E2B35B]">{products.length === 1 ? 'מוצר אחד באתר' : `${products.length} מוצרים באתר`}</span>
+            <span className="text-[13px] font-bold text-[#E2B35B]">{products.length === 1 ? 'מוצר אחד באתר' : `${products.length} מוצרים באתר`}</span>
           )}
           <div className="flex items-end justify-between gap-3">
-            <h3 className="font-headline text-[1.9rem] font-black leading-none text-white md:text-[2.2rem]">{group.label}</h3>
+            <h3 className="font-headline text-[1.9rem] font-light leading-none text-white md:text-[2.2rem]">{group.label}</h3>
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent text-primary shadow-lg transition-transform duration-300 group-hover/photo:-translate-x-1" aria-hidden="true">
               <ArrowLeft className="h-4 w-4" />
             </span>
           </div>
-          <div className="pointer-events-auto flex h-8 items-center gap-2 overflow-hidden" data-tile-chips>
+          <div className="pointer-events-auto flex h-11 items-center gap-2 overflow-hidden" data-tile-chips>
             {group.types.length === 1 ? (
               <span className="text-sm font-semibold text-white/75">{note}</span>
             ) : (
@@ -168,7 +161,7 @@ function CategoryTile({ group, products }: { group: ProductGroup & { key: TileKe
       {shown.length > 0 && (
         <div className="border-t border-white/10 px-5 pb-5 pt-4 md:px-6" data-tile-products={group.key}>
           <div className="mb-3 flex items-center justify-between">
-            <span className="text-[11px] font-black tracking-[0.18em] text-white/55">מבחר מהקטגוריה</span>
+            <span className="text-[13px] font-semibold text-white/70">מבחר מהקטגוריה</span>
             {products.length > shown.length && (
               <Link href={groupHref(group.key)} className="text-xs font-black text-[#E2B35B] hover:text-white">לכל {products.length} המוצרים ←</Link>
             )}
@@ -189,24 +182,23 @@ export async function HomeJudaicaSection() {
   const tiles = TILE_GROUPS.map((key) => PRODUCT_GROUPS.find((group) => group.key === key)!) as (ProductGroup & { key: TileKey })[];
 
   return (
-    <section className="relative py-12 md:py-20" aria-labelledby="home-judaica-heading" dir="rtl" data-home-judaica>
-      <div className="container mx-auto space-y-6 px-4 md:space-y-9 md:px-5">
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div className="space-y-2 md:space-y-3">
-            <SectionEyebrow>יודאיקה בחותם</SectionEyebrow>
-            <h2 id="home-judaica-heading" className="font-headline text-[2rem] font-black leading-tight tracking-tight text-primary md:text-[2.9rem]">
-              לחג, לשבת ולכל יום
-            </h2>
-            <p className="text-sm font-medium text-muted-foreground md:text-lg">כלי קודש ומוצרי יודאיקה ממוכרים מאומתים, ישירות אליכם</p>
-          </div>
-          <Link
-            href="/search?view=all"
-            className="hidden items-center gap-2 self-start rounded-full border border-primary/15 bg-white/50 px-6 py-3 text-sm font-black text-primary transition-colors hover:border-accent/40 hover:bg-white md:inline-flex md:self-auto"
-          >
-            לכל המוצרים באתר
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          </Link>
-        </div>
+    <section className="relative section-shell bg-secondary/40 border-y border-border/60" aria-labelledby="home-judaica-heading" dir="rtl" data-home-judaica>
+      <div className="container mx-auto space-y-8 px-4 md:space-y-12 md:px-6">
+        <SectionHeading
+          id="home-judaica-heading"
+          eyebrow="יודאיקה בחותם"
+          title="לחג, לשבת ולכל יום"
+          lead="כלי קודש ומוצרי יודאיקה ממוכרים מאומתים, ישירות אליכם"
+          className="!mb-0"
+          action={
+            <Button variant="outline" asChild className="hidden md:inline-flex gap-2">
+              <Link href="/search?view=all">
+                לכל המוצרים באתר
+                <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </Button>
+          }
+        />
 
         {banners.length > 0 && (
           <div className={cn('grid gap-4 md:gap-6', banners.length > 1 && 'md:grid-cols-2')}>

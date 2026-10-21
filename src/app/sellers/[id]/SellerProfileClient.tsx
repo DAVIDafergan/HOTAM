@@ -2,6 +2,7 @@
 "use client";
 
 import { Navbar } from '@/components/Navbar';
+import { ProductCard } from '@/components/ProductCard';
 import { fromPublicView } from '@/lib/public-views';
 import { SellerProfileSkeleton } from '@/components/SellerProfileSkeleton';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -40,7 +41,6 @@ import { resolveSellerType } from '@/lib/product-catalog';
 import { usePathname } from 'next/navigation';
 import { useSupabaseClient, useUser } from '@/lib/supabase-hooks';
 import { supabase } from '@/lib/supabase';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useMemo, useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
@@ -86,7 +86,7 @@ export default function SellerProfile({
   const { toast } = useToast();
   const router = useRouter();
   const pathname = usePathname();
-  const logoImg = PlaceHolderImages.find(img => img.id === 'site-logo')?.imageUrl || 'https://picsum.photos/seed/hotam-logo/400/400';
+
   const hasServerData = Boolean(initialSeller) || initialProducts.length > 0 || initialReviews.length > 0;
 
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
@@ -421,15 +421,15 @@ export default function SellerProfile({
     <div className="min-h-screen bg-background" dir="rtl">
       <Navbar />
       
-      <main className="container mx-auto px-4 py-20 md:py-28 max-w-6xl">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <main className="container mx-auto px-4 pt-24 pb-16 md:pt-32 md:pb-24 max-w-6xl">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
           
           <div className="lg:col-span-4 space-y-6">
-            <Card className="border-none shadow-premium rounded-[2.5rem] bg-white overflow-hidden text-center p-8 md:p-10 relative">
-              <div className="absolute top-0 left-0 w-full h-24 bg-primary/5" />
+            <Card className="border-border/70 shadow-premium rounded-[2.5rem] bg-card overflow-hidden text-center p-7 md:p-9 relative lg:sticky lg:top-28">
+              <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-secondary/80 to-secondary/0" />
               <div className="relative w-32 h-32 md:w-40 md:h-40 mx-auto mb-6 z-10">
-                <div className="absolute inset-0 rounded-full border-4 border-accent/10" />
-                <div className="w-full h-full rounded-full border-[6px] border-white shadow-xl overflow-hidden relative bg-muted flex items-center justify-center">
+                <div className="absolute -inset-1.5 rounded-full border border-accent/40" />
+                <div className="w-full h-full rounded-full border-[5px] border-card shadow-premium overflow-hidden relative bg-secondary flex items-center justify-center">
                   {seller.profile_image ? (
                     <Image src={seller.profile_image} alt={`${seller.first_name} ${seller.last_name}`} fill kind="avatar" sizes="(max-width: 768px) 160px, 192px" className="object-cover" />
                   ) : (
@@ -437,64 +437,64 @@ export default function SellerProfile({
                   )}
                 </div>
                 {seller.is_approved && (
-                  <div className="absolute -bottom-1 -right-1 bg-accent text-primary p-2 rounded-full shadow-lg border-2 border-white">
+                  <div className="absolute bottom-1 right-1 bg-accent text-primary p-2 rounded-full shadow-md border-2 border-card" title="פרופיל מאומת">
                     <ShieldCheck className="w-5 h-5" />
                   </div>
                 )}
               </div>
               
-              <h1 className="text-2xl md:text-3xl font-headline font-black text-primary mb-1 tracking-tight">
+              <h1 className="text-[28px] md:text-[34px] font-headline font-medium text-primary mb-2 leading-tight">
                 {seller.first_name} {seller.last_name}
               </h1>
-              <p className="text-muted-foreground flex items-center justify-center gap-2 mb-6 font-bold text-xs uppercase tracking-tighter">
-                {sellerCity || 'לא צוין'} <MapPin className="w-3 h-3 text-accent" />
+              <p className="text-muted-foreground flex items-center justify-center gap-1.5 mb-5 font-medium text-sm">
+                <MapPin className="w-3.5 h-3.5 text-accent-strong" /> {sellerCity || 'לא צוין'}
               </p>
               
-              <div className="flex flex-col items-center gap-1 mb-8">
+              <div className="flex flex-col items-center gap-1.5 mb-7">
                 {reviews && reviews.length > 0 ? (
                   <div className="flex items-center gap-1">
                     {[1, 2, 3, 4, 5].map(s => (
-                      <Star key={s} className={`w-3.5 h-3.5 ${s <= averageRating ? 'text-accent fill-accent' : 'text-muted-foreground/20'}`} />
+                      <Star key={s} className={`w-4 h-4 ${s <= averageRating ? 'text-accent fill-accent' : 'text-primary/15'}`} />
                     ))}
-                    <span className="text-xs font-black text-primary mr-2">({reviews.length} ביקורות)</span>
+                    <span className="text-sm font-semibold text-primary/80 mr-2 num">({reviews.length} ביקורות)</span>
                   </div>
                 ) : (
-                  <span className="text-xs font-black text-muted-foreground/60 uppercase tracking-widest">אין דירוגים עדיין</span>
+                  <span className="text-sm font-medium text-muted-foreground">אין דירוגים עדיין</span>
                 )}
-                {seller.is_approved && <span className="text-2xs font-black text-primary/60 uppercase tracking-widest">(פרופיל מאומת)</span>}
+                {seller.is_approved && <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-accent-strong"><ShieldCheck className="w-3.5 h-3.5" /> פרופיל מאומת</span>}
               </div>
 
               {!isJudaicaSeller && (
               <div className="grid grid-cols-1 gap-2 text-right">
                 {stats.map((stat, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-transparent hover:border-accent/10 transition-all">
-                    <span className="text-xs md:text-xs font-black text-primary uppercase tracking-tight">{stat.value}</span>
-                    <div className="flex items-center gap-2 text-muted-foreground transition-colors">
-                      <span className="text-2xs font-bold uppercase tracking-widest">{stat.label}</span>
-                      {stat.icon}
+                  <div key={i} className="flex items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-secondary/45 border border-border/50">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <span className="text-accent-strong">{stat.icon}</span>
+                      <span className="text-[13px] font-medium">{stat.label}</span>
                     </div>
+                    <span className="text-sm font-bold text-primary">{stat.value}</span>
                   </div>
                 ))}
               </div>
               )}
 
-              <div className="pt-8 space-y-3">
+              <div className="pt-7 space-y-2">
                 {seller.certificate_url && !isJudaicaSeller && (
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button className="w-full bg-accent text-primary hover:bg-accent/90 py-6 rounded-2xl gap-2 text-xs font-black uppercase tracking-wider shadow-lg">
+                      <Button variant="outline" className="w-full h-12 gap-2">
                         <FileText className="w-4 h-4" /> הצג תעודת סופר
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-2xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white" dir="rtl">
-                      <div className="bg-primary p-6 text-white text-right relative">
+                    <DialogContent className="max-w-2xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-card" dir="rtl">
+                      <div className="bg-primary p-6 pl-16 text-white text-right relative">
                         <DialogHeader>
-                          <DialogTitle className="text-xl font-headline font-black flex items-center gap-3 text-white">
+                          <DialogTitle className="text-xl font-headline font-bold flex items-center gap-3 text-white">
                             <ShieldCheck className="w-6 h-6 text-accent" /> תעודת הסמכה - {seller.first_name} {seller.last_name}
                           </DialogTitle>
                         </DialogHeader>
                       </div>
-                      <div className="p-4 bg-white flex justify-center items-center min-h-[400px]">
+                      <div className="p-4 bg-card flex justify-center items-center min-h-[400px]">
                         <div className="relative w-full aspect-[1/1.4] max-h-[70vh]">
                            <Image 
                              src={seller.certificate_url} 
@@ -510,43 +510,43 @@ export default function SellerProfile({
 
                 <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button variant="ghost" className="w-full text-destructive hover:bg-destructive/5 rounded-2xl gap-2 text-xs font-black uppercase tracking-widest h-12">
+                    <Button variant="ghost" className="w-full text-destructive hover:bg-destructive/5 gap-2 text-sm font-semibold h-11">
                       <Flag className="w-3.5 h-3.5" /> דיווח על {sellerNoun} זה
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-lg rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white text-right" dir="rtl">
-                    <div className="bg-gradient-to-br from-red-700 to-red-500 p-6 pr-16 text-white text-right">
+                  <DialogContent className="max-w-lg rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-card text-right" dir="rtl">
+                    <div className="bg-destructive p-6 pl-16 text-white text-right">
                        <DialogHeader>
-                          <DialogTitle className="text-xl font-headline font-black flex items-center gap-3 text-white">
+                          <DialogTitle className="text-xl font-headline font-bold flex items-center gap-3 text-white">
                             <Flag className="w-6 h-6 text-white" /> דיווח למנהל המערכת
                           </DialogTitle>
                        </DialogHeader>
                     </div>
-                    <div className="p-8 space-y-5 bg-white text-primary">
+                    <div className="p-6 md:p-8 space-y-5 bg-card text-primary">
                         <div className="rounded-2xl bg-red-50 border border-red-100 p-4 text-right">
-                          <p className="text-sm font-black text-red-700">מתי כדאי לדווח?</p>
-                          <p className="text-[12px] text-red-700/80 mt-1 leading-relaxed">
+                          <p className="text-sm font-bold text-red-800">מתי כדאי לדווח?</p>
+                          <p className="text-sm text-red-800/85 mt-1 leading-relaxed">
                             השתמש בדיווח במקרה של חשש להטעיה, תוכן פוגעני, התנהלות לא תקינה או מידע שגוי בפרופיל.
                           </p>
                         </div>
                         <div className="space-y-2">
-                           <Label className="text-xs font-black uppercase text-primary">פרט את סיבת הדיווח</Label>
+                           <Label>פרט את סיבת הדיווח</Label>
                            <Textarea 
                               value={reportReason} 
                               onChange={e => setReportReason(e.target.value)} 
                               placeholder="כתוב כאן מה קרה, מתי, ומה נדרש לבדיקה..." 
-                              className="min-h-[120px] rounded-2xl text-primary bg-secondary/40 border-slate-300 placeholder:text-muted-foreground focus-visible:ring-red-400/40" 
+                              className="min-h-[120px] rounded-2xl" 
                             />
                         </div>
-                        <p className="text-xs font-medium text-muted-foreground leading-relaxed">
+                        <p className="text-sm text-muted-foreground leading-relaxed">
                          הדיווח יישלח בצורה דיסקרטית למנהלי 'חותם'. נבדוק כל פנייה במהירות וברצינות.
                         </p>
                     </div>
-                      <DialogFooter className="p-6 bg-secondary/40 border-t border-slate-100 flex gap-3">
-                        <Button variant="destructive" onClick={handleSendReport} disabled={isReporting || !reportReason.trim()} className="flex-1 h-12 rounded-xl font-black uppercase shadow-md transition-colors">
+                      <DialogFooter className="p-6 bg-secondary/40 border-t border-border flex gap-3">
+                        <Button variant="destructive" onClick={handleSendReport} disabled={isReporting || !reportReason.trim()} className="flex-1 h-12">
                           {isReporting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'שלח דיווח'}
                         </Button>
-                        <Button variant="outline" onClick={() => setIsReportDialogOpen(false)} className="h-12 rounded-xl font-bold text-primary/90 border-slate-300 hover:bg-secondary">ביטול</Button>
+                        <Button variant="outline" onClick={() => setIsReportDialogOpen(false)} className="h-12">ביטול</Button>
                      </DialogFooter>
                    </DialogContent>
                  </Dialog>
@@ -555,18 +555,18 @@ export default function SellerProfile({
           </div>
 
           <div className="lg:col-span-8 space-y-6">
-            <Card className="border-none shadow-premium rounded-[2.5rem] bg-white p-6 md:p-10 text-right">
+            <Card className="border-border/70 shadow-premium rounded-[2.5rem] bg-card p-6 md:p-10 text-right">
               <div className="mb-8 space-y-4">
-                <div className="flex items-center justify-end gap-2 mb-1">
-                   <h2 className="text-2xl md:text-3xl font-headline font-black text-primary tracking-tight">על ה{sellerNoun}</h2>
-                   <Quote className="w-6 h-6 text-accent/20 rotate-180" />
+                <div className="flex items-center justify-start gap-2 mb-1">
+                   <Quote className="w-6 h-6 text-accent/50 rotate-180" aria-hidden="true" />
+                   <h2 className="text-[26px] md:text-[32px] font-headline font-medium text-primary">על ה{sellerNoun}</h2>
                 </div>
-                <p className="text-lg md:text-xl leading-relaxed text-primary/80 font-medium">
+                <p className="font-headline text-lg md:text-[22px] leading-[1.7] text-primary/85">
                   "{seller.notes || (isJudaicaSeller ? 'מוכר מוצרי יודאיקה באתר חותם.' : 'מלאכת שמיים ושליחות קודש. כל תג נכתב מתוך כוונה טהורה על קלף איכותי, בחרדת קודש ובהתאם לכל כללי ההלכה.')}"
                 </p>
-                <div className="flex flex-wrap justify-end gap-2">
+                <div className="flex flex-wrap justify-start gap-2">
                   {(isJudaicaSeller ? [] : (seller.script_types || [])).map((type: string) => (
-                    <Badge key={type} variant="secondary" className="bg-accent/10 text-accent border-accent/10 font-black text-2xs px-4 py-1 uppercase tracking-wider">
+                    <Badge key={type} variant="gold" className="text-[13px] px-3.5 py-1.5">
                       מומחה לכתב {type}
                     </Badge>
                   ))}
@@ -574,19 +574,19 @@ export default function SellerProfile({
               </div>
 
               <Tabs defaultValue="products" dir="rtl" className="w-full">
-                <TabsList className="bg-muted/30 p-1 rounded-2xl mb-8 flex h-14 shadow-inner border border-muted">
-                  <TabsTrigger value="products" className="flex-1 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-premium text-xs md:text-xs font-black uppercase tracking-widest">מוצרים למכירה</TabsTrigger>
+                <TabsList className="mb-8 flex h-auto w-full overflow-x-auto no-scrollbar justify-start p-1.5">
+                  <TabsTrigger value="products" className="flex-1 sm:flex-none">מוצרים למכירה</TabsTrigger>
                   {!isJudaicaSeller && (
-                    <TabsTrigger value="samples" className="flex-1 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-premium text-xs md:text-xs font-black uppercase tracking-widest">דוגמאות כתיבה</TabsTrigger>
+                    <TabsTrigger value="samples" className="flex-1 sm:flex-none">דוגמאות כתיבה</TabsTrigger>
                   )}
-                  <TabsTrigger value="reviews" className="flex-1 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-premium text-xs md:text-xs font-black uppercase tracking-widest">ביקורות ({(reviews || []).length})</TabsTrigger>
+                  <TabsTrigger value="reviews" className="flex-1 sm:flex-none">ביקורות ({(reviews || []).length})</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="products" className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
                    {isProductsLoading ? (
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                        {Array.from({ length: 4 }).map((_, i) => (
-                         <div key={i} className="overflow-hidden rounded-2xl bg-muted/10">
+                         <div key={i} className="overflow-hidden rounded-[1.75rem] border border-border/70 bg-card">
                            <Skeleton className="h-40 md:h-44 w-full rounded-none" />
                            <div className="p-5 space-y-2">
                              <Skeleton className="h-4 w-3/4 rounded" />
@@ -598,32 +598,13 @@ export default function SellerProfile({
                    ) : products && products.length > 0 ? (
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                        {products.map((p: any) => (
-                          <Card key={p.id} className="group overflow-hidden border-none shadow-premium rounded-2xl bg-muted/10 hover:bg-white hover:shadow-2xl transition-all duration-500">
-                            <div className="relative h-40 md:h-44">
-                              <Image src={p.images?.[0] || logoImg} alt={p.product_type} fill kind="product" sizes="(max-width: 640px) 100vw, 50vw" className="object-cover group-hover:scale-105 transition-transform duration-700" />
-                              <Badge className="absolute top-3 right-3 bg-primary/80 text-white text-2xs px-3 py-1 rounded-full backdrop-blur-md">
-                                {p.script_level}
-                              </Badge>
-                            </div>
-                            <div className="p-5 text-right space-y-2">
-                              <p className="font-black text-primary text-sm md:text-base tracking-tight group-hover:text-accent transition-colors leading-tight line-clamp-1">
-                               {p.product_type}{p.sub_type ? ` + ${p.sub_type}` : ''}
-                              </p>
-                              <div className="space-y-0.5">
-                                <p className="text-lg font-black text-accent">₪{Math.round(Number(p.price) * 1.18).toLocaleString('he-IL')}</p>
-                                <p className="text-2xs font-medium text-primary/35">המחירים כוללים מע"מ</p>
-                              </div>
-                               <Button variant="link" size="sm" asChild className="p-0 h-auto mt-1 text-2xs font-black uppercase tracking-widest">
-                                 <Link href={`/products/${p.id}`} prefetch={true}>לפרטים מלאים ←</Link>
-                               </Button>
-                            </div>
-                          </Card>
+                         <ProductCard key={p.id} product={p} />
                        ))}
                      </div>
                    ) : (
-                     <div className="text-center py-16 bg-muted/10 rounded-3xl border-2 border-dashed border-muted">
-                        <Package className="w-10 h-10 mx-auto mb-3 opacity-10" />
-                        <p className="text-muted-foreground font-bold text-sm">ה{sellerNoun} טרם העלה מוצרים למכירה</p>
+                     <div className="text-center py-16 bg-secondary/30 rounded-3xl border border-dashed border-primary/20">
+                        <Package className="w-10 h-10 mx-auto mb-3 text-primary/30" strokeWidth={1.5} />
+                        <p className="text-primary/70 font-semibold text-[15px]">ה{sellerNoun} טרם העלה מוצרים למכירה</p>
                      </div>
                    )}
                 </TabsContent>
@@ -642,11 +623,11 @@ export default function SellerProfile({
                           sampleDragOriginRef.current = null;
                           setIsSampleDialogOpen(true);
                         }}
-                        className="group relative aspect-square overflow-hidden rounded-2xl border border-muted/50 shadow-premium"
+                        className="group relative aspect-square overflow-hidden rounded-2xl border border-border/70 shadow-premium"
                       >
                         <Image src={sample} alt={sellerFullName === 'הסופר' ? `דוגמת כתיבה ${i + 1}` : `דוגמת כתיבה ${i + 1} של ${sellerFullName}`} fill kind="writing_sample" sizes="(max-width: 768px) 50vw, 300px" className="object-cover transition-transform duration-1000 group-hover:scale-110" />
                         <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
-                          <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-xs font-black text-primary shadow-lg">
+                          <div className="inline-flex items-center gap-2 rounded-full bg-card/95 px-4 py-2 text-sm font-semibold text-primary shadow-lg">
                             <ZoomIn className="h-4 w-4 text-accent" />
                             הגדל דוגמה
                           </div>
@@ -654,9 +635,9 @@ export default function SellerProfile({
                       </button>
                     ))}
                     {(!seller.writing_samples || seller.writing_samples.length === 0) && (
-                      <div className="col-span-full py-16 text-center bg-muted/10 rounded-3xl border-2 border-dashed border-muted">
-                        <PenToolIcon className="w-10 h-10 mx-auto mb-3 opacity-10" />
-                        <p className="text-muted-foreground font-bold text-sm">אין דוגמאות כתיבה זמינות מההרשמה</p>
+                      <div className="col-span-full py-16 text-center bg-secondary/30 rounded-3xl border border-dashed border-primary/20">
+                        <PenToolIcon className="w-10 h-10 mx-auto mb-3 text-primary/30" />
+                        <p className="text-primary/70 font-semibold text-[15px]">אין דוגמאות כתיבה זמינות מההרשמה</p>
                       </div>
                     )}
                   </div>
@@ -664,13 +645,14 @@ export default function SellerProfile({
                 )}
 
                 <TabsContent value="reviews" className="animate-in fade-in slide-in-from-bottom-2 space-y-4">
-                  <div className="flex justify-between items-center mb-4">
+                  <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
+                    <h3 className="font-headline text-xl font-bold text-primary">ביקורות לקוחות</h3>
                     <div className="flex items-center gap-2">
                       <Button
                         type="button"
                         variant={reviewSortOrder === 'newest' ? 'default' : 'outline'}
                         onClick={() => setReviewSortOrder('newest')}
-                        className="rounded-full text-xs h-8 px-4 font-black"
+                        size="sm" className="text-[13px] h-10 px-4"
                       >
                         החדשות ביותר
                       </Button>
@@ -678,23 +660,22 @@ export default function SellerProfile({
                         type="button"
                         variant={reviewSortOrder === 'oldest' ? 'default' : 'outline'}
                         onClick={() => setReviewSortOrder('oldest')}
-                        className="rounded-full text-xs h-8 px-4 font-black"
+                        size="sm" className="text-[13px] h-10 px-4"
                       >
                         הוותיקות ביותר
                       </Button>
                     </div>
-                    <h3 className="text-sm font-black text-primary/60 uppercase tracking-widest">ביקורות לקוחות</h3>
                   </div>
 
                   {shouldHideSellerReviewComposer ? (
-                    <div className="mb-2 rounded-3xl border border-primary/10 bg-gradient-to-br from-white to-primary/[0.03] px-5 py-3 text-right shadow-sm">
-                      <p className="text-xs font-medium text-primary/55">ניתן לדרג פעם אחת בלבד</p>
+                    <div className="mb-2 rounded-3xl border border-border/70 bg-card/70 px-5 py-3 text-right">
+                      <p className="text-sm text-primary/70">ניתן לדרג פעם אחת בלבד</p>
                     </div>
                   ) : (
-                    <div className="mb-2 rounded-3xl border border-primary/10 bg-gradient-to-br from-white to-primary/[0.03] p-5 md:p-6 space-y-4 text-right shadow-sm">
+                    <div className="mb-2 rounded-3xl border border-border/70 bg-card/70 p-5 md:p-7 space-y-5 text-right">
                       <div className="space-y-1">
-                        <h4 className="text-base font-black text-primary">פרסום ביקורת</h4>
-                        <p className="text-xs font-medium text-muted-foreground">כתיבה קצרה וברורה תעזור ללקוחות אחרים לבחור נכון.</p>
+                        <h4 className="font-headline text-lg font-bold text-primary">פרסום ביקורת</h4>
+                        <p className="text-sm text-muted-foreground">כתיבה קצרה וברורה תעזור ללקוחות אחרים לבחור נכון.</p>
                       </div>
                       {!user && (
                         <p className="text-xs font-bold text-muted-foreground">
@@ -702,7 +683,7 @@ export default function SellerProfile({
                         </p>
                       )}
                       <div className="space-y-2">
-                        <Label className="text-xs font-black uppercase text-muted-foreground">ביקורת</Label>
+                        <Label>ביקורת</Label>
                         <Textarea
                           placeholder={isJudaicaSeller ? 'שתף את חווית השירות והמוצרים...' : 'שתף את חווית השירות והכתיבה...'}
                           value={reviewComment}
@@ -712,16 +693,16 @@ export default function SellerProfile({
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-xs font-black uppercase tracking-widest text-primary">דירוג כוכבים</Label>
-                        <div className="flex justify-center gap-2.5 rounded-2xl border border-primary/10 bg-white p-3">
+                        <Label>דירוג כוכבים</Label>
+                        <div className="flex justify-center gap-1.5 rounded-2xl border border-border bg-card p-2">
                           {[1, 2, 3, 4, 5].map(s => (
-                            <button key={s} type="button" onClick={() => setReviewRating(s)} disabled={!user || isReviewSubmitting} className="rounded-full p-1.5 transition-colors hover:bg-accent/10 disabled:cursor-not-allowed">
+                            <button key={s} type="button" onClick={() => setReviewRating(s)} disabled={!user || isReviewSubmitting} aria-label={`${s} כוכבים`} className="rounded-full p-2.5 transition-colors hover:bg-accent/10 disabled:cursor-not-allowed">
                               <Star className={`w-5 h-5 transition-colors ${s <= reviewRating ? 'fill-accent text-accent' : 'text-muted-foreground/30'}`} />
                             </button>
                           ))}
                         </div>
                       </div>
-                      <div className="flex items-center justify-between p-4 rounded-2xl bg-white border border-muted/40">
+                      <div className="flex items-center justify-between p-4 rounded-2xl bg-card border border-border">
                         <Switch
                           id="seller-review-anon"
                           checked={reviewIsAnonymous}
@@ -733,7 +714,7 @@ export default function SellerProfile({
                       <Button
                         onClick={handleSubmitSellerReview}
                         disabled={!user || isReviewSubmitting}
-                        className="w-full bg-accent text-primary h-12 font-black rounded-2xl shadow-md"
+                        className="w-full h-12"
                       >
                         {isReviewSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : getSellerReviewSubmitLabel()}
                       </Button>
@@ -742,7 +723,7 @@ export default function SellerProfile({
 
                   {sortedSellerReviews.length > 0 ? (
                     sortedSellerReviews.map((rev: any) => (
-                      <div key={rev.id} className="flex flex-row-reverse items-start gap-3">
+                      <div key={rev.id} className="flex items-start gap-3">
                         <Avatar className="h-8 w-8 border border-primary/10 flex-shrink-0">
                           {!rev.is_anonymous && <AvatarImage src={rev.reviewer_image || undefined} />}
                           <AvatarFallback className="bg-primary/5 text-primary font-black text-xs">
@@ -751,23 +732,23 @@ export default function SellerProfile({
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-baseline justify-between mb-1">
-                            <span className="text-xs font-medium text-muted-foreground">{rev.created_at ? new Date(rev.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
-                            <p className="font-semibold text-primary text-xs">{rev.is_anonymous ? 'אנונימי' : (rev.buyer_name || 'משתמש')}</p>
+                            <p className="font-semibold text-primary text-sm">{rev.is_anonymous ? 'אנונימי' : (rev.buyer_name || 'משתמש')}</p>
+                            <span className="text-xs font-medium text-muted-foreground num">{rev.created_at ? new Date(rev.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
                           </div>
-                          <div className="bg-muted/15 rounded-2xl px-4 py-3 text-right">
-                            <div className="flex items-center justify-end gap-0.5 mb-2">
+                          <div className="rounded-2xl border border-border/70 bg-card px-4 py-3.5 text-right">
+                            <div className="flex items-center justify-start gap-0.5 mb-2">
                               {[1, 2, 3, 4, 5].map(s => <Star key={s} className={`w-3 h-3 ${s <= (Number(rev.rating) || 0) ? 'fill-accent text-accent' : 'text-muted-foreground/20'}`} />)}
                             </div>
-                            <p className="text-xs text-primary/70 leading-relaxed">{rev.comment}</p>
+                            <p className="text-[15px] text-primary/80 leading-relaxed">{rev.comment}</p>
                           </div>
                           {user?.uid === rev.buyer_id && (
-                            <div className="flex justify-end mt-1">
+                            <div className="flex justify-start mt-1">
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleDeleteSellerReview(rev.id, rev.source)}
                                 disabled={deletingReviewId === rev.id}
-                                className="h-6 px-2 text-xs text-destructive/50 hover:text-destructive hover:bg-destructive/5 gap-1 rounded-full"
+                                className="h-9 px-3 text-xs text-destructive/80 hover:text-destructive hover:bg-destructive/5 gap-1 rounded-full"
                               >
                                 {deletingReviewId === rev.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
                                 מחק
@@ -778,9 +759,9 @@ export default function SellerProfile({
                       </div>
                     ))
                   ) : (
-                    <div className="text-center py-12 bg-muted/10 rounded-3xl border-2 border-dashed border-muted">
-                      <Star className="w-10 h-10 mx-auto mb-3 opacity-10" />
-                      <p className="text-muted-foreground font-black text-sm uppercase tracking-widest">אין דירוגים עדיין</p>
+                    <div className="text-center py-12 bg-secondary/30 rounded-3xl border border-dashed border-primary/20">
+                      <Star className="w-10 h-10 mx-auto mb-3 text-primary/30" strokeWidth={1.5} />
+                      <p className="text-primary/70 font-semibold text-[15px]">אין דירוגים עדיין</p>
                     </div>
                   )}
                 </TabsContent>

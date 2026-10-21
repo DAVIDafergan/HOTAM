@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendEmail } from '@/lib/send-email';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { afterResponse, notifyEmailOwner, speakable } from '@/lib/notify-channels';
 
 export async function POST(req: NextRequest) {
   try {
@@ -157,6 +158,18 @@ export async function POST(req: NextRequest) {
     }
 
     await sendEmail({ to, subject, text, html });
+
+    // SMS / call copy for the recipient, only when an admin sends (seller approval, upgrade
+    // decision…). Ordinary users can email each other through this route, but must not be able
+    // to make the site text or call someone.
+    const { data: adminRow } = await serviceClient.from('admins').select('id').eq('id', authUser.id).maybeSingle();
+    if (adminRow && !isOwnEmail) {
+      const title = String(subject).replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, '').trim();
+      afterResponse(() => notifyEmailOwner(normalizedTo, 'account', {
+        sms: `חותם: ${title}. לפרטים: hotam.shop`,
+        voice: speakable(String(text)),
+      }));
+    }
     return NextResponse.json({ message: 'Email sent' });
   } catch (error: any) {
     console.error('send-email error:', error);

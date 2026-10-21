@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { sendEmail } from '@/lib/send-email';
+import { afterResponse, notifyUser } from '@/lib/notify-channels';
 
 const EMAIL_PRIMARY = '#1a1a2e';
 const EMAIL_BACKGROUND = '#ffffff';
@@ -19,7 +20,7 @@ export async function markOrderAsPaidAndNotify(orderId: string, paymentProvider:
   const supabase = createClient(supabaseUrl, serviceRoleKey);
   const { data: order, error: fetchError } = await supabase
     .from('orders')
-    .select('status, buyer_email, buyer_name, seller_id, product_id')
+    .select('status, buyer_id, buyer_email, buyer_name, seller_id, product_id')
     .eq('id', orderId)
     .single();
 
@@ -122,6 +123,20 @@ export async function markOrderAsPaidAndNotify(orderId: string, paymentProvider:
     }).catch((err: Error) => console.error('Buyer email error:', err.message));
   }
 
+  // SMS / call copies (only for buyers who switched them on). The secret code stays in the email
+  // and the personal area: it is not sent by SMS or read out in a call.
+  if (order.buyer_id) {
+    afterResponse(() => notifyUser({
+      userId: String(order.buyer_id),
+      kind: 'order_paid_buyer',
+      service: supabase,
+      message: {
+        sms: 'חותם: התשלום התקבל וההזמנה אושרה! המוכר ייצור איתך קשר לתיאום המסירה. הקוד הסודי נשלח אליך במייל, ומופיע גם באזור האישי. מוסרים אותו רק אחרי שבדקת את המוצר.',
+        voice: 'התשלום על ההזמנה שלך התקבל וההזמנה אושרה. המוכר ייצור איתך קשר לתיאום המסירה. הקוד הסודי נשלח אליך במייל ומופיע גם באזור האישי. חשוב: מוסרים את הקוד למוכר רק אחרי שבדקת את המוצר.',
+      },
+    }));
+  }
+
   if (order.seller_id) {
     const { data: seller } = await supabase
       .from('sellers')
@@ -174,6 +189,16 @@ export async function markOrderAsPaidAndNotify(orderId: string, paymentProvider:
         `,
       }).catch((err: Error) => console.error('Seller email error:', err.message));
     }
+
+    afterResponse(() => notifyUser({
+      userId: String(order.seller_id),
+      kind: 'order_paid_seller',
+      service: supabase,
+      message: {
+        sms: `חותם: מזל טוב, יש לך מכירה חדשה (${productTypeForSellerEmail})! פרטי הקונה בדשבורד: hotam.shop/seller/dashboard`,
+        voice: `מזל טוב, יש לך מכירה חדשה באתר חותם: ${productTypeForSellerEmail}. פרטי הקונה נמצאים בדשבורד המוכר, בתוך ההזמנה. הכסף יועבר אליך לאחר המסירה וקבלת קוד האימות מהקונה.`,
+      },
+    }));
   }
 
   return { alreadyProcessed: false };

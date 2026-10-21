@@ -42,7 +42,12 @@ const AUDIENCES: { id: BroadcastAudience; hint: string; icon: React.ReactNode; i
 ];
 
 interface Stats {
-  counts: Record<BroadcastAudience, { approvedOnly: number; everyone: number }>;
+  counts: Record<BroadcastAudience, {
+    approvedOnly: number;
+    everyone: number;
+    // SMS / call copies for recipients who switched phone updates on (missing before the migration)
+    phone?: Record<'approvedOnly' | 'everyone', { sms: number; voice: number; smsAds: number; voiceAds: number }>;
+  }>;
   unsubscribeReady: boolean;
   optedOutCount: number;
   history: { created_at: string; event_data: any }[];
@@ -277,6 +282,20 @@ export function AdminBroadcastPanel() {
                 <Switch checked={approvedOnly} onCheckedChange={setApprovedOnly} data-approved-only />
               </label>
             )}
+            {(() => {
+              const p = stats?.counts[audience]?.phone?.[approvedOnly ? 'approvedOnly' : 'everyone'];
+              if (!p) return null;
+              const sms = content.isAdvertisement ? p.smsAds : p.sms;
+              const voice = content.isAdvertisement ? p.voiceAds : p.voice;
+              return (
+                <p className="mt-4 rounded-2xl bg-accent/10 px-4 py-3 text-sm text-primary" data-phone-copies>
+                  <span className="font-black">גם לטלפון:</span> {sms} יקבלו SMS · {voice} יקבלו שיחה קולית
+                  <span className="block text-[11px] font-medium text-muted-foreground">
+                    רק מי שהפעיל/ה עדכונים לטלפון{content.isAdvertisement ? ' וגם אישר/ה קבלת פרסומות' : ''}. לא נשלח בשבת ובחג; שיחות רק בין 08:00 ל-21:30.
+                  </span>
+                </p>
+              );
+            })()}
           </section>
 
           <section className="bg-white rounded-[2rem] shadow-premium border border-primary/5 p-5 sm:p-7 space-y-5">

@@ -538,7 +538,7 @@ export default function CustomerDashboard() {
               <div className="grid gap-3">
                 {orders.map((order: any) => (
                   <Card key={order.id} className="border-border/70 shadow-premium rounded-2xl bg-card p-4 sm:p-5 group">
-                    <div className="flex items-start gap-4">
+                    <div className="flex flex-wrap sm:flex-nowrap items-start gap-4">
                       <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border border-border/70 bg-secondary/50 shrink-0">
                         <Image loader={unsplashLoader} src={order.product_image || 'https://picsum.photos/seed/order/200/200'} alt={order.product_name} fill sizes="64px" className="object-cover" />
                       </div>
@@ -568,7 +568,7 @@ export default function CustomerDashboard() {
                           </div>
                         )}
                       </div>
-                      <div className="flex flex-col gap-2 shrink-0">
+                      <div className="flex w-full sm:w-auto flex-row sm:flex-col gap-2 shrink-0 [&>*]:flex-1 sm:[&>*]:flex-none">
                         {order.product_id && (
                           <Button variant="outline" asChild size="sm" className="h-10 px-4 text-[13px]">
                             <Link href={`/products/${order.product_id}`}>צפה במוצר שוב</Link>

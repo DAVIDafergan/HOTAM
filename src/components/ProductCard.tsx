@@ -106,13 +106,14 @@ export function ProductCard({
     <button
       onClick={handleToggleFavorite}
       className={cn(
-        "absolute z-10 flex items-center justify-center rounded-full transition-colors duration-200 touch-manipulation active:scale-90",
+        "fav-btn absolute z-10 flex items-center justify-center rounded-full transition-colors duration-200 touch-manipulation active:scale-90",
         // Keep the visible chip compact on the small list thumbnail, but expand the
         // actual tap target to ~44px via an invisible hit-area, per touch-target guidance.
         isList ? "left-1.5 top-1.5 h-7 w-7 before:absolute before:-inset-2.5 before:content-['']" : "left-3 top-3 h-11 w-11",
         isFavorite ? 'bg-card text-rose-600 shadow-md' : 'bg-card/90 text-primary/70 shadow-sm hover:bg-card hover:text-rose-600'
       )}
       aria-label={isFavorite ? 'הסר ממועדפים' : 'הוסף למועדפים'}
+      data-fav={isFavorite ? 'true' : 'false'}
     >
       <Heart className={cn(isList ? "h-3.5 w-3.5" : "h-4 w-4", "transition-transform duration-200", isFavorite ? 'fill-current' : '')} />
     </button>
@@ -153,7 +154,7 @@ export function ProductCard({
                 <BadgeCheck className="h-3.5 w-3.5 shrink-0 fill-accent text-white" aria-hidden="true" />
               </p>
             )}
-            <h3 className="font-headline text-[18px] font-light leading-snug text-primary line-clamp-2 sm:text-[19px]">
+            <h3 className="font-body text-[18px] font-semibold leading-snug text-primary line-clamp-2 sm:text-[19px]">
               {displayTitle}{subtitle ? ` · ${subtitle}` : ''}
             </h3>
             <div className="flex flex-wrap items-center gap-1.5 text-xs font-semibold text-primary/65">
@@ -163,7 +164,7 @@ export function ProductCard({
               )}
             </div>
             <div className="mt-auto flex items-baseline gap-2">
-              <Price value={finalPrice} className="text-[26px] leading-none" />
+              <Price value={finalPrice} className="text-[21px] leading-none" />
               <span className="text-xs font-medium text-muted-foreground">כולל מע״מ</span>
             </div>
           </div>
@@ -204,15 +205,19 @@ export function ProductCard({
         )}
 
         <div className={cn("relative aspect-[4/5] w-full shrink-0 overflow-hidden bg-secondary/60", !seller && "rounded-t-[1.75rem]")}>
-          <Image
-            src={mainImage}
-            alt={displayTitle}
-            fill
-            kind="product"
-            priority={priority}
-            sizes="(max-width: 640px) 70vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-cover zoom-on-hover"
-          />
+          {/* Scroll-linked settle (outer) and desktop hover zoom (image) live on separate layers
+              so the two transforms never fight. */}
+          <div className="media-rise absolute inset-0">
+            <Image
+              src={mainImage}
+              alt={displayTitle}
+              fill
+              kind="product"
+              priority={priority}
+              sizes="(max-width: 640px) 70vw, (max-width: 1024px) 33vw, 25vw"
+              className="object-cover zoom-on-hover"
+            />
+          </div>
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/30 to-transparent" />
           {favoriteButton}
           {product.product_type && (
@@ -243,7 +248,7 @@ export function ProductCard({
 
         <div className="flex min-w-0 flex-1 flex-col gap-3 p-4 text-right sm:p-5">
           <div className="space-y-2">
-            <h3 className="font-headline text-[20px] font-light leading-snug text-primary line-clamp-2 min-h-[2.75em] sm:text-[21px]">
+            <h3 className="font-body text-[20px] font-semibold leading-snug text-primary line-clamp-2 min-h-[2.75em] sm:text-[21px]">
               {displayTitle}{subtitle ? ` · ${subtitle}` : ''}
             </h3>
             {specChips.length > 0 && (
@@ -259,7 +264,7 @@ export function ProductCard({
 
           <div className="mt-auto flex items-end justify-between gap-2 border-t border-border/60 pt-3.5">
             <div className="text-right">
-              <Price value={finalPrice} className="text-[30px] leading-none" />
+              <Price value={finalPrice} className="text-[24px] leading-none" />
               <p className="mt-1.5 text-xs font-light text-muted-foreground">כולל מע״מ</p>
             </div>
             <span className="inline-flex h-11 shrink-0 items-center gap-1.5 text-[14px] font-medium text-accent-strong">

@@ -606,7 +606,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
     <div className="space-y-4 text-right">
       <div className="rounded-[1.75rem] border border-primary/10 bg-primary/5 p-4">
         <p className="text-[15px] font-bold text-primary">סינון חכם ומהיר</p>
-        <p className="mt-1 text-sm leading-relaxed text-primary/70">
+        <p className="mt-1 text-sm leading-relaxed text-primary/85">
           בחרו קטגוריה, טווח מחירים, משלוח או איסוף עצמי, וסננו לפי מאפייני הסופר.
         </p>
       </div>
@@ -819,7 +819,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
             <SheetContent side="right" className="w-full border-l border-border bg-background p-0 sm:max-w-[430px]" dir="rtl">
               <div className="flex h-full flex-col">
                 <SheetHeader className="border-b border-border bg-card px-6 py-5 text-right">
-                  <SheetTitle className="font-headline text-2xl font-normal text-primary">סינון מותאם</SheetTitle>
+                  <SheetTitle className="font-body text-2xl font-semibold text-primary">סינון מותאם</SheetTitle>
                 </SheetHeader>
                 <div className="flex-1 overflow-y-auto min-h-0 px-5 py-5">
                   {renderFilterContent()}
@@ -835,8 +835,8 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
             <DialogContent className="max-h-[92vh] w-[calc(100vw-1rem)] max-w-[95vw] overflow-hidden rounded-[2rem] border-none bg-background p-0 shadow-2xl sm:max-w-[560px] flex flex-col" dir="rtl">
               <div className="shrink-0 border-b border-white/10 bg-primary px-5 py-5 pl-16 text-right text-white">
                 <DialogHeader>
-                  <DialogTitle className="text-2xl font-headline font-normal">סינון מתקדם</DialogTitle>
-                  <p className="text-sm font-medium text-white/75">מסך מסודר ונוח לנייד עם כל המסננים במקום אחד.</p>
+                  <DialogTitle className="text-2xl font-body font-semibold">סינון מתקדם</DialogTitle>
+                  <p className="text-sm font-medium text-white/85">מסך מסודר ונוח לנייד עם כל המסננים במקום אחד.</p>
                 </DialogHeader>
               </div>
               <div className="flex-1 overflow-y-auto min-h-0 px-5 py-5">
@@ -858,7 +858,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
             <section className="bg-card p-7 sm:p-10 md:p-20 rounded-[2.5rem] md:rounded-[3.5rem] shadow-premium-lg text-center relative overflow-hidden max-w-5xl mx-auto border border-border/70">
               
               <p className="eyebrow eyebrow-center mb-6">חיפוש מותאם</p>
-              <h1 className="text-[42px] md:text-[76px] font-headline font-light text-primary mb-6 leading-[1.06]">מצאו בדיוק את<br />מה שחיפשתם</h1>
+              <h1 className="text-[42px] md:text-[76px] font-headline font-semibold text-primary mb-6 leading-[1.06]">מצאו בדיוק את<br />מה שחיפשתם</h1>
               <p className="lead mb-10 md:mb-12 max-w-2xl mx-auto">בחרו סוג כתב, רמת הידור, גודל ומיקום — ונציג לכם כלי קודש מסופרים מאומתים.</p>
               
               <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
@@ -931,7 +931,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                 </div>
                 <div className="order-first w-full shrink-0 px-1 text-right md:order-none md:w-auto">
                   <p className="eyebrow mb-3">הקטלוג</p>
-                  <h2 className="flex items-baseline gap-3 text-[34px] md:text-[52px] font-headline font-light text-primary leading-[1.1]">כלי קודש <span className="font-accent text-[22px] md:text-[28px] text-muted-foreground num">{filteredProducts.length}</span></h2>
+                  <h2 className="flex items-baseline gap-3 text-[34px] md:text-[52px] font-headline font-semibold text-primary leading-[1.1]">כלי קודש <span className="font-numbers font-normal text-[22px] md:text-[26px] text-muted-foreground num">{filteredProducts.length}</span></h2>
                 </div>
               </div>
 
@@ -1036,13 +1036,13 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                     <div className="mb-8 max-w-md space-y-3">
                       {selectedGroup ? (
                         <>
-                          <p className="text-2xl md:text-3xl font-headline font-normal text-primary">{selectedGroup.label} - בקרוב באתר</p>
-                          <p className="text-primary/70 text-base md:text-lg leading-relaxed">מוכרים מצטרפים לחותם בימים אלה. בינתיים אפשר לראות את כל המוצרים באתר.</p>
+                          <p className="text-2xl md:text-3xl font-body font-semibold text-primary">{selectedGroup.label} - בקרוב באתר</p>
+                          <p className="text-primary/85 text-base md:text-lg leading-relaxed">מוכרים מצטרפים לחותם בימים אלה. בינתיים אפשר לראות את כל המוצרים באתר.</p>
                         </>
                       ) : (
                         <>
-                          <p className="text-2xl md:text-3xl font-headline font-normal text-primary">לא מצאנו התאמה מדויקת</p>
-                          <p className="text-primary/70 text-base md:text-lg leading-relaxed">נסו להסיר מסנן או שניים — או צפו בכל כלי הקודש באתר.</p>
+                          <p className="text-2xl md:text-3xl font-body font-semibold text-primary">לא מצאנו התאמה מדויקת</p>
+                          <p className="text-primary/85 text-base md:text-lg leading-relaxed">נסו להסיר מסנן או שניים — או צפו בכל כלי הקודש באתר.</p>
                         </>
                       )}
                     </div>

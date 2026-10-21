@@ -1,0 +1,22 @@
+Stam Ashkenaz CLM (StamAshkenazCLM.ttf)
+Part of the Culmus project — Hebrew fonts for Linux and other systems.
+https://culmus.sourceforge.io/
+
+Copyright: 2007-2010 Yoram Gnat (yoram.gnat@gmail.com)
+License:   GPL-2 with font exception (GPL-2-fonts-exception)
+
+The font file in this directory is distributed UNALTERED, exactly as shipped
+in the Culmus package. It is used on this site only as a web font for the
+home page headline.
+
+ This font is distributed under the terms of the GNU General Public License
+ version 2 (https://www.gnu.org/licenses/old-licenses/gpl-2.0.html).
+
+ As a special exception, if you create a document which uses this font, and
+ embed this font or unaltered portions of this font into the document, this
+ font does not by itself cause the resulting document to be covered by the
+ GNU General Public License. This exception does not however invalidate any
+ other reasons why the document might be covered by the GNU General Public
+ License. If you modify this font, you may extend this exception to your
+ version of the font, but you are not obligated to do so. If you do not wish
+ to do so, delete this exception statement from your version.

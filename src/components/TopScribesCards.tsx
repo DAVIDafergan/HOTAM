@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { EASE } from '@/lib/motion';
+import { CountUp } from '@/components/motion/CountUp';
 
 // Cards are revealed a page at a time; "load more" appends the next page.
 const SCRIBES_PAGE_SIZE = 6;
@@ -54,9 +55,9 @@ function extractCity(address: string | null | undefined): string {
 function ProfileStat({ value, label, icon }: { value: string | number; label: string; icon?: ReactNode }) {
   return (
     <div className="flex-1 min-w-0 text-center">
-      <p className="flex items-center justify-center gap-0.5 font-accent text-xl sm:text-2xl text-primary tabular-nums leading-none">
+      <p className="flex items-center justify-center gap-0.5 font-body font-bold text-lg sm:text-xl text-primary tabular-nums leading-none">
         {icon}
-        {value}
+        <CountUp value={value} />
       </p>
       <p className="mt-1 text-2xs sm:text-xs font-semibold text-muted-foreground">{label}</p>
     </div>
@@ -103,7 +104,7 @@ function ScribeProfileCard({ scribe }: { scribe: TopScribeCard }) {
         </div>
 
         <div className="flex flex-1 flex-col px-3 sm:px-5 pb-4 sm:pb-5 pt-2 text-center">
-          <h3 className="flex items-center justify-center gap-1 font-headline text-lg sm:text-[22px] font-light text-primary transition-colors group-hover:text-accent-strong">
+          <h3 className="flex items-center justify-center gap-1 font-body text-lg sm:text-[22px] font-semibold text-primary transition-colors group-hover:text-accent-strong">
             <span className="truncate">{displayName}</span>
             <BadgeCheck className="h-4 w-4 shrink-0 fill-accent text-white" aria-label="סופר מאומת" />
           </h3>

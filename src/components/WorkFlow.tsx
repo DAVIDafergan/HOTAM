@@ -1,15 +1,15 @@
 
 "use client";
 
-import React from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import React, { useRef } from 'react';
+import { motion, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion';
 import {
   ShieldCheck,
   PenTool,
   Search,
   UserCheck
 } from 'lucide-react';
-import { EASE } from '@/lib/motion';
+import { EASE_OUT_EXPO } from '@/lib/motion';
 import { SectionHeading } from '@/components/SectionHeading';
 
 // Reference: luxury "savoir-faire" process pages (Patek Philippe "Steps of
@@ -19,6 +19,12 @@ import { SectionHeading } from '@/components/SectionHeading';
 // theme. No circles, no blur, no drop shadow, no tilt.
 export function WorkFlow() {
   const shouldReduceMotion = useReducedMotion();
+  const stepsRef = useRef<HTMLDivElement>(null);
+  // 0 → 1 while the steps travel from the lower part of the viewport to its middle.
+  const { scrollYProgress } = useScroll({ target: stepsRef, offset: ['start 85%', 'end 55%'] });
+  const smoothProgress = useSpring(scrollYProgress, { stiffness: 140, damping: 30, mass: 0.4 });
+  const drawn = useTransform(smoothProgress, (v) => (shouldReduceMotion ? 1 : v));
+  const lineProgress = drawn;
 
   const steps = [
     {
@@ -52,33 +58,50 @@ export function WorkFlow() {
       <div className="container mx-auto px-4 md:px-5 relative z-10">
         <SectionHeading id="how-heading" eyebrow="מהסופר אליכם" title="איך זה עובד" align="center" tone="dark" className="md:mb-20" />
 
-        {/* Flat, bordered steps — a hairline rule marks the sequence instead of a glowing
-            progress bar; vertical dividers on desktop (horizontal on mobile) read as one
-            continuous ledger rather than four disconnected cards. */}
-        <div className="grid grid-cols-1 md:grid-cols-4 border-t border-b border-primary-foreground/15 md:border-t-0 md:border-b-0 divide-y divide-primary-foreground/15 md:divide-y-0 md:divide-x md:divide-x-reverse">
+        {/* A ledger of four steps joined by one gold hairline that draws itself as the section
+            scrolls through the viewport (vertical timeline on phones, horizontal on desktop).
+            Steps reveal one after another; the line is decorative and scroll-linked only. */}
+        <div ref={stepsRef} className="relative grid grid-cols-1 md:grid-cols-4">
+          <span aria-hidden="true" className="absolute right-7 top-10 bottom-10 w-px bg-primary-foreground/15 md:hidden" />
+          <motion.span
+            aria-hidden="true"
+            style={{ scaleY: lineProgress }}
+            className="absolute right-7 top-10 bottom-10 w-px origin-top bg-[#E2B35B]/80 md:hidden"
+          />
+          <span aria-hidden="true" className="absolute inset-x-0 top-0 hidden h-px bg-primary-foreground/15 md:block" />
+          <motion.span
+            aria-hidden="true"
+            style={{ scaleX: lineProgress }}
+            className="absolute inset-x-0 top-0 hidden h-px origin-right bg-[#E2B35B]/80 md:block"
+          />
+
           {steps.map((step, index) => {
             const { Icon } = step;
             return (
               <motion.div
                 key={step.id}
-                initial={{ opacity: shouldReduceMotion ? 1 : 0, y: shouldReduceMotion ? 0 : 12 }}
+                initial={shouldReduceMotion ? false : { opacity: 0, y: 22 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.3 }}
-                transition={{ delay: index * 0.08, duration: 0.45, ease: EASE }}
-                className="flex flex-col text-center items-center px-6 py-10 md:py-2 md:px-8"
+                viewport={{ once: true, amount: 0.4 }}
+                transition={{ delay: index * 0.14, duration: 0.9, ease: EASE_OUT_EXPO }}
+                className="relative flex items-start gap-5 py-7 text-right md:flex-col md:items-center md:gap-0 md:px-8 md:pb-2 md:pt-14 md:text-center"
               >
-                <Icon className="w-5 h-5 md:w-6 md:h-6 text-[#E2B35B]/80 mb-5" strokeWidth={1.25} aria-hidden="true" />
+                {/* Desktop: a gold node where the line meets each step */}
+                <span aria-hidden="true" className="absolute left-1/2 top-0 hidden h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#E2B35B] ring-4 ring-primary md:block" />
 
-                <span className="font-accent text-[48px] md:text-[64px] leading-none text-[#E2B35B] mb-5 num">
+                <span className="relative z-10 flex w-14 shrink-0 justify-center bg-primary py-2 font-numbers font-normal text-[44px] leading-none text-[#E2B35B] num md:mb-5 md:w-auto md:py-0 md:text-[60px]">
                   {String(step.id).padStart(2, '0')}
                 </span>
 
-                <h3 className="text-[22px] md:text-[24px] font-headline font-light text-primary-foreground mb-3">
-                  {step.title}
-                </h3>
-                <p className="text-[15px] font-light text-primary-foreground/75 leading-relaxed max-w-[260px]">
-                  {step.desc}
-                </p>
+                <div className="min-w-0 pt-1 md:flex md:flex-col md:items-center md:pt-0">
+                  <Icon className="mb-3 hidden h-6 w-6 text-[#E2B35B]/80 md:order-first md:mb-5 md:block" strokeWidth={1.25} aria-hidden="true" />
+                  <h3 className="mb-2 font-body text-[21px] font-semibold text-primary-foreground md:mb-3 md:text-[24px]">
+                    {step.title}
+                  </h3>
+                  <p className="text-base font-normal leading-relaxed text-primary-foreground/80 md:max-w-[260px]">
+                    {step.desc}
+                  </p>
+                </div>
               </motion.div>
             );
           })}

@@ -40,7 +40,7 @@ export default function ChooseRolePageClient() {
       <main className="flex-1 flex items-start justify-center px-4 pt-[calc(7rem+env(safe-area-inset-top))] pb-12 md:items-center md:pt-28">
         <div className="w-full max-w-3xl space-y-8 text-right" dir="rtl">
           <div className="text-center space-y-3">
-            <h1 className="text-[36px] md:text-[48px] font-headline font-light text-primary leading-tight">כמעט סיימנו</h1>
+            <h1 className="text-[36px] md:text-[48px] font-headline font-semibold text-primary leading-tight">כמעט סיימנו</h1>
             <p className="text-muted-foreground text-base">
               איך תרצה להשתמש בחותם? תוכל לשנות זאת מאוחר יותר.
             </p>
@@ -54,8 +54,8 @@ export default function ChooseRolePageClient() {
                 <ShoppingBag className="w-7 h-7 text-primary" strokeWidth={1.6} />
               </div>
               <div className="space-y-1">
-                <h2 className="font-headline text-2xl font-normal text-primary">לקוח</h2>
-                <p className="text-primary/70 text-[15px] leading-relaxed">
+                <h2 className="font-body text-2xl font-semibold text-primary">לקוח</h2>
+                <p className="text-primary/85 text-base leading-relaxed">
                   רוצה לרכוש מזוזות, תפילין, ספרי תורה וכלי קודש מסופרים מוסמכים
                 </p>
               </div>
@@ -72,8 +72,8 @@ export default function ChooseRolePageClient() {
                 <PenTool className="w-7 h-7 text-accent-strong" strokeWidth={1.6} />
               </div>
               <div className="space-y-1">
-                <h2 className="font-headline text-2xl font-normal text-accent-strong">סופר סת&quot;ם</h2>
-                <p className="text-primary/70 text-[15px] leading-relaxed">
+                <h2 className="font-body text-2xl font-semibold text-accent-strong">סופר סת&quot;ם</h2>
+                <p className="text-primary/85 text-base leading-relaxed">
                   סופר מוסמך שרוצה למכור את יצירותיו ישירות ללקוחות דרך הפלטפורמה
                 </p>
               </div>
@@ -82,7 +82,7 @@ export default function ChooseRolePageClient() {
               </div>
             </button>
           </div>
-          <p className="text-center text-[15px] text-primary/75">
+          <p className="text-center text-[15px] text-primary/85">
             <Link href="/contact" className="font-bold text-primary underline underline-offset-4">
               צריך עזרה?
             </Link>

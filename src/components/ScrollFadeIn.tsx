@@ -2,13 +2,13 @@
 
 import type { ReactNode } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { EASE } from '@/lib/motion';
+import { EASE_OUT_EXPO } from '@/lib/motion';
 
 export function ScrollFadeIn({
   children,
   className,
   delay = 0,
-  y = 12,
+  y = 22,
 }: {
   children: ReactNode;
   className?: string;
@@ -27,7 +27,7 @@ export function ScrollFadeIn({
       initial={{ opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.45, delay, ease: EASE }}
+      transition={{ duration: 0.9, delay, ease: EASE_OUT_EXPO }}
     >
       {children}
     </motion.div>

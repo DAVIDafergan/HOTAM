@@ -28,6 +28,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { CitySelect } from '@/components/CitySelect';
 import { COMMON_CITY_OPTIONS, NEARBY_RADIUS_KM } from '@/lib/location-utils';
+import { AmbientBackdrop } from '@/components/motion/AmbientBackdrop';
 
 type ProductType = 'מזוזה' | 'תפילין' | 'מגילה' | 'ספר תורה' | 'מוצרי יודאיקה שונים' | '';
 type ShippingPreference = 'all' | 'shipping' | 'pickup';
@@ -292,7 +293,7 @@ export function HeroAnimation() {
         {step === 1 && (
           <motion.div key="step1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }} className="space-y-4 md:space-y-10">
             <div className="flex flex-col items-center gap-4">
-              <h2 className="text-2xl md:text-[2rem] font-headline font-normal text-primary">מה אתם מחפשים?</h2>
+              <h2 className="text-2xl md:text-[2rem] font-body font-semibold text-primary">מה אתם מחפשים?</h2>
             </div>
 
             {/* Category cards */}
@@ -348,7 +349,7 @@ export function HeroAnimation() {
             <div className="flex justify-between items-center border-b border-primary/5 pb-4">
               <Button variant="ghost" onClick={() => setStep(1)} className="font-semibold text-sm h-11 px-4 rounded-full hover:bg-primary/5 gap-1"><ChevronRight className="w-4 h-4" /> חזור</Button>
               <div className="text-right">
-                <h2 className="text-xl md:text-2xl font-headline font-normal text-primary">איזה סוג בדיוק?</h2>
+                <h2 className="text-xl md:text-2xl font-body font-semibold text-primary">איזה סוג בדיוק?</h2>
                 <p className="text-[13px] text-primary/65 font-medium mt-0.5">עבור {selectedProduct} · שלב 2 מתוך 3</p>
               </div>
             </div>
@@ -458,7 +459,7 @@ export function HeroAnimation() {
             <div className="flex justify-between items-center border-b border-primary/5 pb-4">
               <Button variant="ghost" onClick={() => setStep(2)} className="font-semibold text-sm h-11 px-4 rounded-full hover:bg-primary/5 gap-1"><ChevronRight className="w-4 h-4" /> חזור</Button>
               <div className="text-right">
-                <h2 className="text-xl md:text-2xl font-headline font-normal text-primary">איפה ואיך תרצו לקבל?</h2>
+                <h2 className="text-xl md:text-2xl font-body font-semibold text-primary">איפה ואיך תרצו לקבל?</h2>
                 <p className="text-[13px] text-primary/65 font-medium mt-0.5">שלב 3 מתוך 3</p>
               </div>
             </div>
@@ -466,7 +467,7 @@ export function HeroAnimation() {
             <div className="max-w-2xl mx-auto w-full space-y-6 rounded-2xl md:rounded-3xl bg-secondary/40 md:bg-card border-0 md:border md:border-border/70 p-4 md:p-6 shadow-none md:shadow-sm">
               <div className="space-y-4 pb-5 border-b border-primary/5">
                 <div className="flex items-center justify-between gap-3">
-                  <Label className="text-sm font-bold text-primary/85 mr-1">איפה תרצו למצוא סופר? (לא חובה)</Label>
+                  <Label className="text-sm font-bold text-primary/85 mr-1">באיזה אזור לחפש? (לא חובה)</Label>
                   <Button variant="ghost" onClick={handleFinalSearch} className="shrink-0 h-10 px-3 rounded-full font-semibold text-sm text-primary/70 hover:text-primary hover:bg-primary/5">
                     דלג, הצג הכל
                   </Button>
@@ -566,7 +567,7 @@ export function HeroAnimation() {
     </>
   );
 
-  // "Find your scribe": on desktop the wizard is already on screen, so bring it into view and
+  // Product search CTA: on desktop the wizard is already on screen, so bring it into view and
   // move focus to its first choice; on phones the same wizard opens as a bottom sheet.
   const openFinder = () => {
     if (isDesktop) {
@@ -580,29 +581,34 @@ export function HeroAnimation() {
 
   return (
     <section className="relative w-full overflow-hidden bg-background pt-[calc(8rem+env(safe-area-inset-top))] pb-6 md:pt-40 md:pb-24 lg:min-h-[92vh] lg:flex lg:items-center" aria-labelledby="hero-heading">
-      {/* A single, very soft gold glow — no photo, no blur filter (cheap to paint, LCP is text). */}
-      <div aria-hidden="true" className="pointer-events-none absolute -top-40 right-[-10%] h-[520px] w-[520px] rounded-full bg-[radial-gradient(closest-side,hsl(var(--accent)/0.10),transparent)]" />
+      {/* Ambient light: warm parchment/gold gradients drifting very slowly (transform-only,
+          paused off-screen, static with reduced motion). No photo — the LCP element is text. */}
+      <AmbientBackdrop />
 
       <div className="container mx-auto px-5 md:px-8 relative z-10 grid items-center gap-12 lg:grid-cols-[1.15fr_1fr] lg:gap-16">
         <div className="text-right">
           <p className="eyebrow fade-up">ספרי תורה · תפילין · מזוזות · יודאיקה</p>
-          <h1 id="hero-heading" className="mt-6 md:mt-8 font-headline text-[clamp(36px,11.1vw,64px)] md:text-[84px] lg:text-[64px] xl:text-[84px] font-light leading-[1.06] text-primary">
-            <span className="hero-line"><span>סת״ם מהודר,</span></span>
+          {/* Set in Stam Ashkenaz CLM (scribal STaM letters with tagin). The face has Hebrew
+              letters only — no gershayim, no Latin — so the abbreviation uses an ASCII quote
+              and every glyph here is covered (nothing falls back mid-word). Its ink sits low in
+              a tall line box, hence the slight negative top margin and the roomy mask. */}
+          <h1 id="hero-heading" className="mt-4 md:mt-6 font-stam font-normal text-[clamp(38px,11.6vw,64px)] md:text-[84px] lg:text-[64px] xl:text-[80px] leading-[1.2] text-primary">
+            <span className="hero-line"><span>סת"ם מהודר,</span></span>
             <span className="hero-line"><span>ישירות מיד הסופר</span></span>
           </h1>
           <p className="lead fade-up fade-up-1 mt-6 md:mt-8 max-w-xl">
             כל סופר עובר אימות והסמכה. לכל מוצר פירוט הלכתי מלא — סוג כתב, רמת הידור והגהה. תשלום מאובטח בנאמנות.
           </p>
-          <div className="fade-up fade-up-2 mt-8 md:mt-10 flex items-center gap-2.5 sm:gap-3">
-            <Button variant="gold" size="lg" onClick={openFinder} className="h-[52px] sm:h-14 px-5 sm:px-8 gap-2.5 group min-w-0">
-              <Search className="hidden sm:block !w-[18px] !h-[18px]" aria-hidden="true" />
-              <span className="truncate">{selectedProduct ? `המשך חיפוש: ${selectedProduct}` : 'מצאו את הסופר שלכם'}</span>
+          <div className="fade-up fade-up-2 mt-8 md:mt-10 flex flex-col sm:flex-row sm:items-center gap-3">
+            <Button variant="gold" size="lg" onClick={openFinder} className="h-14 w-full sm:w-auto px-8 gap-2.5 text-base group min-w-0">
+              <Search className="!w-[18px] !h-[18px]" aria-hidden="true" />
+              <span className="truncate">{selectedProduct ? `המשך חיפוש: ${selectedProduct}` : 'חיפוש מוצר מותאם אישית'}</span>
             </Button>
-            <Button variant="outline" size="lg" asChild className="h-[52px] sm:h-14 px-5 sm:px-7 shrink-0">
+            <Button variant="outline" size="lg" asChild className="h-14 w-full sm:w-auto px-7 text-base shrink-0">
               <a href="#how-it-works">איך זה עובד</a>
             </Button>
           </div>
-          <ul className="fade-up fade-up-3 mt-9 md:mt-12 flex flex-wrap gap-x-6 gap-y-2 text-[14px] text-primary/70">
+          <ul className="fade-up fade-up-3 mt-9 md:mt-12 flex flex-wrap gap-x-6 gap-y-2 text-[15px] text-primary/85">
             <li className="flex items-center gap-2"><span className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />סופרים מאומתים בלבד</li>
             <li className="flex items-center gap-2"><span className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />ישירות מהסופר, בלי מתווכים</li>
             <li className="flex items-center gap-2"><span className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />תשלום מאובטח בנאמנות</li>

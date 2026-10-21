@@ -28,14 +28,11 @@ export default {
       fontSize: {
         '2xs': ['0.6875rem', { lineHeight: '1rem' }],
       },
-      // Direction B is light: the body face (IBM Plex Sans Hebrew) is loaded at 300-600, so
-      // "bold-everything" utilities resolve one step lighter (no 700/800/900 shouting) and the
-      // headline serif only exists at 300/400 (font-synthesis is off for it in globals.css).
+      // Readability: nothing renders below 400 (the "light" utilities resolve to regular).
       fontWeight: {
-        semibold: '500',
-        bold: '600',
-        extrabold: '600',
-        black: '600',
+        thin: '400',
+        extralight: '400',
+        light: '400',
       },
       transitionTimingFunction: {
         lux: 'cubic-bezier(0.22, 1, 0.36, 1)',
@@ -43,8 +40,10 @@ export default {
       fontFamily: {
         sans: ['var(--font-body)', 'Arial', 'sans-serif'],
         body: ['var(--font-body)', 'Arial', 'sans-serif'],
-        headline: ['var(--font-heading)', 'Georgia', 'serif'],
-        accent: ['var(--font-accent)', 'var(--font-heading)', 'Georgia', 'serif'],
+        headline: ['var(--font-display)', 'Georgia', 'serif'],
+        display: ['var(--font-display)', 'Georgia', 'serif'],
+        numbers: ['var(--font-numbers)', 'var(--font-display)', 'Georgia', 'serif'],
+        stam: ['var(--font-stam)', 'var(--font-display)', 'Georgia', 'serif'],
         code: ['monospace'],
       },
       colors: {

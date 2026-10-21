@@ -4,39 +4,57 @@ import './globals.css';
 import { SupabaseClientProvider } from '@/lib/supabase-hooks';
 import { ClientWrapper } from '@/components/ClientWrapper';
 import { Analytics } from '@vercel/analytics/next';
-import { IBM_Plex_Sans_Hebrew, Noto_Serif_Hebrew, Bellefair } from 'next/font/google';
+import { Assistant, Bellefair, Noto_Serif_Hebrew } from 'next/font/google';
+import localFont from 'next/font/local';
 import { AccessibilityButton } from '@/components/AccessibilityButton';
 import { SplashScreen } from '@/components/SplashScreen';
+import { SmoothScroll } from '@/components/motion/SmoothScroll';
 
-// Typography — direction B ("luxury fashion"), chosen by David (2026-10):
-//   body / UI  → IBM Plex Sans Hebrew (300 long text, 400 UI, 500 labels, 600 buttons/emphasis)
-//   headings   → Noto Serif Hebrew Light (300 display, 400 small headings) — large and airy
-//   accent     → Bellefair (prices, numbers/stats, HOTAM wordmark) — thin lining figures
-// Max three families. To revert to the previous system, swap these three loaders back to
-// Assistant (--font-body) + Frank_Ruhl_Libre weight ['500','700'] (--font-heading) and point
-// --font-accent at --font-heading in globals.css.
-const bodyFont = IBM_Plex_Sans_Hebrew({
+// ── Fonts: one loader per ROLE, so swapping a face is a one-line change ─────────────────
+//   --font-display  h1/h2 display headings (serif, 600)           → tailwind `font-headline`
+//   --font-body     everything else: text, h3 and below, cards, labels, nav (sans) → `font-body`
+//   --font-numbers  accent numerals: prices, stats, step numbers, wordmark → `font-numbers`
+//   --font-stam     STaM scribal face — home hero headline + one tiny ornament only → `font-stam`
+// To try another face for a role, replace that role's loader call (e.g. `Frank_Ruhl_Libre({...})`)
+// and keep its `variable`. No 300 weights anywhere — readability over "airy".
+const displayFont = Noto_Serif_Hebrew({
   subsets: ['hebrew', 'latin'],
-  weight: ['300', '400', '500', '600'],
+  weight: ['500', '600'],
+  variable: '--font-display',
+  display: 'swap',
+  fallback: ['Georgia', 'serif'],
+});
+
+const bodyFont = Assistant({
+  subsets: ['hebrew', 'latin'],
+  weight: ['400', '500', '600', '700'],
   variable: '--font-body',
   display: 'swap',
   fallback: ['Arial', 'sans-serif'],
 });
 
-const headingFont = Noto_Serif_Hebrew({
+// Bellefair has a single (400) weight — never pair `font-numbers` with font-bold (no faux bold:
+// `font-synthesis: none` is set on it in globals.css). Used only at ≥20px.
+const numbersFont = Bellefair({
   subsets: ['hebrew', 'latin'],
-  weight: ['300', '400'],
-  variable: '--font-heading',
+  weight: '400',
+  variable: '--font-numbers',
   display: 'swap',
+  preload: false,
   fallback: ['Georgia', 'serif'],
 });
 
-const accentFont = Bellefair({
-  subsets: ['hebrew', 'latin'],
-  weight: '400',
-  variable: '--font-accent',
+// "Stam Ashkenaz CLM" (Culmus, © Yoram Gnat, GPL-2 + font exception) — embedded UNALTERED,
+// see src/fonts/StamAshkenazCLM-LICENSE.txt. The face has Hebrew letters only (no Latin, no
+// gershayim), so text set in it must use ASCII `"` and nothing else may need a fallback.
+const stamFont = localFont({
+  src: '../fonts/StamAshkenazCLM.ttf',
+  variable: '--font-stam',
   display: 'swap',
-  fallback: ['Georgia', 'serif'],
+  preload: true,
+  // No metric-adjusted Arial stand-in: the tailwind `font-stam` stack falls back to the
+  // display serif (Noto Serif Hebrew) while the 15KB file swaps in.
+  adjustFontFallback: false,
 });
 
 export const metadata: Metadata = {
@@ -119,7 +137,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="he" dir="rtl" className={`${bodyFont.variable} ${headingFont.variable} ${accentFont.variable}`}>
+    <html lang="he" dir="rtl" className={`${displayFont.variable} ${bodyFont.variable} ${numbersFont.variable} ${stamFont.variable}`}>
       <head>
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -129,7 +147,7 @@ export default function RootLayout({
             __html: `
               html,body{margin:0;padding:0;background:#FBF8F3;color:#14110D}
               body{font-family:var(--font-body),Arial,sans-serif;font-weight:400;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
-              h1,h2,h3,h4,h5,h6{font-family:var(--font-heading),Georgia,serif;font-weight:300}
+              h1,h2{font-family:var(--font-display),Georgia,serif;font-weight:600}
             `,
           }}
         />
@@ -162,6 +180,7 @@ export default function RootLayout({
               {children}
             </div>
             <AccessibilityButton />
+            <SmoothScroll />
           </ClientWrapper>
         </SupabaseClientProvider>
         <Analytics />

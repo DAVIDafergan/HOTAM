@@ -424,7 +424,7 @@ export default function CustomerDashboard() {
             <CardContent className="p-8 space-y-6 text-right">
               <div className="space-y-2">
                 <p className="text-xs font-black text-accent uppercase tracking-widest">השלמת פרופיל</p>
-                <h1 className="text-2xl font-headline font-normal text-primary">חובה להזין שם מלא</h1>
+                <h1 className="text-2xl font-body font-semibold text-primary">חובה להזין שם מלא</h1>
                 <p className="text-sm text-muted-foreground font-medium">
                   כדי להמשיך כלקוח באתר, יש להזין שם פרטי ושם משפחה.
                 </p>
@@ -491,10 +491,10 @@ export default function CustomerDashboard() {
             </div>
             <div className="flex-1 text-right">
               <p className="text-[13px] font-medium text-[#E2B35B] mb-2">האזור האישי</p>
-              <h1 className="text-[36px] md:text-[54px] font-headline font-light text-white leading-[1.08]">
+              <h1 className="text-[36px] md:text-[54px] font-headline font-semibold text-white leading-[1.08]">
                 שלום, {customer?.first_name || (user?._raw?.user_metadata?.first_name as string | undefined) || 'לקוח'} {customer?.last_name || (user?._raw?.user_metadata?.last_name as string | undefined) || ''}
               </h1>
-                  <p className="text-white/75 text-[15px] mt-1" dir="ltr" style={{ textAlign: 'right' }}>{user?.email}</p>
+                  <p className="text-white/85 text-[15px] mt-1" dir="ltr" style={{ textAlign: 'right' }}>{user?.email}</p>
               <div className="flex flex-wrap items-center gap-2.5 mt-5">
                 <div className="flex items-center gap-2 border border-white/15 rounded-full px-4 py-1.5">
                   <ShoppingBag className="w-4 h-4 text-[#E2B35B]" />
@@ -514,7 +514,7 @@ export default function CustomerDashboard() {
 
         <Tabs dir="rtl" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           {/* Tab Navigation */}
-          <TabsList className="bg-card p-1.5 rounded-2xl shadow-premium border border-border/70 h-auto w-full grid grid-cols-4 gap-1">
+          <TabsList indicatorClassName="rounded-xl bg-primary shadow-none" className="bg-card p-1.5 rounded-2xl shadow-premium border border-border/70 h-auto w-full grid grid-cols-4 gap-1">
             {navItems.map((item) => (
               <TabsTrigger
                 key={item.id}
@@ -554,8 +554,8 @@ export default function CustomerDashboard() {
                           </div>
                           <span className="text-[13px] text-muted-foreground flex items-center gap-1 num"><Clock className="w-3.5 h-3.5" /> {order.created_at ? new Date(order.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
                         </div>
-                         <p className="font-headline font-normal text-primary text-[17px] leading-snug mb-1 truncate">{order.product_name}</p>
-                        <Price value={Number(order.amount || 0).toLocaleString('he-IL')} className="text-[26px] leading-none" />
+                         <p className="font-body font-semibold text-primary text-[17px] leading-snug mb-1 truncate">{order.product_name}</p>
+                        <Price value={Number(order.amount || 0).toLocaleString('he-IL')} className="text-[22px] leading-none" />
 
                         {order.status === 'paid' && (
                           <div className="mt-3 p-3.5 bg-secondary/50 rounded-xl border border-border space-y-1.5">
@@ -586,7 +586,7 @@ export default function CustomerDashboard() {
             ) : (
               <div className="py-16 px-6 text-center bg-card/60 rounded-[2rem] border border-dashed border-primary/20">
                 <ShoppingBag className="w-11 h-11 text-primary/30 mx-auto mb-4" strokeWidth={1.5} />
-                <p className="font-headline text-2xl font-light text-primary mb-2">עוד אין הזמנות</p><p className="text-primary/70 text-[15px] font-light mx-auto">כשתזמינו, תוכלו לעקוב כאן אחרי כל שלב.</p>
+                <p className="font-body text-2xl font-semibold text-primary mb-2">עוד אין הזמנות</p><p className="text-primary/85 text-[15px] font-light mx-auto">כשתזמינו, תוכלו לעקוב כאן אחרי כל שלב.</p>
                 <Button asChild className="mt-5 px-8"><Link href="/search?view=all">לכל כלי הקודש</Link></Button>
               </div>
             )}
@@ -615,7 +615,7 @@ export default function CustomerDashboard() {
             ) : (
               <div className="py-16 px-6 text-center bg-card/60 rounded-[2rem] border border-dashed border-primary/20">
                 <MessageCircle className="w-11 h-11 text-primary/30 mx-auto mb-4" strokeWidth={1.5} />
-                <p className="font-headline text-2xl font-light text-primary mb-2">עוד אין שיחות</p><p className="text-primary/70 text-[15px] font-light mx-auto">שאלה לסופר? אפשר לפנות אליו מכל עמוד מוצר.</p>
+                <p className="font-body text-2xl font-semibold text-primary mb-2">עוד אין שיחות</p><p className="text-primary/85 text-[15px] font-light mx-auto">שאלה לסופר? אפשר לפנות אליו מכל עמוד מוצר.</p>
               </div>
             )}
           </TabsContent>
@@ -631,7 +631,7 @@ export default function CustomerDashboard() {
             ) : (
               <div className="py-16 px-6 text-center bg-card/60 rounded-[2rem] border border-dashed border-primary/20">
                 <Heart className="w-11 h-11 text-primary/30 mx-auto mb-4" strokeWidth={1.5} />
-                <p className="font-headline text-2xl font-light text-primary mb-2">עוד אין מועדפים</p><p className="text-primary/70 text-[15px] font-light mx-auto">לחצו על הלב בכל מוצר כדי לשמור אותו כאן.</p>
+                <p className="font-body text-2xl font-semibold text-primary mb-2">עוד אין מועדפים</p><p className="text-primary/85 text-[15px] font-light mx-auto">לחצו על הלב בכל מוצר כדי לשמור אותו כאן.</p>
                 <Button asChild className="mt-5 px-8"><Link href="/search?view=all">לכל כלי הקודש</Link></Button>
               </div>
             )}
@@ -645,7 +645,7 @@ export default function CustomerDashboard() {
                   <Lock className="w-5 h-5 text-accent-strong" />
                 </div>
                 <div className="text-right">
-                  <h2 className="text-2xl font-headline font-normal text-primary">הגדרות חשבון</h2>
+                  <h2 className="text-2xl font-body font-semibold text-primary">הגדרות חשבון</h2>
                   <p className="text-sm text-muted-foreground mt-0.5">עדכן את הפרטים האישיים שלך</p>
                 </div>
               </div>
@@ -721,7 +721,7 @@ export default function CustomerDashboard() {
         <DialogContent className="w-[calc(100%-2rem)] rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl max-w-md bg-card text-primary max-h-[90vh] flex flex-col" dir="rtl">
           <div className="flex-1 overflow-y-auto min-h-0">
             <div className="bg-destructive p-7 pl-16 text-white text-right">
-              <DialogTitle className="text-2xl font-headline font-normal">מחיקת חשבון</DialogTitle>
+              <DialogTitle className="text-2xl font-body font-semibold">מחיקת חשבון</DialogTitle>
               <DialogDescription className="text-white/85 mt-1 text-[15px]">פעולה זו בלתי הפיכה. כל הנתונים שלך יימחקו לצמיתות.</DialogDescription>
             </div>
             <div className="p-7 space-y-5 text-right">
@@ -758,7 +758,7 @@ export default function CustomerDashboard() {
         <DialogContent className="w-[calc(100%-2rem)] rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl max-w-md bg-card text-primary max-h-[90vh] flex flex-col" dir="rtl">
           <div className="flex-1 overflow-y-auto min-h-0">
             <div className="bg-primary p-7 pl-16 text-white text-right">
-              <DialogTitle className="text-2xl font-headline font-normal">דרג את החוויה שלך</DialogTitle>
+              <DialogTitle className="text-2xl font-body font-semibold">דרג את החוויה שלך</DialogTitle>
               <DialogDescription className="text-white/75 text-[15px]">המשוב שלך עוזר לסופר וגם ללקוחות הבאים.</DialogDescription>
             </div>
             <div className="p-8 space-y-8 text-right">

@@ -92,8 +92,8 @@ export function NotificationChannelsCard({ defaultPhone = '', className = '' }: 
     <div className="flex items-start gap-3">
       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-secondary text-accent-strong"><Smartphone className="h-5 w-5" strokeWidth={1.6} /></span>
       <div>
-        <h3 className="font-headline text-[22px] font-light leading-snug text-primary">עדכונים לטלפון</h3>
-        <p className="mt-1 text-sm font-light leading-relaxed text-muted-foreground">בנוסף למייל: הודעות SMS ו/או שיחה קולית בעברית על הודעות, הזמנות ועדכוני חשבון.</p>
+        <h3 className="font-body text-[22px] font-semibold leading-snug text-primary">עדכונים לטלפון</h3>
+        <p className="mt-1 text-base font-light leading-relaxed text-muted-foreground">בנוסף למייל: הודעות SMS ו/או שיחה קולית בעברית על הודעות, הזמנות ועדכוני חשבון.</p>
       </div>
     </div>
   );

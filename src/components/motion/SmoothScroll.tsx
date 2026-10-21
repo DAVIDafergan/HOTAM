@@ -24,8 +24,14 @@ export function SmoothScroll() {
     let lenis: import('lenis').default | null = null;
     let raf = 0;
     let lockObserver: MutationObserver | null = null;
+    let wake: (() => void) | null = null;
+    const WAKE_EVENTS = ['wheel', 'keydown', 'click', 'pointerdown'] as const;
+    const unbindWake = () => {
+      if (wake) for (const type of WAKE_EVENTS) window.removeEventListener(type, wake, { capture: true });
+    };
 
-    import('lenis').then(({ default: Lenis }) => {
+    // Loaded once the page is idle, so it never competes with hydration for the main thread.
+    const load = () => import('lenis').then(({ default: Lenis }) => {
       if (disposed) return;
       lenis = new Lenis({
         lerp: 0.085,
@@ -42,11 +48,30 @@ export function SmoothScroll() {
           ),
       });
 
-      const loop = (time: number) => {
-        lenis?.raf(time);
+      // The frame loop only runs while Lenis is actually animating: an always-on rAF loop
+      // would make the browser run a full main-thread frame on every vsync even when the page
+      // is idle. Any input that can start a scroll (wheel, keys, anchor clicks) wakes it up.
+      // Lenis advances by (time − previous time); feeding it a clock that only ticks while the
+      // loop runs keeps the first frame after a pause from jumping straight to the target.
+      let running = false;
+      let clock = 0;
+      let last = 0;
+      const loop = (now: number) => {
+        if (!lenis) return;
+        clock += Math.min(Math.max(now - last, 0), 50);
+        last = now;
+        lenis.raf(clock);
+        if (lenis.isScrolling) raf = requestAnimationFrame(loop);
+        else running = false;
+      };
+      wake = () => {
+        if (running || !lenis) return;
+        running = true;
+        last = performance.now();
         raf = requestAnimationFrame(loop);
       };
-      raf = requestAnimationFrame(loop);
+      for (const type of WAKE_EVENTS) window.addEventListener(type, wake, { passive: true, capture: true });
+      lenis.on('scroll', wake);
 
       const syncLock = () => {
         if (!lenis) return;
@@ -57,11 +82,14 @@ export function SmoothScroll() {
       lockObserver.observe(document.body, { attributes: true, attributeFilter: ['data-scroll-locked'] });
       syncLock();
     });
+    const hasIdle = typeof window.requestIdleCallback === 'function';
+    const idleId = hasIdle ? window.requestIdleCallback(() => void load(), { timeout: 3000 }) : window.setTimeout(() => void load(), 1500);
 
     // Turning on reduced motion (or switching to touch) mid-session drops back to native.
     const teardown = () => {
       if (!fine.matches || reduced.matches) {
         cancelAnimationFrame(raf);
+        unbindWake();
         lockObserver?.disconnect();
         lenis?.destroy();
         lenis = null;
@@ -72,7 +100,10 @@ export function SmoothScroll() {
 
     return () => {
       disposed = true;
+      if (hasIdle) window.cancelIdleCallback(idleId);
+      else window.clearTimeout(idleId);
       cancelAnimationFrame(raf);
+      unbindWake();
       lockObserver?.disconnect();
       lenis?.destroy();
       reduced.removeEventListener('change', teardown);

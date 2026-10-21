@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { NotificationChannelsCard } from '@/components/NotificationChannelsCard';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
@@ -62,8 +63,6 @@ import {
   ChevronDown,
   MessageCircle,
   Mail,
-  Smartphone,
-  Phone,
   Landmark,
   IdCard,
   ExternalLink,
@@ -1513,28 +1512,9 @@ function SellerDashboardContent() {
                                 onCheckedChange={v => setProfileData({...profileData, notification_email: v})} 
                               />
                            </div>
-                           <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                 <Smartphone className="w-3.5 h-3.5 text-primary/60" />
-                                <span className="text-xs font-bold text-primary">התראות ב-SMS</span>
-                              </div>
-                              <Switch 
-                                checked={profileData.notification_sms} 
-                                onCheckedChange={v => setProfileData({...profileData, notification_sms: v})} 
-                              />
-                           </div>
-                           <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                 <Phone className="w-3.5 h-3.5 text-primary/60" />
-                                <span className="text-xs font-bold text-primary">שיחה קולית אוטומטית</span>
-                              </div>
-                              <Switch 
-                                checked={profileData.notification_voice} 
-                                onCheckedChange={v => setProfileData({...profileData, notification_voice: v})} 
-                              />
-                           </div>
                         </div>
                       </div>
+                      <NotificationChannelsCard defaultPhone={profileData.phone} />
                    </div>
 
                    <div className="md:col-span-2 space-y-10">

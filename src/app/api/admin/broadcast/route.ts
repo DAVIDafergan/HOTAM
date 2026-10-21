@@ -11,6 +11,7 @@ import {
   type BroadcastContent,
 } from '@/lib/broadcast-email';
 import { normalizeEmail, unsubscribeApiUrl, unsubscribeUrl } from '@/lib/unsubscribe-token';
+import { afterResponse, notifyUser, speakable, type ChannelPrefs } from '@/lib/notify-channels';
 
 // Admin broadcast email ("דיוור"): recipient counts, a test send to one address, and the real
 // send to an audience. Admin-only. Every recipient gets their own message (no shared To/BCC),
@@ -32,6 +33,7 @@ function siteUrl() {
 }
 
 interface Recipient {
+  ids: string[]; // seller and/or customer row ids (= auth user id)
   email: string;
   firstName: string;
   isCustomer: boolean;
@@ -51,14 +53,15 @@ async function fetchAll(service: SupabaseClient, table: string, columns: string)
 
 async function loadRecipients(service: SupabaseClient) {
   const [sellers, customers] = await Promise.all([
-    fetchAll(service, 'sellers', 'email, first_name, seller_type, is_approved'),
-    fetchAll(service, 'customers', 'email, first_name'),
+    fetchAll(service, 'sellers', 'id, email, first_name, seller_type, is_approved'),
+    fetchAll(service, 'customers', 'id, email, first_name'),
   ]);
   const byEmail = new Map<string, Recipient>();
   for (const s of sellers) {
     if (!isValidEmail(s.email)) continue;
     const email = normalizeEmail(s.email);
     byEmail.set(email, {
+      ids: [String(s.id)],
       email,
       firstName: String(s.first_name || '').trim(),
       isCustomer: false,
@@ -72,9 +75,10 @@ async function loadRecipients(service: SupabaseClient) {
     const existing = byEmail.get(email);
     if (existing) {
       existing.isCustomer = true;
+      if (!existing.ids.includes(String(c.id))) existing.ids.push(String(c.id));
       if (!existing.firstName) existing.firstName = String(c.first_name || '').trim();
     } else {
-      byEmail.set(email, { email, firstName: String(c.first_name || '').trim(), isCustomer: true, sellerType: null, sellerApproved: false });
+      byEmail.set(email, { ids: [String(c.id)], email, firstName: String(c.first_name || '').trim(), isCustomer: true, sellerType: null, sellerApproved: false });
     }
   }
 
@@ -128,6 +132,59 @@ function buildEmail(content: BroadcastContent, r: { email: string; firstName: st
   };
 }
 
+/* ----- SMS / call copies: recipients who switched phone updates on (notification_channels) ----- */
+
+async function loadPhonePrefs(service: SupabaseClient) {
+  const byUser = new Map<string, ChannelPrefs>();
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await service
+      .from('notification_channels')
+      .select('user_id, phone, phone_verified_at, sms_enabled, voice_enabled, marketing_enabled, optout_token')
+      .not('phone_verified_at', 'is', null)
+      .range(from, from + 999);
+    if (error) return byUser; // migration not run yet → no phone copies
+    for (const row of data || []) if (row.sms_enabled || row.voice_enabled) byUser.set(String(row.user_id), row as ChannelPrefs);
+    if (!data || data.length < 1000) return byUser;
+  }
+}
+
+function phonePrefsFor(r: Recipient, byUser: Map<string, ChannelPrefs>) {
+  for (const id of r.ids) { const p = byUser.get(id); if (p) return { userId: id, prefs: p }; }
+  return null;
+}
+
+function phoneMessage(content: BroadcastContent, firstName: string) {
+  const name = (s: string) => s.split('{שם}').join(firstName || '').replace(/\s+([,.!?])/g, '$1').trim();
+  const title = name(String(content.heading || '').trim() || content.subject.trim());
+  const link = content.ctaUrl && /^https:\/\//i.test(content.ctaUrl) ? content.ctaUrl : 'hotam.shop';
+  return {
+    sms: `חותם: ${name(content.subject.trim())}\n${link}`,
+    voice: `${title}. ${speakable(name(content.body), 450)}`,
+  };
+}
+
+/** One phone job per user, even when their seller and customer rows have different emails. */
+function phoneJobsFor(targets: Recipient[], byUser: Map<string, ChannelPrefs>) {
+  const seen = new Set<string>();
+  const jobs: { r: Recipient; userId: string; prefs: ChannelPrefs }[] = [];
+  for (const r of targets) {
+    const m = phonePrefsFor(r, byUser);
+    if (!m || seen.has(m.userId)) continue;
+    seen.add(m.userId);
+    jobs.push({ r, ...m });
+  }
+  return jobs;
+}
+
+function phoneCounts(targets: Recipient[], byUser: Map<string, ChannelPrefs>) {
+  const c = { sms: 0, voice: 0, smsAds: 0, voiceAds: 0 };
+  for (const { prefs: p } of phoneJobsFor(targets, byUser)) {
+    if (p.sms_enabled) { c.sms++; if (p.marketing_enabled) c.smsAds++; }
+    if (p.voice_enabled) { c.voice++; if (p.marketing_enabled) c.voiceAds++; }
+  }
+  return c;
+}
+
 export async function POST(req: Request) {
   try {
     const token = req.headers.get('Authorization')?.replace('Bearer ', '');
@@ -149,11 +206,15 @@ export async function POST(req: Request) {
 
     if (action === 'stats') {
       const { recipients, unsubscribeReady, optedOutCount } = await loadRecipients(service);
-      const counts: Record<string, { approvedOnly: number; everyone: number }> = {};
+      const phonePrefs = await loadPhonePrefs(service);
+      const counts: Record<string, { approvedOnly: number; everyone: number; phone: { approvedOnly: ReturnType<typeof phoneCounts>; everyone: ReturnType<typeof phoneCounts> } }> = {};
       for (const audience of BROADCAST_AUDIENCES) {
+        const approved = recipients.filter((r) => inAudience(r, audience, true));
+        const everyone = recipients.filter((r) => inAudience(r, audience, false));
         counts[audience] = {
-          approvedOnly: recipients.filter((r) => inAudience(r, audience, true)).length,
-          everyone: recipients.filter((r) => inAudience(r, audience, false)).length,
+          approvedOnly: approved.length,
+          everyone: everyone.length,
+          phone: { approvedOnly: phoneCounts(approved, phonePrefs), everyone: phoneCounts(everyone, phonePrefs) },
         };
       }
       const { data: history } = await service
@@ -182,7 +243,9 @@ export async function POST(req: Request) {
         console.error('[admin/broadcast] test send failed:', error?.message ?? error);
         return NextResponse.json({ error: `שליחת מייל הניסיון נכשלה: ${String(error?.message || 'שגיאה בשירות המייל')}` }, { status: 502 });
       }
-      return NextResponse.json({ ok: true, to });
+      // the admin sees the SMS / call version on their own phone, if they switched phone updates on
+      const phoneTest = await notifyUser({ userId: user.id, kind: 'broadcast', service, bulk: true, marketing: content.isAdvertisement, message: phoneMessage(content, firstName) });
+      return NextResponse.json({ ok: true, to, phone: phoneTest });
     }
 
     if (action === 'send') {
@@ -230,6 +293,12 @@ export async function POST(req: Request) {
         if (i + BATCH_SIZE < targets.length) await sleep(PAUSE_BETWEEN_BATCHES_MS);
       }
 
+      // SMS / call copies go out after the response, independent of the emails (a phone failure or a
+      // slow Twilio never affects the emails or this request). The send is logged first, below.
+      const phonePrefs = await loadPhonePrefs(service);
+      const phoneJobs = phoneJobsFor(targets, phonePrefs);
+      const phoneQueued = phoneJobs.filter((j) => !content.isAdvertisement || j.prefs.marketing_enabled).length;
+
       await service.from('activity_events').insert({
         actor_id: user.id,
         actor_role: 'admin',
@@ -243,9 +312,20 @@ export async function POST(req: Request) {
           failed,
           has_image: !!content.imageUrl,
           admin_email: adminRow.email || user.email || null,
+          phone_queued: phoneQueued,
         },
       });
-      return NextResponse.json({ ok: failed === 0, sent, failed });
+      if (phoneJobs.length) {
+        afterResponse(async () => {
+          for (let i = 0; i < phoneJobs.length; i += 5) {
+            await Promise.all(phoneJobs.slice(i, i + 5).map(({ r, userId, prefs }) => notifyUser({
+              userId, prefs, service, kind: 'broadcast', bulk: true,
+              marketing: content.isAdvertisement, message: phoneMessage(content, r.firstName),
+            })));
+          }
+        });
+      }
+      return NextResponse.json({ ok: failed === 0, sent, failed, phoneQueued });
     }
 
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 });

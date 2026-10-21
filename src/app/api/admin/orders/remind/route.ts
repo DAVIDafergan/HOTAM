@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { classifyStuckOrder, STUCK_THRESHOLDS } from '@/lib/stuck-orders';
+import { afterResponse, notifyUser, shortSite } from '@/lib/notify-channels';
 
 // Admin-only: email the seller of a stuck order (paid and not delivered, or an unhandled
 // ספר תורה request). The seller's email is looked up here; the send is logged in activity_events.
@@ -71,6 +72,16 @@ export async function POST(req: Request) {
           </div>
         </div>`,
     });
+
+    afterResponse(() => notifyUser({
+      userId: String(order.seller_id),
+      kind: 'order_reminder',
+      service,
+      message: {
+        sms: `חותם: תזכורת - הזמנה #${shortId} ממתינה לטיפולך ${stuck.days} ימים. ${shortSite()}/seller/dashboard?tab=sales`,
+        voice: `תזכורת: ${what}, ${order.product_name || ''}, ממתינה לטיפולך כבר ${stuck.days} ימים. אנא היכנסו לדשבורד המוכר באתר חותם, ללשונית המכירות.`,
+      },
+    }));
 
     await service.from('activity_events').insert({
       actor_id: user.id,

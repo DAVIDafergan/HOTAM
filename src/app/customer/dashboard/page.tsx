@@ -32,6 +32,7 @@ import Image from '@/components/SmartImage';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { NotificationChannelsCard } from '@/components/NotificationChannelsCard';
 import { useUser, useApp, useSupabaseClient, useDoc, useMemoStable, useCollection, updateDocumentNonBlocking } from '@/lib/supabase-hooks';
 import { doc, collection, query, where, documentId } from '@/lib/supabase-compat';
 import { ORDER_CLIENT_COLUMNS } from '@/lib/constants';
@@ -695,6 +696,9 @@ export default function CustomerDashboard() {
                 <Button onClick={handleSaveProfile} disabled={isSaving} className="bg-accent text-primary rounded-full px-10 h-12 font-black uppercase shadow-lg gap-2 hover:bg-accent/90 transition-all">
                   {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} שמור שינויים
                 </Button>
+              </div>
+              <div className="pt-6 border-t mt-6">
+                <NotificationChannelsCard defaultPhone={formData.phone} />
               </div>
               <div className="pt-6 border-t mt-6">
                 <div className="p-4 bg-red-50 rounded-xl border border-red-100 flex items-center justify-between gap-4">

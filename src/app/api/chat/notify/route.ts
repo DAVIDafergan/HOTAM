@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { afterResponse, getChannelPrefs, notifyUser, safeName, shortSite } from '@/lib/notify-channels';
 
 // "You have new messages" email to the other side of a chat. The browser only sends the chat id:
 // the recipient, their email and their notification preference are looked up here, so no one's
@@ -51,7 +52,11 @@ export async function POST(req: Request) {
     ]);
     const to = sellerTo?.email || customerTo?.email;
     const enabled = sellerTo ? sellerTo.notification_email !== false : customerTo?.notif_msg_email !== false;
-    if (!to || !enabled) return NextResponse.json({ sent: false, reason: 'opted-out-or-no-email' });
+    // SMS / call are separate choices from the email switch (see NotificationChannelsCard).
+    const phonePrefs = await getChannelPrefs(service, recipientId);
+    const phoneOn = !!(phonePrefs?.phone_verified_at && (phonePrefs.sms_enabled || phonePrefs.voice_enabled));
+    const emailOn = !!to && enabled;
+    if (!emailOn && !phoneOn) return NextResponse.json({ sent: false, reason: 'opted-out-or-no-email' });
 
     const [{ data: sellerFrom }, { data: customerFrom }] = await Promise.all([
       service.from('sellers').select('first_name, last_name').eq('id', user.id).maybeSingle(),
@@ -65,9 +70,28 @@ export async function POST(req: Request) {
     // Claim the hour first so two quick messages can't both send.
     await service.from('chats').update({ last_email_notif_at: new Date().toISOString() }).eq('id', chatId);
 
+    if (phoneOn) {
+      // The chat row's hourly mark can be changed by participants, so phone alerts have their own
+      // per-recipient limit on the server (notification_log). The sender's display name is free
+      // text: only letters go into an SMS or a call (no links, no numbers, 25 characters max).
+      const name = safeName(senderName);
+      afterResponse(() => notifyUser({
+        userId: recipientId,
+        kind: 'chat',
+        service,
+        prefs: phonePrefs,
+        throttle: { perHour: 1, perDay: 6 },
+        message: {
+          sms: `חותם: הודעה חדשה מ${name}. ${shortSite()}/chat/${user.id}`,
+          voice: `קיבלת הודעה חדשה מ${name}. כדי לקרוא ולהשיב, היכנסו לאתר חותם, לתיבת ההודעות.`,
+        },
+      }));
+    }
+    if (!emailOn) return NextResponse.json({ sent: true, email: false });
+
     const { sendEmail } = await import('@/lib/send-email');
     await sendEmail({
-      to,
+      to: to!,
       subject: 'הודעות ממתינות לך ב-Hotam',
       text: `יש לך הודעות חדשות מ-${senderName}. לצפייה ולהשבה, כנס/י לאתר: ${link}`,
       html: `

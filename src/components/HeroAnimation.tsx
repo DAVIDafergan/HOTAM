@@ -602,7 +602,7 @@ export function HeroAnimation() {
               <a href="#how-it-works">איך זה עובד</a>
             </Button>
           </div>
-          <ul className="fade-up fade-up-3 mt-9 md:mt-12 flex flex-wrap gap-x-6 gap-y-2 text-[14px] text-primary/70">
+          <ul className="fade-up fade-up-3 mt-9 md:mt-12 flex flex-wrap gap-x-6 gap-y-2 text-[15px] text-primary/85">
             <li className="flex items-center gap-2"><span className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />סופרים מאומתים בלבד</li>
             <li className="flex items-center gap-2"><span className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />ישירות מהסופר, בלי מתווכים</li>
             <li className="flex items-center gap-2"><span className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />תשלום מאובטח בנאמנות</li>

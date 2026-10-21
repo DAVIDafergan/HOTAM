@@ -53,6 +53,7 @@ import { useToast } from '@/hooks/use-toast';
 import { logEvent } from '@/lib/log-event';
 import unsplashLoader from '@/lib/unsplashLoader';
 import { cn } from '@/lib/utils';
+import { Price } from '@/components/Price';
 import { useActiveSeasons } from '@/hooks/use-active-seasons';
 import { getTorahDeliveryTimeLabel } from '@/lib/torah-delivery-time';
 import { PROFILE_NOT_FOUND_CODE } from '@/lib/supabase-errors';
@@ -611,15 +612,15 @@ export function ProductDetailsClient({
       : 'grab';
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8] pb-24 sm:pb-28 md:pb-32" dir="rtl">
+    <div className="min-h-screen bg-background" dir="rtl">
       <Navbar />
-      <main className="container mx-auto px-4 py-20 md:py-28 max-w-6xl motion-safe:animate-in motion-safe:fade-in motion-safe:duration-700">
+      <main className="container mx-auto px-4 pt-24 pb-16 md:pt-32 md:pb-24 max-w-6xl motion-safe:animate-in motion-safe:fade-in motion-safe:duration-700">
 
         {/* Mobile Header Actions */}
-        <div className="mb-6 mt-4 flex justify-end md:hidden">
+        <div className="mb-4 flex justify-end md:hidden">
           <div className="flex gap-2">
-            <Button variant="outline" size="icon" onClick={handleShare} className="rounded-full bg-white border-primary/10 shadow-sm transition-all duration-200 hover:scale-105 active:scale-90"><Share2 className="w-4 h-4" /></Button>
-            <Button variant="outline" size="icon" onClick={handleToggleFavorite} className={cn("rounded-full bg-white border-primary/10 shadow-sm transition-all duration-200 hover:scale-105 active:scale-90", isFavorite ? 'bg-accent text-primary border-accent' : '')}><Heart className={cn("w-4 h-4 transition-transform duration-200", isFavorite ? 'fill-current' : '')} /></Button>
+            <Button variant="outline" size="icon" onClick={handleShare} className="rounded-full bg-card border-border shadow-none" aria-label="שיתוף"><Share2 className="w-4 h-4" /></Button>
+            <Button variant="outline" size="icon" onClick={handleToggleFavorite} aria-label={isFavorite ? 'הסר ממועדפים' : 'הוסף למועדפים'} className={cn("rounded-full bg-card border-border shadow-none", isFavorite ? 'text-rose-600' : '')}><Heart className={cn("w-4 h-4 transition-transform duration-200", isFavorite ? 'fill-current' : '')} /></Button>
           </div>
         </div>
 
@@ -629,7 +630,7 @@ export function ProductDetailsClient({
             <div className="relative group">
               <div
                 ref={galleryScrollRef}
-                className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide aspect-[4/5] w-full rounded-[1.75rem] bg-white shadow-[0_8px_40px_rgba(15,23,42,0.06)] ring-1 ring-primary/5 transition-shadow duration-500 hover:shadow-[0_16px_56px_rgba(15,23,42,0.10)] [-webkit-overflow-scrolling:touch] scroll-smooth"
+                className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide aspect-[4/5] w-full rounded-[2rem] bg-secondary/50 shadow-premium-lg ring-1 ring-border/70 [-webkit-overflow-scrolling:touch] scroll-smooth"
               >
                 {images.map((img: string, i: number) => (
                   <button
@@ -645,19 +646,19 @@ export function ProductDetailsClient({
                 ))}
               </div>
               {product.quantity <= 0 && (
-                <div className="absolute inset-0 rounded-[1.75rem] bg-black/40 backdrop-blur-sm flex items-center justify-center">
-                  <Badge variant="destructive" className="px-8 py-3 text-sm font-black uppercase tracking-widest rounded-full shadow-2xl">אזל מהמלאי</Badge>
+                <div className="absolute inset-0 rounded-[2rem] bg-black/45 flex items-center justify-center">
+                  <Badge variant="destructive" className="px-6 py-2.5 text-[15px] font-bold rounded-full shadow-lg">אזל מהמלאי</Badge>
                 </div>
               )}
               <div className="absolute bottom-4 left-4 opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-bold text-primary shadow-md backdrop-blur-sm">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-card/95 px-3 py-1.5 text-[13px] font-semibold text-primary shadow-md">
                   <ZoomIn className="w-3.5 h-3.5" />
                   <span>הגדלה</span>
                 </div>
               </div>
               {product.script_level && (
                 <div className="absolute top-4 right-4 hidden md:block">
-                  <Badge className="bg-white/90 backdrop-blur-md text-primary border-none px-4 py-1.5 rounded-full font-bold text-xs uppercase shadow-sm">
+                  <Badge className="bg-card/95 text-primary border-none px-4 py-1.5 rounded-full font-semibold text-[13px] shadow-sm">
                     {product.script_level}
                   </Badge>
                 </div>
@@ -685,7 +686,7 @@ export function ProductDetailsClient({
                     aria-label={`עבור לתמונה ${i + 1}`}
                     className={cn(
                       "relative w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden shrink-0 transition-all duration-200",
-                      selectedImageIdx === i ? 'ring-2 ring-primary ring-offset-2' : 'ring-1 ring-primary/10 opacity-70 hover:opacity-100 hover:ring-primary/30'
+                      selectedImageIdx === i ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : 'ring-1 ring-border opacity-75 hover:opacity-100 hover:ring-primary/30'
                     )}
                   >
                     <Image loader={unsplashLoader} src={img} alt={`תמונה ממוזערת ${i + 1} - ${productAltDescription}`} fill loading="lazy" kind="product" sizes="80px" className="object-cover" />
@@ -697,34 +698,34 @@ export function ProductDetailsClient({
 
           {/* Product Info */}
           <div className="text-right space-y-6 md:space-y-8 md:sticky md:top-28">
-            <nav aria-label="breadcrumb" className="flex items-center justify-start gap-1.5 text-xs font-bold text-muted-foreground flex-wrap">
-              <Link href="/" className="flex items-center gap-1 hover:text-accent-strong transition-colors">
-                <Home className="w-3 h-3" /> דף הבית
+            <nav aria-label="breadcrumb" className="flex items-center justify-start gap-1.5 text-[13px] font-medium text-muted-foreground flex-wrap">
+              <Link href="/" className="flex min-h-[32px] items-center gap-1 hover:text-primary transition-colors">
+                <Home className="w-3.5 h-3.5" /> דף הבית
               </Link>
               <ChevronLeft className="w-3 h-3 shrink-0" />
-              <Link href={`/search?product=${encodeURIComponent(product.product_type)}`} className="hover:text-accent-strong transition-colors">{product.product_type}</Link>
+              <Link href={`/search?product=${encodeURIComponent(product.product_type)}`} className="flex min-h-[32px] items-center hover:text-primary transition-colors">{product.product_type}</Link>
               <ChevronLeft className="w-3 h-3 shrink-0" />
-              <span aria-current="page" className="text-primary/70">{productDisplayTitle}</span>
+              <span aria-current="page" className="text-primary/80">{productDisplayTitle}</span>
             </nav>
             <div className="space-y-4">
               <div className="flex flex-wrap gap-2 justify-start items-center">
                 {product.script_level && (
-                  <Badge variant="outline" className="border-accent/30 text-accent-strong font-bold text-xs py-1 px-3 rounded-full bg-accent/5 whitespace-nowrap">
+                  <Badge variant="gold" className="text-[13px] py-1.5 px-3 whitespace-nowrap">
                     {product.script_level}
                   </Badge>
                 )}
                 {showSeasonalBadge && (
-                  <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800 font-bold text-xs py-1 px-3 rounded-full whitespace-nowrap">
+                  <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800 text-[13px] py-1.5 px-3 rounded-full whitespace-nowrap">
                     {seasonalBadgeLabel(product.product_type)}
                   </Badge>
                 )}
                 {isInStock ? (
-                  <Badge variant="outline" className="border-emerald-200 bg-emerald-50/60 text-emerald-700 font-bold text-xs py-1 px-3 rounded-full whitespace-nowrap">
-                    <CheckCircle2 className="w-3 h-3 ml-1.5" />
+                  <Badge variant="outline" className="border-emerald-200 bg-emerald-50/70 text-emerald-800 text-[13px] py-1.5 px-3 rounded-full whitespace-nowrap">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
                     זמין במלאי ({product.quantity})
                   </Badge>
                 ) : (
-                  <Badge variant="outline" className="border-rose-200 bg-rose-50/60 text-rose-700 font-bold text-xs py-1 px-3 rounded-full whitespace-nowrap">
+                  <Badge variant="outline" className="border-rose-200 bg-rose-50/70 text-rose-800 text-[13px] py-1.5 px-3 rounded-full whitespace-nowrap">
                     אזל מהמלאי
                   </Badge>
                 )}
@@ -732,15 +733,15 @@ export function ProductDetailsClient({
               <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1">
                   {product.sub_type && product.sub_type !== 'all' && (
-                    <p className="text-sm font-bold text-muted-foreground uppercase tracking-wide">{product.product_type}</p>
+                    <p className="eyebrow mb-1">{product.product_type}</p>
                   )}
-                  <h1 className="text-4xl md:text-5xl font-headline font-black text-primary leading-[1.1] tracking-tight">
+                  <h1 className="text-[34px] md:text-[50px] font-headline font-medium text-primary leading-[1.12]">
                     {productDisplayTitle}
                   </h1>
                   <button
                     type="button"
                     onClick={() => openDetailsTab('reviews')}
-                    className="mt-2 inline-flex items-center gap-1.5 rounded-full py-1 text-sm font-bold text-primary/70 transition-colors hover:text-accent-strong"
+                    className="mt-3 inline-flex min-h-[36px] items-center gap-2 rounded-full text-sm font-semibold text-primary/75 transition-colors hover:text-primary"
                   >
                     <span className="flex items-center gap-0.5" aria-hidden="true">
                       {[1, 2, 3, 4, 5].map((s) => (
@@ -750,7 +751,7 @@ export function ProductDetailsClient({
                     {productRatings.length > 0 ? (
                       <span>{productRatingAvg.toFixed(1)} · {productRatings.length} ביקורות</span>
                     ) : (
-                      <span className="text-primary/45">עדיין אין ביקורות — היו הראשונים</span>
+                      <span className="text-primary/65">עדיין אין ביקורות — היו הראשונים</span>
                     )}
                   </button>
                 </div>
@@ -758,7 +759,7 @@ export function ProductDetailsClient({
                   <button
                     onClick={handleShare}
                     aria-label="שיתוף"
-                    className="flex h-11 w-11 items-center justify-center rounded-full text-primary/40 transition-all duration-200 hover:bg-primary/5 hover:text-primary active:scale-90"
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-border text-primary/70 transition-colors duration-200 hover:bg-primary/5 hover:text-primary active:scale-95"
                   >
                     <Share2 className="w-[18px] h-[18px]" />
                   </button>
@@ -766,8 +767,8 @@ export function ProductDetailsClient({
                     onClick={handleToggleFavorite}
                     aria-label={isFavorite ? 'הסר ממועדפים' : 'הוסף למועדפים'}
                     className={cn(
-                      "flex h-11 w-11 items-center justify-center rounded-full transition-all duration-200 hover:bg-primary/5 active:scale-90",
-                      isFavorite ? "text-primary" : "text-primary/40 hover:text-primary"
+                      "flex h-11 w-11 items-center justify-center rounded-full border border-border transition-colors duration-200 hover:bg-primary/5 active:scale-95",
+                      isFavorite ? "text-rose-600" : "text-primary/70 hover:text-primary"
                     )}
                   >
                     <Heart className={cn("w-[18px] h-[18px] transition-transform duration-200", isFavorite && "fill-current")} />
@@ -777,61 +778,58 @@ export function ProductDetailsClient({
             </div>
 
             {/* Price — clean, no decorative card chrome */}
-            <div className="space-y-5 border-y border-primary/8 py-6">
-              <div className="flex items-baseline justify-start gap-1.5">
-                <span className="text-primary text-5xl md:text-6xl font-black tabular-nums tracking-tighter">{displayPrice}</span>
-                <span className="text-primary/60 text-2xl md:text-3xl font-bold">₪</span>
+            <div className="space-y-5 border-y border-border/80 py-6">
+              <div className="flex items-baseline justify-start gap-3">
+                <Price value={displayPrice} className="text-[44px] md:text-[54px] leading-none" />
+                <span className="text-sm font-medium text-muted-foreground">כולל מע"מ</span>
               </div>
-              <p className="text-xs font-bold text-primary/40 uppercase tracking-wider -mt-3">
-                המחירים כוללים מע"מ
-              </p>
 
               <div className="grid grid-cols-2 gap-3">
-                <section aria-labelledby="delivery-time-label" className="flex flex-col items-start gap-1 rounded-2xl bg-primary/[0.03] p-4 text-right">
-                  <Clock className="w-4 h-4 text-primary/30 mb-1" />
-                  <span id="delivery-time-label" className="text-xs font-bold text-primary/40 uppercase tracking-wide whitespace-nowrap">זמן אספקה</span>
-                  <span className="text-sm font-black text-primary leading-none whitespace-nowrap">
+                <section aria-labelledby="delivery-time-label" className="flex flex-col items-start gap-1 rounded-2xl border border-border/70 bg-card p-4 text-right">
+                  <Clock className="w-4 h-4 text-accent-strong mb-1" />
+                  <span id="delivery-time-label" className="text-[13px] font-medium text-muted-foreground whitespace-nowrap">זמן אספקה</span>
+                  <span className="text-[15px] font-bold text-primary leading-snug whitespace-nowrap">
                     {product.product_type === 'ספר תורה' ? getTorahDeliveryTimeLabel(product.delivery_time) : `${product.delivery_time || '3'} ימים`}
                   </span>
                 </section>
                 {hasDelivery ? (
-                  <section aria-labelledby="delivery-fee-label" className="flex flex-col items-start gap-1 rounded-2xl bg-primary/[0.03] p-4 text-right">
-                    <Truck className="w-4 h-4 text-primary/30 mb-1" />
-                    <span id="delivery-fee-label" className="text-xs font-bold text-primary/40 uppercase tracking-wide whitespace-nowrap">עלות משלוח</span>
-                    <span className="text-sm font-black text-emerald-700 leading-none whitespace-nowrap">
+                  <section aria-labelledby="delivery-fee-label" className="flex flex-col items-start gap-1 rounded-2xl border border-border/70 bg-card p-4 text-right">
+                    <Truck className="w-4 h-4 text-accent-strong mb-1" />
+                    <span id="delivery-fee-label" className="text-[13px] font-medium text-muted-foreground whitespace-nowrap">עלות משלוח</span>
+                    <span className="text-[15px] font-bold text-emerald-800 leading-snug whitespace-nowrap">
                       {Number(product.delivery_fee) > 0 ? `₪${product.delivery_fee}` : 'משלוח חינם'}
                     </span>
                   </section>
                 ) : (
-                  <section aria-labelledby="stock-status-label" className="flex flex-col items-start gap-1 rounded-2xl bg-primary/[0.03] p-4 text-right">
+                  <section aria-labelledby="stock-status-label" className="flex flex-col items-start gap-1 rounded-2xl border border-border/70 bg-card p-4 text-right">
                     <CheckCircle2 className="w-4 h-4 text-emerald-500 mb-1" />
-                    <span id="stock-status-label" className="text-xs font-bold text-primary/40 uppercase tracking-wide whitespace-nowrap">זמינות</span>
-                    <span className="text-sm font-black text-emerald-700 leading-none whitespace-nowrap">{product.quantity > 0 ? 'במלאי' : 'אזל זמנית'}</span>
+                    <span id="stock-status-label" className="text-[13px] font-medium text-muted-foreground whitespace-nowrap">זמינות</span>
+                    <span className="text-[15px] font-bold text-emerald-800 leading-snug whitespace-nowrap">{product.quantity > 0 ? 'במלאי' : 'אזל זמנית'}</span>
                   </section>
                 )}
               </div>
 
               <div className="flex flex-wrap items-center justify-start gap-x-5 gap-y-2 pt-1">
-                <span className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
+                <span className="flex items-center gap-1.5 text-[13px] font-medium text-primary/75">
                   {hasDelivery ? (
                     <><Truck className="w-3.5 h-3.5 text-accent-strong shrink-0" /> משלוח עד הבית</>
                   ) : (
                     <><Store className="w-3.5 h-3.5 text-accent-strong shrink-0" /> איסוף עצמי</>
                   )}
                 </span>
-                <span className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
+                <span className="flex items-center gap-1.5 text-[13px] font-medium text-primary/75">
                   <ShieldCheck className="w-3.5 h-3.5 text-accent-strong shrink-0" /> אבטחת תשלום
                 </span>
-                <span className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
+                <span className="flex items-center gap-1.5 text-[13px] font-medium text-primary/75">
                   <ShieldAlert className="w-3.5 h-3.5 text-accent-strong shrink-0" /> מדיניות החזרה
                 </span>
               </div>
             </div>
 
             {judaicaCategory?.notice && (
-              <div className="flex items-start gap-3 rounded-[1.5rem] border-2 border-amber-200 bg-amber-50 p-4" role="note" data-product-notice>
+              <div className="flex items-start gap-3 rounded-[1.5rem] border border-amber-200 bg-amber-50 p-4" role="note" data-product-notice>
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
-                <p className="text-sm font-bold leading-relaxed text-amber-900">
+                <p className="text-sm font-semibold leading-relaxed text-amber-900">
                   {judaicaCategory.notice.text}{' '}
                   <Link href={judaicaCategory.notice.href} className="underline decoration-amber-500 underline-offset-2">{judaicaCategory.notice.linkLabel}</Link>
                 </p>
@@ -842,9 +840,9 @@ export function ProductDetailsClient({
             {seller && (
               <Link
                 href={`/sellers/${seller.id}`}
-                className="group flex items-center gap-4 rounded-[1.75rem] border border-primary/5 bg-white p-4 shadow-premium transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                className="group flex items-center gap-4 rounded-[1.75rem] border border-border/70 bg-card p-4 shadow-premium transition-shadow duration-300 hover:shadow-premium-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
-                <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full bg-muted ring-2 ring-accent/30 flex items-center justify-center">
+                <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full bg-secondary ring-1 ring-accent/40 flex items-center justify-center">
                   {seller.profile_image ? (
                     <Image src={seller.profile_image} alt={sellerFullName || 'סופר'} fill kind="avatar" sizes="56px" className="object-cover" />
                   ) : (
@@ -852,12 +850,12 @@ export function ProductDetailsClient({
                   )}
                 </div>
                 <div className="min-w-0 flex-1 text-right">
-                  <p className="text-xs font-bold uppercase tracking-widest text-primary/35">{judaicaCategory ? 'נמכר על ידי' : 'נכתב על ידי'}</p>
-                  <p className="flex items-center gap-1 text-base font-black text-primary">
+                  <p className="text-[13px] font-medium text-muted-foreground">{judaicaCategory ? 'נמכר על ידי' : 'נכתב על ידי'}</p>
+                  <p className="flex items-center gap-1 font-headline text-lg font-bold text-primary">
                     <span className="truncate">{sellerFullName || 'סופר סת״ם'}</span>
                     {seller.is_approved && <BadgeCheck className="h-4 w-4 shrink-0 fill-accent text-white" aria-label="סופר מאומת" />}
                   </p>
-                  <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs font-bold text-muted-foreground">
+                  <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[13px] font-medium text-muted-foreground">
                     {sellerCity && (
                       <span className="flex items-center gap-1"><MapPin className="h-3 w-3 text-accent" />{sellerCity}</span>
                     )}
@@ -867,7 +865,7 @@ export function ProductDetailsClient({
                     </span>
                   </div>
                 </div>
-                <span className="inline-flex h-10 shrink-0 items-center gap-1 rounded-full bg-primary px-4 text-xs font-bold text-primary-foreground transition-colors group-hover:bg-accent group-hover:text-primary">
+                <span className="inline-flex h-11 shrink-0 items-center gap-1 rounded-full border border-primary/20 px-4 text-sm font-semibold text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
                   לפרופיל
                   <ArrowLeft className="h-3.5 w-3.5" />
                 </span>
@@ -875,32 +873,32 @@ export function ProductDetailsClient({
             )}
 
             <div className="space-y-3">
-              <h2 className="font-bold text-xs text-muted-foreground uppercase tracking-widest flex items-center justify-start gap-2 whitespace-nowrap">
-                <ScrollText className="w-3.5 h-3.5 shrink-0" /> {judaicaCategory ? 'על המוצר' : 'על כלי הקודש'}
+              <h2 className="font-headline text-xl font-bold text-primary flex items-center justify-start gap-2">
+                <ScrollText className="w-4 h-4 shrink-0 text-accent-strong" /> {judaicaCategory ? 'על המוצר' : 'על כלי הקודש'}
               </h2>
-              <p className="text-primary/75 font-medium text-base leading-relaxed">
+              <p className="text-primary/80 text-[16.5px] leading-[1.85] whitespace-pre-line">
                 {product.description}
               </p>
             </div>
 
             {(deliveryAreaText || normalizedDeliveryType === 'delivery' || normalizedDeliveryType === 'both' || normalizedDeliveryType === 'pickup') && (
-              <div className="space-y-4 rounded-[1.75rem] bg-primary/[0.025] p-5">
+              <div className="space-y-4 rounded-[1.75rem] border border-border/70 bg-card/60 p-5">
                 {(normalizedDeliveryType === 'delivery' || normalizedDeliveryType === 'both') && (
                   <div className="space-y-2.5">
                     <div className="flex items-center justify-start gap-2">
-                      <Truck className="w-3.5 h-3.5 text-primary/30" />
-                      <span className="text-xs font-bold text-primary/50 uppercase tracking-widest">ערים זמינות למשלוח</span>
+                      <Truck className="w-4 h-4 text-accent-strong" />
+                      <span className="text-sm font-bold text-primary">ערים זמינות למשלוח</span>
                     </div>
                     <div className="flex flex-wrap gap-1.5 justify-start">
                       {deliveryAreaText ? (
                         deliveryAreaText.split(', ').filter(Boolean).map((city: string) => (
-                          <Badge key={city} variant="outline" className="bg-transparent text-primary/70 border-primary/15 font-medium text-xs px-3 py-1 rounded-full">
-                            <MapPin className="w-3 h-3 ml-1 text-primary/30" />{city}
+                          <Badge key={city} variant="outline" className="bg-card text-primary/80 border-border font-medium text-[13px] px-3 py-1.5 rounded-full">
+                            <MapPin className="w-3 h-3 text-accent-strong" />{city}
                           </Badge>
                         ))
                       ) : (
-                        <Badge variant="outline" className="bg-transparent text-emerald-700 border-emerald-200 font-medium text-xs px-3 py-1 rounded-full">
-                          <CheckCircle2 className="w-3 h-3 ml-1" />כל הארץ
+                        <Badge variant="outline" className="bg-emerald-50/70 text-emerald-800 border-emerald-200 font-medium text-[13px] px-3 py-1.5 rounded-full">
+                          <CheckCircle2 className="w-3.5 h-3.5" />כל הארץ
                         </Badge>
                       )}
                     </div>
@@ -909,11 +907,11 @@ export function ProductDetailsClient({
                 {(normalizedDeliveryType === 'pickup' || normalizedDeliveryType === 'both') && (
                   <div className={cn("space-y-1", (normalizedDeliveryType === 'both') && "pt-3 border-t border-primary/5")}>
                     <div className="flex items-center justify-start gap-2">
-                      <MapPin className="w-3.5 h-3.5 text-primary/30 shrink-0" />
+                      <MapPin className="w-4 h-4 text-accent-strong shrink-0" />
                       <span className="text-sm font-bold text-primary/80">איסוף עצמי מ{sellerCity || 'עיר הסופר'}</span>
                     </div>
                     {pickupAddress && (
-                      <p className="text-xs text-primary/45 font-medium text-right">{pickupAddress}</p>
+                      <p className="text-sm text-primary/70 text-right">{pickupAddress}</p>
                     )}
                   </div>
                 )}
@@ -925,14 +923,14 @@ export function ProductDetailsClient({
         {/* Technical Details Tabs */}
         <div ref={detailsSectionRef} className="mt-16 md:mt-28 scroll-mt-28">
           <Tabs value={detailsTab} onValueChange={setDetailsTab} dir="rtl" className="text-right">
-            <TabsList className="mb-10 inline-flex h-auto w-full max-w-full justify-start gap-1 overflow-x-auto rounded-full border border-primary/5 bg-white p-1.5 shadow-premium sm:w-auto">
-             <TabsTrigger value="specs" className="flex-none rounded-full px-5 py-2.5 text-sm font-bold text-primary/50 transition-all duration-300 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md whitespace-nowrap">מפרט טכני</TabsTrigger>
-             <TabsTrigger value="seller" className="flex-none rounded-full px-5 py-2.5 text-sm font-bold text-primary/50 transition-all duration-300 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md whitespace-nowrap">{judaicaCategory ? 'המוכר' : 'הסופר הכותב'}</TabsTrigger>
-             <TabsTrigger value="reviews" className="flex-none rounded-full px-5 py-2.5 text-sm font-bold text-primary/50 transition-all duration-300 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md whitespace-nowrap">ביקורות ({(reviews || []).length})</TabsTrigger>
+            <TabsList className="mb-8 md:mb-10 inline-flex h-auto w-full max-w-full justify-start gap-1 overflow-x-auto no-scrollbar rounded-full border border-border/70 bg-card p-1.5 shadow-premium sm:w-auto">
+             <TabsTrigger value="specs" className="flex-none rounded-full px-5 py-2.5 text-[15px] font-semibold text-primary/70 transition-colors duration-300 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">מפרט טכני</TabsTrigger>
+             <TabsTrigger value="seller" className="flex-none rounded-full px-5 py-2.5 text-[15px] font-semibold text-primary/70 transition-colors duration-300 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">{judaicaCategory ? 'המוכר' : 'הסופר הכותב'}</TabsTrigger>
+             <TabsTrigger value="reviews" className="flex-none rounded-full px-5 py-2.5 text-[15px] font-semibold text-primary/70 transition-colors duration-300 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">ביקורות ({(reviews || []).length})</TabsTrigger>
             </TabsList>
 
             <TabsContent value="specs" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-              <h2 className="font-bold text-xs text-muted-foreground uppercase tracking-widest mb-4">מפרט טכני</h2>
+              <h2 className="sr-only">מפרט טכני</h2>
               {judaicaCategory ? (
                 <div className="grid sm:grid-cols-2 gap-3 max-w-3xl" data-judaica-specs>
                   {product.sub_type && <SpecItem icon={Package} label="סוג" value={product.sub_type} />}
@@ -955,7 +953,7 @@ export function ProductDetailsClient({
             <TabsContent value="seller" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
               <div className="max-w-3xl">
                 {seller ? (
-                  <div className="rounded-[2rem] md:rounded-[2.5rem] bg-white border border-primary/10 shadow-premium p-6 md:p-10">
+                  <div className="rounded-[2rem] md:rounded-[2.5rem] bg-card border border-border/70 shadow-premium p-6 md:p-10">
                     <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8">
                       <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden shrink-0 ring-2 ring-accent/15 shadow-md">
                         {seller.profile_image ? (
@@ -976,14 +974,14 @@ export function ProductDetailsClient({
 
                       <div className="flex-1 min-w-0 space-y-4 text-center sm:text-right">
                         <div className="space-y-1.5">
-                          <h2 className="text-2xl sm:text-3xl font-headline font-black text-primary tracking-tight truncate">
+                          <h2 className="text-[26px] sm:text-[32px] font-headline font-medium text-primary truncate">
                             {seller.first_name} {seller.last_name}
                           </h2>
                           <div className="flex items-center justify-center sm:justify-start gap-3 flex-wrap">
                             {seller.is_approved && (
-                              <span className="text-xs font-black text-accent-strong uppercase tracking-widest">{isJudaicaSeller ? 'מוכר מאושר' : 'סופר מאומת'}</span>
+                              <span className="text-[13px] font-semibold text-accent-strong">{isJudaicaSeller ? 'מוכר מאושר' : 'סופר מאומת'}</span>
                             )}
-                            <p className="text-muted-foreground text-sm font-bold flex items-center gap-1.5">
+                            <p className="text-muted-foreground text-sm font-medium flex items-center gap-1.5">
                               <MapPin className="w-3.5 h-3.5 text-accent" /> {sellerCity || 'לא צוין'}
                             </p>
                           </div>
@@ -996,7 +994,7 @@ export function ProductDetailsClient({
                         </blockquote>
 
                         <div className="pt-2 flex justify-center sm:justify-start">
-                          <Button asChild variant="outline" className="rounded-full border-2 border-primary text-primary hover:bg-accent hover:border-accent hover:text-primary font-black uppercase text-xs h-12 px-10 transition-all shadow-md">
+                          <Button asChild variant="outline" className="px-8">
                             <Link href={`/sellers/${seller.id}`}>{isJudaicaSeller ? 'לפרופיל המוכר' : 'לפרופיל המלא ודוגמאות כתיבה'} <ArrowLeft className="w-4 h-4 mr-2" /></Link>
                           </Button>
                         </div>
@@ -1014,9 +1012,9 @@ export function ProductDetailsClient({
             <TabsContent value="reviews" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
               <div className="max-w-3xl">
                 {productRatings.length > 0 && (
-                  <div className="mb-8 flex flex-col items-center gap-6 rounded-[1.75rem] border border-primary/5 bg-white p-6 shadow-premium sm:flex-row sm:items-center">
+                  <div className="mb-8 flex flex-col items-center gap-6 rounded-[1.75rem] border border-border/70 bg-card p-6 shadow-premium sm:flex-row sm:items-center">
                     <div className="shrink-0 text-center">
-                      <p className="text-5xl font-black tabular-nums tracking-tight text-primary">{productRatingAvg.toFixed(1)}</p>
+                      <p className="font-headline text-5xl font-medium num text-primary">{productRatingAvg.toFixed(1)}</p>
                       <div className="mt-1 flex justify-center gap-0.5">
                         {[1, 2, 3, 4, 5].map((s) => (
                           <Star key={s} className={cn("h-4 w-4", s <= Math.round(productRatingAvg) ? 'fill-accent text-accent' : 'text-primary/15')} />
@@ -1026,26 +1024,26 @@ export function ProductDetailsClient({
                     </div>
                     <div className="w-full flex-1 space-y-1.5">
                       {ratingDistribution.map(({ star, count }) => (
-                        <div key={star} className="flex items-center gap-2 text-xs font-bold text-primary/60">
+                        <div key={star} className="flex items-center gap-2 text-[13px] font-semibold text-primary/75">
                           <span className="w-3 tabular-nums">{star}</span>
                           <Star className="h-3 w-3 shrink-0 fill-accent text-accent" />
                           <div className="h-2 flex-1 overflow-hidden rounded-full bg-primary/[0.06]">
                             <div className="h-full rounded-full bg-accent" style={{ width: `${(count / productRatings.length) * 100}%` }} />
                           </div>
-                          <span className="w-6 text-left tabular-nums text-primary/40">{count}</span>
+                          <span className="w-6 text-left tabular-nums text-primary/65">{count}</span>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
                 <div className="flex justify-between items-center mb-5">
-                  <h3 className="text-sm font-black text-primary/60 uppercase tracking-widest">ביקורות לקוחות</h3>
+                  <h3 className="font-headline text-xl font-bold text-primary">ביקורות לקוחות</h3>
                   <div className="flex items-center gap-2">
                     <Button
                       type="button"
                       variant={reviewSortOrder === 'newest' ? 'default' : 'outline'}
                       onClick={() => setReviewSortOrder('newest')}
-                      className="rounded-full text-xs h-8 px-4 font-black"
+                      size="sm" className="text-[13px] h-10 px-4"
                     >
                       החדשות ביותר
                     </Button>
@@ -1053,17 +1051,17 @@ export function ProductDetailsClient({
                       type="button"
                       variant={reviewSortOrder === 'oldest' ? 'default' : 'outline'}
                       onClick={() => setReviewSortOrder('oldest')}
-                      className="rounded-full text-xs h-8 px-4 font-black"
+                      size="sm" className="text-[13px] h-10 px-4"
                     >
                       הוותיקות ביותר
                     </Button>
                   </div>
                 </div>
 
-                <div className="mb-8 rounded-[1.75rem] border border-primary/10 bg-primary/[0.02] p-5 md:p-6 space-y-4 text-right">
+                <div className="mb-8 rounded-[1.75rem] border border-border/70 bg-card/70 p-5 md:p-7 space-y-5 text-right">
                   <div className="space-y-1">
-                    <h4 className="text-base font-black text-primary">פרסום ביקורת</h4>
-                    <p className="text-xs font-medium text-muted-foreground">שתפו בקצרה על המוצר כדי לעזור לקונים הבאים.</p>
+                    <h4 className="font-headline text-lg font-bold text-primary">פרסום ביקורת</h4>
+                    <p className="text-sm text-muted-foreground">שתפו בקצרה על המוצר כדי לעזור לקונים הבאים.</p>
                   </div>
                   {!user && (
                     <p className="text-xs font-bold text-muted-foreground">
@@ -1075,7 +1073,7 @@ export function ProductDetailsClient({
                   ) : (
                     <>
                       <div className="space-y-2">
-                        <Label className="text-xs font-black uppercase text-muted-foreground">ביקורת</Label>
+                        <Label>ביקורת</Label>
                         <Textarea
                           placeholder="שתף את הרשמך מהמוצר..."
                           value={reviewComment}
@@ -1085,16 +1083,16 @@ export function ProductDetailsClient({
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-xs font-black uppercase tracking-widest text-primary">דירוג כוכבים</Label>
-                        <div className="flex justify-center gap-2.5 rounded-2xl border border-primary/10 bg-white p-3">
+                        <Label>דירוג כוכבים</Label>
+                        <div className="flex justify-center gap-1.5 rounded-2xl border border-border bg-card p-2">
                           {[1, 2, 3, 4, 5].map(s => (
-                            <button key={s} type="button" onClick={() => setReviewRating(s)} disabled={!user || isOwnProductReviewBlocked || isReviewSubmitting} className="rounded-full p-1.5 transition-colors hover:bg-accent/10 disabled:cursor-not-allowed">
+                            <button key={s} type="button" onClick={() => setReviewRating(s)} disabled={!user || isOwnProductReviewBlocked || isReviewSubmitting} aria-label={`${s} כוכבים`} className="rounded-full p-2.5 transition-colors hover:bg-accent/10 disabled:cursor-not-allowed">
                               <Star className={`w-5 h-5 transition-colors ${s <= reviewRating ? 'fill-accent text-accent' : 'text-muted-foreground/30'}`} />
                             </button>
                           ))}
                         </div>
                       </div>
-                      <div className="flex items-center justify-between p-4 rounded-2xl bg-white border border-muted/40">
+                      <div className="flex items-center justify-between p-4 rounded-2xl bg-card border border-border">
                         <Switch
                           id="product-review-anon"
                           checked={reviewIsAnonymous}
@@ -1106,7 +1104,7 @@ export function ProductDetailsClient({
                       <Button
                         onClick={handleSubmitProductReview}
                         disabled={!user || isReviewSubmitting || isOwnProductReviewBlocked}
-                        className="w-full bg-accent text-primary h-12 font-black rounded-2xl shadow-md"
+                        className="w-full h-12"
                       >
                         {isReviewSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : getProductReviewSubmitLabel()}
                       </Button>
@@ -1126,16 +1124,16 @@ export function ProductDetailsClient({
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-baseline justify-between mb-1">
-                            <p className="font-semibold text-primary text-xs">{rev.is_anonymous ? 'אנונימי' : (rev.buyer_name || 'משתמש')}</p>
-                            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{rev.created_at ? new Date(rev.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
+                            <p className="font-semibold text-primary text-sm">{rev.is_anonymous ? 'אנונימי' : (rev.buyer_name || 'משתמש')}</p>
+                            <span className="text-xs font-medium text-muted-foreground num">{rev.created_at ? new Date(rev.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
                           </div>
-                          <div className="rounded-2xl border border-primary/5 bg-white px-4 py-3 text-right shadow-sm">
+                          <div className="rounded-2xl border border-border/70 bg-card px-4 py-3.5 text-right">
                             <div className="flex justify-start gap-0.5 mb-2">
                               {[1, 2, 3, 4, 5].map(s => (
                                 <Star key={s} className={cn("w-3 h-3", s <= (Number(rev.rating) || 0) ? 'fill-accent text-accent' : 'text-muted-foreground/20')} />
                               ))}
                             </div>
-                            <p className="text-xs text-primary/70 leading-relaxed font-medium">{rev.comment}</p>
+                            <p className="text-[15px] text-primary/80 leading-relaxed">{rev.comment}</p>
                           </div>
                           {user?.uid === rev.buyer_id && (
                             <div className="flex justify-start mt-1">
@@ -1161,7 +1159,7 @@ export function ProductDetailsClient({
                       <Star className="w-8 h-8 text-accent-strong" />
                     </div>
                     <div className="space-y-1">
-                      <p className="text-lg font-black text-primary">היו הראשונים לכתוב ביקורת</p>
+                      <p className="font-headline text-xl font-bold text-primary">היו הראשונים לכתוב ביקורת</p>
                       <p className="text-sm font-medium text-muted-foreground max-w-sm mx-auto">
                         שתפו את החוויה שלכם עם כלי הקודש הזה ועזרו לקונים הבאים להחליט.
                       </p>
@@ -1175,14 +1173,15 @@ export function ProductDetailsClient({
       </main>
 
       {/* Floating Action Bar - Optimized for Mobile */}
-      <div data-sticky-footer className="fixed bottom-0 left-0 right-0 z-[100] bg-white/95 backdrop-blur-2xl border-t border-primary/8 h-20 sm:h-24 md:h-28 shadow-[0_-8px_30px_rgba(15,23,42,0.06)]">
-        <div className="container mx-auto px-3 sm:px-4 h-full flex items-center justify-between gap-3 md:gap-4 max-w-6xl">
+      <div data-sticky-footer className="fixed bottom-0 left-0 right-0 z-[100] bg-card/[0.97] border-t border-border pb-[env(safe-area-inset-bottom)] shadow-[0_-10px_30px_-12px_hsl(var(--shadow-color)/0.18)]">
+        <div className="container mx-auto px-3 sm:px-4 h-20 sm:h-24 flex items-center justify-between gap-3 md:gap-4 max-w-6xl">
           <div className="flex-1 flex gap-2.5 md:gap-4">
              {isCoordinationOnlyProduct ? (
                <Button
                 onClick={handleTorahCoordination}
                 disabled={isProcessingRequest}
-                className="flex-1 bg-accent text-primary hover:bg-accent/90 h-14 md:h-16 rounded-2xl font-bold gap-3 shadow-md transition-all duration-200 hover:shadow-lg active:scale-95"
+                variant="gold"
+                className="flex-1 h-14 text-base gap-2.5"
                >
                  {isProcessingRequest ? <Loader2 className="w-5 h-5 animate-spin" /> : <CalendarCheck className="w-5 h-5" />}
                  <span>תיאום ופגישה</span>
@@ -1191,7 +1190,8 @@ export function ProductDetailsClient({
                <Button
                 onClick={handlePurchaseClick}
                 disabled={product.quantity <= 0}
-                className="flex-1 bg-accent text-primary hover:bg-accent/90 h-14 md:h-16 rounded-2xl font-bold gap-3 shadow-md transition-all duration-200 hover:shadow-lg active:scale-95"
+                variant="gold"
+                className="flex-1 h-14 text-base gap-2.5"
                >
                  <ShoppingCart className="w-5 h-5" />
                  <span>רכישה מאובטחת</span>
@@ -1204,22 +1204,19 @@ export function ProductDetailsClient({
                <Button
                 variant="outline"
                 asChild
-                className="flex-1 border-primary/15 text-primary h-14 md:h-16 rounded-2xl font-bold gap-3 hover:bg-primary/5 transition-all duration-200 active:scale-95 shadow-none"
+                className="flex-1 sm:flex-none sm:px-8 h-14 text-base gap-2.5"
                >
                 <Link href={`/chat/${product.seller_id}?productId=${productId}`}>
-                  <MessageCircle className="w-5 h-5 text-accent" />
+                  <MessageCircle className="!w-5 !h-5 text-accent-strong" />
                   <span className="hidden sm:inline">התייעצות</span>
                   <span className="sm:hidden">צ'אט</span>
                 </Link>
                </Button>
              )}
           </div>
-          <div className="hidden sm:flex flex-col items-end border-r pr-6 md:pr-10 border-primary/8">
-            <span className="text-xs font-bold text-primary/35 uppercase tracking-wider mb-1">סה"כ לתשלום</span>
-            <div className="flex items-center gap-1.5 text-3xl font-black text-primary tabular-nums tracking-tighter">
-              <span className="text-primary/50 text-lg font-bold">₪</span>
-              <span>{displayPrice}</span>
-            </div>
+          <div className="hidden sm:flex flex-col items-end border-r pr-6 md:pr-10 border-border">
+            <span className="text-[13px] font-medium text-muted-foreground mb-1">סה"כ לתשלום</span>
+            <Price value={displayPrice} className="text-3xl leading-none" />
           </div>
         </div>
       </div>
@@ -1236,7 +1233,7 @@ export function ProductDetailsClient({
         }}
       >
         <DialogContent className="max-w-5xl w-[95vw] rounded-[1.5rem] sm:rounded-[2rem] border-none bg-black/95 p-3 sm:p-6 shadow-2xl max-h-[95vh] overflow-y-auto" dir="rtl">
-          <DialogHeader className="space-y-2 pr-12 text-right">
+          <DialogHeader className="space-y-2 pl-12 text-right">
             <DialogTitle className="text-white">{productDisplayTitle}</DialogTitle>
             <p className="text-xs font-bold text-white/70">הגדל/הקטן עם הכפתורים וגרור לצדדים לעיון נוח — בנייד גרור לאחר הגדלה</p>
           </DialogHeader>
@@ -1364,13 +1361,13 @@ export function ProductDetailsClient({
 
 function SpecItem({ label, value, icon: Icon }: { label: string, value: string, icon: React.ComponentType<{ className?: string }> }) {
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-primary/5 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-premium">
-      <div className="shrink-0 w-11 h-11 rounded-full bg-accent/10 flex items-center justify-center">
+    <div className="flex items-center gap-4 rounded-2xl border border-border/70 bg-card p-4">
+      <div className="shrink-0 w-11 h-11 rounded-full bg-secondary/70 flex items-center justify-center">
         <Icon className="w-5 h-5 text-accent-strong" />
       </div>
       <div className="min-w-0 flex-1">
-        <span className="block text-xs font-medium text-muted-foreground uppercase tracking-widest">{label}</span>
-        <span className="block font-black text-primary text-sm md:text-base truncate">{value}</span>
+        <span className="block text-[13px] font-medium text-muted-foreground">{label}</span>
+        <span className="block font-bold text-primary text-base truncate">{value}</span>
       </div>
     </div>
   );

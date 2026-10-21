@@ -803,7 +803,7 @@ export default function SellerProfile({
         }}
       >
         <DialogContent className="max-h-[95vh] w-[95vw] max-w-5xl overflow-y-auto rounded-[2rem] border-none bg-black/95 p-3 sm:p-6 shadow-2xl" dir="rtl">
-          <DialogHeader className="space-y-2 pr-12 text-right">
+          <DialogHeader className="space-y-2 pl-12 text-right">
             <DialogTitle className="text-white">דוגמת כתיבה מוגדלת</DialogTitle>
             <p className="text-xs font-bold text-white/70">ניתן לבצע זום ולגרור את הדוגמה לעיון מדויק בפרטי הכתיבה.</p>
           </DialogHeader>

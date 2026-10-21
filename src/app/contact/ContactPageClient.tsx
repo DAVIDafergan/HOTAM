@@ -24,7 +24,6 @@ import {
   Headphones,
   Inbox,
   PhoneCall,
-  Sparkles,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useSupabaseClient } from '@/lib/supabase-hooks';
@@ -64,19 +63,15 @@ const FAQ_ITEMS: { q: string; a: ReactNode }[] = [
 
 export default function ContactPageClient() {
   return (
-    <div className="min-h-screen bg-[#FAFAF8]" dir="rtl">
+    <div className="min-h-screen bg-background" dir="rtl">
       <Navbar />
 
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-accent/15 via-accent/5 to-[#FAFAF8] pb-32 pt-32 text-primary md:pb-40 md:pt-40">
-        <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-accent/25 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-32 -left-16 h-80 w-80 rounded-full bg-accent/10 blur-3xl" />
+      <section className="relative overflow-hidden bg-gradient-to-b from-secondary/80 via-secondary/30 to-background pb-28 pt-32 text-primary md:pb-36 md:pt-40">
         <div className="container relative mx-auto max-w-5xl px-4 text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-white/70 px-4 py-1.5 text-xs font-bold tracking-widest text-accent-strong">
-            <Sparkles className="h-3.5 w-3.5" /> אנחנו כאן בשבילכם
-          </span>
-          <h1 className="mt-5 font-headline text-4xl font-black tracking-tight md:text-6xl">דברו עם חותם</h1>
-          <p className="mx-auto mt-4 max-w-xl text-base font-medium leading-relaxed text-primary/65 md:text-lg">
+          <p className="eyebrow">אנחנו כאן בשבילכם</p>
+          <h1 className="mt-4 font-headline text-[40px] font-medium leading-tight md:text-[60px]">דברו עם חותם</h1>
+          <p className="lead mx-auto mt-4 max-w-xl">
             שאלה על רכישה, כשרות או הצטרפות כסופר? בחרו את הדרך הנוחה לכם — ואנחנו נחזור אליכם.
           </p>
         </div>
@@ -116,8 +111,8 @@ export default function ContactPageClient() {
           </div>
 
           <aside className="space-y-6 lg:col-span-2">
-            <div className="rounded-[1.75rem] border border-primary/5 bg-white p-6 shadow-premium md:p-7">
-              <h2 className="flex items-center gap-2 text-lg font-black text-primary">
+            <div className="rounded-[1.75rem] border border-border/70 bg-card p-6 shadow-premium md:p-7">
+              <h2 className="flex items-center gap-2 font-headline text-xl font-bold text-primary">
                 <Headphones className="h-5 w-5 text-accent-strong" /> מה קורה אחרי שפונים?
               </h2>
               <ol className="mt-5 space-y-5">
@@ -127,15 +122,15 @@ export default function ContactPageClient() {
               </ol>
             </div>
 
-            <div className="rounded-[1.75rem] border border-primary/5 bg-white p-6 shadow-premium md:p-7">
-              <h2 className="text-lg font-black text-primary">שאלות נפוצות</h2>
+            <div className="rounded-[1.75rem] border border-border/70 bg-card p-6 shadow-premium md:p-7">
+              <h2 className="font-headline text-xl font-bold text-primary">שאלות נפוצות</h2>
               <Accordion type="single" collapsible dir="rtl" className="mt-2">
                 {FAQ_ITEMS.map((item, i) => (
-                  <AccordionItem key={item.q} value={`faq-${i}`} className="border-primary/5 last:border-b-0">
-                    <AccordionTrigger className="gap-3 py-4 text-right text-sm font-bold text-primary hover:no-underline">
+                  <AccordionItem key={item.q} value={`faq-${i}`} className="border-border/70 last:border-b-0">
+                    <AccordionTrigger className="gap-3 py-4 text-right text-[15px] font-semibold text-primary hover:no-underline">
                       {item.q}
                     </AccordionTrigger>
-                    <AccordionContent className="text-right text-sm leading-relaxed text-primary/70">
+                    <AccordionContent className="text-right text-[15px] leading-relaxed text-primary/75">
                       {item.a}
                     </AccordionContent>
                   </AccordionItem>
@@ -147,7 +142,7 @@ export default function ContactPageClient() {
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
                 <ShieldCheck className="h-5 w-5" />
               </span>
-              <p className="text-xs font-semibold leading-relaxed text-emerald-900/80">
+              <p className="text-sm font-medium leading-relaxed text-emerald-900">
                 כל הפניות באתר מוצפנות ומטופלות בסטנדרט הגבוה ביותר.
               </p>
             </div>
@@ -155,7 +150,7 @@ export default function ContactPageClient() {
         </div>
 
         <div className="mt-12 flex justify-center">
-          <Button variant="ghost" asChild className="gap-2 rounded-full text-xs font-bold">
+          <Button variant="ghost" asChild className="gap-2 text-sm">
             <Link href="/">חזרה לדף הבית <ArrowLeft className="h-4 w-4" /></Link>
           </Button>
         </div>
@@ -173,23 +168,23 @@ function ChannelCard({
   const body = (
     <div
       className={cn(
-        "group flex h-full items-center gap-4 rounded-[1.75rem] border p-5 text-right shadow-premium transition-all duration-300 sm:flex-col sm:items-start sm:p-6",
-        highlight ? "border-accent/40 bg-white ring-1 ring-accent/20" : "border-primary/5 bg-white",
-        href && "hover:-translate-y-1 hover:shadow-2xl",
+        "group flex h-full items-center gap-4 rounded-[1.75rem] border p-5 text-right shadow-premium transition-shadow duration-300 sm:flex-col sm:items-start sm:p-6",
+        highlight ? "border-accent/50 bg-card ring-1 ring-accent/25" : "border-border/70 bg-card",
+        href && "hover:shadow-premium-lg",
       )}
     >
       <span
         className={cn(
           "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl transition-colors",
-          highlight ? "bg-accent text-primary" : "bg-primary/5 text-primary group-hover:bg-accent/15",
+          highlight ? "bg-accent text-primary" : "bg-secondary/70 text-primary",
         )}
       >
         {icon}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-bold tracking-widest text-primary/65">{title}</p>
-        <p className="mt-0.5 truncate text-base font-black text-primary" dir={valueDir}>{value}</p>
-        <p className={cn("mt-1 text-xs font-semibold", highlight ? "text-accent-strong" : "text-muted-foreground")}>{note}</p>
+        <p className="text-[13px] font-medium text-muted-foreground">{title}</p>
+        <p className="mt-0.5 truncate text-[17px] font-bold text-primary" dir={valueDir}>{value}</p>
+        <p className={cn("mt-1 text-[13px] font-medium", highlight ? "text-accent-strong" : "text-muted-foreground")}>{note}</p>
       </div>
       {href && <ArrowLeft className="h-4 w-4 shrink-0 text-primary/30 transition-transform group-hover:-translate-x-1 sm:hidden" />}
     </div>
@@ -212,11 +207,11 @@ function Step({ n, icon, title, text }: { n: number; icon: ReactNode; title: str
     <li className="flex gap-3">
       <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent-strong">
         {icon}
-        <span className="absolute -left-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-2xs font-black text-primary-foreground">{n}</span>
+        <span className="absolute -left-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-2xs font-bold text-primary-foreground num">{n}</span>
       </span>
       <div>
-        <p className="text-sm font-black text-primary">{title}</p>
-        <p className="mt-0.5 text-xs font-medium leading-relaxed text-muted-foreground">{text}</p>
+        <p className="text-[15px] font-bold text-primary">{title}</p>
+        <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">{text}</p>
       </div>
     </li>
   );
@@ -270,17 +265,17 @@ function ContactForm() {
 
   if (isSubmitted) {
     return (
-      <div className="flex h-full flex-col items-center justify-center rounded-[2rem] border border-emerald-100 bg-white p-10 text-center shadow-premium md:p-14">
-        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 ring-8 ring-emerald-50/50">
+      <div className="flex h-full flex-col items-center justify-center rounded-[2rem] border border-border/70 bg-card p-10 text-center shadow-premium md:p-14">
+        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">
           <CheckCircle2 className="h-10 w-10" />
         </div>
-        <h2 className="mt-6 font-headline text-3xl font-black text-primary">הפנייה התקבלה!</h2>
-        <p className="mt-2 max-w-sm font-medium text-muted-foreground">תודה שפניתם אלינו. צוות חותם יחזור אליכם בהקדם האפשרי.</p>
+        <h2 className="mt-6 font-headline text-[30px] font-medium text-primary">הפנייה התקבלה!</h2>
+        <p className="mt-2 max-w-sm text-primary/75">תודה שפניתם אלינו. צוות חותם יחזור אליכם בהקדם האפשרי.</p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Button variant="outline" onClick={() => setIsSubmitted(false)} className="h-11 rounded-full px-6 font-bold">
+          <Button variant="outline" onClick={() => setIsSubmitted(false)} className="px-6">
             שליחת פנייה נוספת
           </Button>
-          <Button asChild className="h-11 gap-2 rounded-full bg-primary px-6 font-bold">
+          <Button asChild className="gap-2 px-6">
             <Link href="/search?view=all">לכל המוצרים <ArrowLeft className="h-4 w-4" /></Link>
           </Button>
         </div>
@@ -289,20 +284,20 @@ function ContactForm() {
   }
 
   return (
-    <div className="rounded-[2rem] border border-primary/5 bg-white p-6 shadow-premium md:p-9">
+    <div className="rounded-[2rem] border border-border/70 bg-card p-6 shadow-premium md:p-9">
       <div className="flex items-center gap-3">
         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
           <Send className="h-5 w-5" />
         </span>
         <div>
-          <h2 className="text-xl font-black text-primary md:text-2xl">השאירו לנו הודעה</h2>
-          <p className="text-xs font-medium text-muted-foreground">נחזור אליכם בשעות הפעילות</p>
+          <h2 className="font-headline text-2xl font-bold text-primary md:text-[28px]">השאירו לנו הודעה</h2>
+          <p className="text-sm text-muted-foreground">נחזור אליכם בשעות הפעילות</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="mt-7 space-y-5 text-right">
         <fieldset className="space-y-2.5">
-          <legend className="mb-2.5 text-xs font-bold text-primary">במה נוכל לעזור?</legend>
+          <legend className="mb-2.5 text-sm font-semibold text-primary">במה נוכל לעזור?</legend>
           <div className="flex flex-wrap gap-2">
             {CONTACT_TOPICS.map((t) => (
               <button
@@ -311,10 +306,10 @@ function ContactForm() {
                 onClick={() => setTopic(prev => (prev === t ? '' : t))}
                 aria-pressed={topic === t}
                 className={cn(
-                  "rounded-full border px-4 py-2 text-xs font-bold transition-all",
+                  "min-h-[44px] rounded-full border px-4 py-2 text-sm font-semibold transition-colors",
                   topic === t
-                    ? "border-primary bg-primary text-primary-foreground shadow-md"
-                    : "border-primary/10 bg-[#FAFAF8] text-primary/70 hover:border-accent hover:text-primary",
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-card text-primary/80 hover:border-primary/40 hover:text-primary",
                 )}
               >
                 {t}
@@ -330,7 +325,7 @@ function ContactForm() {
               value={form.name}
               onChange={e => updateField('name', e.target.value)}
               placeholder="ישראל ישראלי"
-              className="h-12 rounded-2xl bg-[#FAFAF8]"
+              
               required
             />
           </Field>
@@ -342,7 +337,7 @@ function ContactForm() {
               value={form.phone}
               onChange={e => updateField('phone', e.target.value)}
               placeholder="050-0000000"
-              className="h-12 rounded-2xl bg-[#FAFAF8] text-right"
+              className="text-right"
             />
           </Field>
         </div>
@@ -354,7 +349,7 @@ function ContactForm() {
             value={form.email}
             onChange={e => updateField('email', e.target.value)}
             placeholder="your@email.com"
-            className="h-12 rounded-2xl bg-[#FAFAF8] text-right"
+            className="text-right"
             required
           />
         </Field>
@@ -364,7 +359,7 @@ function ContactForm() {
             value={form.message}
             onChange={e => updateField('message', e.target.value)}
             placeholder="כתבו לנו במה נוכל לעזור..."
-            className="min-h-36 resize-none rounded-2xl bg-[#FAFAF8]"
+            className="min-h-36 resize-none"
             required
           />
         </Field>
@@ -373,7 +368,7 @@ function ContactForm() {
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="h-14 gap-2 rounded-full bg-accent px-10 font-bold text-primary shadow-xl transition-all hover:scale-[1.02] hover:bg-accent/90 active:scale-95"
+            size="lg" className="gap-2 px-10"
           >
             {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
             שליחת הפנייה
@@ -382,9 +377,9 @@ function ContactForm() {
             href={WHATSAPP_HREF}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-1.5 text-xs font-bold text-primary/65 transition-colors hover:text-primary"
+            className="flex min-h-[44px] items-center justify-center gap-1.5 text-sm font-semibold text-primary/75 transition-colors hover:text-primary"
           >
-            <MessageCircle className="h-4 w-4 text-emerald-600" /> דחוף? כתבו לנו בוואטסאפ
+            <MessageCircle className="h-4 w-4 text-emerald-700" /> דחוף? כתבו לנו בוואטסאפ
           </a>
         </div>
       </form>
@@ -395,10 +390,10 @@ function ContactForm() {
 function Field({ id, label, required, hint, children }: { id: string; label: string; required?: boolean; hint?: string; children: ReactNode }) {
   return (
     <div className="space-y-2">
-      <Label htmlFor={id} className="flex items-center gap-1.5 text-xs font-bold text-primary">
+      <Label htmlFor={id} className="flex items-center gap-1.5">
         {label}
         {required && <span className="text-accent-strong">*</span>}
-        {hint && <span className="font-medium text-muted-foreground">({hint})</span>}
+        {hint && <span className="text-[13px] font-normal text-muted-foreground">({hint})</span>}
       </Label>
       {children}
     </div>

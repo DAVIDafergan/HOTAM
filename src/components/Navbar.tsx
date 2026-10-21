@@ -564,10 +564,10 @@ export function Navbar() {
                   <DropdownMenuTrigger asChild>
                     <Button 
                       variant="ghost" 
-                      className="h-11 px-1.5 sm:pr-4 sm:pl-1.5 gap-3 rounded-full border border-border/70 bg-transparent hover:bg-primary/[0.05] group relative"
+                      className="hidden md:inline-flex h-11 pr-4 pl-1.5 gap-3 rounded-full border border-border/70 bg-transparent hover:bg-primary/[0.05] group relative"
                       aria-label="פתח תפריט משתמש"
                     >
-                      <div className="hidden sm:flex flex-col items-end text-right">
+                      <div className="flex flex-col items-end text-right">
                         <span className="text-[13px] font-semibold leading-tight text-primary">{greeting}, {displayName}</span>
                         <span className="text-xs font-medium leading-tight text-accent-strong">{isSuperAdmin ? 'מנהל מערכת' : 'ניהול חשבון'}</span>
                       </div>

@@ -4,7 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 // chips, price row) so swapping skeleton -> real cards doesn't shift layout.
 export function ProductCardSkeleton() {
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-primary/5 bg-white shadow-premium">
+    <div className="flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-border/70 bg-card shadow-premium">
       <div className="flex items-center gap-2.5 px-4 pt-3.5 pb-3">
         <Skeleton className="h-9 w-9 rounded-full" />
         <div className="flex-1 space-y-1.5">
@@ -15,18 +15,18 @@ export function ProductCardSkeleton() {
       <Skeleton className="aspect-[4/5] w-full rounded-none" />
       <div className="flex flex-1 flex-col gap-3 p-4 sm:p-5">
         <div className="space-y-2">
-          <Skeleton className="h-4 w-4/5 rounded" />
+          <Skeleton className="h-[2.75em] w-4/5 rounded-lg text-[17px] sm:text-lg" />
           <div className="flex gap-1.5">
             <Skeleton className="h-5 w-14 rounded-full" />
             <Skeleton className="h-5 w-16 rounded-full" />
           </div>
         </div>
-        <div className="mt-auto flex items-end justify-between border-t border-primary/5 pt-3">
+        <div className="mt-auto flex items-end justify-between border-t border-border/60 pt-3.5">
           <div className="space-y-1.5">
             <Skeleton className="h-6 w-20 rounded" />
             <Skeleton className="h-2.5 w-14 rounded" />
           </div>
-          <Skeleton className="h-10 w-20 rounded-full" />
+          <Skeleton className="h-11 w-24 rounded-full" />
         </div>
       </div>
     </div>

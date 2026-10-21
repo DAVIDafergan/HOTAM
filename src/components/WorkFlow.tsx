@@ -10,6 +10,7 @@ import {
   UserCheck
 } from 'lucide-react';
 import { EASE } from '@/lib/motion';
+import { SectionHeading } from '@/components/SectionHeading';
 
 // Reference: luxury "savoir-faire" process pages (Patek Philippe "Steps of
 // Servicing", Loewe "Craft Commitment") mark each step with a typographic
@@ -47,27 +48,9 @@ export function WorkFlow() {
   ];
 
   return (
-    <section className="py-16 md:py-32 bg-primary text-primary-foreground overflow-hidden relative" dir="rtl">
+    <section className="section-shell bg-primary text-primary-foreground overflow-hidden relative" dir="rtl">
       <div className="container mx-auto px-4 md:px-5 relative z-10">
-        <div className="text-center mb-12 md:mb-24 space-y-3 md:space-y-4">
-          <motion.p
-            initial={{ opacity: shouldReduceMotion ? 1 : 0, y: shouldReduceMotion ? 0 : 8 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-xs md:text-sm font-semibold tracking-wider text-accent uppercase"
-          >
-            מהסופר אליך
-          </motion.p>
-          <motion.h2
-            initial={{ opacity: shouldReduceMotion ? 1 : 0, y: shouldReduceMotion ? 0 : 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.05 }}
-            className="text-[2.1rem] md:text-[3rem] font-headline font-bold tracking-tight"
-          >
-            תהליך העבודה שלנו
-          </motion.h2>
-        </div>
+        <SectionHeading eyebrow="מהסופר אליך" title="תהליך העבודה שלנו" align="center" tone="dark" className="md:mb-20" />
 
         {/* Flat, bordered steps — a hairline rule marks the sequence instead of a glowing
             progress bar; vertical dividers on desktop (horizontal on mobile) read as one
@@ -84,16 +67,16 @@ export function WorkFlow() {
                 transition={{ delay: index * 0.08, duration: 0.5, ease: EASE }}
                 className="flex flex-col text-center items-center px-6 py-10 md:py-2 md:px-8"
               >
-                <Icon className="w-5 h-5 md:w-6 md:h-6 text-destructive mb-5" strokeWidth={1.25} />
+                <Icon className="w-5 h-5 md:w-6 md:h-6 text-[#E2B35B]/80 mb-5" strokeWidth={1.25} aria-hidden="true" />
 
-                <span className="font-headline text-[2.5rem] md:text-[3rem] leading-none text-accent mb-3">
+                <span className="font-headline font-medium text-[2.5rem] md:text-[3rem] leading-none text-[#E2B35B] mb-4 num">
                   {String(step.id).padStart(2, '0')}
                 </span>
 
-                <h3 className="text-base md:text-lg font-headline font-bold text-primary-foreground mb-2">
+                <h3 className="text-lg md:text-xl font-headline font-bold text-primary-foreground mb-2">
                   {step.title}
                 </h3>
-                <p className="text-sm text-primary-foreground/65 leading-relaxed max-w-[230px]">
+                <p className="text-[15px] text-primary-foreground/75 leading-relaxed max-w-[250px]">
                   {step.desc}
                 </p>
               </motion.div>

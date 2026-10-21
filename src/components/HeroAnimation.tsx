@@ -192,7 +192,7 @@ export function HeroAnimation() {
     return [];
   };
   const hasSubTypes = getSubTypesForProduct(selectedProduct).length > 0;
-  const finalSearchButtonClass = "w-full max-w-3xl bg-accent text-primary hover:bg-accent/92 rounded-full px-12 md:px-20 h-[4.4rem] font-bold text-base md:text-lg uppercase tracking-wider md:tracking-wider shadow-premium-lg gap-4 focus:ring-4 focus:ring-accent/30 transition-all duration-500 group";
+  const finalSearchButtonClass = "w-full max-w-3xl inline-flex items-center justify-center bg-accent text-primary hover:bg-[hsl(38_62%_42%)] rounded-full px-10 md:px-16 h-16 font-bold text-[17px] md:text-lg shadow-premium gap-3 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/30 transition-colors duration-300 group";
 
   const handleFinalSearch = () => {
     const params = new URLSearchParams();
@@ -252,17 +252,17 @@ export function HeroAnimation() {
             <React.Fragment key={n}>
               <div className="flex flex-col items-center gap-1.5">
                 <div className={cn(
-                  "w-8 h-8 rounded-full flex items-center justify-center font-black text-sm border-2 transition-all duration-500",
+                  "w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm border transition-all duration-500 num",
                   step === n
-                    ? "bg-accent text-primary border-accent shadow-lg scale-110"
+                    ? "bg-primary text-primary-foreground border-primary"
                     : step > n
-                    ? "bg-accent/20 text-accent border-accent/30"
-                    : "bg-white text-primary/30 border-primary/10"
+                    ? "bg-accent/15 text-accent-strong border-accent/40"
+                    : "bg-card text-primary/45 border-border"
                 )}>
-                {step > n ? <span aria-label="שלב הושלם" className="text-accent text-lg leading-none">✓</span> : n}
+                {step > n ? <span aria-label="שלב הושלם" className="text-accent-strong text-base leading-none">✓</span> : n}
                 </div>
                 <span className={cn(
-                  "text-xs font-semibold uppercase tracking-widest transition-colors hidden sm:block",
+                  "text-[13px] font-semibold transition-colors hidden sm:block",
                   step === n ? "text-primary" : "text-primary/60"
                 )}>{label}</span>
               </div>
@@ -309,7 +309,7 @@ export function HeroAnimation() {
         {step === 1 && (
           <motion.div key="step1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }} className="space-y-4 md:space-y-10">
             <div className="flex flex-col items-center gap-4">
-              <h2 className="text-2xl md:text-[2rem] font-headline font-black text-primary">מה אתם מחפשים?</h2>
+              <h2 className="text-2xl md:text-[2rem] font-headline font-bold text-primary">מה אתם מחפשים?</h2>
             </div>
 
             {/* Category cards */}
@@ -331,15 +331,15 @@ export function HeroAnimation() {
                   transition={{ type: "spring", stiffness: 260, damping: 22 }}
                   className="flex flex-col items-center gap-4 pt-2"
                 >
-                  <div className="flex items-center gap-3 bg-primary/5 p-2 rounded-2xl border border-primary/10 shadow-sm">
-                    <button type="button" onClick={() => setQuantity(Math.max(1, quantity - 1))} aria-label="הפחת כמות" className="w-10 h-10 rounded-xl border-2 border-primary/15 font-bold hover:bg-white active:scale-90 transition-all text-primary flex items-center justify-center text-lg bg-white shadow-sm">−</button>
+                  <div className="flex items-center gap-3 bg-card p-1.5 rounded-full border border-border">
+                    <button type="button" onClick={() => setQuantity(Math.max(1, quantity - 1))} aria-label="הפחת כמות" className="w-11 h-11 rounded-full border border-border font-bold hover:bg-secondary/60 active:scale-95 transition-all text-primary flex items-center justify-center text-lg bg-card">−</button>
                     <div className="flex items-center gap-2 px-4">
                       <span className="text-2xl font-black text-primary tabular-nums leading-none">{quantity}</span>
-                      <span className="text-xs font-semibold text-primary/60 uppercase tracking-tight">יח'</span>
+                      <span className="text-sm font-semibold text-primary/70">יח'</span>
                     </div>
-                    <button type="button" onClick={() => setQuantity(quantity + 1)} aria-label="הוסף כמות" className="w-10 h-10 rounded-xl border-2 border-primary/15 font-bold hover:bg-white active:scale-90 transition-all text-primary flex items-center justify-center text-lg bg-white shadow-sm">+</button>
+                    <button type="button" onClick={() => setQuantity(quantity + 1)} aria-label="הוסף כמות" className="w-11 h-11 rounded-full border border-border font-bold hover:bg-secondary/60 active:scale-95 transition-all text-primary flex items-center justify-center text-lg bg-card">+</button>
                   </div>
-                  <Button onClick={() => setStep(2)} className="bg-accent text-primary hover:bg-accent/90 rounded-full px-10 h-12 font-bold uppercase text-xs tracking-wider shadow-premium transition-all hover:scale-105 active:scale-95 group gap-2">
+                  <Button onClick={() => setStep(2)} variant="gold" className="px-10 group gap-2">
                     המשך למפרט <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                   </Button>
                 </motion.div>
@@ -350,7 +350,7 @@ export function HeroAnimation() {
               <Button
                 variant="ghost"
                 onClick={() => router.push('/search?view=all')}
-                className="h-10 px-6 rounded-full text-xs font-semibold uppercase tracking-widest text-primary/60 hover:text-primary hover:bg-primary/5 border border-primary/10 hover:border-primary/20 transition-all gap-2"
+                className="h-11 px-6 rounded-full text-sm font-semibold text-primary/75 hover:text-primary hover:bg-primary/5 border border-border hover:border-primary/25 gap-2"
               >
                 <Search className="w-3.5 h-3.5" />
                 צפה בכל המוצרים ללא פילטר
@@ -363,17 +363,17 @@ export function HeroAnimation() {
         {step === 2 && (
           <motion.div key="step2" initial={{ opacity: 0, x: 28 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ type: "spring", stiffness: 300, damping: 28 }} className="space-y-4 md:space-y-7 text-right">
             <div className="flex justify-between items-center border-b border-primary/5 pb-4">
-              <Button variant="ghost" onClick={() => setStep(1)} className="font-semibold text-xs uppercase tracking-widest h-10 px-4 rounded-xl hover:bg-primary/5 gap-1"><ChevronRight className="w-4 h-4" /> חזור</Button>
+              <Button variant="ghost" onClick={() => setStep(1)} className="font-semibold text-sm h-11 px-4 rounded-full hover:bg-primary/5 gap-1"><ChevronRight className="w-4 h-4" /> חזור</Button>
               <div className="text-right">
-                <h2 className="text-xl md:text-2xl font-headline font-black text-primary">איזה סוג בדיוק?</h2>
-                <p className="text-xs text-primary/60 font-semibold uppercase tracking-widest mt-0.5">עבור {selectedProduct} · שלב 2 מתוך 3</p>
+                <h2 className="text-xl md:text-2xl font-headline font-bold text-primary">איזה סוג בדיוק?</h2>
+                <p className="text-[13px] text-primary/65 font-medium mt-0.5">עבור {selectedProduct} · שלב 2 מתוך 3</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               {hasSubTypes && (
-                <div className="space-y-4 rounded-2xl md:rounded-3xl bg-primary/[0.03] md:bg-white/60 border-0 md:border md:border-primary/5 p-4 md:p-5 shadow-none md:shadow-sm">
-                  <Label className="font-semibold text-xs uppercase text-primary/60 mr-1 tracking-widest">תת-סוג המוצר</Label>
+                <div className="space-y-4 rounded-2xl md:rounded-3xl bg-secondary/40 md:bg-card border-0 md:border md:border-border/70 p-4 md:p-5 shadow-none md:shadow-sm">
+                  <Label className="text-sm font-bold text-primary/85 mr-1">תת-סוג המוצר</Label>
                   <RadioGroup value={subType} onValueChange={setSubType} className="grid grid-cols-2 gap-3">
                     {selectedProduct !== 'מזוזה' && <CustomTile value="all" label="כל הסוגים" active={subType === 'all'} />}
                     {getSubTypesForProduct(selectedProduct).map(opt => <CustomTile key={opt} value={opt} label={opt} active={subType === opt} />)}
@@ -381,8 +381,8 @@ export function HeroAnimation() {
                 </div>
               )}
 
-              <div className="space-y-4 rounded-2xl md:rounded-3xl bg-primary/[0.03] md:bg-white/60 border-0 md:border md:border-primary/5 p-4 md:p-5 shadow-none md:shadow-sm">
-                <Label className="font-semibold text-xs uppercase text-primary/60 mr-1 tracking-widest">סוג הכתב (מסורת)</Label>
+              <div className="space-y-4 rounded-2xl md:rounded-3xl bg-secondary/40 md:bg-card border-0 md:border md:border-border/70 p-4 md:p-5 shadow-none md:shadow-sm">
+                <Label className="text-sm font-bold text-primary/85 mr-1">סוג הכתב (מסורת)</Label>
                 <RadioGroup value={scriptType} onValueChange={setScriptType} className="grid grid-cols-1 gap-2">
                   {[
                     {v: 'all', l: 'כל המסורות'},
@@ -396,18 +396,18 @@ export function HeroAnimation() {
                 </RadioGroup>
               </div>
 
-              <div className="space-y-4 rounded-2xl md:rounded-3xl bg-primary/[0.03] md:bg-white/60 border-0 md:border md:border-primary/5 p-4 md:p-5 shadow-none md:shadow-sm">
-                <Label className="font-semibold text-xs uppercase text-primary/60 mr-1 tracking-widest">רמת הידור מבוקשת</Label>
+              <div className="space-y-4 rounded-2xl md:rounded-3xl bg-secondary/40 md:bg-card border-0 md:border md:border-border/70 p-4 md:p-5 shadow-none md:shadow-sm">
+                <Label className="text-sm font-bold text-primary/85 mr-1">רמת הידור מבוקשת</Label>
                 <RadioGroup value={qualityLevel} onValueChange={setQualityLevel} className="grid grid-cols-2 gap-3">
                   {getQualityLevels(selectedProduct).map(q => <CustomTile key={q.v} value={q.v} label={q.l} active={qualityLevel === q.v} compact />)}
                 </RadioGroup>
               </div>
 
-              <div className="space-y-4 rounded-2xl md:rounded-3xl bg-primary/[0.03] md:bg-white/60 border-0 md:border md:border-primary/5 p-4 md:p-5 shadow-none md:shadow-sm">
+              <div className="space-y-4 rounded-2xl md:rounded-3xl bg-secondary/40 md:bg-card border-0 md:border md:border-border/70 p-4 md:p-5 shadow-none md:shadow-sm">
                 {selectedProduct === 'מגילה' ? (
                   <div className="space-y-4">
                     <div className="space-y-3">
-                      <Label className="text-xs font-semibold uppercase text-primary/60 tracking-widest">מספר שורות</Label>
+                      <Label className="text-sm font-bold text-primary/85 mr-1">מספר שורות</Label>
                       <div className="grid grid-cols-4 gap-2">
                         {['all', '11', '21', '28', '42'].map(r => (
                           <button
@@ -418,8 +418,8 @@ export function HeroAnimation() {
                               setMegillahHeight('all');
                             }}
                             className={cn(
-                              "h-14 rounded-2xl border-2 font-bold text-xs transition-all",
-                              megillahRows === r ? "border-accent bg-accent text-primary shadow-lg scale-105" : "bg-white/40 border-primary/5 text-primary hover:border-accent/40"
+                              "h-14 rounded-2xl border font-bold text-sm transition-all",
+                              megillahRows === r ? "border-primary bg-primary text-primary-foreground" : "bg-card border-border text-primary hover:border-primary/40"
                             )}
                           >
                             {r === 'all' ? 'הכל' : r === '42' ? '42 (האר"י)' : r}
@@ -428,7 +428,7 @@ export function HeroAnimation() {
                       </div>
                     </div>
                     <div className="space-y-3">
-                      <Label className="text-xs font-semibold uppercase text-primary/60 tracking-widest">גובה קלף (ס"מ)</Label>
+                      <Label className="text-sm font-bold text-primary/85 mr-1">גובה קלף (ס"מ)</Label>
                       <Select value={megillahHeight} onValueChange={setMegillahHeight}>
                         <SelectTrigger className="h-14 rounded-2xl text-right font-bold text-base sm:text-sm bg-white/50 border-2 border-transparent">
                           <SelectValue placeholder="בחר גובה..." />
@@ -451,10 +451,10 @@ export function HeroAnimation() {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <Label className="font-semibold text-xs uppercase text-primary/60 tracking-widest">גודל הקלף (ס"מ)</Label>
+                    <Label className="text-sm font-bold text-primary/85 mr-1">גודל הקלף (ס"מ)</Label>
                     <div className="grid grid-cols-2 gap-2">
                       {[...getSizesForProduct(selectedProduct, scriptType), 'other'].map(sz => (
-                        <button type="button" key={sz} onClick={() => setScrollSize(sz)} className={cn("h-12 rounded-xl border-2 font-bold text-xs transition-all", scrollSize === sz ? "border-accent bg-accent text-primary shadow-md" : "bg-white/40 border-primary/5 text-primary hover:border-accent/40")}>{sz === 'other' ? 'שאר הגדלים' : sz}</button>
+                        <button type="button" key={sz} onClick={() => setScrollSize(sz)} className={cn("h-12 rounded-xl border font-bold text-sm transition-all", scrollSize === sz ? "border-primary bg-primary text-primary-foreground" : "bg-card border-border text-primary hover:border-primary/40")}>{sz === 'other' ? 'שאר הגדלים' : sz}</button>
                       ))}
                     </div>
                   </div>
@@ -463,7 +463,7 @@ export function HeroAnimation() {
             </div>
 
             <div className="flex justify-center pt-4 md:pt-8">
-               <Button onClick={() => setStep(3)} className="bg-accent text-primary hover:bg-accent/90 rounded-full px-16 h-12 md:h-14 font-bold uppercase text-sm tracking-wider shadow-premium transition-all hover:scale-105 active:scale-95 group gap-2">
+               <Button onClick={() => setStep(3)} variant="gold" size="lg" className="px-14 group gap-2">
                  המשך למיקום וקבלה <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
                </Button>
              </div>
@@ -473,23 +473,23 @@ export function HeroAnimation() {
         {step === 3 && (
           <motion.div key="step3" initial={{ opacity: 0, x: 28 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ type: "spring", stiffness: 300, damping: 28 }} className="space-y-4 md:space-y-7 text-right">
             <div className="flex justify-between items-center border-b border-primary/5 pb-4">
-              <Button variant="ghost" onClick={() => setStep(2)} className="font-semibold text-xs uppercase tracking-widest h-10 px-4 rounded-xl hover:bg-primary/5 gap-1"><ChevronRight className="w-4 h-4" /> חזור</Button>
+              <Button variant="ghost" onClick={() => setStep(2)} className="font-semibold text-sm h-11 px-4 rounded-full hover:bg-primary/5 gap-1"><ChevronRight className="w-4 h-4" /> חזור</Button>
               <div className="text-right">
-                <h2 className="text-xl md:text-2xl font-headline font-black text-primary">איפה ואיך תרצו לקבל?</h2>
-                <p className="text-xs text-primary/60 font-semibold uppercase tracking-widest mt-0.5">שלב 3 מתוך 3</p>
+                <h2 className="text-xl md:text-2xl font-headline font-bold text-primary">איפה ואיך תרצו לקבל?</h2>
+                <p className="text-[13px] text-primary/65 font-medium mt-0.5">שלב 3 מתוך 3</p>
               </div>
             </div>
 
-            <div className="max-w-2xl mx-auto w-full space-y-6 rounded-2xl md:rounded-3xl bg-primary/[0.03] md:bg-white/60 border-0 md:border md:border-primary/5 p-4 md:p-6 shadow-none md:shadow-sm">
+            <div className="max-w-2xl mx-auto w-full space-y-6 rounded-2xl md:rounded-3xl bg-secondary/40 md:bg-card border-0 md:border md:border-border/70 p-4 md:p-6 shadow-none md:shadow-sm">
               <div className="space-y-4 pb-5 border-b border-primary/5">
                 <div className="flex items-center justify-between gap-3">
-                  <Label className="font-semibold text-xs uppercase text-primary/60 mr-1 tracking-widest">איפה תרצו למצוא סופר? (לא חובה)</Label>
-                  <Button variant="ghost" onClick={handleFinalSearch} className="shrink-0 h-8 px-3 rounded-full font-semibold text-xs uppercase tracking-widest text-primary/50 hover:text-primary hover:bg-primary/5">
+                  <Label className="text-sm font-bold text-primary/85 mr-1">איפה תרצו למצוא סופר? (לא חובה)</Label>
+                  <Button variant="ghost" onClick={handleFinalSearch} className="shrink-0 h-10 px-3 rounded-full font-semibold text-sm text-primary/70 hover:text-primary hover:bg-primary/5">
                     דלג, הצג הכל
                   </Button>
                 </div>
                 <div className="flex flex-col gap-3">
-                  <Button variant="outline" onClick={detectLocation} disabled={isDetectingLocation} className={cn("h-12 md:h-14 rounded-2xl gap-3 font-bold text-xs uppercase border-2 transition-all", userCoords ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'hover:border-primary/20')}>
+                  <Button variant="outline" onClick={detectLocation} disabled={isDetectingLocation} className={cn("h-12 md:h-14 rounded-2xl gap-3 font-semibold text-sm border transition-all", userCoords ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'hover:border-primary/30')}>
                     {isDetectingLocation ? <Loader2 className="w-5 h-5 animate-spin" /> : <LocateFixed className="w-5 h-5" />}
                     {userCoords ? (detectedCity ? `המיקום שלך: ${detectedCity}` : 'המיקום שלך זוהה בהצלחה') : 'זהה את המיקום הנוכחי שלי'}
                   </Button>
@@ -502,8 +502,8 @@ export function HeroAnimation() {
                   />
                   <Label className="flex items-center justify-between rounded-2xl border-2 border-primary/5 bg-white/80 px-4 py-4 shadow-sm transition-all hover:border-primary/10">
                     <div className="space-y-1 text-right">
-                      <span className="block text-xs font-semibold uppercase tracking-tight text-primary">חפש גם בערים קרובות</span>
-                      <span className="block text-xs font-medium text-primary/50">עד {NEARBY_RADIUS_KM} ק״מ מהעיר שנבחרה</span>
+                      <span className="block text-sm font-bold text-primary">חפש גם בערים קרובות</span>
+                      <span className="block text-[13px] font-medium text-primary/65">עד {NEARBY_RADIUS_KM} ק״מ מהעיר שנבחרה</span>
                     </div>
                     <Checkbox checked={includeNearbyCities} onCheckedChange={(value) => setIncludeNearbyCities(!!value)} className="w-5 h-5 rounded-md" />
                   </Label>
@@ -512,7 +512,7 @@ export function HeroAnimation() {
 
               <div className="pt-2">
                 <div className="space-y-3">
-                  <Label className="font-semibold text-xs uppercase text-primary/60 mr-1 tracking-widest">אופן קבלת המוצר</Label>
+                  <Label className="text-sm font-bold text-primary/85 mr-1">אופן קבלת המוצר</Label>
                   <RadioGroup value={shippingPreference} onValueChange={(v) => setShippingPreference(v as ShippingPreference)} className="grid grid-cols-3 gap-2">
                     <CustomTile value="all" label="הכל" active={shippingPreference === 'all'} compact />
                     <CustomTile value="shipping" label="משלוח בלבד" active={shippingPreference === 'shipping'} compact />
@@ -520,7 +520,7 @@ export function HeroAnimation() {
                   </RadioGroup>
                 </div>
                 <div className="pt-5">
-                  <Button variant="ghost" onClick={() => setShowAdvanced(!showAdvanced)} className="w-full h-12 md:h-14 rounded-2xl border-2 border-dashed border-primary/10 gap-3 font-semibold text-xs uppercase tracking-widest text-primary/60 hover:bg-primary/5 hover:border-primary/20 transition-all">
+                  <Button variant="ghost" onClick={() => setShowAdvanced(!showAdvanced)} className="w-full h-12 md:h-14 rounded-2xl border border-dashed border-primary/20 gap-3 font-semibold text-sm text-primary/75 hover:bg-primary/5 hover:border-primary/30 transition-all">
                     <Settings2 className="w-5 h-5 text-accent" /> {showAdvanced ? 'הסתר הגדרות סופר מתקדמות' : 'מסנני קדושה והנהגת הסופר'}
                   </Button>
                 </div>
@@ -529,7 +529,7 @@ export function HeroAnimation() {
                       <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden pt-5 px-1">
                         <div className="grid md:grid-cols-2 gap-4">
                           <div className="space-y-3">
-                            <Label className="text-xs font-semibold uppercase text-primary/40 tracking-widest">הסמכת הסופר</Label>
+                            <Label className="text-sm font-bold text-primary/85 mr-1">הסמכת הסופר</Label>
                             <div className="grid grid-cols-2 gap-2">
                               <CustomTile value="valid" label="תעודה בתוקף" active={certStatus === 'valid'} compact onClick={() => setCertStatus(certStatus === 'valid' ? '' : 'valid')} />
                               <CustomTile value="expired" label="תעודה בעבר" active={certStatus === 'expired'} compact onClick={() => setCertStatus(certStatus === 'expired' ? '' : 'expired')} />
@@ -538,7 +538,7 @@ export function HeroAnimation() {
                           </div>
 
                           <div className="space-y-3">
-                            <Label className="text-xs font-semibold uppercase text-primary/40 tracking-widest">לימוד תורה יומיומי</Label>
+                            <Label className="text-sm font-bold text-primary/85 mr-1">לימוד תורה יומיומי</Label>
                             <div className="grid grid-cols-2 gap-2">
                               <CustomTile value="fixed" label="קובע עיתים" active={studyFreq === 'fixed'} compact onClick={() => setStudyFreq(studyFreq === 'fixed' ? '' : 'fixed')} />
                               <CustomTile value="half-day" label="אברך חצי יום" active={studyFreq === 'half-day'} compact onClick={() => setStudyFreq(studyFreq === 'half-day' ? '' : 'half-day')} />
@@ -547,7 +547,7 @@ export function HeroAnimation() {
                           </div>
 
                           <div className="space-y-3 md:col-span-2">
-                            <Label className="text-xs font-semibold uppercase text-primary/40 tracking-widest">מנהג טבילה</Label>
+                            <Label className="text-sm font-bold text-primary/85 mr-1">מנהג טבילה</Label>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                               <CustomTile value="daily" label="כל יום" active={mikvehFreq === 'daily'} compact onClick={() => setMikvehFreq(mikvehFreq === 'daily' ? '' : 'daily')} />
                               <CustomTile value="before" label="לפני כתיבה" active={mikvehFreq === 'before'} compact onClick={() => setMikvehFreq(mikvehFreq === 'before' ? '' : 'before')} />
@@ -557,7 +557,7 @@ export function HeroAnimation() {
                           </div>
 
                           <Label className="md:col-span-2 flex items-center justify-between p-4 bg-white/80 border-2 border-primary/5 rounded-2xl cursor-pointer hover:bg-white hover:border-primary/10 transition-all shadow-sm">
-                            <div className="flex items-center gap-3"><UserCheck className="w-5 h-5 text-accent" /><span className="text-xs font-semibold uppercase text-primary tracking-tight">הצג סופרים נשואים בלבד</span></div>
+                            <div className="flex items-center gap-3"><UserCheck className="w-5 h-5 text-accent" /><span className="text-sm font-bold text-primary">הצג סופרים נשואים בלבד</span></div>
                             <Checkbox checked={marriedOnly} onCheckedChange={(v) => setMarriedOnly(!!v)} className="w-6 h-6 rounded-lg" />
                           </Label>
                         </div>
@@ -584,7 +584,7 @@ export function HeroAnimation() {
   );
 
   return (
-    <section className="relative min-h-0 md:min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#FDFCF0] pt-[calc(7.75rem+env(safe-area-inset-top))] pb-16 md:pt-32 md:pb-20">
+    <section className="relative min-h-0 md:min-h-screen w-full flex items-center justify-center overflow-hidden bg-background pt-[calc(7.5rem+env(safe-area-inset-top))] pb-16 md:pt-36 md:pb-24">
       <div className="absolute inset-0 z-0">
         {heroImg?.imageUrl && (
           <Image
@@ -598,10 +598,10 @@ export function HeroAnimation() {
             className="object-cover object-center opacity-10 pointer-events-none w-full h-full"
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#FDFCF0]/10 via-[#FDFCF0]/75 to-[#FDFCF0]" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#FDFCF0]/50 via-transparent to-[#FDFCF0]/50" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-background/80 to-background" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/60 via-transparent to-background/60" />
         {/* Mobile-only: soft depth accent behind the heading/CTA, absent on desktop */}
-        <div className="absolute -top-10 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-gradient-to-b from-accent/20 to-transparent blur-3xl md:hidden" />
+        <div className="absolute -top-10 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,hsl(var(--accent)/0.18),transparent)] md:hidden" />
       </div>
 
       <div className="container mx-auto px-4 md:px-5 relative z-20 flex flex-col items-center justify-center">
@@ -609,20 +609,21 @@ export function HeroAnimation() {
           variants={shouldReduceMotion ? undefined : heroContainerVariants}
           initial={shouldReduceMotion ? undefined : "hidden"}
           animate={shouldReduceMotion ? undefined : "visible"}
-          className="max-w-4xl w-full space-y-6 md:space-y-14 flex flex-col items-center text-center"
+          className="max-w-4xl w-full space-y-8 md:space-y-12 flex flex-col items-center text-center"
         >
 
-          <motion.div variants={shouldReduceMotion ? undefined : heroItemVariants} className="space-y-3 md:space-y-5">
-            <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-headline font-black text-primary leading-[1.08] tracking-tighter">
-              קדושה <span className="text-accent-strong underline decoration-accent/20 underline-offset-8">בכל תג</span>
+          <motion.div variants={shouldReduceMotion ? undefined : heroItemVariants} className="flex flex-col items-center gap-4 md:gap-6">
+            <p className="eyebrow">ספרי תורה · תפילין · מזוזות · יודאיקה</p>
+            <h1 className="text-[44px] sm:text-6xl md:text-7xl lg:text-[88px] font-headline font-medium text-primary leading-[1.05]">
+              קדושה <span className="text-accent-strong">בכל תג</span>
             </h1>
-            <p className="text-base font-bold text-primary/70 md:hidden">
+            <p className="lead max-w-xl mx-auto">
               מצאו את הסופר המושלם עבורכם – בכמה קליקים בלבד
             </p>
           </motion.div>
 
           <motion.div variants={shouldReduceMotion ? undefined : heroItemVariants} className="w-full flex flex-col items-center gap-6 md:gap-14">
-            <div className="hidden md:block w-full max-w-3xl bg-white/78 backdrop-blur-xl border border-white/90 rounded-2xl sm:rounded-3xl md:rounded-[3.2rem] p-4 sm:p-6 md:p-8 lg:p-12 shadow-premium-lg relative ring-1 ring-primary/10">
+            <div className="hidden md:block w-full max-w-3xl bg-card/95 border border-border/70 rounded-[2.5rem] p-8 lg:p-11 shadow-premium-lg relative">
               {/* isDesktop resolves (useLayoutEffect, pre-paint) before this can ever be seen —
                   on mobile it stays a cheap empty shell instead of mounting/hydrating the full
                   wizard behind `hidden`. The `hidden md:block` above is still what actually
@@ -637,20 +638,20 @@ export function HeroAnimation() {
                 onClick={() => setIsMobileSearchOpen(true)}
                 whileHover={shouldReduceMotion ? undefined : { scale: 1.02 }}
                 whileTap={shouldReduceMotion ? undefined : { scale: 0.96 }}
-                className="group flex w-full items-center gap-4 rounded-full bg-accent px-5 py-5 text-right shadow-lg"
+                className="group flex w-full min-h-[76px] items-center gap-4 rounded-full bg-accent py-3 pr-3 pl-5 text-right shadow-premium"
               >
                 <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-white transition-transform group-active:scale-90">
                   <Search className="h-6 w-6" />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-lg font-black text-primary tracking-tight">
+                  <span className="block truncate text-[17px] font-bold leading-snug text-primary">
                     {selectedProduct ? `המשך חיפוש: ${selectedProduct}` : 'חפש מוצרי יודאיקה וסת״ם'}
                   </span>
-                  <span className="block truncate text-xs font-bold text-primary/70 mt-0.5">
+                  <span className="block truncate text-[13px] font-medium text-primary/75 mt-0.5">
                     {selectedCity ? `לפי עיר: ${selectedCity}` : 'התחל חיפוש מותאם אישית'}
                   </span>
                 </span>
-                <ChevronLeft className="h-6 w-6 shrink-0 text-white/70 transition-transform group-hover:-translate-x-1" />
+                <ChevronLeft className="h-6 w-6 shrink-0 text-primary/70 transition-transform group-hover:-translate-x-1" />
               </motion.button>
             </div>
           </motion.div>
@@ -658,7 +659,7 @@ export function HeroAnimation() {
           <Sheet open={isMobileSearchOpen} onOpenChange={setIsMobileSearchOpen}>
             <SheetContent
               side="bottom"
-              className="flex h-[92dvh] max-h-[92dvh] flex-col gap-0 rounded-t-[2rem] border-0 p-0 shadow-2xl md:hidden"
+              className="flex h-[92dvh] max-h-[92dvh] flex-col gap-0 rounded-t-[2rem] border-0 bg-background p-0 shadow-2xl md:hidden"
             >
               <SheetHeader className="sr-only">
                 <SheetTitle>חיפוש כלי קודש</SheetTitle>
@@ -683,48 +684,41 @@ interface CategoryCardProps {
   active?: boolean;
 }
 
-function CategoryCard({ icon, label, onClick, color = 'primary', active = false }: CategoryCardProps) {
-  const colorMap: Record<string, { bg: string; hover: string; text: string }> = {
-    indigo:  { bg: 'bg-indigo-50',  hover: 'group-hover:bg-indigo-500',  text: 'group-hover:text-indigo-600' },
-    blue:    { bg: 'bg-blue-50',    hover: 'group-hover:bg-blue-500',    text: 'group-hover:text-blue-600' },
-    amber:   { bg: 'bg-amber-50',   hover: 'group-hover:bg-amber-400',   text: 'group-hover:text-amber-600' },
-    emerald: { bg: 'bg-emerald-50', hover: 'group-hover:bg-emerald-500', text: 'group-hover:text-emerald-600' },
-    purple:  { bg: 'bg-purple-50',  hover: 'group-hover:bg-purple-500',  text: 'group-hover:text-purple-600' },
-    primary: { bg: 'bg-primary/5',  hover: 'group-hover:bg-accent',      text: 'group-hover:text-accent' },
-  };
-  const c = colorMap[color] ?? colorMap.primary;
+function CategoryCard({ icon, label, onClick, active = false }: CategoryCardProps) {
+  // One brand treatment for every category (was five unrelated pastel colours).
   return (
     <button 
       type="button"
       onClick={onClick}
       aria-label={label}
+      aria-pressed={active}
       className={cn(
-        "group flex flex-col items-center gap-2.5 md:gap-3 p-4 md:p-5 rounded-3xl bg-white border-2 shadow-sm hover:shadow-xl hover:-translate-y-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 transition-all duration-300 w-full",
-        active ? "border-primary/35 ring-2 ring-accent/25 shadow-lg" : "border-transparent hover:border-primary/10"
+        "group flex flex-col items-center gap-3 p-4 md:p-5 rounded-3xl bg-card border transition-[border-color,box-shadow] duration-300 w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
+        active ? "border-primary shadow-premium" : "border-border/70 hover:border-primary/30 hover:shadow-premium"
       )}
     >
       <div className={cn(
-        "w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center text-primary transition-all duration-300 group-hover:text-white group-hover:scale-110",
-        c.bg, c.hover
+        "w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center transition-colors duration-300",
+        active ? "bg-primary text-primary-foreground" : "bg-secondary/70 text-primary group-hover:bg-primary group-hover:text-primary-foreground"
       )}>
-        {React.cloneElement(icon as React.ReactElement<{ className?: string }>, { className: "w-6 h-6 md:w-7 md:h-7" })}
+        {React.cloneElement(icon as React.ReactElement<{ className?: string }>, { className: "w-6 h-6 md:w-7 md:h-7", strokeWidth: 1.6 } as any)}
       </div>
-      <span className={cn("font-black text-primary text-xs md:text-xs tracking-tight transition-colors duration-300", c.text)}>{label}</span>
+      <span className="font-bold text-primary text-[15px]">{label}</span>
     </button>
   );
 }
 
 function CustomTile({ value, label, active, compact = false, onClick }: any) {
   const className = cn(
-    "flex items-center justify-between rounded-2xl border-2 transition-all duration-200 cursor-pointer group px-5",
-    compact ? "py-3" : "py-4",
-    active ? "border-primary bg-primary/5 shadow-md scale-[1.02]" : "border-primary/5 bg-white/40 hover:bg-white hover:border-primary/15 hover:shadow-sm"
+    "flex items-center justify-between gap-2 rounded-2xl border transition-colors duration-200 cursor-pointer group px-4 min-h-[48px]",
+    compact ? "py-2.5" : "py-3.5",
+    active ? "border-primary bg-primary/[0.04] ring-1 ring-primary" : "border-border bg-card hover:border-primary/30"
   );
   const content = (
     <>
       {!onClick && <RadioGroupItem value={value} className="hidden" />}
-      <span className={cn("font-bold text-primary transition-colors", compact ? "text-xs" : "text-sm", active ? "opacity-100" : "opacity-60 group-hover:opacity-80")}>{label}</span>
-      <div className={cn("w-3.5 h-3.5 rounded-full border-2 transition-all duration-200", active ? "bg-accent border-accent scale-110 shadow-sm" : "border-primary/10 group-hover:border-primary/30")} />
+      <span className={cn("text-right leading-snug transition-colors", compact ? "text-sm" : "text-[15px]", active ? "font-bold text-primary" : "font-semibold text-primary/80 group-hover:text-primary")}>{label}</span>
+      <div className={cn("w-4 h-4 shrink-0 rounded-full border transition-all duration-200", active ? "border-[5px] border-primary" : "border-primary/30 group-hover:border-primary/50")} />
     </>
   );
 

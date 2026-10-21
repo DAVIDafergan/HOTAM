@@ -6,11 +6,6 @@ import { Line } from '@react-three/drei';
 import * as THREE from 'three';
 
 const INK_COLOR = '#1C1815';
-// Lighter than the base parchment token (#F5EDE0) because this sits inside
-// `.section-surface`, which lays a white/40 blur over the page background —
-// matching that composited tone keeps the canvas from reading as a floating
-// grey box against its surroundings.
-const PARCHMENT_COLOR = '#F9F4EA';
 const GOLD_COLOR = '#BE892D'; // matches --accent (see globals.css)
 const ANIMATION_DURATION_SECONDS = 2.4;
 const CURVE_POINT_COUNT = 140;
@@ -83,19 +78,6 @@ function InkStroke({ active }: { active: boolean }) {
   );
 }
 
-function ParchmentPlane() {
-  // Unlit on purpose: a flat rectangle has no depth for lighting to reveal,
-  // and an unlit material renders its exact color regardless of R3F's
-  // physically-based light units — which is what lets this blend seamlessly
-  // into the page's own background instead of reading as a shaded box.
-  return (
-    <mesh position={[0, 0, -0.3]}>
-      <planeGeometry args={[8, 4]} />
-      <meshBasicMaterial color={PARCHMENT_COLOR} />
-    </mesh>
-  );
-}
-
 function Scene({ active }: { active: boolean }) {
   return (
     <>
@@ -108,7 +90,7 @@ function Scene({ active }: { active: boolean }) {
         color="#FFEFD6"
       />
       <pointLight position={[-2, 1, 2]} intensity={0.15} color={GOLD_COLOR} />
-      <ParchmentPlane />
+      {/* Transparent canvas (alpha) — the old parchment plane showed as a lighter box. */}
       <InkStroke active={active} />
     </>
   );

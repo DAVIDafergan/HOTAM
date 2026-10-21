@@ -70,11 +70,14 @@ export async function GET(req: Request) {
     if (mode === 'summary') {
       const since = new Date(Date.now() - DAY_MS).toISOString();
       const head = { count: 'exact' as const, head: true };
+      // A HEAD count carries no error body, so probe with a tiny GET to tell "no table" apart.
+      const probe = await service.from('notification_log').select('id').limit(1);
+      if (isMissingTable(probe.error)) return NextResponse.json({ installed: false, configured });
       const [failed, sent] = await Promise.all([
         service.from('notification_log').select('id', head).eq('status', 'failed').gte('created_at', since),
         service.from('notification_log').select('id', head).eq('status', 'sent').gte('created_at', since),
       ]);
-      if (isMissingTable(failed.error)) return NextResponse.json({ installed: false, configured });
+      if (failed.error || sent.error) return NextResponse.json({ error: 'שגיאה בקריאת יומן ההודעות' }, { status: 500 });
       return NextResponse.json({ installed: true, configured, failed24h: failed.count ?? 0, sent24h: sent.count ?? 0 });
     }
 

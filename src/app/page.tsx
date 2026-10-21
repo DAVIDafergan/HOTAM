@@ -102,8 +102,8 @@ export default function Home() {
 function Benefit({ n, title, desc }: { n: string; title: string; desc: string }) {
   return (
     <div className="flex items-start gap-6 md:gap-10 py-7 md:py-9 text-right">
-      <span className="price shrink-0 text-[34px] md:text-[44px] leading-none text-accent-strong/80 num" aria-hidden="true">{n}</span>
-      <p className="max-w-none text-[17px] md:text-[20px] leading-[1.7] font-light text-primary/80">
+      <span className="font-headline font-medium shrink-0 text-[32px] md:text-[40px] leading-none text-accent-strong num" aria-hidden="true">{n}</span>
+      <p className="max-w-none text-[17px] md:text-[19px] leading-[1.7] text-primary/90">
         <strong className="font-semibold text-primary">{title}</strong>{' '}{desc}
       </p>
     </div>

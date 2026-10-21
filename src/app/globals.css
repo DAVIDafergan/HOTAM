@@ -49,7 +49,7 @@
     @apply bg-background text-foreground font-body antialiased;
     font-size: 16px;
     font-weight: 400;
-    line-height: 1.75;
+    line-height: 1.7;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -webkit-tap-highlight-color: transparent;
@@ -58,34 +58,35 @@
   input, textarea, select {
     font-size: max(16px, 1rem); /* prevents auto-zoom on iOS */
   }
-  /* Type scale — direction B. Headings: Noto Serif Hebrew Light, large and airy with tight
-     leading; only 300/400 are loaded, so synthetic bold is disabled (a stray font-bold on a
-     heading renders at 400 instead of a smeared faux-bold). Hebrew is never letter-spaced. */
-  h1, h2, h3, h4, h5, h6, .font-headline {
+  /* Type scale — readability pass (2026-10). The display serif (--font-display) is used for
+     h1/h2 only, at 500, line-height ~1.15. h3 and below are the body sans (--font-body) at
+     600-700. No 300 weights anywhere. Hebrew is never letter-spaced. */
+  h1, h2, .font-headline {
     font-synthesis: none;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-headline;
     text-wrap: balance;
     letter-spacing: 0;
   }
-  h1 { font-size: 44px; line-height: 1.06; font-weight: 300; }
-  h2 { font-size: 34px; line-height: 1.12; font-weight: 300; }
-  h3 { font-size: 22px; line-height: 1.3; font-weight: 400; }
-  h4 { font-size: 18px; line-height: 1.35; font-weight: 400; }
-  h5 { font-size: 16px; line-height: 1.4; font-weight: 400; }
-  h6 { font-size: 14px; line-height: 1.4; font-weight: 400; }
+  h1, h2 { @apply font-headline; font-weight: 500; }
+  h3, h4, h5, h6 { @apply font-body; }
+  h1 { font-size: 42px; line-height: 1.15; }
+  h2 { font-size: 32px; line-height: 1.18; }
+  h3 { font-size: 21px; line-height: 1.35; font-weight: 700; }
+  h4 { font-size: 18px; line-height: 1.4; font-weight: 700; }
+  h5 { font-size: 16px; line-height: 1.45; font-weight: 600; }
+  h6 { font-size: 15px; line-height: 1.45; font-weight: 600; }
   @media (min-width: 768px) {
-    h1 { font-size: 76px; }
-    h2 { font-size: 52px; }
-    h3 { font-size: 26px; }
-    h4 { font-size: 20px; }
+    h1 { font-size: 68px; }
+    h2 { font-size: 46px; }
+    h3 { font-size: 23px; }
+    h4 { font-size: 19px; }
     h5 { font-size: 17px; }
-    h6 { font-size: 15px; }
+    h6 { font-size: 16px; }
   }
   p {
     text-wrap: pretty;
-    line-height: 1.75;
+    line-height: 1.7;
     max-width: 68ch;
   }
   h1 + p, h2 + p, h3 + p, h4 + p { margin-top: 1rem; }
@@ -136,11 +137,11 @@
 
   /* ── Type scale utilities (direction B) ─────────────────────────────
      eyebrow  → gold label with a 28px hairline before it
-     title-*  → light serif headings at fixed sizes (independent of the tag used)
-     lead     → light intro paragraph
-     price    → Bellefair lining tabular figures (accent face) */
+     title-*  → display serif (display/section) or sans (card) at fixed sizes
+     lead     → intro paragraph: 17-19px, regular, near-ink
+     price    → numbers face (--font-numbers), bold tabular figures */
   .eyebrow {
-    @apply inline-flex items-center gap-2.5 font-body text-[13px] font-medium leading-none text-accent-strong;
+    @apply inline-flex items-center gap-2.5 font-body text-[14px] font-semibold leading-none text-accent-strong;
     letter-spacing: 0.01em;
   }
   .eyebrow::before,
@@ -149,21 +150,20 @@
     @apply inline-block h-px w-7 bg-accent;
   }
   .title-display {
-    @apply font-headline text-[48px] font-light leading-[1.05] text-primary md:text-[88px];
+    @apply font-headline text-[44px] font-medium leading-[1.12] text-primary md:text-[76px];
   }
   .title-section {
-    @apply font-headline text-[34px] font-light leading-[1.12] text-primary md:text-[54px];
+    @apply font-headline text-[32px] font-medium leading-[1.16] text-primary md:text-[48px];
   }
   .title-card {
-    @apply font-headline text-[21px] font-normal leading-snug text-primary md:text-[23px];
+    @apply font-body text-[19px] font-semibold leading-snug text-primary md:text-[20px];
   }
   .lead {
-    @apply text-[17px] font-light leading-[1.7] text-primary/80 md:text-[19px];
+    @apply text-[17px] font-normal leading-[1.7] text-primary/90 md:text-[19px];
   }
   .price {
-    @apply font-accent font-normal tabular-nums text-primary;
+    @apply font-numbers font-bold tabular-nums text-primary;
     font-feature-settings: 'tnum' 1, 'lnum' 1;
-    letter-spacing: 0.01em;
   }
   .num {
     font-variant-numeric: tabular-nums;

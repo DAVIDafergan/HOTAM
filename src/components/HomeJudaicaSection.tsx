@@ -62,7 +62,7 @@ function SeasonBanner({ season, compact, tone }: { season: Season; compact: bool
             {daysLeftLabel(days)}
           </span>
         </div>
-        <h3 className={cn('font-headline font-light leading-none text-primary-foreground', compact ? 'text-4xl md:text-5xl' : 'text-4xl md:text-6xl')}>
+        <h3 className={cn('font-headline font-medium leading-none text-primary-foreground', compact ? 'text-4xl md:text-5xl' : 'text-4xl md:text-6xl')}>
           {season.title}
         </h3>
         <p className="max-w-md text-sm font-medium text-primary-foreground/75 md:text-lg">{season.description}</p>
@@ -141,7 +141,7 @@ function CategoryTile({ group, products }: { group: ProductGroup & { key: TileKe
             <span className="text-[13px] font-bold text-[#E2B35B]">{products.length === 1 ? 'מוצר אחד באתר' : `${products.length} מוצרים באתר`}</span>
           )}
           <div className="flex items-end justify-between gap-3">
-            <h3 className="font-headline text-[1.9rem] font-light leading-none text-white md:text-[2.2rem]">{group.label}</h3>
+            <h3 className="font-headline text-[1.9rem] font-medium leading-none text-white md:text-[2.2rem]">{group.label}</h3>
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent text-primary shadow-lg transition-transform duration-300 group-hover/photo:-translate-x-1" aria-hidden="true">
               <ArrowLeft className="h-4 w-4" />
             </span>

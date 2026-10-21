@@ -36,7 +36,7 @@ export default function PhoneOptOutClient({ token }: { token: string }) {
           {state === 'done' ? (
             <>
               <CheckCircle2 className="w-12 h-12 mx-auto text-emerald-600" />
-              <h1 className="text-2xl font-headline font-normal text-primary">ההודעות לטלפון הופסקו</h1>
+              <h1 className="text-2xl font-body font-semibold text-primary">ההודעות לטלפון הופסקו</h1>
               <p className="text-muted-foreground font-medium leading-relaxed">
                 לא נשלח עוד SMS ולא נתקשר אלייך. עדכונים חשובים על הזמנות והודעות ימשיכו להגיע במייל.
                 אפשר להפעיל מחדש בכל רגע בהגדרות באזור האישי.
@@ -48,7 +48,7 @@ export default function PhoneOptOutClient({ token }: { token: string }) {
               <div className="w-16 h-16 mx-auto rounded-2xl bg-accent/15 flex items-center justify-center">
                 <PhoneOff className="w-8 h-8 text-primary" />
               </div>
-              <h1 className="text-2xl font-headline font-normal text-primary">הפסקת הודעות SMS ושיחות</h1>
+              <h1 className="text-2xl font-body font-semibold text-primary">הפסקת הודעות SMS ושיחות</h1>
               <p className="text-muted-foreground font-medium leading-relaxed">
                 להפסיק לשלוח לך הודעות SMS ושיחות קוליות מחותם? המיילים ימשיכו להגיע כרגיל.
               </p>

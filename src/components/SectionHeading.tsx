@@ -38,14 +38,14 @@ export function SectionHeading({
         <h2
           id={id}
           className={cn(
-            'font-headline text-[36px] font-light leading-[1.1] md:text-[56px]',
+            'font-headline text-[32px] font-medium leading-[1.16] md:text-[48px]',
             tone === 'dark' ? 'text-white' : 'text-primary',
           )}
         >
           {title}
         </h2>
         {lead && (
-          <p className={cn('max-w-xl text-[17px] font-light leading-[1.7] md:text-[19px]', centered && 'mx-auto', tone === 'dark' ? 'text-white/75' : 'text-primary/75')}>
+          <p className={cn('max-w-xl text-[17px] font-normal leading-[1.7] md:text-[19px]', centered && 'mx-auto', tone === 'dark' ? 'text-white/85' : 'text-primary/90')}>
             {lead}
           </p>
         )}

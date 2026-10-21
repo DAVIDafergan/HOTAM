@@ -735,7 +735,7 @@ export function ProductDetailsClient({
                   {product.sub_type && product.sub_type !== 'all' && (
                     <p className="eyebrow mb-1">{product.product_type}</p>
                   )}
-                  <h1 className="text-[38px] md:text-[56px] font-headline font-light text-primary leading-[1.08]">
+                  <h1 className="text-[38px] md:text-[56px] font-headline font-medium text-primary leading-[1.08]">
                     {productDisplayTitle}
                   </h1>
                   <button
@@ -780,7 +780,7 @@ export function ProductDetailsClient({
             {/* Price — clean, no decorative card chrome */}
             <div className="space-y-5 border-y border-border/80 py-6">
               <div className="flex items-baseline justify-start gap-3">
-                <Price value={displayPrice} className="text-[44px] md:text-[54px] leading-none" />
+                <Price value={displayPrice} className="text-[36px] md:text-[44px] leading-none" />
                 <span className="text-sm font-medium text-muted-foreground">כולל מע"מ</span>
               </div>
 
@@ -851,7 +851,7 @@ export function ProductDetailsClient({
                 </div>
                 <div className="min-w-0 flex-1 text-right">
                   <p className="text-[13px] font-medium text-muted-foreground">{judaicaCategory ? 'נמכר על ידי' : 'נכתב על ידי'}</p>
-                  <p className="flex items-center gap-1 font-headline text-lg font-normal text-primary">
+                  <p className="flex items-center gap-1 font-body text-lg font-semibold text-primary">
                     <span className="truncate">{sellerFullName || 'סופר סת״ם'}</span>
                     {seller.is_approved && <BadgeCheck className="h-4 w-4 shrink-0 fill-accent text-white" aria-label="סופר מאומת" />}
                   </p>
@@ -873,7 +873,7 @@ export function ProductDetailsClient({
             )}
 
             <div className="space-y-3">
-              <h2 className="font-headline text-xl font-normal text-primary flex items-center justify-start gap-2">
+              <h2 className="font-body text-xl font-semibold text-primary flex items-center justify-start gap-2">
                 <ScrollText className="w-4 h-4 shrink-0 text-accent-strong" /> {judaicaCategory ? 'על המוצר' : 'על כלי הקודש'}
               </h2>
               <p className="text-primary/80 text-[17px] font-light leading-[1.85] whitespace-pre-line">
@@ -911,7 +911,7 @@ export function ProductDetailsClient({
                       <span className="text-sm font-bold text-primary/80">איסוף עצמי מ{sellerCity || 'עיר הסופר'}</span>
                     </div>
                     {pickupAddress && (
-                      <p className="text-sm text-primary/70 text-right">{pickupAddress}</p>
+                      <p className="text-sm text-primary/85 text-right">{pickupAddress}</p>
                     )}
                   </div>
                 )}
@@ -960,7 +960,7 @@ export function ProductDetailsClient({
                           <Image src={seller.profile_image} alt="" fill kind="avatar" sizes="112px" className="object-cover" />
                         ) : (
                           <div className="w-full h-full bg-gradient-to-br from-primary/10 to-accent/15 flex items-center justify-center">
-                            <span className="text-3xl font-headline font-normal text-primary/50">
+                            <span className="text-3xl font-headline font-medium text-primary/50">
                               {`${seller.first_name?.[0] ?? ''}${seller.last_name?.[0] ?? ''}` || <UserRound className="w-10 h-10 text-primary/20" />}
                             </span>
                           </div>
@@ -974,7 +974,7 @@ export function ProductDetailsClient({
 
                       <div className="flex-1 min-w-0 space-y-4 text-center sm:text-right">
                         <div className="space-y-1.5">
-                          <h2 className="text-[26px] sm:text-[32px] font-headline font-light text-primary truncate">
+                          <h2 className="text-[26px] sm:text-[32px] font-body font-semibold text-primary truncate">
                             {seller.first_name} {seller.last_name}
                           </h2>
                           <div className="flex items-center justify-center sm:justify-start gap-3 flex-wrap">
@@ -988,7 +988,7 @@ export function ProductDetailsClient({
                         </div>
 
                         <blockquote className="border-r-2 border-accent/40 pr-4 py-0.5 text-center sm:text-right">
-                          <p className="text-base sm:text-lg leading-relaxed text-primary/70">
+                          <p className="text-base sm:text-lg leading-relaxed text-primary/85">
                             {seller.notes || (isJudaicaSeller ? 'מוכר מוצרי יודאיקה באתר חותם.' : 'סופר סת"ם מוסמך וירא שמיים, כותב בקדושה ובטהרה.')}
                           </p>
                         </blockquote>
@@ -1014,7 +1014,7 @@ export function ProductDetailsClient({
                 {productRatings.length > 0 && (
                   <div className="mb-8 flex flex-col items-center gap-6 rounded-[1.75rem] border border-border/70 bg-card p-6 shadow-premium sm:flex-row sm:items-center">
                     <div className="shrink-0 text-center">
-                      <p className="font-headline text-5xl font-light num text-primary">{productRatingAvg.toFixed(1)}</p>
+                      <p className="font-headline text-5xl font-medium num text-primary">{productRatingAvg.toFixed(1)}</p>
                       <div className="mt-1 flex justify-center gap-0.5">
                         {[1, 2, 3, 4, 5].map((s) => (
                           <Star key={s} className={cn("h-4 w-4", s <= Math.round(productRatingAvg) ? 'fill-accent text-accent' : 'text-primary/15')} />
@@ -1037,7 +1037,7 @@ export function ProductDetailsClient({
                   </div>
                 )}
                 <div className="flex justify-between items-center mb-5">
-                  <h3 className="font-headline text-xl font-normal text-primary">ביקורות לקוחות</h3>
+                  <h3 className="font-body text-xl font-semibold text-primary">ביקורות לקוחות</h3>
                   <div className="flex items-center gap-2">
                     <Button
                       type="button"
@@ -1060,7 +1060,7 @@ export function ProductDetailsClient({
 
                 <div className="mb-8 rounded-[1.75rem] border border-border/70 bg-card/70 p-5 md:p-7 space-y-5 text-right">
                   <div className="space-y-1">
-                    <h4 className="font-headline text-lg font-normal text-primary">פרסום ביקורת</h4>
+                    <h4 className="font-body text-lg font-semibold text-primary">פרסום ביקורת</h4>
                     <p className="text-sm text-muted-foreground">שתפו בקצרה על המוצר כדי לעזור לקונים הבאים.</p>
                   </div>
                   {!user && (
@@ -1133,7 +1133,7 @@ export function ProductDetailsClient({
                                 <Star key={s} className={cn("w-3 h-3", s <= (Number(rev.rating) || 0) ? 'fill-accent text-accent' : 'text-muted-foreground/20')} />
                               ))}
                             </div>
-                            <p className="text-[15px] text-primary/80 leading-relaxed">{rev.comment}</p>
+                            <p className="text-base text-primary/80 leading-relaxed">{rev.comment}</p>
                           </div>
                           {user?.uid === rev.buyer_id && (
                             <div className="flex justify-start mt-1">
@@ -1159,7 +1159,7 @@ export function ProductDetailsClient({
                       <Star className="w-8 h-8 text-accent-strong" />
                     </div>
                     <div className="space-y-1">
-                      <p className="font-headline text-xl font-normal text-primary">היו הראשונים לכתוב ביקורת</p>
+                      <p className="font-body text-xl font-semibold text-primary">היו הראשונים לכתוב ביקורת</p>
                       <p className="text-sm font-medium text-muted-foreground max-w-sm mx-auto">
                         שתפו את החוויה שלכם עם כלי הקודש הזה ועזרו לקונים הבאים להחליט.
                       </p>
@@ -1215,7 +1215,7 @@ export function ProductDetailsClient({
           </div>
           <div className="hidden sm:flex flex-col items-end border-r pr-6 md:pr-10 border-border">
             <span className="text-[13px] font-medium text-muted-foreground mb-1">סה"כ לתשלום</span>
-            <Price value={displayPrice} className="text-3xl leading-none" />
+            <Price value={displayPrice} className="text-[28px] leading-none" />
           </div>
         </div>
       </div>
@@ -1327,7 +1327,7 @@ export function ProductDetailsClient({
         <DialogContent className="max-w-sm rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl bg-white max-h-[90vh] overflow-y-auto" dir="rtl">
           <div className="p-8 space-y-5 text-right">
             <DialogHeader className="space-y-2 text-right">
-              <DialogTitle className="text-xl font-headline font-normal text-primary">מספר טלפון ליצירת קשר</DialogTitle>
+              <DialogTitle className="text-xl font-body font-semibold text-primary">מספר טלפון ליצירת קשר</DialogTitle>
               <p className="text-sm font-medium text-muted-foreground">
                 כדי שנציג 'חותם' יוכל לחזור אליכם לתיאום הפגישה, נא להשאיר מספר טלפון.
               </p>

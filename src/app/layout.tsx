@@ -4,39 +4,40 @@ import './globals.css';
 import { SupabaseClientProvider } from '@/lib/supabase-hooks';
 import { ClientWrapper } from '@/components/ClientWrapper';
 import { Analytics } from '@vercel/analytics/next';
-import { IBM_Plex_Sans_Hebrew, Noto_Serif_Hebrew, Bellefair } from 'next/font/google';
+import { Assistant, Noto_Serif_Hebrew } from 'next/font/google';
 import { AccessibilityButton } from '@/components/AccessibilityButton';
 import { SplashScreen } from '@/components/SplashScreen';
 
-// Typography — direction B ("luxury fashion"), chosen by David (2026-10):
-//   body / UI  → IBM Plex Sans Hebrew (300 long text, 400 UI, 500 labels, 600 buttons/emphasis)
-//   headings   → Noto Serif Hebrew Light (300 display, 400 small headings) — large and airy
-//   accent     → Bellefair (prices, numbers/stats, HOTAM wordmark) — thin lining figures
-// Max three families. To revert to the previous system, swap these three loaders back to
-// Assistant (--font-body) + Frank_Ruhl_Libre weight ['500','700'] (--font-heading) and point
-// --font-accent at --font-heading in globals.css.
-const bodyFont = IBM_Plex_Sans_Hebrew({
+// ── Fonts: one loader per ROLE, so swapping a face is a one-line change ─────────────────
+//   --font-display  h1/h2 display headings only (serif)       → tailwind `font-headline`
+//   --font-body     everything else: text, h3 and below, cards, labels, nav (sans) → `font-body`
+//   --font-numbers  prices, stats and counts (tabular figures)  → `font-numbers`
+// To try another face for a role, replace that role's loader call (e.g. `Frank_Ruhl_Libre({...})`)
+// and keep its `variable`. No 300 weights anywhere — readability over "airy".
+const displayFont = Noto_Serif_Hebrew({
   subsets: ['hebrew', 'latin'],
-  weight: ['300', '400', '500', '600'],
+  weight: ['500', '600'],
+  variable: '--font-display',
+  display: 'swap',
+  fallback: ['Georgia', 'serif'],
+});
+
+const bodyFont = Assistant({
+  subsets: ['hebrew', 'latin'],
+  weight: ['400', '500', '600', '700'],
   variable: '--font-body',
   display: 'swap',
   fallback: ['Arial', 'sans-serif'],
 });
 
-const headingFont = Noto_Serif_Hebrew({
-  subsets: ['hebrew', 'latin'],
-  weight: ['300', '400'],
-  variable: '--font-heading',
+// Same face as the body by default (identical files, so nothing extra is downloaded).
+const numbersFont = Assistant({
+  subsets: ['latin'],
+  weight: ['600', '700'],
+  variable: '--font-numbers',
   display: 'swap',
-  fallback: ['Georgia', 'serif'],
-});
-
-const accentFont = Bellefair({
-  subsets: ['hebrew', 'latin'],
-  weight: '400',
-  variable: '--font-accent',
-  display: 'swap',
-  fallback: ['Georgia', 'serif'],
+  preload: false,
+  fallback: ['Arial', 'sans-serif'],
 });
 
 export const metadata: Metadata = {
@@ -119,7 +120,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="he" dir="rtl" className={`${bodyFont.variable} ${headingFont.variable} ${accentFont.variable}`}>
+    <html lang="he" dir="rtl" className={`${displayFont.variable} ${bodyFont.variable} ${numbersFont.variable}`}>
       <head>
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -129,7 +130,7 @@ export default function RootLayout({
             __html: `
               html,body{margin:0;padding:0;background:#FBF8F3;color:#14110D}
               body{font-family:var(--font-body),Arial,sans-serif;font-weight:400;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
-              h1,h2,h3,h4,h5,h6{font-family:var(--font-heading),Georgia,serif;font-weight:300}
+              h1,h2{font-family:var(--font-display),Georgia,serif;font-weight:500}
             `,
           }}
         />

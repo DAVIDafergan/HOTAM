@@ -69,14 +69,14 @@ export function WorkFlow() {
               >
                 <Icon className="w-5 h-5 md:w-6 md:h-6 text-[#E2B35B]/80 mb-5" strokeWidth={1.25} aria-hidden="true" />
 
-                <span className="font-accent text-[48px] md:text-[64px] leading-none text-[#E2B35B] mb-5 num">
+                <span className="font-headline font-medium text-[44px] md:text-[56px] leading-none text-[#E2B35B] mb-5 num">
                   {String(step.id).padStart(2, '0')}
                 </span>
 
-                <h3 className="text-[22px] md:text-[24px] font-headline font-light text-primary-foreground mb-3">
+                <h3 className="text-[22px] md:text-[24px] font-body font-semibold text-primary-foreground mb-3">
                   {step.title}
                 </h3>
-                <p className="text-[15px] font-light text-primary-foreground/75 leading-relaxed max-w-[260px]">
+                <p className="text-base font-light text-primary-foreground/75 leading-relaxed max-w-[260px]">
                   {step.desc}
                 </p>
               </motion.div>

@@ -191,7 +191,7 @@ export function Navbar() {
             <path d="m2 2l5 5" />
             <path d="m11 11l1 1" />
           </svg>
-          <span className={`font-accent font-normal text-primary leading-none tracking-[0.22em] uppercase whitespace-nowrap shrink-0 ${compact ? 'text-[19px]' : 'text-[22px]'}`}>HOTAM</span>
+          <span className={`font-headline font-medium text-primary leading-none tracking-[0.16em] uppercase whitespace-nowrap shrink-0 ${compact ? 'text-[17px]' : 'text-[20px]'}`}>HOTAM</span>
         </div>
       </Link>
     );
@@ -253,7 +253,7 @@ export function Navbar() {
                                 <p className="text-[13px] font-medium text-accent-strong flex items-center gap-1.5 leading-none">
                                   {greetingIcon} {greeting},
                                 </p>
-                                <p className="text-xl font-headline font-normal text-primary truncate max-w-[180px] leading-tight">{displayName}</p>
+                                <p className="text-xl font-body font-semibold text-primary truncate max-w-[180px] leading-tight">{displayName}</p>
                               </div>
                             </div>
                           ) : (

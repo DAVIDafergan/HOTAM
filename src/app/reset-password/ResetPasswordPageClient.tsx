@@ -92,10 +92,10 @@ export default function ResetPasswordPageClient() {
               <div className="pointer-events-none absolute inset-y-10 left-0 hidden w-px bg-gradient-to-b from-transparent via-[#E2B35B]/50 to-transparent md:block" />
               <div className="relative z-10 space-y-4 md:space-y-6">
                 <div className="space-y-2 md:space-y-3">
-                  <h1 className="text-[30px] md:text-[38px] font-headline font-light leading-tight text-white">
+                  <h1 className="text-[30px] md:text-[38px] font-headline font-medium leading-tight text-white">
                     חותם
                   </h1>
-                  <p className="text-white/75 text-[15px] md:text-base leading-relaxed">בחר סיסמה חדשה וחזק את אבטחת חשבונך.</p>
+                  <p className="text-white/85 text-base md:text-base leading-relaxed">בחר סיסמה חדשה וחזק את אבטחת חשבונך.</p>
                 </div>
                 <div className="flex flex-col items-start gap-2.5 pt-4 border-t border-white/15 md:pt-5">
                   <div className="flex items-center gap-2.5 text-[15px] font-medium text-white/90">
@@ -128,8 +128,8 @@ export default function ResetPasswordPageClient() {
                 <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
                   <AlertCircle className="w-12 h-12 text-destructive" />
                   <div className="space-y-2">
-                    <h2 className="font-headline text-2xl font-normal text-primary">קישור לא תקף</h2>
-                    <p className="text-primary/75 text-[15px] leading-relaxed">הקישור לאיפוס הסיסמה פג תוקפו או שאינו תקין.<br />אנא בקש קישור חדש דרך דף ההתחברות.</p>
+                    <h2 className="font-body text-2xl font-semibold text-primary">קישור לא תקף</h2>
+                    <p className="text-primary/85 text-base leading-relaxed">הקישור לאיפוס הסיסמה פג תוקפו או שאינו תקין.<br />אנא בקש קישור חדש דרך דף ההתחברות.</p>
                   </div>
                   <Button onClick={() => router.push('/login')} className="mt-4 h-12 px-8">
                     חזרה להתחברות
@@ -140,7 +140,7 @@ export default function ResetPasswordPageClient() {
               {pageState === 'ready' && (
                 <>
                   <div className="space-y-2">
-                    <h2 className="text-[26px] md:text-[32px] font-headline font-light text-primary">הגדרת סיסמה חדשה</h2>
+                    <h2 className="text-[26px] md:text-[32px] font-body font-semibold text-primary">הגדרת סיסמה חדשה</h2>
                     <p className="text-muted-foreground text-[15px]">הזן את הסיסמה החדשה שתרצה להשתמש בה</p>
                   </div>
 
@@ -186,8 +186,8 @@ export default function ResetPasswordPageClient() {
                 <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
                   <CheckCircle2 className="w-12 h-12 text-emerald-700" strokeWidth={1.6} />
                   <div className="space-y-2">
-                    <h2 className="font-headline text-2xl font-normal text-primary">הסיסמה עודכנה בהצלחה!</h2>
-                    <p className="text-primary/75 text-[15px]">כעת תוכל להתחבר עם הסיסמה החדשה.</p>
+                    <h2 className="font-body text-2xl font-semibold text-primary">הסיסמה עודכנה בהצלחה!</h2>
+                    <p className="text-primary/85 text-[15px]">כעת תוכל להתחבר עם הסיסמה החדשה.</p>
                   </div>
                   <Button onClick={() => router.push('/login')} className="mt-4 h-12 px-8">
                     מעבר להתחברות

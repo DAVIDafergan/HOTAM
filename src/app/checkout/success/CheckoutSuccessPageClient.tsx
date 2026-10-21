@@ -23,7 +23,7 @@ function SuccessContent() {
             <span className="flex h-24 w-24 items-center justify-center rounded-full bg-emerald-50 ring-1 ring-emerald-200"><CheckCircle2 className="w-12 h-12 text-emerald-700" strokeWidth={1.6} /></span>
           </div>
           <div className="space-y-2">
-            <h1 className="text-[32px] md:text-[40px] font-headline font-light text-primary leading-tight">התשלום עבר בהצלחה!</h1>
+            <h1 className="text-[32px] md:text-[40px] font-headline font-medium text-primary leading-tight">התשלום עבר בהצלחה!</h1>
             <p className="lead mx-auto">ההזמנה שלך אושרה ונרשמה במערכת.</p>
           </div>
           {orderId && (

@@ -153,7 +153,7 @@ export function ProductCard({
                 <BadgeCheck className="h-3.5 w-3.5 shrink-0 fill-accent text-white" aria-hidden="true" />
               </p>
             )}
-            <h3 className="font-headline text-[18px] font-light leading-snug text-primary line-clamp-2 sm:text-[19px]">
+            <h3 className="font-body text-[18px] font-semibold leading-snug text-primary line-clamp-2 sm:text-[19px]">
               {displayTitle}{subtitle ? ` · ${subtitle}` : ''}
             </h3>
             <div className="flex flex-wrap items-center gap-1.5 text-xs font-semibold text-primary/65">
@@ -163,7 +163,7 @@ export function ProductCard({
               )}
             </div>
             <div className="mt-auto flex items-baseline gap-2">
-              <Price value={finalPrice} className="text-[26px] leading-none" />
+              <Price value={finalPrice} className="text-[21px] leading-none" />
               <span className="text-xs font-medium text-muted-foreground">כולל מע״מ</span>
             </div>
           </div>
@@ -243,7 +243,7 @@ export function ProductCard({
 
         <div className="flex min-w-0 flex-1 flex-col gap-3 p-4 text-right sm:p-5">
           <div className="space-y-2">
-            <h3 className="font-headline text-[20px] font-light leading-snug text-primary line-clamp-2 min-h-[2.75em] sm:text-[21px]">
+            <h3 className="font-body text-[20px] font-semibold leading-snug text-primary line-clamp-2 min-h-[2.75em] sm:text-[21px]">
               {displayTitle}{subtitle ? ` · ${subtitle}` : ''}
             </h3>
             {specChips.length > 0 && (
@@ -259,7 +259,7 @@ export function ProductCard({
 
           <div className="mt-auto flex items-end justify-between gap-2 border-t border-border/60 pt-3.5">
             <div className="text-right">
-              <Price value={finalPrice} className="text-[30px] leading-none" />
+              <Price value={finalPrice} className="text-[24px] leading-none" />
               <p className="mt-1.5 text-xs font-light text-muted-foreground">כולל מע״מ</p>
             </div>
             <span className="inline-flex h-11 shrink-0 items-center gap-1.5 text-[14px] font-medium text-accent-strong">

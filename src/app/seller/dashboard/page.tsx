@@ -1156,7 +1156,7 @@ function SellerDashboardContent() {
             </div>
             <div>
               <p className="text-[13px] font-semibold text-[#E2B35B] mb-1">לוח בקרה</p>
-              <h1 className="text-[34px] md:text-[50px] font-headline font-light leading-[1.08]">שלום, {seller?.first_name}</h1>
+              <h1 className="text-[34px] md:text-[50px] font-headline font-medium leading-[1.08]">שלום, {seller?.first_name}</h1>
               <div className="flex items-center gap-1.5 text-emerald-300 font-semibold text-[13px] mt-1.5" data-seller-type-badge={sellerType}>
                 <CheckCircle2 className="w-4 h-4" />
                 <span>{isStamSeller ? 'סופר סת"ם מאומת' : `${SELLER_TYPE_LABELS[sellerType]} מאושר`}</span>
@@ -1257,7 +1257,7 @@ function SellerDashboardContent() {
                   <SheetDescription>מעבר בין מלאי, מכירות, הודעות והגדרות חשבון</SheetDescription>
                 </SheetHeader>
                 <div className="bg-primary p-7 pl-16 text-white">
-                  <h2 className="text-white font-headline font-normal text-xl flex items-center gap-3">
+                  <h2 className="text-white font-body font-semibold text-xl flex items-center gap-3">
                     <LayoutDashboard className="w-5 h-5 text-accent" /> {isStamSeller ? 'ניהול סופר' : 'ניהול החנות'}
                   </h2>
                   <p className="text-white/70 text-xs font-bold mt-1">{seller?.first_name} {seller?.last_name}</p>
@@ -1293,7 +1293,7 @@ function SellerDashboardContent() {
                <Card key={p.id} className="border-border/70 shadow-premium rounded-[1.75rem] bg-card p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
                  <div className="w-20 h-20 bg-secondary/60 rounded-2xl shrink-0 overflow-hidden relative border border-border/70"><Image src={p.images?.[0] || logoImg} alt="product" fill kind="product" sizes="80px" className="object-cover" /></div>
                  <div className="flex-1 text-right w-full">
-                    <p className="font-headline font-normal text-lg text-primary">{p.product_type}</p>
+                    <p className="font-body font-semibold text-lg text-primary">{p.product_type}</p>
                     <p className="text-[13px] text-muted-foreground">
                       {isStamProductType(p.product_type)
                         ? `${p.script_type || ''} | ${p.script_level || ''}`
@@ -1345,7 +1345,7 @@ function SellerDashboardContent() {
                               {isTorahRequest ? <Scroll className="w-6 h-6" /> : <ShoppingBag className="w-6 h-6" />}
                             </div>
                             <div className="text-right flex-1">
-                               <p className="font-headline font-normal text-primary text-[17px] leading-tight">{orderProductName}</p>
+                               <p className="font-body font-semibold text-primary text-[17px] leading-tight">{orderProductName}</p>
                                <div className="flex flex-wrap items-center gap-2 mt-1.5">
                                  <Badge className={cn("border-none text-xs px-2.5 py-1", o.status === 'completed' ? 'bg-emerald-50 text-emerald-800' : isTorahRequest ? 'bg-accent/10 text-accent-strong' : 'bg-secondary text-primary')}>
                                    {o.status === 'completed' ? 'הושלם ושולם' : isTorahRequest ? 'בקשת תיאום והתרשמות' : 'ממתין למסירה'}
@@ -1381,8 +1381,8 @@ function SellerDashboardContent() {
                                     <MessageCircle className="w-10 h-10 text-accent" />
                                   </div>
                                   <div className="max-w-md mx-auto space-y-3">
-                                    <h3 className="text-2xl font-headline font-normal text-primary">מתעניינים בספר תורה שלך!</h3>
-                                    <p className="text-base text-primary/70 font-medium leading-relaxed">
+                                    <h3 className="text-2xl font-body font-semibold text-primary">מתעניינים בספר תורה שלך!</h3>
+                                    <p className="text-base text-primary/85 font-medium leading-relaxed">
                                       בשל אופי המוצר, הפרטים האישיים מנוהלים על ידי צוות 'חותם'. אנא צור איתנו קשר לתיאום פגישה אישית להתרשמות הלקוח מהספר.
                                     </p>
                                   </div>
@@ -1462,7 +1462,7 @@ function SellerDashboardContent() {
 
           <TabsContent value="settings">
              <Card className="p-5 sm:p-8 md:p-12 border-border/70 shadow-premium rounded-[2rem] bg-card text-right">
-                <div className="flex items-center justify-start gap-3 border-b border-border pb-6 mb-10"><span className="flex h-11 w-11 items-center justify-center rounded-full bg-secondary/70"><Settings className="w-5 h-5 text-accent-strong" /></span><h2 className="font-headline text-2xl md:text-[28px] font-normal text-primary">הגדרות ופרופיל אישי</h2></div>
+                <div className="flex items-center justify-start gap-3 border-b border-border pb-6 mb-10"><span className="flex h-11 w-11 items-center justify-center rounded-full bg-secondary/70"><Settings className="w-5 h-5 text-accent-strong" /></span><h2 className="font-body text-2xl md:text-[28px] font-semibold text-primary">הגדרות ופרופיל אישי</h2></div>
                 
                 <div className="grid md:grid-cols-3 gap-8 md:gap-12">
                    <div className="space-y-8">
@@ -1538,7 +1538,7 @@ function SellerDashboardContent() {
                       {isStamSeller ? (
                       <>
                       <div className="pt-8 border-t space-y-8">
-                        <h3 className="font-headline text-xl font-normal text-primary flex items-center gap-2"><Scroll className="w-5 h-5 text-accent-strong" /> פרטי הסופר</h3>
+                        <h3 className="font-body text-xl font-semibold text-primary flex items-center gap-2"><Scroll className="w-5 h-5 text-accent-strong" /> פרטי הסופר</h3>
                         <div className="space-y-4 text-right">
                           <Label className="font-bold block mb-2">הסמכת סופר סת''ם *</Label>
                           <RadioGroup value={profileData.has_scribe_certificate} onValueChange={v => setProfileData({...profileData, has_scribe_certificate: v})} className="grid gap-2">
@@ -1765,7 +1765,7 @@ function SellerDashboardContent() {
                       </>
                       ) : (
                       <div className="pt-8 border-t space-y-4" data-judaica-profile-section>
-                        <h3 className="font-headline text-xl font-normal text-primary flex items-center gap-2"><Store className="w-5 h-5 text-accent-strong" /> על העסק</h3>
+                        <h3 className="font-body text-xl font-semibold text-primary flex items-center gap-2"><Store className="w-5 h-5 text-accent-strong" /> על העסק</h3>
                         <div className="space-y-2 text-right">
                           <Label className="font-bold">ספר בקצרה על העסק והמוצרים שלך (מוצג בדף המוכר)</Label>
                           <Textarea
@@ -1780,7 +1780,7 @@ function SellerDashboardContent() {
 
                       <div className="pt-8 border-t space-y-8">
                          <div className="flex items-center justify-between">
-                            <h3 className="font-headline text-xl font-normal text-primary flex items-center gap-2"><Building2 className="w-5 h-5 text-accent-strong" /> פרטי עסק וחשבון (ללא אפשרות שינוי)</h3>
+                            <h3 className="font-body text-xl font-semibold text-primary flex items-center gap-2"><Building2 className="w-5 h-5 text-accent-strong" /> פרטי עסק וחשבון (ללא אפשרות שינוי)</h3>
                             <Button asChild variant="link" className="text-accent font-bold text-xs tracking-tighter gap-2">
                                <Link href="/contact">צור קשר לשינוי פרטים <ExternalLink className="w-3 h-3" /></Link>
                             </Button>
@@ -1837,7 +1837,7 @@ function SellerDashboardContent() {
           <DialogContent className="w-[calc(100%-2rem)] rounded-[2rem] p-0 overflow-hidden border-none shadow-premium-lg max-w-md bg-card text-primary max-h-[90vh] flex flex-col" dir="rtl">
             <div className="flex-1 overflow-y-auto min-h-0">
               <div className="bg-destructive p-7 pl-16 text-white text-right">
-                <DialogTitle className="text-2xl font-headline font-normal">מחיקת חשבון</DialogTitle>
+                <DialogTitle className="text-2xl font-body font-semibold">מחיקת חשבון</DialogTitle>
                 <DialogDescription className="text-white/85 mt-1 text-[15px]">פעולה זו בלתי הפיכה. כל הנתונים והמודעות שלך יימחקו לצמיתות.</DialogDescription>
               </div>
               <div className="p-8 space-y-5 text-right">
@@ -1878,11 +1878,11 @@ function SellerDashboardContent() {
                 ))}
               </div>
               <DialogHeader>
-                <DialogTitle className="text-2xl font-headline font-normal flex items-center gap-3">
+                <DialogTitle className="text-2xl font-body font-semibold flex items-center gap-3">
                   <ClipboardList className="w-6 h-6 text-[#E2B35B]" />
                   {editingProduct ? (productKind === 'judaica' ? 'עדכון מוצר' : 'עדכון מלאכת קודש') : 'פרסום מוצר חדש'}
                 </DialogTitle>
-                <p className="text-sm text-white/75 font-medium mt-1 num">
+                <p className="text-sm text-white/85 font-medium mt-1 num">
                   שלב {formStep} מתוך {totalFormSteps}
                 </p>
               </DialogHeader>
@@ -2550,7 +2550,7 @@ function QuickStat({ label, value, icon, color, highlight = false }: any) {
       <div className={cn("p-2.5 rounded-full", color)}>{icon}</div>
       <div>
         <p className="text-[13px] text-muted-foreground font-medium">{label}</p>
-        <p className="font-accent text-[32px] md:text-[38px] text-primary num leading-tight" dir="auto">{value}</p>
+        <p className="font-numbers font-bold text-[28px] md:text-[32px] text-primary num leading-tight" dir="auto">{value}</p>
       </div>
     </Card>
   );

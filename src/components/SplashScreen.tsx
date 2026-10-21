@@ -118,7 +118,7 @@ export function SplashScreen() {
               transition={{ duration: 0.45, delay: 0.68, ease: "easeOut" }}
               className="flex flex-col items-center text-center"
             >
-              <h1 className="text-6xl md:text-7xl font-headline font-normal text-primary tracking-tight leading-none mb-2">
+              <h1 className="text-6xl md:text-7xl font-headline font-medium text-primary tracking-tight leading-none mb-2">
                 חותם
               </h1>
               <motion.div

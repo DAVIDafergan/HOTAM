@@ -443,7 +443,7 @@ export default function SellerProfile({
                 )}
               </div>
               
-              <h1 className="text-[28px] md:text-[34px] font-headline font-light text-primary mb-2 leading-tight">
+              <h1 className="text-[34px] md:text-[40px] font-headline font-light text-primary mb-2 leading-[1.1]">
                 {seller.first_name} {seller.last_name}
               </h1>
               <p className="text-muted-foreground flex items-center justify-center gap-1.5 mb-5 font-medium text-sm">
@@ -559,9 +559,9 @@ export default function SellerProfile({
               <div className="mb-8 space-y-4">
                 <div className="flex items-center justify-start gap-2 mb-1">
                    <Quote className="w-6 h-6 text-accent/50 rotate-180" aria-hidden="true" />
-                   <h2 className="text-[26px] md:text-[32px] font-headline font-light text-primary">על ה{sellerNoun}</h2>
+                   <h2 className="text-[30px] md:text-[40px] font-headline font-light text-primary">על ה{sellerNoun}</h2>
                 </div>
-                <p className="font-headline text-lg md:text-[22px] leading-[1.7] text-primary/85">
+                <p className="font-headline font-light text-[20px] md:text-[24px] leading-[1.65] text-primary/85">
                   "{seller.notes || (isJudaicaSeller ? 'מוכר מוצרי יודאיקה באתר חותם.' : 'מלאכת שמיים ושליחות קודש. כל תג נכתב מתוך כוונה טהורה על קלף איכותי, בחרדת קודש ובהתאם לכל כללי ההלכה.')}"
                 </p>
                 <div className="flex flex-wrap justify-start gap-2">

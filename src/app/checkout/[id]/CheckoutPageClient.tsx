@@ -504,8 +504,8 @@ export default function CheckoutPageClient() {
           <div className="grid md:grid-cols-5 gap-6 md:gap-8">
             <div className="md:col-span-3 space-y-5 md:space-y-6">
               <div className="space-y-2">
-                <p className="eyebrow">רכישה מאובטחת</p>
-                <h1 className="text-[32px] md:text-[42px] font-headline font-light text-primary leading-tight">סיכום הזמנה ותשלום</h1>
+                <p className="eyebrow">תשלום מאובטח בנאמנות</p>
+                <h1 className="text-[36px] md:text-[52px] font-headline font-light text-primary leading-[1.08]">סיכום ותשלום</h1>
               </div>
 
               <Card className="border-border/70 shadow-premium rounded-[2rem] bg-card p-5 sm:p-8 space-y-6">

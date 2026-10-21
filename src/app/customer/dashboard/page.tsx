@@ -490,8 +490,8 @@ export default function CustomerDashboard() {
               <UserRound className="w-8 h-8 md:w-10 md:h-10 text-white/80" strokeWidth={1.5} />
             </div>
             <div className="flex-1 text-right">
-              <p className="text-[13px] font-semibold text-[#E2B35B] mb-1.5">אזור אישי</p>
-              <h1 className="text-[30px] md:text-[42px] font-headline font-light text-white leading-tight">
+              <p className="text-[13px] font-medium text-[#E2B35B] mb-2">האזור האישי</p>
+              <h1 className="text-[36px] md:text-[54px] font-headline font-light text-white leading-[1.08]">
                 שלום, {customer?.first_name || (user?._raw?.user_metadata?.first_name as string | undefined) || 'לקוח'} {customer?.last_name || (user?._raw?.user_metadata?.last_name as string | undefined) || ''}
               </h1>
                   <p className="text-white/75 text-[15px] mt-1" dir="ltr" style={{ textAlign: 'right' }}>{user?.email}</p>
@@ -555,7 +555,7 @@ export default function CustomerDashboard() {
                           <span className="text-[13px] text-muted-foreground flex items-center gap-1 num"><Clock className="w-3.5 h-3.5" /> {order.created_at ? new Date(order.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
                         </div>
                          <p className="font-headline font-normal text-primary text-[17px] leading-snug mb-1 truncate">{order.product_name}</p>
-                        <Price value={Number(order.amount || 0).toLocaleString('he-IL')} className="text-lg" />
+                        <Price value={Number(order.amount || 0).toLocaleString('he-IL')} className="text-[26px] leading-none" />
 
                         {order.status === 'paid' && (
                           <div className="mt-3 p-3.5 bg-secondary/50 rounded-xl border border-border space-y-1.5">
@@ -586,8 +586,8 @@ export default function CustomerDashboard() {
             ) : (
               <div className="py-16 px-6 text-center bg-card/60 rounded-[2rem] border border-dashed border-primary/20">
                 <ShoppingBag className="w-11 h-11 text-primary/30 mx-auto mb-4" strokeWidth={1.5} />
-                <p className="text-primary/75 text-[15px]">אין הזמנות פעילות.</p>
-                <Button asChild className="mt-5 px-8"><Link href="/search?view=all">גלה כלי קודש</Link></Button>
+                <p className="font-headline text-2xl font-light text-primary mb-2">עוד אין הזמנות</p><p className="text-primary/70 text-[15px] font-light mx-auto">כשתזמינו, תוכלו לעקוב כאן אחרי כל שלב.</p>
+                <Button asChild className="mt-5 px-8"><Link href="/search?view=all">לכל כלי הקודש</Link></Button>
               </div>
             )}
           </TabsContent>
@@ -615,7 +615,7 @@ export default function CustomerDashboard() {
             ) : (
               <div className="py-16 px-6 text-center bg-card/60 rounded-[2rem] border border-dashed border-primary/20">
                 <MessageCircle className="w-11 h-11 text-primary/30 mx-auto mb-4" strokeWidth={1.5} />
-                <p className="text-primary/75 text-[15px]">אין הודעות עדיין.</p>
+                <p className="font-headline text-2xl font-light text-primary mb-2">עוד אין שיחות</p><p className="text-primary/70 text-[15px] font-light mx-auto">שאלה לסופר? אפשר לפנות אליו מכל עמוד מוצר.</p>
               </div>
             )}
           </TabsContent>
@@ -631,8 +631,8 @@ export default function CustomerDashboard() {
             ) : (
               <div className="py-16 px-6 text-center bg-card/60 rounded-[2rem] border border-dashed border-primary/20">
                 <Heart className="w-11 h-11 text-primary/30 mx-auto mb-4" strokeWidth={1.5} />
-                <p className="text-primary/75 text-[15px]">אין מועדפים שמורים.</p>
-                <Button asChild className="mt-5 px-8"><Link href="/search?view=all">גלה כלי קודש</Link></Button>
+                <p className="font-headline text-2xl font-light text-primary mb-2">עוד אין מועדפים</p><p className="text-primary/70 text-[15px] font-light mx-auto">לחצו על הלב בכל מוצר כדי לשמור אותו כאן.</p>
+                <Button asChild className="mt-5 px-8"><Link href="/search?view=all">לכל כלי הקודש</Link></Button>
               </div>
             )}
           </TabsContent>

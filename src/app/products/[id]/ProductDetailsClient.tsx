@@ -735,7 +735,7 @@ export function ProductDetailsClient({
                   {product.sub_type && product.sub_type !== 'all' && (
                     <p className="eyebrow mb-1">{product.product_type}</p>
                   )}
-                  <h1 className="text-[34px] md:text-[50px] font-headline font-light text-primary leading-[1.12]">
+                  <h1 className="text-[38px] md:text-[56px] font-headline font-light text-primary leading-[1.08]">
                     {productDisplayTitle}
                   </h1>
                   <button
@@ -876,7 +876,7 @@ export function ProductDetailsClient({
               <h2 className="font-headline text-xl font-normal text-primary flex items-center justify-start gap-2">
                 <ScrollText className="w-4 h-4 shrink-0 text-accent-strong" /> {judaicaCategory ? 'על המוצר' : 'על כלי הקודש'}
               </h2>
-              <p className="text-primary/80 text-[16.5px] leading-[1.85] whitespace-pre-line">
+              <p className="text-primary/80 text-[17px] font-light leading-[1.85] whitespace-pre-line">
                 {product.description}
               </p>
             </div>
@@ -1208,8 +1208,7 @@ export function ProductDetailsClient({
                >
                 <Link href={`/chat/${product.seller_id}?productId=${productId}`}>
                   <MessageCircle className="!w-5 !h-5 text-accent-strong" />
-                  <span className="hidden sm:inline">התייעצות</span>
-                  <span className="sm:hidden">צ'אט</span>
+                  <span>{isJudaicaSeller ? 'שאלה למוכר' : 'שאלה לסופר'}</span>
                 </Link>
                </Button>
              )}

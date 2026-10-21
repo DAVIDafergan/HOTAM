@@ -1156,7 +1156,7 @@ function SellerDashboardContent() {
             </div>
             <div>
               <p className="text-[13px] font-semibold text-[#E2B35B] mb-1">לוח בקרה</p>
-              <h1 className="text-[28px] md:text-[38px] font-headline font-light leading-tight">שלום, {seller?.first_name}</h1>
+              <h1 className="text-[34px] md:text-[50px] font-headline font-light leading-[1.08]">שלום, {seller?.first_name}</h1>
               <div className="flex items-center gap-1.5 text-emerald-300 font-semibold text-[13px] mt-1.5" data-seller-type-badge={sellerType}>
                 <CheckCircle2 className="w-4 h-4" />
                 <span>{isStamSeller ? 'סופר סת"ם מאומת' : `${SELLER_TYPE_LABELS[sellerType]} מאושר`}</span>
@@ -1444,7 +1444,7 @@ function SellerDashboardContent() {
                  })}
                  <Pagination current={salesPage} total={orders.length} onChange={setSalesPage} />
                </div>
-             ) : <div className="py-20 px-6 text-center bg-card/60 rounded-[2rem] border border-dashed border-primary/20 text-[15px] text-primary/75">אין מכירות רשומות עדיין.</div>}
+             ) : <div className="py-20 px-6 text-center bg-card/60 rounded-[2rem] border border-dashed border-primary/20 text-[15px] text-primary/75">עוד אין מכירות — הזמנה חדשה תופיע כאן.</div>}
           </TabsContent>
 
           <TabsContent value="chats" className="space-y-4">
@@ -1457,7 +1457,7 @@ function SellerDashboardContent() {
                  })}
                  <Pagination current={chatsPage} total={chats.length} onChange={setChatsPage} />
                </div>
-             ) : <div className="py-20 px-6 text-center bg-card/60 rounded-[2rem] border border-dashed border-primary/20 text-[15px] text-primary/75">אין הודעות חדשות.</div>}
+             ) : <div className="py-20 px-6 text-center bg-card/60 rounded-[2rem] border border-dashed border-primary/20 text-[15px] text-primary/75">עוד אין הודעות.</div>}
           </TabsContent>
 
           <TabsContent value="settings">
@@ -2550,7 +2550,7 @@ function QuickStat({ label, value, icon, color, highlight = false }: any) {
       <div className={cn("p-2.5 rounded-full", color)}>{icon}</div>
       <div>
         <p className="text-[13px] text-muted-foreground font-medium">{label}</p>
-        <p className="font-headline text-2xl md:text-[28px] font-light text-primary num leading-tight" dir="auto">{value}</p>
+        <p className="font-accent text-[32px] md:text-[38px] text-primary num leading-tight" dir="auto">{value}</p>
       </div>
     </Card>
   );

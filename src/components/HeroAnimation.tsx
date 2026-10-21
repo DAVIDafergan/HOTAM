@@ -583,22 +583,22 @@ export function HeroAnimation() {
       {/* A single, very soft gold glow — no photo, no blur filter (cheap to paint, LCP is text). */}
       <div aria-hidden="true" className="pointer-events-none absolute -top-40 right-[-10%] h-[520px] w-[520px] rounded-full bg-[radial-gradient(closest-side,hsl(var(--accent)/0.10),transparent)]" />
 
-      <div className="container mx-auto px-5 md:px-8 relative z-10 grid items-center gap-12 lg:grid-cols-[1.05fr_1fr] lg:gap-16">
+      <div className="container mx-auto px-5 md:px-8 relative z-10 grid items-center gap-12 lg:grid-cols-[1.15fr_1fr] lg:gap-16">
         <div className="text-right">
           <p className="eyebrow fade-up">ספרי תורה · תפילין · מזוזות · יודאיקה</p>
-          <h1 id="hero-heading" className="mt-6 md:mt-8 font-headline text-[50px] sm:text-[64px] md:text-[84px] xl:text-[96px] font-light leading-[1.04] text-primary">
+          <h1 id="hero-heading" className="mt-6 md:mt-8 font-headline text-[clamp(36px,11.1vw,64px)] md:text-[84px] lg:text-[64px] xl:text-[84px] font-light leading-[1.06] text-primary">
             <span className="hero-line"><span>סת״ם מהודר,</span></span>
             <span className="hero-line"><span>ישירות מיד הסופר</span></span>
           </h1>
           <p className="lead fade-up fade-up-1 mt-6 md:mt-8 max-w-xl">
             כל סופר עובר אימות והסמכה. לכל מוצר פירוט הלכתי מלא — סוג כתב, רמת הידור והגהה. תשלום מאובטח בנאמנות.
           </p>
-          <div className="fade-up fade-up-2 mt-8 md:mt-10 flex flex-wrap items-center gap-3">
-            <Button variant="gold" size="lg" onClick={openFinder} className="px-8 gap-2.5 group">
-              <Search className="!w-[18px] !h-[18px]" aria-hidden="true" />
-              {selectedProduct ? `המשך חיפוש: ${selectedProduct}` : 'מצאו את הסופר שלכם'}
+          <div className="fade-up fade-up-2 mt-8 md:mt-10 flex items-center gap-2.5 sm:gap-3">
+            <Button variant="gold" size="lg" onClick={openFinder} className="h-[52px] sm:h-14 px-5 sm:px-8 gap-2.5 group min-w-0">
+              <Search className="hidden sm:block !w-[18px] !h-[18px]" aria-hidden="true" />
+              <span className="truncate">{selectedProduct ? `המשך חיפוש: ${selectedProduct}` : 'מצאו את הסופר שלכם'}</span>
             </Button>
-            <Button variant="outline" size="lg" asChild className="px-7">
+            <Button variant="outline" size="lg" asChild className="h-[52px] sm:h-14 px-5 sm:px-7 shrink-0">
               <a href="#how-it-works">איך זה עובד</a>
             </Button>
           </div>
@@ -654,7 +654,7 @@ function CategoryCard({ icon, label, onClick, active = false }: CategoryCardProp
       aria-label={label}
       aria-pressed={active}
       className={cn(
-        "group flex flex-col items-center gap-3 p-4 md:p-5 rounded-3xl bg-card border transition-[border-color,box-shadow] duration-300 w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
+        "group flex flex-col items-center gap-3 px-2 py-4 md:py-5 rounded-3xl bg-card border transition-[border-color,box-shadow,transform] duration-300 ease-lux active:scale-[0.97] w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
         active ? "border-primary shadow-premium" : "border-border/70 hover:border-primary/30 hover:shadow-premium"
       )}
     >
@@ -664,7 +664,7 @@ function CategoryCard({ icon, label, onClick, active = false }: CategoryCardProp
       )}>
         {React.cloneElement(icon as React.ReactElement<{ className?: string }>, { className: "w-6 h-6 md:w-7 md:h-7", strokeWidth: 1.6 } as any)}
       </div>
-      <span className="font-bold text-primary text-[15px]">{label}</span>
+      <span className="font-medium text-primary text-[14px] whitespace-nowrap">{label}</span>
     </button>
   );
 }

@@ -250,8 +250,8 @@ export default function RegisterPageClient() {
           <div className="w-full max-w-3xl space-y-8 text-right" dir="rtl">
             <div className="text-center space-y-3">
               <p className="eyebrow eyebrow-center">הצטרפות</p>
-              <h1 className="text-[36px] md:text-[48px] font-headline font-light text-primary leading-tight">הצטרפות לחותם</h1>
-              <p className="text-muted-foreground text-base">בחר את סוג החשבון שברצונך לפתוח</p>
+              <h1 className="text-[40px] md:text-[60px] font-headline font-light text-primary leading-[1.06]">הצטרפות לחותם</h1>
+              <p className="text-muted-foreground text-[17px] font-light">בחר את סוג החשבון שברצונך לפתוח</p>
             </div>
             <div className="grid sm:grid-cols-2 gap-4 md:gap-6">
               <button
@@ -354,7 +354,7 @@ export default function RegisterPageClient() {
               <div className="relative z-10 space-y-6">
                 <div className="space-y-4">
                   <p className="font-accent text-sm font-normal uppercase tracking-[0.32em] text-[#E2B35B]">HOTAM</p>
-                  <h1 className="text-[38px] font-headline font-light leading-tight text-white">
+                  <h1 className="text-[46px] font-headline font-light leading-[1.08] text-white">
                     מצטרפים למשפחת חותם
                   </h1>
                   <p className="text-white/75 text-base leading-relaxed">גלו את הדרך הבטוחה והמהודרת ביותר לרכישת כלי קודש ישירות מהסופר.</p>
@@ -376,11 +376,11 @@ export default function RegisterPageClient() {
             <CardContent className="order-1 md:order-2 md:col-span-3 p-6 sm:p-8 md:p-10 space-y-6 text-right flex flex-col justify-center">
               <div className="md:hidden text-center">
                 <p className="font-accent text-sm font-normal uppercase tracking-[0.32em] text-accent-strong">HOTAM</p>
-                <h1 className="mt-1 text-[30px] font-headline font-light text-primary leading-tight">ברוכים הבאים לחותם</h1>
+                <h1 className="mt-2 text-[36px] font-headline font-light text-primary leading-tight">הצטרפות לחותם</h1>
               </div>
               <div className="space-y-1.5 text-center md:text-right">
                 <h2 className="text-[22px] md:text-[30px] font-headline font-normal md:font-light text-primary">הרשמה כלקוח</h2>
-                <p className="text-muted-foreground text-[15px]">הצטרפו לקהילת חותם עוד היום</p>
+                <p className="text-muted-foreground text-[15px] font-light">חשבון אחד לכל ההזמנות, ההודעות והמועדפים שלכם.</p>
               </div>
 
               <div className="space-y-4">

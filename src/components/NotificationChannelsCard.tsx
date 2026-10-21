@@ -87,13 +87,13 @@ export function NotificationChannelsCard({ defaultPhone = '', className = '' }: 
     toast({ title: 'המספר הוסר. לא יישלחו הודעות לטלפון.' });
   });
 
-  const shell = `rounded-[1.75rem] border border-primary/10 bg-white p-5 sm:p-6 ${className}`;
+  const shell = `rounded-[1.75rem] border border-border/80 bg-card p-5 shadow-premium sm:p-7 ${className}`;
   const header = (
     <div className="flex items-start gap-3">
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-accent/15 text-primary"><Smartphone className="h-5 w-5" /></span>
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-secondary text-accent-strong"><Smartphone className="h-5 w-5" strokeWidth={1.6} /></span>
       <div>
-        <h3 className="font-headline text-lg font-normal text-primary">עדכונים לטלפון</h3>
-        <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">בנוסף למייל: הודעות SMS ו/או שיחה קולית בעברית על הודעות, הזמנות ועדכוני חשבון.</p>
+        <h3 className="font-headline text-[22px] font-light leading-snug text-primary">עדכונים לטלפון</h3>
+        <p className="mt-1 text-sm font-light leading-relaxed text-muted-foreground">בנוסף למייל: הודעות SMS ו/או שיחה קולית בעברית על הודעות, הזמנות ועדכוני חשבון.</p>
       </div>
     </div>
   );
@@ -104,7 +104,7 @@ export function NotificationChannelsCard({ defaultPhone = '', className = '' }: 
     return (
       <div className={shell}>
         {header}
-        <p className="mt-4 rounded-2xl bg-muted/40 px-4 py-3 text-sm text-muted-foreground">האפשרות תיפתח בקרוב.</p>
+        <p className="mt-4 rounded-2xl bg-secondary/60 px-4 py-3 text-sm text-muted-foreground">האפשרות תיפתח בקרוב.</p>
       </div>
     );
   }
@@ -120,12 +120,12 @@ export function NotificationChannelsCard({ defaultPhone = '', className = '' }: 
           {!codeSentTo ? (
             <>
               <div className="space-y-1.5">
-                <label htmlFor="notif-phone" className="text-sm font-bold text-primary">מספר טלפון</label>
+                <label htmlFor="notif-phone" className="text-sm font-medium text-primary">מספר טלפון</label>
                 <Input id="notif-phone" dir="ltr" inputMode="tel" autoComplete="tel" placeholder="050-1234567" value={phone}
                   onChange={(e) => setPhone(e.target.value)} className="h-12 rounded-xl text-left text-base" />
               </div>
               <fieldset className="space-y-2">
-                <legend className="mb-1 text-sm font-bold text-primary">איך לעדכן אותך?</legend>
+                <legend className="mb-1.5 text-sm font-medium text-primary">איך לעדכן אותך?</legend>
                 <ChoiceRow icon={<MessageSquareText className="h-4 w-4" />} label="הודעת SMS" checked={want.sms} disabled={!view.available.sms} onChange={(v) => setWant({ ...want, sms: v })} />
                 <ChoiceRow icon={<PhoneCall className="h-4 w-4" />} label="שיחה קולית אוטומטית" checked={want.voice} disabled={!view.available.voice} onChange={(v) => setWant({ ...want, voice: v })} />
                 <ChoiceRow icon={<Megaphone className="h-4 w-4" />} label="גם מבצעים ודיוורים (פרסומת)" checked={want.marketing} onChange={(v) => setWant({ ...want, marketing: v })} />
@@ -133,12 +133,12 @@ export function NotificationChannelsCard({ defaultPhone = '', className = '' }: 
               <p className="text-xs leading-relaxed text-muted-foreground">כדי לוודא שהמספר שלך, נשלח אליו קוד אימות חד-פעמי.</p>
               <div className="flex flex-wrap gap-2">
                 {view.available.sms && (
-                  <Button type="button" onClick={() => sendCode('sms')} disabled={!!busy || !phone.trim() || (!want.sms && !want.voice)} className="h-11 rounded-full px-5 font-bold">
+                  <Button type="button" onClick={() => sendCode('sms')} disabled={!!busy || !phone.trim() || (!want.sms && !want.voice)} className="h-11 px-5">
                     {busy === 'send-sms' && <Loader2 className="ml-1 h-4 w-4 animate-spin" />} שלחו לי קוד ב-SMS
                   </Button>
                 )}
                 {view.available.voice && (
-                  <Button type="button" variant="outline" onClick={() => sendCode('voice')} disabled={!!busy || !phone.trim() || (!want.sms && !want.voice)} className="h-11 rounded-full px-5 font-bold">
+                  <Button type="button" variant="outline" onClick={() => sendCode('voice')} disabled={!!busy || !phone.trim() || (!want.sms && !want.voice)} className="h-11 px-5">
                     {busy === 'send-voice' && <Loader2 className="ml-1 h-4 w-4 animate-spin" />} התקשרו אליי עם הקוד
                   </Button>
                 )}
@@ -153,31 +153,31 @@ export function NotificationChannelsCard({ defaultPhone = '', className = '' }: 
               </p>
               <div className="flex flex-wrap items-end gap-2">
                 <div className="space-y-1.5">
-                  <label htmlFor="notif-code" className="text-sm font-bold text-primary">קוד אימות</label>
+                  <label htmlFor="notif-code" className="text-sm font-medium text-primary">קוד אימות</label>
                   <Input id="notif-code" dir="ltr" inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder="••••••"
                     value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                     className="h-12 w-40 rounded-xl text-center text-lg tracking-[0.4em]" />
                 </div>
-                <Button type="button" onClick={verify} disabled={!!busy || code.length !== 6} className="h-12 rounded-full px-6 font-bold">
+                <Button type="button" onClick={verify} disabled={!!busy || code.length !== 6} className="h-12 px-6">
                   {busy === 'verify' && <Loader2 className="ml-1 h-4 w-4 animate-spin" />} אישור
                 </Button>
               </div>
               <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
-                <button type="button" onClick={() => sendCode(codeSentTo.channel)} disabled={!!busy} className="font-bold text-accent-strong hover:underline disabled:opacity-50">שליחת קוד חדש</button>
-                <button type="button" onClick={() => setCodeSentTo(null)} className="text-muted-foreground hover:underline">שינוי מספר</button>
+                <button type="button" onClick={() => sendCode(codeSentTo.channel)} disabled={!!busy} className="min-h-[44px] font-medium text-accent-strong underline-offset-4 hover:underline disabled:opacity-50">שליחת קוד חדש</button>
+                <button type="button" onClick={() => setCodeSentTo(null)} className="min-h-[44px] text-muted-foreground underline-offset-4 hover:underline">שינוי מספר</button>
               </div>
             </>
           )}
         </div>
       ) : (
         <div className="mt-5 space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-muted/40 px-4 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-secondary/60 px-4 py-3">
             <span className="flex items-center gap-2 text-sm text-primary">
-              <ShieldCheck className="h-4 w-4 text-emerald-600" /> מספר מאומת: <b dir="ltr">{view.phone}</b>
+              <ShieldCheck className="h-4 w-4 text-emerald-700" /> מספר מאומת: <b dir="ltr">{view.phone}</b>
             </span>
             <span className="flex gap-1">
-              <Button type="button" size="sm" variant="ghost" onClick={() => { setEditing(true); setWant({ sms: view.sms, voice: view.voice, marketing: view.marketing }); }} className="h-9 rounded-full gap-1"><Pencil className="h-3.5 w-3.5" /> שינוי</Button>
-              <Button type="button" size="sm" variant="ghost" onClick={remove} disabled={!!busy} className="h-9 rounded-full gap-1 text-destructive hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /> הסרה</Button>
+              <Button type="button" size="sm" variant="ghost" onClick={() => { setEditing(true); setWant({ sms: view.sms, voice: view.voice, marketing: view.marketing }); }} className="h-10 rounded-full gap-1"><Pencil className="h-3.5 w-3.5" /> שינוי</Button>
+              <Button type="button" size="sm" variant="ghost" onClick={remove} disabled={!!busy} className="h-10 rounded-full gap-1 text-destructive hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /> הסרה</Button>
             </span>
           </div>
           <SwitchRow icon={<MessageSquareText className="h-4 w-4" />} label="הודעות SMS" hint={!view.isMobile ? 'זמין רק במספר נייד' : undefined}
@@ -200,8 +200,8 @@ export function NotificationChannelsCard({ defaultPhone = '', className = '' }: 
 
 function ChoiceRow({ icon, label, checked, disabled, onChange }: { icon: React.ReactNode; label: string; checked: boolean; disabled?: boolean; onChange: (v: boolean) => void }) {
   return (
-    <label className={`flex min-h-[48px] cursor-pointer items-center justify-between gap-3 rounded-xl border border-primary/10 px-4 py-2.5 ${disabled ? 'opacity-50' : 'hover:border-accent/40'}`}>
-      <span className="flex items-center gap-2 text-sm font-semibold text-primary">{icon}{label}</span>
+    <label className={`flex min-h-[52px] cursor-pointer items-center justify-between gap-3 rounded-2xl border border-border px-4 py-2.5 transition-colors ${disabled ? 'opacity-50' : 'hover:border-primary/30'}`}>
+      <span className="flex items-center gap-2.5 text-sm font-medium text-primary"><span className="text-accent-strong">{icon}</span>{label}</span>
       <Switch checked={checked && !disabled} disabled={disabled} onCheckedChange={onChange} />
     </label>
   );
@@ -209,11 +209,11 @@ function ChoiceRow({ icon, label, checked, disabled, onChange }: { icon: React.R
 
 function SwitchRow({ icon, label, hint, checked, disabled, onChange }: { icon: React.ReactNode; label: string; hint?: string; checked: boolean; disabled?: boolean; onChange: (v: boolean) => void }) {
   return (
-    <div className="flex min-h-[52px] items-center justify-between gap-3 rounded-xl border border-primary/10 px-4 py-2.5">
-      <span className="flex items-start gap-2">
-        <span className="mt-0.5 text-primary/70">{icon}</span>
+    <div className="flex min-h-[56px] items-center justify-between gap-3 rounded-2xl border border-border px-4 py-2.5">
+      <span className="flex items-start gap-2.5">
+        <span className="mt-0.5 text-accent-strong">{icon}</span>
         <span>
-          <span className="block text-sm font-semibold text-primary">{label}</span>
+          <span className="block text-sm font-medium text-primary">{label}</span>
           {hint && <span className="block text-xs text-muted-foreground">{hint}</span>}
         </span>
       </span>

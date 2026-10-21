@@ -857,14 +857,15 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
           <div className="container mx-auto px-4 pt-12 pb-12">
             <section className="bg-card p-7 sm:p-10 md:p-20 rounded-[2.5rem] md:rounded-[3.5rem] shadow-premium-lg text-center relative overflow-hidden max-w-5xl mx-auto border border-border/70">
               
-              <h1 className="text-[40px] md:text-7xl font-headline font-light text-primary mb-6 leading-tight">חיפוש קדושה <span className="text-accent-strong">מדויק</span></h1>
-              <p className="lead mb-10 md:mb-12 max-w-2xl mx-auto">הגדירו את המפרט המדויק וקבלו את כלי הקודש המושלם עבורכם ישירות מהסופר המאומת.</p>
+              <p className="eyebrow eyebrow-center mb-6">חיפוש מותאם</p>
+              <h1 className="text-[42px] md:text-[76px] font-headline font-light text-primary mb-6 leading-[1.06]">מצאו בדיוק את<br />מה שחיפשתם</h1>
+              <p className="lead mb-10 md:mb-12 max-w-2xl mx-auto">בחרו סוג כתב, רמת הידור, גודל ומיקום — ונציג לכם כלי קודש מסופרים מאומתים.</p>
               
               <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
                 <Button onClick={() => setIsFilterPanelOpen(true)} size="lg" variant="gold" className="w-full sm:w-auto px-12 h-16 text-[17px] group">
-                  <SearchIcon className="ml-2 !w-5 !h-5" /> התחל חיפוש מותאם
+                  <SearchIcon className="ml-2 !w-5 !h-5" /> התחלת חיפוש מותאם
                 </Button>
-                <Button onClick={() => setShowResults(true)} variant="outline" size="lg" className="w-full sm:w-auto px-12 h-16 text-[17px]">צפה בכל הקטלוג</Button>
+                <Button onClick={() => setShowResults(true)} variant="outline" size="lg" className="w-full sm:w-auto px-12 h-16 text-[17px]">לכל הקטלוג</Button>
               </div>
             </section>
           </div>
@@ -929,7 +930,8 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                   </div>
                 </div>
                 <div className="order-first w-full shrink-0 px-1 text-right md:order-none md:w-auto">
-                  <h2 className="flex items-baseline gap-3 text-[28px] md:text-[40px] font-headline font-light text-primary leading-tight">מוצרים שנמצאו <span className="font-body text-base md:text-lg font-semibold text-muted-foreground num">({filteredProducts.length})</span></h2>
+                  <p className="eyebrow mb-3">הקטלוג</p>
+                  <h2 className="flex items-baseline gap-3 text-[34px] md:text-[52px] font-headline font-light text-primary leading-[1.1]">כלי קודש <span className="font-accent text-[22px] md:text-[28px] text-muted-foreground num">{filteredProducts.length}</span></h2>
                 </div>
               </div>
 
@@ -1039,13 +1041,13 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                         </>
                       ) : (
                         <>
-                          <p className="text-2xl md:text-3xl font-headline font-normal text-primary">לא נמצאה התאמה מדויקת</p>
-                          <p className="text-primary/70 text-base md:text-lg leading-relaxed">נסו להסיר חלק מהמסננים או לאפס את החיפוש כדי לראות עוד אפשרויות קודש.</p>
+                          <p className="text-2xl md:text-3xl font-headline font-normal text-primary">לא מצאנו התאמה מדויקת</p>
+                          <p className="text-primary/70 text-base md:text-lg leading-relaxed">נסו להסיר מסנן או שניים — או צפו בכל כלי הקודש באתר.</p>
                         </>
                       )}
                     </div>
                     <Button variant="outline" onClick={resetFilters} className="rounded-full px-8 md:px-12 h-14 md:h-16 border-2 border-primary/10 text-primary font-black uppercase tracking-widest text-xs md:text-sm hover:bg-accent hover:border-accent hover:text-primary transition-all shadow-lg">
-                      הצג את כל כלי הקודש באתר
+                      הצגת כל כלי הקודש
                     </Button>
                   </div>
                 )}
@@ -1059,7 +1061,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                     size="lg" className="px-10 gap-2"
                   >
                     <ChevronRight className="w-4 h-4 rotate-[-90deg]" />
-                    טען עוד ({filteredProducts.length - visibleCount} נוספים)
+                    עוד כלי קודש ({filteredProducts.length - visibleCount})
                   </Button>
                 </div>
               )}

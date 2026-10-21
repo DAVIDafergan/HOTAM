@@ -138,8 +138,8 @@ function LoginContent() {
               <div className="pointer-events-none absolute inset-y-10 left-0 w-px bg-gradient-to-b from-transparent via-[#E2B35B]/50 to-transparent" />
               <div className="relative z-10 space-y-6 text-right">
                 <div className="space-y-2 md:space-y-3">
-                  <p className="font-headline text-xs font-bold uppercase tracking-[0.3em] text-[#E2B35B]">HOTAM</p>
-                  <h1 className="text-[38px] font-headline font-medium leading-tight text-white">
+                  <p className="font-accent text-sm font-normal uppercase tracking-[0.32em] text-[#E2B35B]">HOTAM</p>
+                  <h1 className="text-[38px] font-headline font-light leading-tight text-white">
                     ברוכים השבים לחותם
                   </h1>
                   <p className="text-white/75 text-base leading-relaxed">זירת מסחר מאובטחת ונוחה לכלי קודש וסת"ם מהודרים.</p>
@@ -164,11 +164,11 @@ function LoginContent() {
             {/* Right/Form Side */}
             <CardContent className="order-2 md:col-span-3 p-6 sm:p-8 md:p-10 space-y-6 text-right flex flex-col justify-center">
               <div className="md:hidden text-center">
-                <p className="font-headline text-xs font-bold uppercase tracking-[0.3em] text-accent-strong">HOTAM</p>
-                <h1 className="mt-1 text-[30px] font-headline font-medium text-primary leading-tight">ברוכים הבאים לחותם</h1>
+                <p className="font-accent text-sm font-normal uppercase tracking-[0.32em] text-accent-strong">HOTAM</p>
+                <h1 className="mt-1 text-[30px] font-headline font-light text-primary leading-tight">ברוכים הבאים לחותם</h1>
               </div>
               <div className="space-y-1.5 text-center md:text-right">
-                <h2 className="text-[22px] md:text-[30px] font-headline font-bold md:font-medium text-primary">כניסה למערכת</h2>
+                <h2 className="text-[22px] md:text-[30px] font-headline font-normal md:font-light text-primary">כניסה למערכת</h2>
                 <p className="text-muted-foreground text-[15px]">הזינו את הפרטים כדי להמשיך</p>
               </div>
 
@@ -267,7 +267,7 @@ function LoginContent() {
           <div className="flex-1 overflow-y-auto min-h-0">
             <div className="bg-primary p-6 pl-16 sm:p-8 sm:pl-16 text-white text-right">
               <DialogHeader>
-                <DialogTitle className="text-2xl font-headline font-bold flex items-center gap-3">
+                <DialogTitle className="text-2xl font-headline font-normal flex items-center gap-3">
                   <Mail className="w-5 h-5 sm:w-6 sm:h-6 text-accent" /> איפוס סיסמה
                 </DialogTitle>
                 <DialogDescription className="text-white/75 text-[15px] mt-1">

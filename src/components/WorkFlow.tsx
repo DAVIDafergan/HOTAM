@@ -23,34 +23,34 @@ export function WorkFlow() {
   const steps = [
     {
       id: 1,
-      title: 'אימות סופר',
-      desc: 'אימות קפדני - כל סופר עובר אימות תעודות ורקע הלכתי',
+      title: 'אימות הסופר',
+      desc: 'כל סופר עובר אימות תעודות ורקע הלכתי לפני שהוא מעלה מוצר ראשון.',
       Icon: ShieldCheck,
     },
     {
       id: 2,
-      title: 'כתיבה והעלאה',
-      desc: 'כתיבה בקדושה - הסופר מעלה את המוצר עם פירוט מלא על רמת ההידור וטבילה',
+      title: 'כתיבה ופרסום',
+      desc: 'הסופר כותב בקדושה ומפרסם את המוצר עם פירוט מלא: סוג כתב, רמת הידור והגהה.',
       Icon: PenTool,
     },
     {
       id: 3,
       title: 'חיפוש מדויק',
-      desc: 'דיוק מקסימלי - הלקוח מוצא בדיוק את מה שהוא מחפש לפי סוג כתב ורמת הידור',
+      desc: 'מסננים לפי סוג כתב, רמת הידור, גודל ומיקום — ומוצאים בדיוק את מה שמחפשים.',
       Icon: Search,
     },
     {
       id: 4,
       title: 'רכישה שקופה',
-      desc: 'שקיפות מלאה - קנייה ישירה מהסופר עם ידיעה ברורה מי כתב את הקודש שלך',
+      desc: 'קונים ישירות מהסופר, בתשלום מאובטח בנאמנות, ויודעים בדיוק מי כתב.',
       Icon: UserCheck,
     }
   ];
 
   return (
-    <section className="section-shell bg-primary text-primary-foreground overflow-hidden relative" dir="rtl">
+    <section id="how-it-works" className="section-shell bg-primary text-primary-foreground overflow-hidden relative scroll-mt-20" dir="rtl" aria-labelledby="how-heading">
       <div className="container mx-auto px-4 md:px-5 relative z-10">
-        <SectionHeading eyebrow="מהסופר אליך" title="תהליך העבודה שלנו" align="center" tone="dark" className="md:mb-20" />
+        <SectionHeading id="how-heading" eyebrow="מהסופר אליכם" title="איך זה עובד" align="center" tone="dark" className="md:mb-20" />
 
         {/* Flat, bordered steps — a hairline rule marks the sequence instead of a glowing
             progress bar; vertical dividers on desktop (horizontal on mobile) read as one
@@ -61,22 +61,22 @@ export function WorkFlow() {
             return (
               <motion.div
                 key={step.id}
-                initial={{ opacity: shouldReduceMotion ? 1 : 0, y: shouldReduceMotion ? 0 : 16 }}
+                initial={{ opacity: shouldReduceMotion ? 1 : 0, y: shouldReduceMotion ? 0 : 12 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.4 }}
-                transition={{ delay: index * 0.08, duration: 0.5, ease: EASE }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ delay: index * 0.08, duration: 0.45, ease: EASE }}
                 className="flex flex-col text-center items-center px-6 py-10 md:py-2 md:px-8"
               >
                 <Icon className="w-5 h-5 md:w-6 md:h-6 text-[#E2B35B]/80 mb-5" strokeWidth={1.25} aria-hidden="true" />
 
-                <span className="font-headline font-medium text-[2.5rem] md:text-[3rem] leading-none text-[#E2B35B] mb-4 num">
+                <span className="font-accent text-[48px] md:text-[64px] leading-none text-[#E2B35B] mb-5 num">
                   {String(step.id).padStart(2, '0')}
                 </span>
 
-                <h3 className="text-lg md:text-xl font-headline font-bold text-primary-foreground mb-2">
+                <h3 className="text-[22px] md:text-[24px] font-headline font-light text-primary-foreground mb-3">
                   {step.title}
                 </h3>
-                <p className="text-[15px] text-primary-foreground/75 leading-relaxed max-w-[250px]">
+                <p className="text-[15px] font-light text-primary-foreground/75 leading-relaxed max-w-[260px]">
                   {step.desc}
                 </p>
               </motion.div>

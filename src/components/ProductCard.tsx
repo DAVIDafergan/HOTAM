@@ -132,7 +132,7 @@ export function ProductCard({
         {...linkProps}
         className="group block touch-manipulation rounded-[1.5rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
       >
-        <article className="flex flex-row items-stretch gap-3 overflow-hidden rounded-[1.5rem] border border-border/70 bg-card p-2.5 shadow-premium transition-shadow duration-300 group-hover:shadow-premium-lg sm:gap-4 sm:p-3">
+        <article className="flex flex-row items-stretch gap-3 overflow-hidden rounded-[1.5rem] border border-border/70 bg-card p-2.5 shadow-premium transition-shadow duration-500 ease-lux group-hover:shadow-premium-lg sm:gap-4 sm:p-3">
           <div className="relative aspect-square w-28 shrink-0 overflow-hidden rounded-xl bg-secondary/60 sm:w-32">
             <Image
               src={mainImage}
@@ -141,7 +141,7 @@ export function ProductCard({
               kind="product"
               priority={priority}
               sizes="128px"
-              className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05]"
+              className="object-cover zoom-on-hover"
             />
             {favoriteButton}
           </div>
@@ -153,7 +153,7 @@ export function ProductCard({
                 <BadgeCheck className="h-3.5 w-3.5 shrink-0 fill-accent text-white" aria-hidden="true" />
               </p>
             )}
-            <h3 className="font-headline text-base font-bold leading-snug text-primary line-clamp-2 sm:text-[17px]">
+            <h3 className="font-headline text-[18px] font-light leading-snug text-primary line-clamp-2 sm:text-[19px]">
               {displayTitle}{subtitle ? ` · ${subtitle}` : ''}
             </h3>
             <div className="flex flex-wrap items-center gap-1.5 text-xs font-semibold text-primary/65">
@@ -163,7 +163,7 @@ export function ProductCard({
               )}
             </div>
             <div className="mt-auto flex items-baseline gap-2">
-              <Price value={finalPrice} className="text-xl" />
+              <Price value={finalPrice} className="text-[26px] leading-none" />
               <span className="text-xs font-medium text-muted-foreground">כולל מע״מ</span>
             </div>
           </div>
@@ -177,7 +177,7 @@ export function ProductCard({
       {...linkProps}
       className="group block h-full touch-manipulation rounded-[1.75rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
     >
-      <article className="flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-border/70 bg-card shadow-premium transition-shadow duration-300 group-hover:shadow-premium-lg">
+      <article className="flex h-full flex-col overflow-hidden rounded-[1.5rem] border border-border/70 bg-card shadow-premium transition-[box-shadow,transform] duration-500 ease-lux md:group-hover:-translate-y-1 group-hover:shadow-premium-lg">
         {/* Post header — who is selling, like the author row of a social post */}
         {seller && (
           <div className="flex items-center gap-2.5 px-4 pt-3.5 pb-3">
@@ -189,7 +189,7 @@ export function ProductCard({
               )}
             </div>
             <div className="min-w-0 flex-1 text-right">
-              <p className="flex items-center gap-1 text-sm font-semibold leading-tight text-primary">
+              <p className="flex items-center gap-1 text-sm font-medium leading-tight text-primary">
                 <span className="truncate">{sellerName || 'סופר סת״ם'}</span>
                 <BadgeCheck className="h-3.5 w-3.5 shrink-0 fill-accent text-white" aria-label="סופר מאומת" />
               </p>
@@ -211,7 +211,7 @@ export function ProductCard({
             kind="product"
             priority={priority}
             sizes="(max-width: 640px) 70vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05]"
+            className="object-cover zoom-on-hover"
           />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/30 to-transparent" />
           {favoriteButton}
@@ -243,13 +243,13 @@ export function ProductCard({
 
         <div className="flex min-w-0 flex-1 flex-col gap-3 p-4 text-right sm:p-5">
           <div className="space-y-2">
-            <h3 className="font-headline text-[17px] font-bold leading-snug text-primary line-clamp-2 min-h-[2.75em] transition-colors group-hover:text-accent-strong sm:text-lg">
+            <h3 className="font-headline text-[20px] font-light leading-snug text-primary line-clamp-2 min-h-[2.75em] sm:text-[21px]">
               {displayTitle}{subtitle ? ` · ${subtitle}` : ''}
             </h3>
             {specChips.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
                 {specChips.map((chip) => (
-                  <span key={chip} className="rounded-full bg-secondary/70 px-2.5 py-1 text-xs font-semibold text-primary/75">
+                  <span key={chip} className="rounded-full bg-secondary px-2.5 py-1 text-xs font-normal text-primary/80">
                     {chip}
                   </span>
                 ))}
@@ -259,12 +259,12 @@ export function ProductCard({
 
           <div className="mt-auto flex items-end justify-between gap-2 border-t border-border/60 pt-3.5">
             <div className="text-right">
-              <Price value={finalPrice} className="text-[22px] leading-none sm:text-2xl" />
-              <p className="mt-1 text-xs font-medium text-muted-foreground">כולל מע״מ</p>
+              <Price value={finalPrice} className="text-[30px] leading-none" />
+              <p className="mt-1.5 text-xs font-light text-muted-foreground">כולל מע״מ</p>
             </div>
-            <span className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors group-hover:bg-primary/90">
+            <span className="inline-flex h-11 shrink-0 items-center gap-1.5 text-[14px] font-medium text-accent-strong">
               לפרטים
-              <ArrowLeft className="h-3.5 w-3.5" />
+              <ArrowLeft className="h-4 w-4 transition-transform duration-300 ease-lux group-hover:-translate-x-1" />
             </span>
           </div>
         </div>

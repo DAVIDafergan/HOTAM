@@ -103,7 +103,7 @@ function ScribeProfileCard({ scribe }: { scribe: TopScribeCard }) {
         </div>
 
         <div className="flex flex-1 flex-col px-3 sm:px-5 pb-4 sm:pb-5 pt-2 text-center">
-          <h3 className="flex items-center justify-center gap-1 font-headline text-base sm:text-xl font-bold text-primary transition-colors group-hover:text-accent-strong">
+          <h3 className="flex items-center justify-center gap-1 font-headline text-base sm:text-xl font-normal text-primary transition-colors group-hover:text-accent-strong">
             <span className="truncate">{displayName}</span>
             <BadgeCheck className="h-4 w-4 shrink-0 fill-accent text-white" aria-label="סופר מאומת" />
           </h3>

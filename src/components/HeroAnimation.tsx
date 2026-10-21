@@ -2,7 +2,6 @@
 
 import React, { useLayoutEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from '@/components/SmartImage';
 import { Button } from '@/components/ui/button';
 import { 
   Search, 
@@ -19,10 +18,7 @@ import {
   Settings2,
   ArrowLeft
 } from 'lucide-react';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
-import unsplashLoader from '@/lib/unsplashLoader';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { EASE } from '@/lib/motion';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -35,18 +31,6 @@ import { COMMON_CITY_OPTIONS, NEARBY_RADIUS_KM } from '@/lib/location-utils';
 
 type ProductType = 'מזוזה' | 'תפילין' | 'מגילה' | 'ספר תורה' | 'מוצרי יודאיקה שונים' | '';
 type ShippingPreference = 'all' | 'shipping' | 'pickup';
-
-// Hero content sits above the fold, so it fades in immediately on mount (not scroll-triggered)
-// with a small stagger between the heading and the CTA — never all at once.
-const heroContainerVariants = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.08 } },
-};
-
-const heroItemVariants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE } },
-};
 
 const MotionButton = motion.create(Button);
 
@@ -75,7 +59,6 @@ function useIsDesktopViewport(): boolean | null {
 export function HeroAnimation() {
   const router = useRouter();
   const { toast } = useToast();
-  const heroImg = PlaceHolderImages.find(img => img.id === 'hero-bg');
   const shouldReduceMotion = useReducedMotion();
   const isDesktop = useIsDesktopViewport();
 
@@ -309,7 +292,7 @@ export function HeroAnimation() {
         {step === 1 && (
           <motion.div key="step1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }} className="space-y-4 md:space-y-10">
             <div className="flex flex-col items-center gap-4">
-              <h2 className="text-2xl md:text-[2rem] font-headline font-bold text-primary">מה אתם מחפשים?</h2>
+              <h2 className="text-2xl md:text-[2rem] font-headline font-normal text-primary">מה אתם מחפשים?</h2>
             </div>
 
             {/* Category cards */}
@@ -365,7 +348,7 @@ export function HeroAnimation() {
             <div className="flex justify-between items-center border-b border-primary/5 pb-4">
               <Button variant="ghost" onClick={() => setStep(1)} className="font-semibold text-sm h-11 px-4 rounded-full hover:bg-primary/5 gap-1"><ChevronRight className="w-4 h-4" /> חזור</Button>
               <div className="text-right">
-                <h2 className="text-xl md:text-2xl font-headline font-bold text-primary">איזה סוג בדיוק?</h2>
+                <h2 className="text-xl md:text-2xl font-headline font-normal text-primary">איזה סוג בדיוק?</h2>
                 <p className="text-[13px] text-primary/65 font-medium mt-0.5">עבור {selectedProduct} · שלב 2 מתוך 3</p>
               </div>
             </div>
@@ -475,7 +458,7 @@ export function HeroAnimation() {
             <div className="flex justify-between items-center border-b border-primary/5 pb-4">
               <Button variant="ghost" onClick={() => setStep(2)} className="font-semibold text-sm h-11 px-4 rounded-full hover:bg-primary/5 gap-1"><ChevronRight className="w-4 h-4" /> חזור</Button>
               <div className="text-right">
-                <h2 className="text-xl md:text-2xl font-headline font-bold text-primary">איפה ואיך תרצו לקבל?</h2>
+                <h2 className="text-xl md:text-2xl font-headline font-normal text-primary">איפה ואיך תרצו לקבל?</h2>
                 <p className="text-[13px] text-primary/65 font-medium mt-0.5">שלב 3 מתוך 3</p>
               </div>
             </div>
@@ -583,95 +566,73 @@ export function HeroAnimation() {
     </>
   );
 
+  // "Find your scribe": on desktop the wizard is already on screen, so bring it into view and
+  // move focus to its first choice; on phones the same wizard opens as a bottom sheet.
+  const openFinder = () => {
+    if (isDesktop) {
+      const card = document.getElementById('hero-finder');
+      card?.scrollIntoView({ behavior: shouldReduceMotion ? 'auto' : 'smooth', block: 'center' });
+      window.setTimeout(() => card?.querySelector<HTMLButtonElement>('button')?.focus({ preventScroll: true }), shouldReduceMotion ? 0 : 450);
+      return;
+    }
+    setIsMobileSearchOpen(true);
+  };
+
   return (
-    <section className="relative min-h-0 md:min-h-screen w-full flex items-center justify-center overflow-hidden bg-background pt-[calc(7.5rem+env(safe-area-inset-top))] pb-4 md:pt-36 md:pb-24">
-      <div className="absolute inset-0 z-0">
-        {heroImg?.imageUrl && (
-          <Image
-            loader={unsplashLoader}
-            src={heroImg.imageUrl}
-            alt=""
-            fill
-            loading="eager"
-            kind="hero"
-            sizes="100vw"
-            className="object-cover object-center opacity-10 pointer-events-none w-full h-full"
-          />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-background/80 to-background" />
-        <div className="absolute inset-0 bg-gradient-to-r from-background/60 via-transparent to-background/60" />
-        {/* Mobile-only: soft depth accent behind the heading/CTA, absent on desktop */}
-        <div className="absolute -top-10 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,hsl(var(--accent)/0.18),transparent)] md:hidden" />
+    <section className="relative w-full overflow-hidden bg-background pt-[calc(8rem+env(safe-area-inset-top))] pb-6 md:pt-40 md:pb-24 lg:min-h-[92vh] lg:flex lg:items-center" aria-labelledby="hero-heading">
+      {/* A single, very soft gold glow — no photo, no blur filter (cheap to paint, LCP is text). */}
+      <div aria-hidden="true" className="pointer-events-none absolute -top-40 right-[-10%] h-[520px] w-[520px] rounded-full bg-[radial-gradient(closest-side,hsl(var(--accent)/0.10),transparent)]" />
+
+      <div className="container mx-auto px-5 md:px-8 relative z-10 grid items-center gap-12 lg:grid-cols-[1.05fr_1fr] lg:gap-16">
+        <div className="text-right">
+          <p className="eyebrow fade-up">ספרי תורה · תפילין · מזוזות · יודאיקה</p>
+          <h1 id="hero-heading" className="mt-6 md:mt-8 font-headline text-[50px] sm:text-[64px] md:text-[84px] xl:text-[96px] font-light leading-[1.04] text-primary">
+            <span className="hero-line"><span>סת״ם מהודר,</span></span>
+            <span className="hero-line"><span>ישירות מיד הסופר</span></span>
+          </h1>
+          <p className="lead fade-up fade-up-1 mt-6 md:mt-8 max-w-xl">
+            כל סופר עובר אימות והסמכה. לכל מוצר פירוט הלכתי מלא — סוג כתב, רמת הידור והגהה. תשלום מאובטח בנאמנות.
+          </p>
+          <div className="fade-up fade-up-2 mt-8 md:mt-10 flex flex-wrap items-center gap-3">
+            <Button variant="gold" size="lg" onClick={openFinder} className="px-8 gap-2.5 group">
+              <Search className="!w-[18px] !h-[18px]" aria-hidden="true" />
+              {selectedProduct ? `המשך חיפוש: ${selectedProduct}` : 'מצאו את הסופר שלכם'}
+            </Button>
+            <Button variant="outline" size="lg" asChild className="px-7">
+              <a href="#how-it-works">איך זה עובד</a>
+            </Button>
+          </div>
+          <ul className="fade-up fade-up-3 mt-9 md:mt-12 flex flex-wrap gap-x-6 gap-y-2 text-[14px] text-primary/70">
+            <li className="flex items-center gap-2"><span className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />סופרים מאומתים בלבד</li>
+            <li className="flex items-center gap-2"><span className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />ישירות מהסופר, בלי מתווכים</li>
+            <li className="flex items-center gap-2"><span className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />תשלום מאובטח בנאמנות</li>
+          </ul>
+        </div>
+
+        {/* Desktop: the spec wizard sits beside the headline. */}
+        <div id="hero-finder" className="hidden md:block fade-up fade-up-2 w-full max-w-2xl justify-self-center lg:justify-self-start bg-card border border-border/80 rounded-[2rem] p-8 lg:p-10 shadow-premium-lg">
+          {/* isDesktop resolves (useLayoutEffect, pre-paint) before this can ever be seen —
+              on mobile it stays a cheap empty shell instead of mounting/hydrating the full
+              wizard behind `hidden`. The `hidden md:block` above is what controls visibility. */}
+          {isDesktop === true ? wizardSteps : <div className="min-h-[420px]" aria-hidden="true" />}
+        </div>
       </div>
 
-      <div className="container mx-auto px-4 md:px-5 relative z-20 flex flex-col items-center justify-center">
-        <motion.div
-          variants={shouldReduceMotion ? undefined : heroContainerVariants}
-          initial={shouldReduceMotion ? undefined : "hidden"}
-          animate={shouldReduceMotion ? undefined : "visible"}
-          className="max-w-4xl w-full space-y-8 md:space-y-12 flex flex-col items-center text-center"
+      <Sheet open={isMobileSearchOpen} onOpenChange={setIsMobileSearchOpen}>
+        <SheetContent
+          side="bottom"
+          className="flex h-[92dvh] max-h-[92dvh] flex-col gap-0 rounded-t-[2rem] border-0 bg-background p-0 shadow-2xl md:hidden"
         >
-
-          <motion.div variants={shouldReduceMotion ? undefined : heroItemVariants} className="flex flex-col items-center gap-4 md:gap-6">
-            <p className="eyebrow eyebrow-center">ספרי תורה · תפילין · מזוזות · יודאיקה</p>
-            <h1 className="text-[44px] sm:text-6xl md:text-7xl lg:text-[88px] font-headline font-medium text-primary leading-[1.05]">
-              קדושה <span className="text-accent-strong">בכל תג</span>
-            </h1>
-            <p className="lead max-w-xl mx-auto">
-              מצאו את הסופר המושלם עבורכם – בכמה קליקים בלבד
-            </p>
-          </motion.div>
-
-          <motion.div variants={shouldReduceMotion ? undefined : heroItemVariants} className="w-full flex flex-col items-center gap-6 md:gap-14">
-            <div className="hidden md:block w-full max-w-3xl bg-card/95 border border-border/70 rounded-[2.5rem] p-8 lg:p-11 shadow-premium-lg relative">
-              {/* isDesktop resolves (useLayoutEffect, pre-paint) before this can ever be seen —
-                  on mobile it stays a cheap empty shell instead of mounting/hydrating the full
-                  wizard behind `hidden`. The `hidden md:block` above is still what actually
-                  controls visibility; this only controls what's mounted underneath it. */}
-              {isDesktop === true ? wizardSteps : <div className="min-h-[420px]" aria-hidden="true" />}
-            </div>
-
-            {/* Mobile: a single high-converting CTA replaces the full wizard by default */}
-            <div className="w-full max-w-3xl md:hidden">
-              <motion.button
-                type="button"
-                onClick={() => setIsMobileSearchOpen(true)}
-                whileHover={shouldReduceMotion ? undefined : { scale: 1.02 }}
-                whileTap={shouldReduceMotion ? undefined : { scale: 0.96 }}
-                className="group flex w-full min-h-[76px] items-center gap-4 rounded-full bg-accent py-3 pr-3 pl-5 text-right shadow-premium"
-              >
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-white transition-transform group-active:scale-90">
-                  <Search className="h-6 w-6" />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[17px] font-bold leading-snug text-primary">
-                    {selectedProduct ? `המשך חיפוש: ${selectedProduct}` : 'חפש מוצרי יודאיקה וסת״ם'}
-                  </span>
-                  <span className="block truncate text-[13px] font-medium text-primary/75 mt-0.5">
-                    {selectedCity ? `לפי עיר: ${selectedCity}` : 'התחל חיפוש מותאם אישית'}
-                  </span>
-                </span>
-                <ChevronLeft className="h-6 w-6 shrink-0 text-primary/70 transition-transform group-hover:-translate-x-1" />
-              </motion.button>
-            </div>
-          </motion.div>
-
-          <Sheet open={isMobileSearchOpen} onOpenChange={setIsMobileSearchOpen}>
-            <SheetContent
-              side="bottom"
-              className="flex h-[92dvh] max-h-[92dvh] flex-col gap-0 rounded-t-[2rem] border-0 bg-background p-0 shadow-2xl md:hidden"
-            >
-              <SheetHeader className="sr-only">
-                <SheetTitle>חיפוש כלי קודש</SheetTitle>
-                <SheetDescription>בחרו קטגוריה, מפרט הלכתי והתאמה אישית כדי למצוא את המוצר המתאים</SheetDescription>
-              </SheetHeader>
-              <div className="flex-1 overflow-y-auto px-4 pb-10 pt-6" dir="rtl">
-                {wizardSteps}
-              </div>
-            </SheetContent>
-          </Sheet>
-        </motion.div>
-      </div>
+          <SheetHeader className="sr-only">
+            <SheetTitle>חיפוש כלי קודש</SheetTitle>
+            <SheetDescription>בחרו קטגוריה, מפרט הלכתי והתאמה אישית כדי למצוא את המוצר המתאים</SheetDescription>
+          </SheetHeader>
+          <div className="mx-auto mt-3 h-1 w-10 shrink-0 rounded-full bg-primary/15" aria-hidden="true" />
+          <div className="flex-1 overflow-y-auto px-4 pb-10 pt-5" dir="rtl">
+            {wizardSteps}
+          </div>
+        </SheetContent>
+      </Sheet>
     </section>
   );
 }

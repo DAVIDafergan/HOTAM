@@ -70,7 +70,7 @@ export default function ContactPageClient() {
       <section className="relative overflow-hidden bg-gradient-to-b from-secondary/80 via-secondary/30 to-background pb-28 pt-32 text-primary md:pb-36 md:pt-40">
         <div className="container relative mx-auto max-w-5xl px-4 text-center">
           <p className="eyebrow eyebrow-center">אנחנו כאן בשבילכם</p>
-          <h1 className="mt-4 font-headline text-[40px] font-medium leading-tight md:text-[60px]">דברו עם חותם</h1>
+          <h1 className="mt-4 font-headline text-[40px] font-light leading-tight md:text-[60px]">דברו עם חותם</h1>
           <p className="lead mx-auto mt-4 max-w-xl">
             שאלה על רכישה, כשרות או הצטרפות כסופר? בחרו את הדרך הנוחה לכם — ואנחנו נחזור אליכם.
           </p>
@@ -112,7 +112,7 @@ export default function ContactPageClient() {
 
           <aside className="space-y-6 lg:col-span-2">
             <div className="rounded-[1.75rem] border border-border/70 bg-card p-6 shadow-premium md:p-7">
-              <h2 className="flex items-center gap-2 font-headline text-xl font-bold text-primary">
+              <h2 className="flex items-center gap-2 font-headline text-xl font-normal text-primary">
                 <Headphones className="h-5 w-5 text-accent-strong" /> מה קורה אחרי שפונים?
               </h2>
               <ol className="mt-5 space-y-5">
@@ -123,7 +123,7 @@ export default function ContactPageClient() {
             </div>
 
             <div className="rounded-[1.75rem] border border-border/70 bg-card p-6 shadow-premium md:p-7">
-              <h2 className="font-headline text-xl font-bold text-primary">שאלות נפוצות</h2>
+              <h2 className="font-headline text-xl font-normal text-primary">שאלות נפוצות</h2>
               <Accordion type="single" collapsible dir="rtl" className="mt-2">
                 {FAQ_ITEMS.map((item, i) => (
                   <AccordionItem key={item.q} value={`faq-${i}`} className="border-border/70 last:border-b-0">
@@ -269,7 +269,7 @@ function ContactForm() {
         <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">
           <CheckCircle2 className="h-10 w-10" />
         </div>
-        <h2 className="mt-6 font-headline text-[30px] font-medium text-primary">הפנייה התקבלה!</h2>
+        <h2 className="mt-6 font-headline text-[30px] font-light text-primary">הפנייה התקבלה!</h2>
         <p className="mt-2 max-w-sm text-primary/75">תודה שפניתם אלינו. צוות חותם יחזור אליכם בהקדם האפשרי.</p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Button variant="outline" onClick={() => setIsSubmitted(false)} className="px-6">
@@ -290,7 +290,7 @@ function ContactForm() {
           <Send className="h-5 w-5" />
         </span>
         <div>
-          <h2 className="font-headline text-2xl font-bold text-primary md:text-[28px]">השאירו לנו הודעה</h2>
+          <h2 className="font-headline text-2xl font-normal text-primary md:text-[28px]">השאירו לנו הודעה</h2>
           <p className="text-sm text-muted-foreground">נחזור אליכם בשעות הפעילות</p>
         </div>
       </div>

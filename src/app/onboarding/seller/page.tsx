@@ -866,7 +866,7 @@ export default function SellerOnboarding() {
           <Card className="shadow-premium-lg border-border/70 rounded-[2.5rem] overflow-hidden bg-card p-10 text-center space-y-6">
             <SuccessCheck className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-accent mx-auto" />
             <div className="space-y-3">
-              <h1 className="text-2xl font-headline font-medium text-primary">{isUpgradeMode ? 'בקשת השדרוג נשלחה!' : 'ההרשמה נשלחה בהצלחה!'}</h1>
+              <h1 className="text-2xl font-headline font-light text-primary">{isUpgradeMode ? 'בקשת השדרוג נשלחה!' : 'ההרשמה נשלחה בהצלחה!'}</h1>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 {isUpgradeMode
                   ? 'הפרטים והקבצים שלך הועברו לאימות צוות "חותם". בזמן הבדיקה מוצרי היודאיקה שלך ממשיכים להימכר כרגיל, ולאחר האישור תוכל להוסיף גם כתבי קודש.'
@@ -894,7 +894,7 @@ export default function SellerOnboarding() {
         <div className="container mx-auto px-4 py-12 max-w-lg pt-28">
           <Card className="shadow-premium-lg border-border/70 rounded-[2.5rem] bg-card p-10 text-center space-y-5">
             <Info className="mx-auto h-12 w-12 text-accent-strong" />
-            <h1 className="text-2xl font-headline font-bold text-primary">{blocked.title}</h1>
+            <h1 className="text-2xl font-headline font-normal text-primary">{blocked.title}</h1>
             <p className="text-sm text-muted-foreground leading-relaxed">{blocked.text}</p>
             <Button asChild className="w-full h-12 rounded-full font-bold"><Link href={blocked.href}>{blocked.cta}</Link></Button>
           </Card>
@@ -916,7 +916,7 @@ export default function SellerOnboarding() {
       <div className="container mx-auto px-4 pb-16 max-w-3xl pt-28 md:pt-32">
         <div className="mb-10 text-center space-y-5">
           <p className="eyebrow eyebrow-center">הצטרפות למוכרים</p>
-          <h1 className="text-[32px] md:text-[44px] font-headline font-medium text-primary leading-tight">{PATH_TITLES[path]}</h1>
+          <h1 className="text-[32px] md:text-[44px] font-headline font-light text-primary leading-tight">{PATH_TITLES[path]}</h1>
           <div className="flex items-center justify-center gap-2 max-w-md mx-auto">
             {activeSteps.map((stepId, idx) => (
               <div key={stepId} className={cn("flex items-center gap-2", idx < totalSteps - 1 && "flex-1")}>
@@ -953,7 +953,7 @@ export default function SellerOnboarding() {
                 exit={{ opacity: 0, y: 8 }}
                 transition={{ duration: 0.2 }}
               >
-                <CardTitle className="text-[24px] md:text-[28px] font-headline font-bold text-white flex items-center justify-start gap-3 relative z-10">
+                <CardTitle className="text-[24px] md:text-[28px] font-headline font-normal text-white flex items-center justify-start gap-3 relative z-10">
                   <StepIcon className="w-7 h-7 text-[#E2B35B]" strokeWidth={1.6} />
                   {currentStepMeta.title}
                 </CardTitle>
@@ -1021,7 +1021,7 @@ export default function SellerOnboarding() {
                         </DialogTrigger>
                         <DialogContent className="max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-card text-primary" dir="rtl">
                           <div className="bg-primary p-6 text-white text-right">
-                            <DialogTitle className="text-xl font-headline font-bold flex items-center gap-3">
+                            <DialogTitle className="text-xl font-headline font-normal flex items-center gap-3">
                               <BookOpen className="w-6 h-6 text-accent" /> מדריך לפתיחת עוסק פטור
                             </DialogTitle>
                             <DialogDescription className="text-white/60 text-xs mt-1">תהליך פשוט שניתן לבצע אונליין תוך דקות</DialogDescription>
@@ -1445,7 +1445,7 @@ function SellerTypeChoice({ onChoose }: { onChoose: (type: SellerType) => void }
       <div className="container mx-auto max-w-4xl px-4 pb-16 pt-28 md:pt-32">
         <div className="mb-10 space-y-4 text-center">
           <p className="eyebrow eyebrow-center">הצטרפות למוכרים</p>
-          <h1 className="font-headline text-[34px] font-medium leading-tight text-primary md:text-[46px]">הצטרפות כמוכר בחותם</h1>
+          <h1 className="font-headline text-[34px] font-light leading-tight text-primary md:text-[46px]">הצטרפות כמוכר בחותם</h1>
           <p className="lead mx-auto max-w-xl">בחר את סוג החשבון שמתאים לך — אפשר לשדרג מיודאיקה לסופר סת״ם בהמשך.</p>
         </div>
         <div className="grid gap-5 md:grid-cols-2">
@@ -1462,7 +1462,7 @@ function SellerTypeChoice({ onChoose }: { onChoose: (type: SellerType) => void }
                 <span className="flex h-14 w-14 items-center justify-center rounded-full bg-accent/15 text-accent-strong">
                   <Icon className="h-7 w-7" strokeWidth={1.6} />
                 </span>
-                <h2 className="mt-5 font-headline text-2xl font-bold text-primary">{option.title}</h2>
+                <h2 className="mt-5 font-headline text-2xl font-normal text-primary">{option.title}</h2>
                 <p className="mt-3 flex-1 text-[15px] leading-relaxed text-primary/75">{option.text}</p>
                 <ul className="mt-5 flex flex-wrap gap-2">
                   {option.highlights.map((h) => (

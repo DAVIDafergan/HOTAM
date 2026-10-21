@@ -1,19 +1,13 @@
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import type { ReactNode } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import {
   ArrowLeft,
-  HandHeart,
-  Search,
-  ShieldCheck,
-  Users,
 } from 'lucide-react';
 import { HeroAnimation } from '@/components/HeroAnimation';
 import { ScrollFadeIn } from '@/components/ScrollFadeIn';
 import { StaggerGrid, StaggerItem } from '@/components/StaggerGrid';
-import SignatureInkAnimation from '@/components/SignatureInkAnimationLoader';
 import { HomeJudaicaSection } from '@/components/HomeJudaicaSection';
 import { SiteFooter } from '@/components/SiteFooter';
 import { SectionHeading } from '@/components/SectionHeading';
@@ -62,49 +56,38 @@ export default function Home() {
 
         <WorkFlow />
 
-        <section className="section-shell relative overflow-hidden" aria-labelledby="about-heading">
-          <div className="container mx-auto px-4 md:px-6 relative z-10">
-            <ScrollFadeIn className="max-w-3xl mx-auto text-center mb-10 md:mb-16">
-              <SectionHeading id="about-heading" eyebrow="על חותם" title="חותם – מלאכת שמיים ושקיפות מלאה" align="center" className="mb-2 md:mb-4" />
-              <SignatureInkAnimation />
-              <p className="lead mx-auto max-w-2xl">
-                פלטפורמת חותם נולדה מתוך חזון לחבר בין עולם הסת''ם העתיק לבין הטכנולוגיה המודרנית, תוך שמירה על קדושה וכשרות ללא פשרות. אנו מאפשרים לכם לרכוש כלי קודש ישירות מסופרי סת''ם יראי שמיים, ללא פערי תיווך ובשקיפות מלאה על זהות הכותב, רמת ההידור והנהגת הקדושה שלו.
-              </p>
-            </ScrollFadeIn>
-
-            <StaggerGrid className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-              <StaggerItem>
-                <AboutCard
-                  icon={<HandHeart className="w-6 h-6" strokeWidth={1.6} />}
-                  title="קנייה ישירה מהסופר"
-                  desc="חיבור ישיר ואישי המבטל את פערי התיווך ומבטיח תגמול הוגן לסופר ומחיר אטרקטיבי ללקוח."
-                />
-              </StaggerItem>
-              <StaggerItem>
-                <AboutCard
-                  icon={<ShieldCheck className="w-6 h-6" strokeWidth={1.6} />}
-                  title="אימות והסמכה קפדנית"
-                  desc="כל סופר באתר עובר תהליך אימות מסמכים, תעודות ורקע מקצועי כדי להבטיח את כשרות המוצר."
-                />
-              </StaggerItem>
-              <StaggerItem>
-                <AboutCard
-                  icon={<Users className="w-6 h-6" strokeWidth={1.6} />}
-                  title="שקיפות ללא פשרות"
-                  desc="מידע מלא על הנהגת הסופר, תדירות הטבילה, סדר יום של לימוד תורה ודוגמאות כתיבה חיות."
-                />
-              </StaggerItem>
-            </StaggerGrid>
-
-            <div className="mt-10 md:mt-16 flex justify-center">
-              <Button size="lg" asChild className="gap-2.5 px-10">
+        <section className="section-shell relative overflow-hidden" aria-labelledby="why-heading">
+          <div className="container mx-auto px-5 md:px-8 relative z-10 grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-24">
+            <ScrollFadeIn className="lg:sticky lg:top-32 self-start">
+              <SectionHeading
+                id="why-heading"
+                eyebrow="למה חותם"
+                title="למה לקנות בחותם"
+                lead="חותם מחברת אתכם ישירות לסופרי סת״ם יראי שמיים — בקדושה, בשקיפות מלאה ובלי פערי תיווך."
+                className="!mb-8"
+              />
+              <Button size="lg" asChild className="gap-2.5 px-8">
                 <Link href="/search?view=all">
-                  <Search className="w-4 h-4" />
-                  צפו בכל המוצרים באתר
+                  לכל כלי הקודש
                   <ArrowLeft className="w-4 h-4" />
                 </Link>
               </Button>
-            </div>
+            </ScrollFadeIn>
+
+            <StaggerGrid className="divide-y divide-border/80 border-y border-border/80">
+              <StaggerItem>
+                <Benefit n="01" title="ישירות מהסופר." desc="בלי מתווכים ובלי פערי תיווך — יודעים בדיוק מי כתב." />
+              </StaggerItem>
+              <StaggerItem>
+                <Benefit n="02" title="סופרים מאומתים בלבד." desc="כל סופר נבדק לפני שהוא מעלה מוצר ראשון — תעודות, הסמכה ורקע מקצועי." />
+              </StaggerItem>
+              <StaggerItem>
+                <Benefit n="03" title="פירוט הלכתי מלא." desc="לכל מוצר: סוג כתב, רמת הידור והגהה. וגם הנהגת הסופר — טבילה, לימוד ודוגמאות כתיבה." />
+              </StaggerItem>
+              <StaggerItem>
+                <Benefit n="04" title="תשלום מאובטח בנאמנות." desc="התשלום משתחרר לסופר רק אחרי שהמוצר הגיע אליכם." />
+              </StaggerItem>
+            </StaggerGrid>
           </div>
         </section>
 
@@ -116,14 +99,13 @@ export default function Home() {
   );
 }
 
-function AboutCard({ icon, title, desc }: { icon: ReactNode, title: string, desc: string }) {
+function Benefit({ n, title, desc }: { n: string; title: string; desc: string }) {
   return (
-    <div className="h-full p-7 md:p-9 rounded-3xl bg-card border border-border/70 shadow-premium text-right">
-      <div className="w-12 h-12 rounded-2xl bg-secondary/70 flex items-center justify-center text-primary mb-5 md:mb-7">
-        {icon}
-      </div>
-      <h3 className="title-card mb-2.5">{title}</h3>
-      <p className="text-[15.5px] text-primary/70 leading-relaxed">{desc}</p>
+    <div className="flex items-start gap-6 md:gap-10 py-7 md:py-9 text-right">
+      <span className="price shrink-0 text-[34px] md:text-[44px] leading-none text-accent-strong/80 num" aria-hidden="true">{n}</span>
+      <p className="max-w-none text-[17px] md:text-[20px] leading-[1.7] font-light text-primary/80">
+        <strong className="font-semibold text-primary">{title}</strong>{' '}{desc}
+      </p>
     </div>
   );
 }

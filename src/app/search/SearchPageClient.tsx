@@ -819,7 +819,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
             <SheetContent side="right" className="w-full border-l border-border bg-background p-0 sm:max-w-[430px]" dir="rtl">
               <div className="flex h-full flex-col">
                 <SheetHeader className="border-b border-border bg-card px-6 py-5 text-right">
-                  <SheetTitle className="font-headline text-2xl font-bold text-primary">סינון מותאם</SheetTitle>
+                  <SheetTitle className="font-headline text-2xl font-normal text-primary">סינון מותאם</SheetTitle>
                 </SheetHeader>
                 <div className="flex-1 overflow-y-auto min-h-0 px-5 py-5">
                   {renderFilterContent()}
@@ -835,7 +835,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
             <DialogContent className="max-h-[92vh] w-[calc(100vw-1rem)] max-w-[95vw] overflow-hidden rounded-[2rem] border-none bg-background p-0 shadow-2xl sm:max-w-[560px] flex flex-col" dir="rtl">
               <div className="shrink-0 border-b border-white/10 bg-primary px-5 py-5 pl-16 text-right text-white">
                 <DialogHeader>
-                  <DialogTitle className="text-2xl font-headline font-bold">סינון מתקדם</DialogTitle>
+                  <DialogTitle className="text-2xl font-headline font-normal">סינון מתקדם</DialogTitle>
                   <p className="text-sm font-medium text-white/75">מסך מסודר ונוח לנייד עם כל המסננים במקום אחד.</p>
                 </DialogHeader>
               </div>
@@ -857,7 +857,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
           <div className="container mx-auto px-4 pt-12 pb-12">
             <section className="bg-card p-7 sm:p-10 md:p-20 rounded-[2.5rem] md:rounded-[3.5rem] shadow-premium-lg text-center relative overflow-hidden max-w-5xl mx-auto border border-border/70">
               
-              <h1 className="text-[40px] md:text-7xl font-headline font-medium text-primary mb-6 leading-tight">חיפוש קדושה <span className="text-accent-strong">מדויק</span></h1>
+              <h1 className="text-[40px] md:text-7xl font-headline font-light text-primary mb-6 leading-tight">חיפוש קדושה <span className="text-accent-strong">מדויק</span></h1>
               <p className="lead mb-10 md:mb-12 max-w-2xl mx-auto">הגדירו את המפרט המדויק וקבלו את כלי הקודש המושלם עבורכם ישירות מהסופר המאומת.</p>
               
               <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
@@ -929,7 +929,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                   </div>
                 </div>
                 <div className="order-first w-full shrink-0 px-1 text-right md:order-none md:w-auto">
-                  <h2 className="flex items-baseline gap-3 text-[28px] md:text-[40px] font-headline font-medium text-primary leading-tight">מוצרים שנמצאו <span className="font-body text-base md:text-lg font-semibold text-muted-foreground num">({filteredProducts.length})</span></h2>
+                  <h2 className="flex items-baseline gap-3 text-[28px] md:text-[40px] font-headline font-light text-primary leading-tight">מוצרים שנמצאו <span className="font-body text-base md:text-lg font-semibold text-muted-foreground num">({filteredProducts.length})</span></h2>
                 </div>
               </div>
 
@@ -1034,12 +1034,12 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                     <div className="mb-8 max-w-md space-y-3">
                       {selectedGroup ? (
                         <>
-                          <p className="text-2xl md:text-3xl font-headline font-bold text-primary">{selectedGroup.label} - בקרוב באתר</p>
+                          <p className="text-2xl md:text-3xl font-headline font-normal text-primary">{selectedGroup.label} - בקרוב באתר</p>
                           <p className="text-primary/70 text-base md:text-lg leading-relaxed">מוכרים מצטרפים לחותם בימים אלה. בינתיים אפשר לראות את כל המוצרים באתר.</p>
                         </>
                       ) : (
                         <>
-                          <p className="text-2xl md:text-3xl font-headline font-bold text-primary">לא נמצאה התאמה מדויקת</p>
+                          <p className="text-2xl md:text-3xl font-headline font-normal text-primary">לא נמצאה התאמה מדויקת</p>
                           <p className="text-primary/70 text-base md:text-lg leading-relaxed">נסו להסיר חלק מהמסננים או לאפס את החיפוש כדי לראות עוד אפשרויות קודש.</p>
                         </>
                       )}

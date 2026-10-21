@@ -505,13 +505,13 @@ export default function CheckoutPageClient() {
             <div className="md:col-span-3 space-y-5 md:space-y-6">
               <div className="space-y-2">
                 <p className="eyebrow">רכישה מאובטחת</p>
-                <h1 className="text-[32px] md:text-[42px] font-headline font-medium text-primary leading-tight">סיכום הזמנה ותשלום</h1>
+                <h1 className="text-[32px] md:text-[42px] font-headline font-light text-primary leading-tight">סיכום הזמנה ותשלום</h1>
               </div>
 
               <Card className="border-border/70 shadow-premium rounded-[2rem] bg-card p-5 sm:p-8 space-y-6">
                 <div className="flex items-center gap-3 border-b border-border pb-4">
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary/70 text-accent-strong"><User className="w-5 h-5" /></span>
-                  <h2 className="font-headline text-xl md:text-2xl font-bold text-primary">פרטי התקשרות</h2>
+                  <h2 className="font-headline text-xl md:text-2xl font-normal text-primary">פרטי התקשרות</h2>
                 </div>
                 <div className="space-y-4">
                   <div className="space-y-2"><Label htmlFor="recipient-name">שם מלא *</Label><Input id="recipient-name" autoComplete="name" value={recipientName} onChange={(e) => setRecipientName(e.target.value)} className="text-right h-12 rounded-xl" /></div>
@@ -522,7 +522,7 @@ export default function CheckoutPageClient() {
               <Card className="border-border/70 shadow-premium rounded-[2rem] bg-card p-5 sm:p-8 space-y-6">
                 <div className="flex items-center gap-3 border-b border-border pb-4">
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary/70 text-accent-strong"><Truck className="w-5 h-5" /></span>
-                  <h2 className="font-headline text-xl md:text-2xl font-bold text-primary">אופן קבלת המוצר</h2>
+                  <h2 className="font-headline text-xl md:text-2xl font-normal text-primary">אופן קבלת המוצר</h2>
                 </div>
                 <RadioGroup value={deliveryChoice} onValueChange={setDeliveryChoice} className="grid gap-4">
                   <Label htmlFor="delivery" className={`flex items-center justify-between p-5 rounded-2xl border cursor-pointer transition-colors ${deliveryChoice === 'shipping' ? 'border-primary bg-primary/[0.04] ring-1 ring-primary' : 'border-border bg-card hover:border-primary/30'}`}>
@@ -574,7 +574,7 @@ export default function CheckoutPageClient() {
               <Card className="border-border/70 shadow-premium rounded-[2rem] bg-card p-5 sm:p-8 space-y-6">
                 <div className="flex items-center gap-3 border-b border-border pb-4">
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary/70 text-accent-strong"><CreditCard className="w-5 h-5" /></span>
-                  <h2 className="font-headline text-xl md:text-2xl font-bold text-primary">פרטי תשלום</h2>
+                  <h2 className="font-headline text-xl md:text-2xl font-normal text-primary">פרטי תשלום</h2>
                 </div>
 
                 <form ref={sumitFormRef} data-og="form" className="space-y-4">
@@ -652,10 +652,10 @@ export default function CheckoutPageClient() {
             
             <div className="md:col-span-2 space-y-6">
               <Card className="border-border/70 shadow-premium rounded-[2rem] bg-card p-6 md:p-7 md:sticky md:top-28">
-                <h2 className="font-headline text-xl font-bold text-primary border-b border-border pb-3 mb-4">סיכום הזמנה</h2>
+                <h2 className="font-headline text-xl font-normal text-primary border-b border-border pb-3 mb-4">סיכום הזמנה</h2>
                 <div className="flex gap-4 items-center mb-6">
                   <div className="relative w-16 h-16 rounded-xl overflow-hidden border border-border bg-secondary/50 shrink-0"><Image loader={unsplashLoader} src={product.images?.[0] || '/hotam-logo.png'} alt="product" fill kind="product" sizes="64px" className="object-cover" /></div>
-                  <div className="text-right"><p className="font-headline font-bold text-base text-primary">{product.product_type}</p><p className="text-sm text-muted-foreground">{product.script_type}</p></div>
+                  <div className="text-right"><p className="font-headline font-normal text-base text-primary">{product.product_type}</p><p className="text-sm text-muted-foreground">{product.script_type}</p></div>
                 </div>
                 <div className="space-y-3 border-t border-border pt-4">
                   <div className="flex justify-between text-[15px]">
@@ -685,7 +685,7 @@ export default function CheckoutPageClient() {
             <div className="flex justify-center mb-4">
               <CheckCircle2 className="w-24 h-24 text-emerald-500" />
             </div>
-            <h1 className="text-[30px] font-headline font-medium text-primary mb-2">התשלום עבר בהצלחה!</h1>
+            <h1 className="text-[30px] font-headline font-light text-primary mb-2">התשלום עבר בהצלחה!</h1>
             <p className="text-muted-foreground">מייד תועבר לאישור ההזמנה.</p>
           </Card>
         )}

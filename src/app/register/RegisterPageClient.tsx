@@ -250,7 +250,7 @@ export default function RegisterPageClient() {
           <div className="w-full max-w-3xl space-y-8 text-right" dir="rtl">
             <div className="text-center space-y-3">
               <p className="eyebrow eyebrow-center">הצטרפות</p>
-              <h1 className="text-[36px] md:text-[48px] font-headline font-medium text-primary leading-tight">הצטרפות לחותם</h1>
+              <h1 className="text-[36px] md:text-[48px] font-headline font-light text-primary leading-tight">הצטרפות לחותם</h1>
               <p className="text-muted-foreground text-base">בחר את סוג החשבון שברצונך לפתוח</p>
             </div>
             <div className="grid sm:grid-cols-2 gap-4 md:gap-6">
@@ -262,7 +262,7 @@ export default function RegisterPageClient() {
                   <ShoppingBag className="w-7 h-7 text-primary" strokeWidth={1.6} />
                 </div>
                 <div className="space-y-1">
-                  <h2 className="font-headline text-2xl font-bold text-primary">לקוח</h2>
+                  <h2 className="font-headline text-2xl font-normal text-primary">לקוח</h2>
                   <p className="text-primary/70 text-[15px] leading-relaxed">
                     רוצה לרכוש מזוזות, תפילין, ספרי תורה וכלי קודש מסופרים מוסמכים
                   </p>
@@ -280,7 +280,7 @@ export default function RegisterPageClient() {
                   <PenTool className="w-7 h-7 text-accent-strong" strokeWidth={1.6} />
                 </div>
                 <div className="space-y-1">
-                  <h2 className="font-headline text-2xl font-bold text-accent-strong">סופר סת&quot;ם</h2>
+                  <h2 className="font-headline text-2xl font-normal text-accent-strong">סופר סת&quot;ם</h2>
                   <p className="text-primary/70 text-[15px] leading-relaxed">
                     סופר מוסמך שרוצה למכור את יצירותיו ישירות ללקוחות דרך הפלטפורמה
                   </p>
@@ -314,7 +314,7 @@ export default function RegisterPageClient() {
                 <Mail className="w-10 h-10 text-primary" />
               </div>
               <div className="space-y-2">
-                <h2 className="text-[28px] font-headline font-medium text-primary">בדוק את תיבת הדואר שלך</h2>
+                <h2 className="text-[28px] font-headline font-light text-primary">בדוק את תיבת הדואר שלך</h2>
                 <p className="text-primary/75 text-[15px] leading-relaxed">
                   שלחנו קישור אישור לכתובת <span className="font-bold text-primary" dir="ltr">{email}</span>.<br />
                   לחץ על הקישור כדי להשלים את ההרשמה ולהיכנס לאתר.
@@ -353,8 +353,8 @@ export default function RegisterPageClient() {
               <div className="pointer-events-none absolute inset-y-10 left-0 w-px bg-gradient-to-b from-transparent via-[#E2B35B]/50 to-transparent" />
               <div className="relative z-10 space-y-6">
                 <div className="space-y-4">
-                  <p className="font-headline text-xs font-bold uppercase tracking-[0.3em] text-[#E2B35B]">HOTAM</p>
-                  <h1 className="text-[38px] font-headline font-medium leading-tight text-white">
+                  <p className="font-accent text-sm font-normal uppercase tracking-[0.32em] text-[#E2B35B]">HOTAM</p>
+                  <h1 className="text-[38px] font-headline font-light leading-tight text-white">
                     מצטרפים למשפחת חותם
                   </h1>
                   <p className="text-white/75 text-base leading-relaxed">גלו את הדרך הבטוחה והמהודרת ביותר לרכישת כלי קודש ישירות מהסופר.</p>
@@ -375,11 +375,11 @@ export default function RegisterPageClient() {
             {/* Right/Form Side */}
             <CardContent className="order-1 md:order-2 md:col-span-3 p-6 sm:p-8 md:p-10 space-y-6 text-right flex flex-col justify-center">
               <div className="md:hidden text-center">
-                <p className="font-headline text-xs font-bold uppercase tracking-[0.3em] text-accent-strong">HOTAM</p>
-                <h1 className="mt-1 text-[30px] font-headline font-medium text-primary leading-tight">ברוכים הבאים לחותם</h1>
+                <p className="font-accent text-sm font-normal uppercase tracking-[0.32em] text-accent-strong">HOTAM</p>
+                <h1 className="mt-1 text-[30px] font-headline font-light text-primary leading-tight">ברוכים הבאים לחותם</h1>
               </div>
               <div className="space-y-1.5 text-center md:text-right">
-                <h2 className="text-[22px] md:text-[30px] font-headline font-bold md:font-medium text-primary">הרשמה כלקוח</h2>
+                <h2 className="text-[22px] md:text-[30px] font-headline font-normal md:font-light text-primary">הרשמה כלקוח</h2>
                 <p className="text-muted-foreground text-[15px]">הצטרפו לקהילת חותם עוד היום</p>
               </div>
 
@@ -537,7 +537,7 @@ export default function RegisterPageClient() {
         <DialogContent className="w-[calc(100%-2rem)] max-w-md rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl bg-card" dir="rtl">
           <div className="bg-primary p-8 pl-16 text-white text-right">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-headline font-bold flex items-center gap-3">
+              <DialogTitle className="text-2xl font-headline font-normal flex items-center gap-3">
                 <Mail className="w-6 h-6 text-accent" /> איפוס סיסמה
               </DialogTitle>
               <DialogDescription className="text-white/75 text-[15px] mt-1">

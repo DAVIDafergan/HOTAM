@@ -28,24 +28,24 @@ export function SectionHeading({
   return (
     <div
       className={cn(
-        'mb-8 flex flex-col gap-5 md:mb-12',
+        'mb-10 flex flex-col gap-6 md:mb-16',
         centered ? 'items-center text-center' : 'md:flex-row md:items-end md:justify-between',
         className,
       )}
     >
-      <div className={cn('space-y-3 md:space-y-4', centered ? 'flex flex-col items-center' : 'text-right')}>
+      <div className={cn('space-y-4 md:space-y-5', centered ? 'flex flex-col items-center' : 'text-right')}>
         {eyebrow && <p className={cn('eyebrow', centered && 'eyebrow-center', tone === 'dark' && 'text-[#E2B35B] before:bg-[#E2B35B]/70 after:bg-[#E2B35B]/70')}>{eyebrow}</p>}
         <h2
           id={id}
           className={cn(
-            'font-headline text-[30px] font-medium leading-[1.15] md:text-[44px]',
+            'font-headline text-[36px] font-light leading-[1.1] md:text-[56px]',
             tone === 'dark' ? 'text-white' : 'text-primary',
           )}
         >
           {title}
         </h2>
         {lead && (
-          <p className={cn('text-[16px] leading-relaxed md:text-lg', centered && 'mx-auto', tone === 'dark' ? 'text-white/75' : 'text-primary/70')}>
+          <p className={cn('max-w-xl text-[17px] font-light leading-[1.7] md:text-[19px]', centered && 'mx-auto', tone === 'dark' ? 'text-white/75' : 'text-primary/75')}>
             {lead}
           </p>
         )}

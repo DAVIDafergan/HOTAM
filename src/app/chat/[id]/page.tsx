@@ -418,7 +418,7 @@ function ChatContent() {
                 )}
               </div>
               <div className="text-right">
-                <CardTitle className="text-base font-headline font-black tracking-tight leading-tight">{displayName}</CardTitle>
+                <CardTitle className="text-base font-headline font-normal tracking-tight leading-tight">{displayName}</CardTitle>
                 <div className="flex items-center gap-1.5 opacity-70">
                   <span className="text-2xs font-bold uppercase tracking-widest">
                     {isOtherUserPresent ? 'מחובר/ת כעת' : (otherSellerData ? 'מוכר מוסמך' : 'לקוח')}
@@ -565,7 +565,7 @@ function ChatContent() {
                   <DialogContent className="max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl" dir="rtl">
                     <div className="bg-primary p-6 text-white text-right">
                       <DialogHeader>
-                        <DialogTitle className="text-xl font-headline font-black flex items-center gap-3">
+                        <DialogTitle className="text-xl font-headline font-normal flex items-center gap-3">
                           <Package className="w-6 h-6 text-accent" /> שליחת בקשת תשלום
                         </DialogTitle>
                       </DialogHeader>

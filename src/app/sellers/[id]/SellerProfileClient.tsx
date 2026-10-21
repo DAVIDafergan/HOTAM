@@ -443,7 +443,7 @@ export default function SellerProfile({
                 )}
               </div>
               
-              <h1 className="text-[28px] md:text-[34px] font-headline font-medium text-primary mb-2 leading-tight">
+              <h1 className="text-[28px] md:text-[34px] font-headline font-light text-primary mb-2 leading-tight">
                 {seller.first_name} {seller.last_name}
               </h1>
               <p className="text-muted-foreground flex items-center justify-center gap-1.5 mb-5 font-medium text-sm">
@@ -489,7 +489,7 @@ export default function SellerProfile({
                     <DialogContent className="max-w-2xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-card" dir="rtl">
                       <div className="bg-primary p-6 pl-16 text-white text-right relative">
                         <DialogHeader>
-                          <DialogTitle className="text-xl font-headline font-bold flex items-center gap-3 text-white">
+                          <DialogTitle className="text-xl font-headline font-normal flex items-center gap-3 text-white">
                             <ShieldCheck className="w-6 h-6 text-accent" /> תעודת הסמכה - {seller.first_name} {seller.last_name}
                           </DialogTitle>
                         </DialogHeader>
@@ -517,7 +517,7 @@ export default function SellerProfile({
                   <DialogContent className="max-w-lg rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-card text-right" dir="rtl">
                     <div className="bg-destructive p-6 pl-16 text-white text-right">
                        <DialogHeader>
-                          <DialogTitle className="text-xl font-headline font-bold flex items-center gap-3 text-white">
+                          <DialogTitle className="text-xl font-headline font-normal flex items-center gap-3 text-white">
                             <Flag className="w-6 h-6 text-white" /> דיווח למנהל המערכת
                           </DialogTitle>
                        </DialogHeader>
@@ -559,7 +559,7 @@ export default function SellerProfile({
               <div className="mb-8 space-y-4">
                 <div className="flex items-center justify-start gap-2 mb-1">
                    <Quote className="w-6 h-6 text-accent/50 rotate-180" aria-hidden="true" />
-                   <h2 className="text-[26px] md:text-[32px] font-headline font-medium text-primary">על ה{sellerNoun}</h2>
+                   <h2 className="text-[26px] md:text-[32px] font-headline font-light text-primary">על ה{sellerNoun}</h2>
                 </div>
                 <p className="font-headline text-lg md:text-[22px] leading-[1.7] text-primary/85">
                   "{seller.notes || (isJudaicaSeller ? 'מוכר מוצרי יודאיקה באתר חותם.' : 'מלאכת שמיים ושליחות קודש. כל תג נכתב מתוך כוונה טהורה על קלף איכותי, בחרדת קודש ובהתאם לכל כללי ההלכה.')}"
@@ -646,7 +646,7 @@ export default function SellerProfile({
 
                 <TabsContent value="reviews" className="animate-in fade-in slide-in-from-bottom-2 space-y-4">
                   <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
-                    <h3 className="font-headline text-xl font-bold text-primary">ביקורות לקוחות</h3>
+                    <h3 className="font-headline text-xl font-normal text-primary">ביקורות לקוחות</h3>
                     <div className="flex items-center gap-2">
                       <Button
                         type="button"
@@ -674,7 +674,7 @@ export default function SellerProfile({
                   ) : (
                     <div className="mb-2 rounded-3xl border border-border/70 bg-card/70 p-5 md:p-7 space-y-5 text-right">
                       <div className="space-y-1">
-                        <h4 className="font-headline text-lg font-bold text-primary">פרסום ביקורת</h4>
+                        <h4 className="font-headline text-lg font-normal text-primary">פרסום ביקורת</h4>
                         <p className="text-sm text-muted-foreground">כתיבה קצרה וברורה תעזור ללקוחות אחרים לבחור נכון.</p>
                       </div>
                       {!user && (

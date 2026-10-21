@@ -27,7 +27,7 @@ export function TorahExpertBanner() {
                 transition={{ duration: 0.4, ease: 'easeOut' }}
                 className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 md:justify-start"
               >
-                <span className="font-headline text-xs font-bold uppercase tracking-[0.22em] text-accent-strong">TORAH CONCIERGE</span>
+                <span className="font-headline text-xs font-normal uppercase tracking-[0.22em] text-accent-strong">TORAH CONCIERGE</span>
                 <span className="flex items-center gap-1.5 text-[13px] font-semibold text-primary/70">
                   <CheckCircle2 className="h-4 w-4 text-accent-strong" aria-hidden="true" /> ליווי אישי
                 </span>
@@ -36,10 +36,10 @@ export function TorahExpertBanner() {
                 </span>
               </motion.div>
 
-              <h2 id="torah-concierge-heading" className="font-headline text-[28px] font-medium leading-tight text-primary md:text-[38px]">
-                רכישת ספר תורה יוקרתי בליווי אישי של צוות חותם
+              <h2 id="torah-concierge-heading" className="font-headline text-[32px] font-light leading-[1.12] text-primary md:text-[46px]">
+                ספר תורה? נלווה אתכם אישית
               </h2>
-              <p className="mx-auto max-w-2xl text-[16px] leading-relaxed text-primary/70 md:mx-0 md:text-lg">
+              <p className="mx-auto max-w-2xl text-[17px] font-light leading-relaxed text-primary/75 md:mx-0 md:text-[19px]">
                 ייעוץ דיסקרטי, בחירת כתב והידור, תיאום התרשמות מלאה וליווי מדויק עד למסירת ספר התורה.
               </p>
             </div>
@@ -47,7 +47,7 @@ export function TorahExpertBanner() {
             <Button asChild size="lg" className="w-full shrink-0 gap-2.5 md:w-auto">
               <a href={`https://wa.me/${whatsappNumber}?text=${message}`} target="_blank" rel="noopener noreferrer">
                 <MessageCircle className="h-5 w-5" aria-hidden="true" />
-                תיאום ייעוץ לרכישת ספר תורה
+                לתיאום ייעוץ בוואטסאפ
               </a>
             </Button>
           </div>

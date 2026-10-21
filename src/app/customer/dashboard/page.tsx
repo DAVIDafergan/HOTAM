@@ -424,7 +424,7 @@ export default function CustomerDashboard() {
             <CardContent className="p-8 space-y-6 text-right">
               <div className="space-y-2">
                 <p className="text-xs font-black text-accent uppercase tracking-widest">השלמת פרופיל</p>
-                <h1 className="text-2xl font-headline font-black text-primary">חובה להזין שם מלא</h1>
+                <h1 className="text-2xl font-headline font-normal text-primary">חובה להזין שם מלא</h1>
                 <p className="text-sm text-muted-foreground font-medium">
                   כדי להמשיך כלקוח באתר, יש להזין שם פרטי ושם משפחה.
                 </p>
@@ -491,7 +491,7 @@ export default function CustomerDashboard() {
             </div>
             <div className="flex-1 text-right">
               <p className="text-[13px] font-semibold text-[#E2B35B] mb-1.5">אזור אישי</p>
-              <h1 className="text-[30px] md:text-[42px] font-headline font-medium text-white leading-tight">
+              <h1 className="text-[30px] md:text-[42px] font-headline font-light text-white leading-tight">
                 שלום, {customer?.first_name || (user?._raw?.user_metadata?.first_name as string | undefined) || 'לקוח'} {customer?.last_name || (user?._raw?.user_metadata?.last_name as string | undefined) || ''}
               </h1>
                   <p className="text-white/75 text-[15px] mt-1" dir="ltr" style={{ textAlign: 'right' }}>{user?.email}</p>
@@ -554,7 +554,7 @@ export default function CustomerDashboard() {
                           </div>
                           <span className="text-[13px] text-muted-foreground flex items-center gap-1 num"><Clock className="w-3.5 h-3.5" /> {order.created_at ? new Date(order.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
                         </div>
-                         <p className="font-headline font-bold text-primary text-[17px] leading-snug mb-1 truncate">{order.product_name}</p>
+                         <p className="font-headline font-normal text-primary text-[17px] leading-snug mb-1 truncate">{order.product_name}</p>
                         <Price value={Number(order.amount || 0).toLocaleString('he-IL')} className="text-lg" />
 
                         {order.status === 'paid' && (
@@ -645,7 +645,7 @@ export default function CustomerDashboard() {
                   <Lock className="w-5 h-5 text-accent-strong" />
                 </div>
                 <div className="text-right">
-                  <h2 className="text-2xl font-headline font-bold text-primary">הגדרות חשבון</h2>
+                  <h2 className="text-2xl font-headline font-normal text-primary">הגדרות חשבון</h2>
                   <p className="text-sm text-muted-foreground mt-0.5">עדכן את הפרטים האישיים שלך</p>
                 </div>
               </div>
@@ -721,7 +721,7 @@ export default function CustomerDashboard() {
         <DialogContent className="w-[calc(100%-2rem)] rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl max-w-md bg-card text-primary max-h-[90vh] flex flex-col" dir="rtl">
           <div className="flex-1 overflow-y-auto min-h-0">
             <div className="bg-destructive p-7 pl-16 text-white text-right">
-              <DialogTitle className="text-2xl font-headline font-bold">מחיקת חשבון</DialogTitle>
+              <DialogTitle className="text-2xl font-headline font-normal">מחיקת חשבון</DialogTitle>
               <DialogDescription className="text-white/85 mt-1 text-[15px]">פעולה זו בלתי הפיכה. כל הנתונים שלך יימחקו לצמיתות.</DialogDescription>
             </div>
             <div className="p-7 space-y-5 text-right">
@@ -758,7 +758,7 @@ export default function CustomerDashboard() {
         <DialogContent className="w-[calc(100%-2rem)] rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl max-w-md bg-card text-primary max-h-[90vh] flex flex-col" dir="rtl">
           <div className="flex-1 overflow-y-auto min-h-0">
             <div className="bg-primary p-7 pl-16 text-white text-right">
-              <DialogTitle className="text-2xl font-headline font-bold">דרג את החוויה שלך</DialogTitle>
+              <DialogTitle className="text-2xl font-headline font-normal">דרג את החוויה שלך</DialogTitle>
               <DialogDescription className="text-white/75 text-[15px]">המשוב שלך עוזר לסופר וגם ללקוחות הבאים.</DialogDescription>
             </div>
             <div className="p-8 space-y-8 text-right">

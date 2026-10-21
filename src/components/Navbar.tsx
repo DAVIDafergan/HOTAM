@@ -191,7 +191,7 @@ export function Navbar() {
             <path d="m2 2l5 5" />
             <path d="m11 11l1 1" />
           </svg>
-          <span className={`font-headline font-bold text-primary leading-none tracking-[0.14em] uppercase whitespace-nowrap shrink-0 ${compact ? 'text-[17px]' : 'text-[19px]'}`}>HOTAM</span>
+          <span className={`font-accent font-normal text-primary leading-none tracking-[0.22em] uppercase whitespace-nowrap shrink-0 ${compact ? 'text-[19px]' : 'text-[22px]'}`}>HOTAM</span>
         </div>
       </Link>
     );
@@ -253,7 +253,7 @@ export function Navbar() {
                                 <p className="text-[13px] font-medium text-accent-strong flex items-center gap-1.5 leading-none">
                                   {greetingIcon} {greeting},
                                 </p>
-                                <p className="text-xl font-headline font-bold text-primary truncate max-w-[180px] leading-tight">{displayName}</p>
+                                <p className="text-xl font-headline font-normal text-primary truncate max-w-[180px] leading-tight">{displayName}</p>
                               </div>
                             </div>
                           ) : (
@@ -622,14 +622,14 @@ function NavLink({ href, label, active = false }: { href: string, label: string,
       href={href} 
       aria-current={active ? 'page' : undefined}
       className={cn(
-        "text-[15px] font-semibold transition-colors flex items-center group relative min-h-[44px] rounded-md",
+        "text-[15px] font-normal transition-colors flex items-center group relative min-h-[44px] rounded-md",
         active ? "text-primary" : "text-primary/70 hover:text-primary"
       )}
     >
       {label}
       <span className={cn(
-        "absolute bottom-1.5 right-0 h-px bg-accent transition-all duration-300",
-        active ? "w-full" : "w-0 group-hover:w-full"
+        "absolute bottom-1.5 inset-x-0 h-px origin-right bg-accent transition-transform duration-500 ease-lux",
+        active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
       )} />
     </Link>
   );

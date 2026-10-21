@@ -33,15 +33,15 @@ export function SellerJoinCta() {
           <PenTool className="w-7 h-7 md:w-8 md:h-8" strokeWidth={1.5} />
         </div>
         <div className="space-y-4 md:space-y-6">
-          <h2 className="text-[2.25rem] md:text-[3.2rem] font-headline font-black tracking-tight leading-tight">הנך סופר סת''ם ירא שמיים?</h2>
-          <p className="text-[17px] md:text-xl text-white/75 max-w-xl mx-auto leading-relaxed">
-            הצטרף לנבחרת הסופרים המקצועית של HOTAM. פתח חנות אישית, נהל הזמנות בקלות ומכור את מלאכת הקודש שלך ישירות ללקוח, ללא פערי תיווך ובקדושה.
+          <h2 className="text-[38px] md:text-[60px] font-headline font-light leading-[1.08]">סופרי סת״ם, הצטרפו לחותם</h2>
+          <p className="text-[17px] md:text-xl font-light text-white/75 max-w-xl mx-auto leading-relaxed">
+            פתחו חנות אישית, נהלו הזמנות בקלות ומכרו את מלאכת הקודש שלכם ישירות ללקוחות — בלי פערי תיווך.
           </p>
         </div>
         <div className="flex justify-center pt-2">
           <MotionTap className="inline-block">
             <Button size="lg" variant="gold" asChild className="px-10">
-              <Link href="/onboarding/seller">הצטרף כסופר למערכת</Link>
+              <Link href="/onboarding/seller">הצטרפות כמוכר</Link>
             </Button>
           </MotionTap>
         </div>

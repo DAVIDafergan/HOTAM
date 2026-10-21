@@ -17,7 +17,7 @@ export default function TatproLegalPageClient() {
               <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/20">
                 <FileText className="w-10 h-10 text-accent" />
               </div>
-              <CardTitle className="text-3xl md:text-4xl font-headline font-black tracking-tight leading-tight">הסכם למתן שירותי תוכנה (SaaS)<br />מערכת TATPRO</CardTitle>
+              <CardTitle className="text-3xl md:text-4xl font-headline font-normal tracking-tight leading-tight">הסכם למתן שירותי תוכנה (SaaS)<br />מערכת TATPRO</CardTitle>
               <div className="inline-block px-6 py-2 bg-accent text-primary font-black rounded-full text-sm uppercase tracking-widest">מסר גו בע"מ</div>
             </div>
           </CardHeader>

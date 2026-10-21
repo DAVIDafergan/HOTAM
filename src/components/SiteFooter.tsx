@@ -32,10 +32,10 @@ export function SiteFooter({ className = '' }: { className?: string }) {
                 <path d="m2 2 5 5" />
                 <path d="m11 11l1 1" />
               </svg>
-              <span className="font-headline text-2xl font-bold uppercase tracking-[0.14em]">HOTAM</span>
+              <span className="font-accent text-[28px] font-normal uppercase tracking-[0.22em]">HOTAM</span>
             </Link>
-            <p className="mx-auto max-w-xs text-[15px] leading-relaxed text-muted-foreground md:mx-0">
-              כלי קודש ויודאיקה ישירות מסופרי סת״ם ומוכרים מאומתים.
+            <p className="mx-auto max-w-xs text-[15px] font-light leading-relaxed text-muted-foreground md:mx-0">
+              סת״ם מהודר ויודאיקה, ישירות מסופרים ומוכרים מאומתים.
             </p>
           </div>
 

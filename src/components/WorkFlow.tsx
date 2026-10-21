@@ -54,7 +54,7 @@ export function WorkFlow() {
             initial={{ opacity: shouldReduceMotion ? 1 : 0, y: shouldReduceMotion ? 0 : 8 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-xs md:text-sm font-semibold tracking-[0.2em] text-accent uppercase"
+            className="text-xs md:text-sm font-semibold tracking-wider text-accent uppercase"
           >
             מהסופר אליך
           </motion.p>

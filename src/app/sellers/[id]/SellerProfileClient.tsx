@@ -446,7 +446,7 @@ export default function SellerProfile({
               <h1 className="text-2xl md:text-3xl font-headline font-black text-primary mb-1 tracking-tight">
                 {seller.first_name} {seller.last_name}
               </h1>
-              <p className="text-muted-foreground flex items-center justify-center gap-2 mb-6 font-bold text-[10px] uppercase tracking-tighter">
+              <p className="text-muted-foreground flex items-center justify-center gap-2 mb-6 font-bold text-xs uppercase tracking-tighter">
                 {sellerCity || 'לא צוין'} <MapPin className="w-3 h-3 text-accent" />
               </p>
               
@@ -456,21 +456,21 @@ export default function SellerProfile({
                     {[1, 2, 3, 4, 5].map(s => (
                       <Star key={s} className={`w-3.5 h-3.5 ${s <= averageRating ? 'text-accent fill-accent' : 'text-muted-foreground/20'}`} />
                     ))}
-                    <span className="text-[10px] font-black text-primary mr-2">({reviews.length} ביקורות)</span>
+                    <span className="text-xs font-black text-primary mr-2">({reviews.length} ביקורות)</span>
                   </div>
                 ) : (
-                  <span className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest italic">אין דירוגים עדיין</span>
+                  <span className="text-xs font-black text-muted-foreground/60 uppercase tracking-widest">אין דירוגים עדיין</span>
                 )}
-                {seller.is_approved && <span className="text-[9px] font-black text-primary/60 uppercase tracking-widest">(פרופיל מאומת)</span>}
+                {seller.is_approved && <span className="text-2xs font-black text-primary/60 uppercase tracking-widest">(פרופיל מאומת)</span>}
               </div>
 
               {!isJudaicaSeller && (
               <div className="grid grid-cols-1 gap-2 text-right">
                 {stats.map((stat, i) => (
                   <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-transparent hover:border-accent/10 transition-all">
-                    <span className="text-[10px] md:text-[11px] font-black text-primary uppercase tracking-tight">{stat.value}</span>
+                    <span className="text-xs md:text-xs font-black text-primary uppercase tracking-tight">{stat.value}</span>
                     <div className="flex items-center gap-2 text-muted-foreground transition-colors">
-                      <span className="text-[8px] font-bold uppercase tracking-widest">{stat.label}</span>
+                      <span className="text-2xs font-bold uppercase tracking-widest">{stat.label}</span>
                       {stat.icon}
                     </div>
                   </div>
@@ -510,7 +510,7 @@ export default function SellerProfile({
 
                 <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button variant="ghost" className="w-full text-destructive hover:bg-destructive/5 rounded-2xl gap-2 text-[10px] font-black uppercase tracking-widest h-12">
+                    <Button variant="ghost" className="w-full text-destructive hover:bg-destructive/5 rounded-2xl gap-2 text-xs font-black uppercase tracking-widest h-12">
                       <Flag className="w-3.5 h-3.5" /> דיווח על {sellerNoun} זה
                     </Button>
                   </DialogTrigger>
@@ -522,7 +522,7 @@ export default function SellerProfile({
                           </DialogTitle>
                        </DialogHeader>
                     </div>
-                    <div className="p-8 space-y-5 bg-white text-slate-900">
+                    <div className="p-8 space-y-5 bg-white text-primary">
                         <div className="rounded-2xl bg-red-50 border border-red-100 p-4 text-right">
                           <p className="text-sm font-black text-red-700">מתי כדאי לדווח?</p>
                           <p className="text-[12px] text-red-700/80 mt-1 leading-relaxed">
@@ -530,23 +530,23 @@ export default function SellerProfile({
                           </p>
                         </div>
                         <div className="space-y-2">
-                           <Label className="text-xs font-black uppercase text-slate-900">פרט את סיבת הדיווח</Label>
+                           <Label className="text-xs font-black uppercase text-primary">פרט את סיבת הדיווח</Label>
                            <Textarea 
                               value={reportReason} 
                               onChange={e => setReportReason(e.target.value)} 
                               placeholder="כתוב כאן מה קרה, מתי, ומה נדרש לבדיקה..." 
-                              className="min-h-[120px] rounded-2xl text-slate-900 bg-slate-50 border-slate-300 placeholder:text-slate-500 focus-visible:ring-red-400/40" 
+                              className="min-h-[120px] rounded-2xl text-primary bg-secondary/40 border-slate-300 placeholder:text-muted-foreground focus-visible:ring-red-400/40" 
                             />
                         </div>
-                        <p className="text-[11px] font-medium text-slate-500 leading-relaxed">
+                        <p className="text-xs font-medium text-muted-foreground leading-relaxed">
                          הדיווח יישלח בצורה דיסקרטית למנהלי 'חותם'. נבדוק כל פנייה במהירות וברצינות.
                         </p>
                     </div>
-                      <DialogFooter className="p-6 bg-slate-50 border-t border-slate-100 flex gap-3">
+                      <DialogFooter className="p-6 bg-secondary/40 border-t border-slate-100 flex gap-3">
                         <Button variant="destructive" onClick={handleSendReport} disabled={isReporting || !reportReason.trim()} className="flex-1 h-12 rounded-xl font-black uppercase shadow-md transition-colors">
                           {isReporting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'שלח דיווח'}
                         </Button>
-                        <Button variant="outline" onClick={() => setIsReportDialogOpen(false)} className="h-12 rounded-xl font-bold text-slate-800 border-slate-300 hover:bg-slate-100">ביטול</Button>
+                        <Button variant="outline" onClick={() => setIsReportDialogOpen(false)} className="h-12 rounded-xl font-bold text-primary/90 border-slate-300 hover:bg-secondary">ביטול</Button>
                      </DialogFooter>
                    </DialogContent>
                  </Dialog>
@@ -561,12 +561,12 @@ export default function SellerProfile({
                    <h2 className="text-2xl md:text-3xl font-headline font-black text-primary tracking-tight">על ה{sellerNoun}</h2>
                    <Quote className="w-6 h-6 text-accent/20 rotate-180" />
                 </div>
-                <p className="text-lg md:text-xl leading-relaxed text-primary/80 italic font-medium">
+                <p className="text-lg md:text-xl leading-relaxed text-primary/80 font-medium">
                   "{seller.notes || (isJudaicaSeller ? 'מוכר מוצרי יודאיקה באתר חותם.' : 'מלאכת שמיים ושליחות קודש. כל תג נכתב מתוך כוונה טהורה על קלף איכותי, בחרדת קודש ובהתאם לכל כללי ההלכה.')}"
                 </p>
                 <div className="flex flex-wrap justify-end gap-2">
                   {(isJudaicaSeller ? [] : (seller.script_types || [])).map((type: string) => (
-                    <Badge key={type} variant="secondary" className="bg-accent/10 text-accent border-accent/10 font-black text-[9px] px-4 py-1 uppercase tracking-wider">
+                    <Badge key={type} variant="secondary" className="bg-accent/10 text-accent border-accent/10 font-black text-2xs px-4 py-1 uppercase tracking-wider">
                       מומחה לכתב {type}
                     </Badge>
                   ))}
@@ -575,11 +575,11 @@ export default function SellerProfile({
 
               <Tabs defaultValue="products" dir="rtl" className="w-full">
                 <TabsList className="bg-muted/30 p-1 rounded-2xl mb-8 flex h-14 shadow-inner border border-muted">
-                  <TabsTrigger value="products" className="flex-1 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-premium text-[10px] md:text-xs font-black uppercase tracking-widest">מוצרים למכירה</TabsTrigger>
+                  <TabsTrigger value="products" className="flex-1 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-premium text-xs md:text-xs font-black uppercase tracking-widest">מוצרים למכירה</TabsTrigger>
                   {!isJudaicaSeller && (
-                    <TabsTrigger value="samples" className="flex-1 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-premium text-[10px] md:text-xs font-black uppercase tracking-widest">דוגמאות כתיבה</TabsTrigger>
+                    <TabsTrigger value="samples" className="flex-1 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-premium text-xs md:text-xs font-black uppercase tracking-widest">דוגמאות כתיבה</TabsTrigger>
                   )}
-                  <TabsTrigger value="reviews" className="flex-1 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-premium text-[10px] md:text-xs font-black uppercase tracking-widest">ביקורות ({(reviews || []).length})</TabsTrigger>
+                  <TabsTrigger value="reviews" className="flex-1 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-premium text-xs md:text-xs font-black uppercase tracking-widest">ביקורות ({(reviews || []).length})</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="products" className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
@@ -601,7 +601,7 @@ export default function SellerProfile({
                           <Card key={p.id} className="group overflow-hidden border-none shadow-premium rounded-2xl bg-muted/10 hover:bg-white hover:shadow-2xl transition-all duration-500">
                             <div className="relative h-40 md:h-44">
                               <Image src={p.images?.[0] || logoImg} alt={p.product_type} fill kind="product" sizes="(max-width: 640px) 100vw, 50vw" className="object-cover group-hover:scale-105 transition-transform duration-700" />
-                              <Badge className="absolute top-3 right-3 bg-primary/80 text-white text-[8px] px-3 py-1 rounded-full backdrop-blur-md">
+                              <Badge className="absolute top-3 right-3 bg-primary/80 text-white text-2xs px-3 py-1 rounded-full backdrop-blur-md">
                                 {p.script_level}
                               </Badge>
                             </div>
@@ -611,9 +611,9 @@ export default function SellerProfile({
                               </p>
                               <div className="space-y-0.5">
                                 <p className="text-lg font-black text-accent">₪{Math.round(Number(p.price) * 1.18).toLocaleString('he-IL')}</p>
-                                <p className="text-[9px] font-medium text-primary/35">המחירים כוללים מע"מ</p>
+                                <p className="text-2xs font-medium text-primary/35">המחירים כוללים מע"מ</p>
                               </div>
-                               <Button variant="link" size="sm" asChild className="p-0 h-auto mt-1 text-[9px] font-black uppercase tracking-widest">
+                               <Button variant="link" size="sm" asChild className="p-0 h-auto mt-1 text-2xs font-black uppercase tracking-widest">
                                  <Link href={`/products/${p.id}`} prefetch={true}>לפרטים מלאים ←</Link>
                                </Button>
                             </div>
@@ -670,7 +670,7 @@ export default function SellerProfile({
                         type="button"
                         variant={reviewSortOrder === 'newest' ? 'default' : 'outline'}
                         onClick={() => setReviewSortOrder('newest')}
-                        className="rounded-full text-[10px] h-8 px-4 font-black"
+                        className="rounded-full text-xs h-8 px-4 font-black"
                       >
                         החדשות ביותר
                       </Button>
@@ -678,7 +678,7 @@ export default function SellerProfile({
                         type="button"
                         variant={reviewSortOrder === 'oldest' ? 'default' : 'outline'}
                         onClick={() => setReviewSortOrder('oldest')}
-                        className="rounded-full text-[10px] h-8 px-4 font-black"
+                        className="rounded-full text-xs h-8 px-4 font-black"
                       >
                         הוותיקות ביותר
                       </Button>
@@ -688,7 +688,7 @@ export default function SellerProfile({
 
                   {shouldHideSellerReviewComposer ? (
                     <div className="mb-2 rounded-3xl border border-primary/10 bg-gradient-to-br from-white to-primary/[0.03] px-5 py-3 text-right shadow-sm">
-                      <p className="text-[11px] font-medium text-primary/55">ניתן לדרג פעם אחת בלבד</p>
+                      <p className="text-xs font-medium text-primary/55">ניתן לדרג פעם אחת בלבד</p>
                     </div>
                   ) : (
                     <div className="mb-2 rounded-3xl border border-primary/10 bg-gradient-to-br from-white to-primary/[0.03] p-5 md:p-6 space-y-4 text-right shadow-sm">
@@ -702,7 +702,7 @@ export default function SellerProfile({
                         </p>
                       )}
                       <div className="space-y-2">
-                        <Label className="text-[10px] font-black uppercase text-slate-500">ביקורת</Label>
+                        <Label className="text-xs font-black uppercase text-muted-foreground">ביקורת</Label>
                         <Textarea
                           placeholder={isJudaicaSeller ? 'שתף את חווית השירות והמוצרים...' : 'שתף את חווית השירות והכתיבה...'}
                           value={reviewComment}
@@ -745,13 +745,13 @@ export default function SellerProfile({
                       <div key={rev.id} className="flex flex-row-reverse items-start gap-3">
                         <Avatar className="h-8 w-8 border border-primary/10 flex-shrink-0">
                           {!rev.is_anonymous && <AvatarImage src={rev.reviewer_image || undefined} />}
-                          <AvatarFallback className="bg-primary/5 text-primary font-black text-[10px]">
+                          <AvatarFallback className="bg-primary/5 text-primary font-black text-xs">
                             {rev.is_anonymous ? 'א' : (rev.buyer_name || 'מ').charAt(0)}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-baseline justify-between mb-1">
-                            <span className="text-[10px] font-medium text-muted-foreground">{rev.created_at ? new Date(rev.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
+                            <span className="text-xs font-medium text-muted-foreground">{rev.created_at ? new Date(rev.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
                             <p className="font-semibold text-primary text-xs">{rev.is_anonymous ? 'אנונימי' : (rev.buyer_name || 'משתמש')}</p>
                           </div>
                           <div className="bg-muted/15 rounded-2xl px-4 py-3 text-right">
@@ -767,7 +767,7 @@ export default function SellerProfile({
                                 size="sm"
                                 onClick={() => handleDeleteSellerReview(rev.id, rev.source)}
                                 disabled={deletingReviewId === rev.id}
-                                className="h-6 px-2 text-[10px] text-destructive/50 hover:text-destructive hover:bg-destructive/5 gap-1 rounded-full"
+                                className="h-6 px-2 text-xs text-destructive/50 hover:text-destructive hover:bg-destructive/5 gap-1 rounded-full"
                               >
                                 {deletingReviewId === rev.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
                                 מחק
@@ -808,7 +808,7 @@ export default function SellerProfile({
             <p className="text-xs font-bold text-white/70">ניתן לבצע זום ולגרור את הדוגמה לעיון מדויק בפרטי הכתיבה.</p>
           </DialogHeader>
           <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
-            <Label className="text-[10px] font-black text-white/70">רמת זום</Label>
+            <Label className="text-xs font-black text-white/70">רמת זום</Label>
             <Button type="button" size="sm" variant="outline" className="h-10 px-4 text-xs" onClick={() => updateSampleZoom(sampleZoomLevel - SAMPLE_ZOOM_STEP)}>−</Button>
             <input
               type="range"

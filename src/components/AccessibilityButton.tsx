@@ -268,7 +268,7 @@ export function AccessibilityButton() {
                   <span className="text-xs font-bold text-primary">גודל טקסט</span>
                   <div className="flex items-center gap-1">
                     <Button variant="outline" size="icon" className="w-9 h-9 rounded-lg border-primary/10" onClick={() => setFontSize(prev => Math.max(prev - 10, 80))}><Minus className="w-4 h-4" /></Button>
-                    <span className="text-[10px] font-black w-8 text-center">{fontSize}%</span>
+                    <span className="text-xs font-black w-8 text-center">{fontSize}%</span>
                     <Button variant="outline" size="icon" className="w-9 h-9 rounded-lg border-primary/10" onClick={() => setFontSize(prev => Math.min(prev + 10, 150))}><Plus className="w-4 h-4" /></Button>
                   </div>
                </div>

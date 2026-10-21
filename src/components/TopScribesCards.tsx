@@ -58,7 +58,7 @@ function ProfileStat({ value, label, icon }: { value: string | number; label: st
         {icon}
         {value}
       </p>
-      <p className="mt-1 text-[9px] sm:text-[10px] font-semibold text-muted-foreground">{label}</p>
+      <p className="mt-1 text-2xs sm:text-xs font-semibold text-muted-foreground">{label}</p>
     </div>
   );
 }
@@ -108,20 +108,20 @@ function ScribeProfileCard({ scribe }: { scribe: TopScribeCard }) {
             <BadgeCheck className="h-4 w-4 shrink-0 fill-accent text-white" aria-label="סופר מאומת" />
           </h3>
           {scribe.script_level && (
-            <p className="mt-0.5 truncate text-[10px] sm:text-xs font-semibold text-primary/60">כתב {scribe.script_level}</p>
+            <p className="mt-0.5 truncate text-xs sm:text-xs font-semibold text-primary/60">כתב {scribe.script_level}</p>
           )}
-          <p className="mt-1 flex items-center justify-center gap-1 text-[10px] sm:text-xs font-bold text-muted-foreground">
+          <p className="mt-1 flex items-center justify-center gap-1 text-xs sm:text-xs font-bold text-muted-foreground">
             <MapPin className="h-3 w-3 shrink-0 text-accent" />
             <span className="truncate">{cityLabel || 'ישראל'}</span>
           </p>
 
-          <div className="my-3 sm:my-4 flex items-center divide-x divide-x-reverse divide-primary/10 rounded-2xl bg-[#F8F9FA] py-2.5">
+          <div className="my-3 sm:my-4 flex items-center divide-x divide-x-reverse divide-primary/10 rounded-2xl bg-secondary/50 py-2.5">
             <ProfileStat value={sales} label="מכירות" />
             <ProfileStat value={avg} label="דירוג" icon={<Star className="h-3 w-3 fill-accent text-accent" />} />
             <ProfileStat value={scribe.experience_years != null ? scribe.experience_years : '—'} label="שנות ניסיון" />
           </div>
 
-          <span className="mt-auto inline-flex h-10 w-full items-center justify-center rounded-full bg-primary text-[11px] sm:text-xs font-bold text-primary-foreground transition-colors group-hover:bg-accent group-hover:text-primary">
+          <span className="mt-auto inline-flex h-10 w-full items-center justify-center rounded-full bg-primary text-xs sm:text-xs font-bold text-primary-foreground transition-colors group-hover:bg-accent group-hover:text-primary">
             צפה בפרופיל
           </span>
         </div>

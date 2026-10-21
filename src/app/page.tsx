@@ -41,7 +41,7 @@ const HomeProductsCarousel = dynamic(
 const HomeDeferredSections = dynamic(
   () => import('@/components/HomeDeferredSections').then(mod => mod.HomeDeferredSections),
   {
-    loading: () => <section aria-hidden="true" className="min-h-[900px] w-full bg-gradient-to-b from-[#F8F9FA] via-[#F8F9FA]/80 to-[#F8F9FA]/0 animate-pulse" />,
+    loading: () => <section aria-hidden="true" className="min-h-[900px] w-full bg-gradient-to-b from-secondary/40 via-secondary/20 to-transparent animate-pulse" />,
   }
 );
 
@@ -140,8 +140,8 @@ export default function Home() {
           </Link>
           <div className="text-center space-y-1">
             <p className="text-sm font-bold text-primary/60">נבנה ע"י DA ניהול פרויקטים</p>
-            <p className="text-[10px] font-medium text-muted-foreground/30 tracking-[0.4em] uppercase">Sacred Scribal Art © 2024</p>
-            <Link href="/terms" className="text-[10px] font-bold text-muted-foreground/50 hover:text-primary transition-colors underline underline-offset-2">תקנון ותנאי שימוש</Link>
+            <p className="text-xs font-medium text-muted-foreground/30 tracking-[0.4em] uppercase">Sacred Scribal Art © 2024</p>
+            <Link href="/terms" className="text-xs font-bold text-muted-foreground/50 hover:text-primary transition-colors underline underline-offset-2">תקנון ותנאי שימוש</Link>
           </div>
         </div>
       </footer>

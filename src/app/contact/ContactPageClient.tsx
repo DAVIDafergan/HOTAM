@@ -72,7 +72,7 @@ export default function ContactPageClient() {
         <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-accent/25 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-32 -left-16 h-80 w-80 rounded-full bg-accent/10 blur-3xl" />
         <div className="container relative mx-auto max-w-5xl px-4 text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-white/70 px-4 py-1.5 text-[11px] font-bold tracking-widest text-accent-strong">
+          <span className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-white/70 px-4 py-1.5 text-xs font-bold tracking-widest text-accent-strong">
             <Sparkles className="h-3.5 w-3.5" /> אנחנו כאן בשבילכם
           </span>
           <h1 className="mt-5 font-headline text-4xl font-black tracking-tight md:text-6xl">דברו עם חותם</h1>
@@ -187,7 +187,7 @@ function ChannelCard({
         {icon}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-[11px] font-bold tracking-widest text-primary/45">{title}</p>
+        <p className="text-xs font-bold tracking-widest text-primary/45">{title}</p>
         <p className="mt-0.5 truncate text-base font-black text-primary" dir={valueDir}>{value}</p>
         <p className={cn("mt-1 text-xs font-semibold", highlight ? "text-accent-strong" : "text-muted-foreground")}>{note}</p>
       </div>
@@ -212,7 +212,7 @@ function Step({ n, icon, title, text }: { n: number; icon: ReactNode; title: str
     <li className="flex gap-3">
       <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent-strong">
         {icon}
-        <span className="absolute -left-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-black text-primary-foreground">{n}</span>
+        <span className="absolute -left-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-2xs font-black text-primary-foreground">{n}</span>
       </span>
       <div>
         <p className="text-sm font-black text-primary">{title}</p>

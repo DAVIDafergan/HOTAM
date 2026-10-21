@@ -358,11 +358,11 @@ export default function RegisterPageClient() {
                   <p className="text-white/70 font-black text-base md:text-lg leading-relaxed">גלו את הדרך הבטוחה והמהודרת ביותר לרכישת כלי קודש ישירות מהסופר.</p>
                 </div>
                 <div className="flex flex-wrap justify-end gap-x-6 gap-y-3 pt-4 border-t border-white/10">
-                   <div className="flex items-center gap-2 text-[10px] md:text-xs font-black">
+                   <div className="flex items-center gap-2 text-xs md:text-xs font-black">
                     <span>קנייה ישירה ללא פערי תיווך</span>
                     <Heart className="w-4 h-4 text-accent fill-current" />
                   </div>
-                  <div className="flex items-center gap-2 text-[10px] md:text-xs font-black">
+                  <div className="flex items-center gap-2 text-xs md:text-xs font-black">
                     <span>אחריות כשרות ושקיפות מלאה</span>
                     <ShieldCheck className="w-4 h-4 text-accent" />
                   </div>
@@ -373,7 +373,7 @@ export default function RegisterPageClient() {
             {/* Right/Form Side */}
             <CardContent className="order-1 md:order-2 md:col-span-3 p-5 sm:p-7 md:p-10 space-y-5 text-right flex flex-col justify-center">
               <div className="md:hidden rounded-[2rem] bg-gradient-to-br from-primary via-primary to-primary/90 px-5 py-6 text-center text-white shadow-premium">
-                <p className="text-[10px] font-black uppercase tracking-[0.35em] text-white/55">HOTAM</p>
+                <p className="text-xs font-black uppercase tracking-[0.35em] text-white/55">HOTAM</p>
                 <h1 className="mt-2 text-2xl font-headline font-black tracking-tight">ברוכים הבאים לחותם</h1>
               </div>
               <div className="space-y-1">
@@ -393,14 +393,14 @@ export default function RegisterPageClient() {
 
                 <div className="relative flex items-center gap-4 py-2">
                   <div className="flex-1 h-px bg-muted" />
-                  <span className="text-[10px] font-black text-primary/30 uppercase tracking-widest">או הרשמה ידנית</span>
+                  <span className="text-xs font-black text-primary/30 uppercase tracking-widest">או הרשמה ידנית</span>
                   <div className="flex-1 h-px bg-muted" />
                 </div>
 
                 <form onSubmit={handleRegister} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label htmlFor="firstName" className="font-black text-[10px] uppercase text-primary/60 tracking-wider">שם פרטי</Label>
+                      <Label htmlFor="firstName" className="font-black text-xs uppercase text-primary/60 tracking-wider">שם פרטי</Label>
                       <Input
                         id="firstName"
                         placeholder="ישראל"
@@ -413,11 +413,11 @@ export default function RegisterPageClient() {
                         required
                       />
                       {fieldErrors.firstName && (
-                        <p className="flex items-center gap-1 text-[11px] font-bold text-destructive"><AlertCircle className="w-3 h-3 shrink-0" />{fieldErrors.firstName}</p>
+                        <p className="flex items-center gap-1 text-xs font-bold text-destructive"><AlertCircle className="w-3 h-3 shrink-0" />{fieldErrors.firstName}</p>
                       )}
                     </div>
                     <div className="space-y-1.5">
-                      <Label htmlFor="lastName" className="font-black text-[10px] uppercase text-primary/60 tracking-wider">שם משפחה</Label>
+                      <Label htmlFor="lastName" className="font-black text-xs uppercase text-primary/60 tracking-wider">שם משפחה</Label>
                       <Input
                         id="lastName"
                         placeholder="ישראלי"
@@ -430,13 +430,13 @@ export default function RegisterPageClient() {
                         required
                       />
                       {fieldErrors.lastName && (
-                        <p className="flex items-center gap-1 text-[11px] font-bold text-destructive"><AlertCircle className="w-3 h-3 shrink-0" />{fieldErrors.lastName}</p>
+                        <p className="flex items-center gap-1 text-xs font-bold text-destructive"><AlertCircle className="w-3 h-3 shrink-0" />{fieldErrors.lastName}</p>
                       )}
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="email" className="font-black text-[10px] uppercase text-primary/60 tracking-wider">דואר אלקטרוני</Label>
+                    <Label htmlFor="email" className="font-black text-xs uppercase text-primary/60 tracking-wider">דואר אלקטרוני</Label>
                     <Input
                       id="email"
                       type="email"
@@ -451,7 +451,7 @@ export default function RegisterPageClient() {
                       required
                     />
                     {fieldErrors.email && (
-                      <p className="flex items-center gap-1 text-[11px] font-bold text-destructive"><AlertCircle className="w-3 h-3 shrink-0" />{fieldErrors.email}</p>
+                      <p className="flex items-center gap-1 text-xs font-bold text-destructive"><AlertCircle className="w-3 h-3 shrink-0" />{fieldErrors.email}</p>
                     )}
                   </div>
 
@@ -463,11 +463,11 @@ export default function RegisterPageClient() {
                           setResetEmail(email);
                           setIsResetDialogOpen(true);
                         }}
-                        className="text-[10px] text-muted-foreground hover:text-primary underline font-black"
+                        className="text-xs text-muted-foreground hover:text-primary underline font-black"
                       >
                         שכחת סיסמה?
                       </button>
-                      <Label htmlFor="password" className="font-black text-[10px] uppercase text-primary/60 tracking-wider">סיסמה</Label>
+                      <Label htmlFor="password" className="font-black text-xs uppercase text-primary/60 tracking-wider">סיסמה</Label>
                     </div>
                     <Input
                       id="password"
@@ -482,7 +482,7 @@ export default function RegisterPageClient() {
                       required
                     />
                     {fieldErrors.password && (
-                      <p className="flex items-center gap-1 text-[11px] font-bold text-destructive"><AlertCircle className="w-3 h-3 shrink-0" />{fieldErrors.password}</p>
+                      <p className="flex items-center gap-1 text-xs font-bold text-destructive"><AlertCircle className="w-3 h-3 shrink-0" />{fieldErrors.password}</p>
                     )}
                   </div>
 
@@ -493,7 +493,7 @@ export default function RegisterPageClient() {
                       onCheckedChange={(v) => setTermsAccepted(!!v)}
                       className="mt-0.5 shrink-0"
                     />
-                    <Label htmlFor="terms" className="text-[11px] font-bold leading-relaxed cursor-pointer">
+                    <Label htmlFor="terms" className="text-xs font-bold leading-relaxed cursor-pointer">
                       קראתי ואני מאשר את{' '}
                       <Link href="/terms" target="_blank" className="underline font-black text-primary hover:text-primary/70">
                         תנאי השימוש ומדיניות הפרטיות
@@ -548,7 +548,7 @@ export default function RegisterPageClient() {
               הזן את כתובת האימייל של החשבון שלך ונשלח אליך קישור מאובטח לאיפוס סיסמה.
             </p>
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-primary/60">כתובת אימייל</Label>
+              <Label className="text-xs font-black uppercase tracking-widest text-primary/60">כתובת אימייל</Label>
               <Input 
                 type="email"
                 value={resetEmail} 

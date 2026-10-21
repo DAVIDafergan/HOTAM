@@ -246,7 +246,7 @@ export function Navbar() {
                           {user ? (
                             <div className="flex items-center justify-end gap-3 w-full">
                               <div className="text-right space-y-0.5">
-                                <p className="text-[10px] font-semibold text-accent uppercase tracking-widest flex items-center justify-end gap-1.5 leading-none">
+                                <p className="text-xs font-semibold text-accent uppercase tracking-widest flex items-center justify-end gap-1.5 leading-none">
                                   {greetingIcon} {greeting},
                                 </p>
                                 <p className="text-xl font-headline font-black text-primary tracking-tight truncate max-w-[150px] leading-tight">{displayName}</p>
@@ -258,7 +258,7 @@ export function Navbar() {
                             </div>
                           ) : (
                             <div className="text-right py-2 space-y-1">
-                               <p className="text-[10px] font-semibold text-accent uppercase tracking-widest">ברוכים הבאים</p>
+                               <p className="text-xs font-semibold text-accent uppercase tracking-widest">ברוכים הבאים</p>
                                <Logo />
                             </div>
                           )}
@@ -274,7 +274,7 @@ export function Navbar() {
                         )}
                         
                         <div className="my-3 border-t border-primary/5 relative">
-                           <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-[7px] font-semibold text-primary/20 tracking-[0.3em] uppercase">MEMBER</span>
+                           <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-[7px] font-semibold text-primary/20 tracking-wider uppercase">MEMBER</span>
                         </div>
 
                         {user ? (
@@ -357,7 +357,7 @@ export function Navbar() {
                       >
                         <Bell className="w-5 h-5 text-primary" />
                         {adminNotificationCount > 0 && (
-                          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-destructive text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white px-1">
+                          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-destructive text-white text-xs font-black rounded-full flex items-center justify-center border-2 border-white px-1">
                             {adminNotificationCount}
                           </span>
                         )}
@@ -375,9 +375,9 @@ export function Navbar() {
                             <Link href="/admin" className="flex items-center justify-between w-full">
                               <div className="flex items-center gap-3">
                                 <div className="p-2 bg-orange-50 rounded-lg text-orange-600"><Clock className="w-4 h-4" /></div>
-                                <span className="text-[11px] font-bold text-primary">מוכרים ממתינים לאישור</span>
+                                <span className="text-xs font-bold text-primary">מוכרים ממתינים לאישור</span>
                               </div>
-                              <Badge className="bg-orange-500 text-white border-none text-[10px]">{pendingSellers.length}</Badge>
+                              <Badge className="bg-orange-500 text-white border-none text-xs">{pendingSellers.length}</Badge>
                             </Link>
                           </DropdownMenuItem>
                         ) : null}
@@ -387,9 +387,9 @@ export function Navbar() {
                             <Link href="/admin" className="flex items-center justify-between w-full" data-admin-bell-upgrades>
                               <div className="flex items-center gap-3">
                                 <div className="p-2 bg-amber-50 rounded-lg text-amber-700"><Award className="w-4 h-4" /></div>
-                                <span className="text-[11px] font-bold text-primary">בקשות שדרוג לסופר סת"ם</span>
+                                <span className="text-xs font-bold text-primary">בקשות שדרוג לסופר סת"ם</span>
                               </div>
-                              <Badge className="bg-amber-600 text-white border-none text-[10px]">{upgradeRequests.length}</Badge>
+                              <Badge className="bg-amber-600 text-white border-none text-xs">{upgradeRequests.length}</Badge>
                             </Link>
                           </DropdownMenuItem>
                         ) : null}
@@ -399,9 +399,9 @@ export function Navbar() {
                             <Link href="/admin" className="flex items-center justify-between w-full">
                               <div className="flex items-center gap-3">
                                 <div className="p-2 bg-destructive/5 rounded-lg text-destructive"><Flag className="w-4 h-4" /></div>
-                                <span className="text-[11px] font-bold text-primary">דיווחים חדשים</span>
+                                <span className="text-xs font-bold text-primary">דיווחים חדשים</span>
                               </div>
-                              <Badge className="bg-destructive text-white border-none text-[10px]">{reportsCount}</Badge>
+                              <Badge className="bg-destructive text-white border-none text-xs">{reportsCount}</Badge>
                             </Link>
                           </DropdownMenuItem>
                         ) : null}
@@ -409,12 +409,12 @@ export function Navbar() {
                         {adminNotificationCount === 0 && (
                           <div className="py-8 text-center space-y-2">
                              <CheckCircle2 className="w-8 h-8 text-emerald-500/20 mx-auto" />
-                             <p className="text-[10px] font-bold text-muted-foreground italic">אין עדכונים דחופים כרגע</p>
+                             <p className="text-xs font-bold text-muted-foreground">אין עדכונים דחופים כרגע</p>
                           </div>
                         )}
                         
                         <div className="pt-2">
-                          <Button variant="ghost" asChild className="w-full h-10 rounded-xl text-[10px] font-semibold uppercase tracking-widest text-primary/40 hover:text-primary">
+                          <Button variant="ghost" asChild className="w-full h-10 rounded-xl text-xs font-semibold uppercase tracking-widest text-primary/40 hover:text-primary">
                              <Link href="/admin">לניהול המערכת המלא ←</Link>
                           </Button>
                         </div>
@@ -434,7 +434,7 @@ export function Navbar() {
                       >
                         <Bell className="w-5 h-5 text-primary" />
                         {unreadCount > 0 && (
-                          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-accent text-primary text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white px-1">
+                          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-accent text-primary text-xs font-black rounded-full flex items-center justify-center border-2 border-white px-1">
                             {unreadCount}
                           </span>
                         )}
@@ -455,8 +455,8 @@ export function Navbar() {
                                   <div className="flex items-center gap-3">
                                     <div className="p-2 bg-purple-50 rounded-lg text-purple-600"><MessageCircle className="w-4 h-4" /></div>
                                     <div className="flex flex-col text-right">
-                                      <span className="text-[11px] font-bold text-primary">הודעה חדשה</span>
-                                      <span className="text-[9px] text-muted-foreground truncate max-w-[120px]">{chat.last_message_text}</span>
+                                      <span className="text-xs font-bold text-primary">הודעה חדשה</span>
+                                      <span className="text-2xs text-muted-foreground truncate max-w-[120px]">{chat.last_message_text}</span>
                                     </div>
                                   </div>
                                   <div className="w-1.5 h-1.5 bg-purple-500 rounded-full" />
@@ -467,11 +467,11 @@ export function Navbar() {
                         ) : (
                           <div className="py-8 text-center space-y-2">
                             <CheckCircle2 className="w-8 h-8 text-emerald-500/20 mx-auto" />
-                            <p className="text-[10px] font-bold text-muted-foreground italic">אין הודעות חדשות</p>
+                            <p className="text-xs font-bold text-muted-foreground">אין הודעות חדשות</p>
                           </div>
                         )}
                         <div className="pt-2">
-                          <Button variant="ghost" asChild className="w-full h-10 rounded-xl text-[10px] font-semibold uppercase tracking-widest text-primary/40 hover:text-primary">
+                          <Button variant="ghost" asChild className="w-full h-10 rounded-xl text-xs font-semibold uppercase tracking-widest text-primary/40 hover:text-primary">
                             <Link href="/customer/dashboard?tab=messages">לכל ההודעות ←</Link>
                           </Button>
                         </div>
@@ -491,7 +491,7 @@ export function Navbar() {
                       >
                         <Bell className="w-5 h-5 text-primary" />
                         {sellerNotificationCount > 0 && (
-                          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-accent text-primary text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white px-1">
+                          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-accent text-primary text-xs font-black rounded-full flex items-center justify-center border-2 border-white px-1">
                             {sellerNotificationCount}
                           </span>
                         )}
@@ -518,8 +518,8 @@ export function Navbar() {
                                   {order.status === 'paid' ? <PackageCheck className="w-4 h-4" /> : <Scroll className="w-4 h-4" />}
                                 </div>
                                 <div className="flex flex-col text-right">
-                                  <span className="text-[11px] font-bold text-primary">{order.status === 'paid' ? 'הזמנה חדשה למסירה' : 'בקשה לספר תורה'}</span>
-                                  <span className="text-[9px] text-muted-foreground">{order.product_name}</span>
+                                  <span className="text-xs font-bold text-primary">{order.status === 'paid' ? 'הזמנה חדשה למסירה' : 'בקשה לספר תורה'}</span>
+                                  <span className="text-2xs text-muted-foreground">{order.product_name}</span>
                                 </div>
                               </div>
                               <div className="w-1.5 h-1.5 bg-accent rounded-full" />
@@ -535,8 +535,8 @@ export function Navbar() {
                                   <div className="flex items-center gap-3">
                                     <div className="p-2 bg-purple-50 rounded-lg text-purple-600"><MessageCircle className="w-4 h-4" /></div>
                                     <div className="flex flex-col text-right">
-                                      <span className="text-[11px] font-bold text-primary">הודעה חדשה</span>
-                                      <span className="text-[9px] text-muted-foreground truncate max-w-[120px]">{chat.last_message_text}</span>
+                                      <span className="text-xs font-bold text-primary">הודעה חדשה</span>
+                                      <span className="text-2xs text-muted-foreground truncate max-w-[120px]">{chat.last_message_text}</span>
                                     </div>
                                   </div>
                                   <div className="w-1.5 h-1.5 bg-purple-500 rounded-full" />
@@ -549,12 +549,12 @@ export function Navbar() {
                         {sellerNotificationCount === 0 && (
                           <div className="py-8 text-center space-y-2">
                              <CheckCircle2 className="w-8 h-8 text-emerald-500/20 mx-auto" />
-                             <p className="text-[10px] font-bold text-muted-foreground italic">הכל מעודכן! אין התראות חדשות</p>
+                             <p className="text-xs font-bold text-muted-foreground">הכל מעודכן! אין התראות חדשות</p>
                           </div>
                         )}
                         
                         <div className="pt-2">
-                          <Button variant="ghost" asChild className="w-full h-10 rounded-xl text-[10px] font-semibold uppercase tracking-widest text-primary/40 hover:text-primary">
+                          <Button variant="ghost" asChild className="w-full h-10 rounded-xl text-xs font-semibold uppercase tracking-widest text-primary/40 hover:text-primary">
                              <Link href="/seller/dashboard">ללוח הבקרה המלא ←</Link>
                           </Button>
                         </div>
@@ -571,12 +571,12 @@ export function Navbar() {
                       aria-label="פתח תפריט משתמש"
                     >
                       <div className="hidden sm:flex flex-col items-end text-right">
-                        <span className="text-[10px] font-semibold text-primary uppercase tracking-tighter">{greeting}, {displayName}</span>
-                        <span className="text-[8px] font-bold text-accent uppercase">{isSuperAdmin ? 'מנהל מערכת' : 'ניהול חשבון'}</span>
+                        <span className="text-xs font-semibold text-primary uppercase tracking-tighter">{greeting}, {displayName}</span>
+                        <span className="text-2xs font-bold text-accent uppercase">{isSuperAdmin ? 'מנהל מערכת' : 'ניהול חשבון'}</span>
                       </div>
                       <Avatar className="h-8 w-8 border-2 border-white shadow-sm shrink-0">
                         <AvatarImage src={profile?.profile_image} />
-                        <AvatarFallback className="bg-primary/5 text-primary text-[10px] font-black">{displayName.charAt(0)}</AvatarFallback>
+                        <AvatarFallback className="bg-primary/5 text-primary text-xs font-black">{displayName.charAt(0)}</AvatarFallback>
                       </Avatar>
                       {(hasUnreadMessages || (isSuperAdmin && adminNotificationCount > 0) || (isSeller && sellerNotificationCount > 0)) && (
                         <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-destructive rounded-full border-2 border-white animate-pulse" />

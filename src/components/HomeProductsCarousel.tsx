@@ -15,7 +15,7 @@ export async function HomeProductsCarousel() {
     <section className="relative py-10 md:py-16 bg-background overflow-hidden" aria-labelledby="home-products-heading" dir="rtl">
       <div className="container mx-auto px-4 md:px-5">
         <div className="text-center md:text-right mb-6 md:mb-8 space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent/10 rounded-full text-accent font-semibold text-[10px] uppercase tracking-widest">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent/10 rounded-full text-accent font-semibold text-xs uppercase tracking-widest">
             <Sparkles className="w-3.5 h-3.5" /> נבחרת המוצרים
           </div>
           <h2 id="home-products-heading" className="text-2xl md:text-[2.2rem] font-headline font-black text-primary tracking-tight">

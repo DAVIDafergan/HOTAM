@@ -192,7 +192,7 @@ export function HeroAnimation() {
     return [];
   };
   const hasSubTypes = getSubTypesForProduct(selectedProduct).length > 0;
-  const finalSearchButtonClass = "w-full max-w-3xl bg-accent text-primary hover:bg-accent/92 rounded-full px-12 md:px-20 h-[4.4rem] font-bold text-base md:text-lg uppercase tracking-[0.16em] md:tracking-[0.2em] shadow-premium-lg gap-4 focus:ring-4 focus:ring-accent/30 transition-all duration-500 group";
+  const finalSearchButtonClass = "w-full max-w-3xl bg-accent text-primary hover:bg-accent/92 rounded-full px-12 md:px-20 h-[4.4rem] font-bold text-base md:text-lg uppercase tracking-wider md:tracking-wider shadow-premium-lg gap-4 focus:ring-4 focus:ring-accent/30 transition-all duration-500 group";
 
   const handleFinalSearch = () => {
     const params = new URLSearchParams();
@@ -339,7 +339,7 @@ export function HeroAnimation() {
                     </div>
                     <button type="button" onClick={() => setQuantity(quantity + 1)} aria-label="הוסף כמות" className="w-10 h-10 rounded-xl border-2 border-primary/15 font-bold hover:bg-white active:scale-90 transition-all text-primary flex items-center justify-center text-lg bg-white shadow-sm">+</button>
                   </div>
-                  <Button onClick={() => setStep(2)} className="bg-accent text-primary hover:bg-accent/90 rounded-full px-10 h-12 font-bold uppercase text-xs tracking-[0.2em] shadow-premium transition-all hover:scale-105 active:scale-95 group gap-2">
+                  <Button onClick={() => setStep(2)} className="bg-accent text-primary hover:bg-accent/90 rounded-full px-10 h-12 font-bold uppercase text-xs tracking-wider shadow-premium transition-all hover:scale-105 active:scale-95 group gap-2">
                     המשך למפרט <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                   </Button>
                 </motion.div>
@@ -350,7 +350,7 @@ export function HeroAnimation() {
               <Button
                 variant="ghost"
                 onClick={() => router.push('/search?view=all')}
-                className="h-10 px-6 rounded-full text-[11px] font-semibold uppercase tracking-widest text-primary/60 hover:text-primary hover:bg-primary/5 border border-primary/10 hover:border-primary/20 transition-all gap-2"
+                className="h-10 px-6 rounded-full text-xs font-semibold uppercase tracking-widest text-primary/60 hover:text-primary hover:bg-primary/5 border border-primary/10 hover:border-primary/20 transition-all gap-2"
               >
                 <Search className="w-3.5 h-3.5" />
                 צפה בכל המוצרים ללא פילטר
@@ -454,7 +454,7 @@ export function HeroAnimation() {
                     <Label className="font-semibold text-xs uppercase text-primary/60 tracking-widest">גודל הקלף (ס"מ)</Label>
                     <div className="grid grid-cols-2 gap-2">
                       {[...getSizesForProduct(selectedProduct, scriptType), 'other'].map(sz => (
-                        <button type="button" key={sz} onClick={() => setScrollSize(sz)} className={cn("h-12 rounded-xl border-2 font-bold text-[11px] transition-all", scrollSize === sz ? "border-accent bg-accent text-primary shadow-md" : "bg-white/40 border-primary/5 text-primary hover:border-accent/40")}>{sz === 'other' ? 'שאר הגדלים' : sz}</button>
+                        <button type="button" key={sz} onClick={() => setScrollSize(sz)} className={cn("h-12 rounded-xl border-2 font-bold text-xs transition-all", scrollSize === sz ? "border-accent bg-accent text-primary shadow-md" : "bg-white/40 border-primary/5 text-primary hover:border-accent/40")}>{sz === 'other' ? 'שאר הגדלים' : sz}</button>
                       ))}
                     </div>
                   </div>
@@ -463,7 +463,7 @@ export function HeroAnimation() {
             </div>
 
             <div className="flex justify-center pt-4 md:pt-8">
-               <Button onClick={() => setStep(3)} className="bg-accent text-primary hover:bg-accent/90 rounded-full px-16 h-12 md:h-14 font-bold uppercase text-sm tracking-[0.2em] shadow-premium transition-all hover:scale-105 active:scale-95 group gap-2">
+               <Button onClick={() => setStep(3)} className="bg-accent text-primary hover:bg-accent/90 rounded-full px-16 h-12 md:h-14 font-bold uppercase text-sm tracking-wider shadow-premium transition-all hover:scale-105 active:scale-95 group gap-2">
                  המשך למיקום וקבלה <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
                </Button>
              </div>
@@ -484,7 +484,7 @@ export function HeroAnimation() {
               <div className="space-y-4 pb-5 border-b border-primary/5">
                 <div className="flex items-center justify-between gap-3">
                   <Label className="font-semibold text-xs uppercase text-primary/60 mr-1 tracking-widest">איפה תרצו למצוא סופר? (לא חובה)</Label>
-                  <Button variant="ghost" onClick={handleFinalSearch} className="shrink-0 h-8 px-3 rounded-full font-semibold text-[11px] uppercase tracking-widest text-primary/50 hover:text-primary hover:bg-primary/5">
+                  <Button variant="ghost" onClick={handleFinalSearch} className="shrink-0 h-8 px-3 rounded-full font-semibold text-xs uppercase tracking-widest text-primary/50 hover:text-primary hover:bg-primary/5">
                     דלג, הצג הכל
                   </Button>
                 </div>
@@ -709,7 +709,7 @@ function CategoryCard({ icon, label, onClick, color = 'primary', active = false 
       )}>
         {React.cloneElement(icon as React.ReactElement<{ className?: string }>, { className: "w-6 h-6 md:w-7 md:h-7" })}
       </div>
-      <span className={cn("font-black text-primary text-[11px] md:text-xs tracking-tight transition-colors duration-300", c.text)}>{label}</span>
+      <span className={cn("font-black text-primary text-xs md:text-xs tracking-tight transition-colors duration-300", c.text)}>{label}</span>
     </button>
   );
 }

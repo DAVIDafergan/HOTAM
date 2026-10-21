@@ -141,18 +141,18 @@ function LoginContent() {
                   <h1 className="text-xl sm:text-2xl md:text-4xl font-headline font-black tracking-tight leading-tight bg-clip-text text-transparent bg-gradient-to-r from-accent via-white to-accent/80">
                     ברוכים השבים לחותם
                   </h1>
-                  <p className="text-white/75 font-black text-[11px] sm:text-xs md:text-base leading-relaxed">זירת מסחר מאובטחת ונוחה לכלי קודש וסת"ם מהודרים.</p>
+                  <p className="text-white/75 font-black text-xs sm:text-xs md:text-base leading-relaxed">זירת מסחר מאובטחת ונוחה לכלי קודש וסת"ם מהודרים.</p>
                 </div>
                 <div className="flex flex-wrap justify-center sm:justify-end gap-x-3 gap-y-1.5 pt-2 border-t border-white/10 md:gap-x-5 md:gap-y-2.5 md:pt-4">
-                  <div className="flex items-center gap-1.5 md:gap-2 text-[10px] md:text-xs font-black">
+                  <div className="flex items-center gap-1.5 md:gap-2 text-xs md:text-xs font-black">
                     <span>פיקוח הלכתי קפדני</span>
                     <CheckCircle2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-accent" />
                   </div>
-                  <div className="flex items-center gap-1.5 md:gap-2 text-[10px] md:text-xs font-black">
+                  <div className="flex items-center gap-1.5 md:gap-2 text-xs md:text-xs font-black">
                     <span>סופרים מאומתים בלבד</span>
                     <CheckCircle2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-accent" />
                   </div>
-                  <div className="flex items-center gap-1.5 md:gap-2 text-[10px] md:text-xs font-black">
+                  <div className="flex items-center gap-1.5 md:gap-2 text-xs md:text-xs font-black">
                     <span>תשלום מאובטח בנאמנות</span>
                     <CheckCircle2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-accent" />
                   </div>
@@ -163,7 +163,7 @@ function LoginContent() {
             {/* Right/Form Side */}
             <CardContent className="order-2 md:col-span-3 p-4 sm:p-6 md:p-8 space-y-5 text-right flex flex-col justify-center">
               <div className="md:hidden rounded-[2rem] bg-gradient-to-br from-primary via-primary to-primary/90 px-5 py-6 text-center text-white shadow-premium">
-                <p className="text-[10px] font-black uppercase tracking-[0.35em] text-white/55">HOTAM</p>
+                <p className="text-xs font-black uppercase tracking-[0.35em] text-white/55">HOTAM</p>
                 <h1 className="mt-2 text-2xl font-headline font-black tracking-tight">ברוכים הבאים לחותם</h1>
               </div>
               <div className="space-y-1.5">
@@ -183,14 +183,14 @@ function LoginContent() {
                 
                 <div className="relative flex items-center gap-4">
                   <div className="flex-1 h-px bg-muted" />
-                  <span className="text-[10px] font-black text-primary/30 uppercase tracking-widest">או באמצעות אימייל</span>
+                  <span className="text-xs font-black text-primary/30 uppercase tracking-widest">או באמצעות אימייל</span>
                   <div className="flex-1 h-px bg-muted" />
                 </div>
 
                 <form onSubmit={handleLogin} className="space-y-5">
                   <div className="space-y-3.5">
                     <div className="space-y-1.5">
-                      <Label htmlFor="email" className="font-black text-[10px] uppercase text-primary/60 tracking-wider">דואר אלקטרוני</Label>
+                      <Label htmlFor="email" className="font-black text-xs uppercase text-primary/60 tracking-wider">דואר אלקטרוני</Label>
                       <Input 
                         id="email" 
                         type="email" 
@@ -209,11 +209,11 @@ function LoginContent() {
                             setResetEmail(email);
                             setIsResetDialogOpen(true);
                           }}
-                          className="text-[10px] text-muted-foreground hover:text-primary underline font-black"
+                          className="text-xs text-muted-foreground hover:text-primary underline font-black"
                         >
                           שכחת סיסמה?
                         </button>
-                        <Label htmlFor="password" className="font-black text-[10px] uppercase text-primary/60 tracking-wider">סיסמה</Label>
+                        <Label htmlFor="password" className="font-black text-xs uppercase text-primary/60 tracking-wider">סיסמה</Label>
                       </div>
                       <div className="relative">
                         <Input 
@@ -278,7 +278,7 @@ function LoginContent() {
                 הזן את כתובת האימייל של החשבון שלך ונשלח אליך קישור מאובטח לאיפוס סיסמה.
               </p>
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-primary/60">כתובת אימייל</Label>
+                <Label className="text-xs font-black uppercase tracking-widest text-primary/60">כתובת אימייל</Label>
                 <Input
                   type="email"
                   value={resetEmail}

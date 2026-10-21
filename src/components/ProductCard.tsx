@@ -147,7 +147,7 @@ export function ProductCard({
 
           <div className="flex min-w-0 flex-1 flex-col gap-1.5 py-1 pl-1 text-right">
             {sellerName && (
-              <p className="flex items-center gap-1 text-[11px] font-semibold text-primary/50">
+              <p className="flex items-center gap-1 text-xs font-semibold text-primary/50">
                 <span className="truncate">{sellerName}</span>
                 <BadgeCheck className="h-3.5 w-3.5 shrink-0 fill-accent text-white" aria-hidden="true" />
               </p>
@@ -155,7 +155,7 @@ export function ProductCard({
             <h3 className="font-headline text-sm font-bold leading-snug text-primary line-clamp-2 sm:text-base">
               {displayTitle}{subtitle ? ` · ${subtitle}` : ''}
             </h3>
-            <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-semibold text-primary/50">
+            <div className="flex flex-wrap items-center gap-1.5 text-xs font-semibold text-primary/50">
               {specChips[0] && <span className="rounded-full bg-primary/[0.04] px-2 py-0.5">{specChips[0]}</span>}
               {typeof distanceKm === 'number' && (
                 <span className="flex items-center gap-1"><MapPin className="h-3 w-3 text-accent" />{distanceKm} ק״מ ממך</span>
@@ -164,7 +164,7 @@ export function ProductCard({
             <div className="mt-auto flex items-baseline gap-1 text-primary">
               <span className="text-lg font-black tracking-tight tabular-nums sm:text-xl">{finalPrice}</span>
               <span className="text-sm font-bold text-primary/50">₪</span>
-              <span className="mr-1 text-[10px] font-medium text-primary/35">כולל מע״מ</span>
+              <span className="mr-1 text-xs font-medium text-primary/35">כולל מע״מ</span>
             </div>
           </div>
         </article>
@@ -194,7 +194,7 @@ export function ProductCard({
                 <BadgeCheck className="h-3.5 w-3.5 shrink-0 fill-accent text-white" aria-label="סופר מאומת" />
               </p>
               {seller.city && (
-                <p className="mt-0.5 flex items-center gap-0.5 text-[10px] font-medium text-muted-foreground">
+                <p className="mt-0.5 flex items-center gap-0.5 text-xs font-medium text-muted-foreground">
                   <MapPin className="h-2.5 w-2.5 text-accent" />
                   <span className="truncate">{seller.city}</span>
                 </p>
@@ -217,23 +217,23 @@ export function ProductCard({
           {favoriteButton}
           {product.product_type && (
             <div className="absolute right-3 top-3 z-10 flex max-w-[65%] flex-col items-start gap-1">
-              <span className="max-w-full truncate rounded-full bg-white/85 px-2.5 py-1 text-[10px] font-bold text-primary backdrop-blur-md">
+              <span className="max-w-full truncate rounded-full bg-white/85 px-2.5 py-1 text-xs font-bold text-primary backdrop-blur-md">
                 {product.product_type}
               </span>
               {showSeasonalBadge && (
-                <span className="max-w-full truncate rounded-full bg-amber-100/95 px-2.5 py-1 text-[10px] font-bold text-amber-800">
+                <span className="max-w-full truncate rounded-full bg-amber-100/95 px-2.5 py-1 text-xs font-bold text-amber-800">
                   {seasonalBadgeLabel(product.product_type)}
                 </span>
               )}
             </div>
           )}
           <div className="absolute inset-x-3 bottom-3 z-10 flex items-center justify-between gap-2">
-            <span className="flex items-center gap-1 rounded-full bg-white/85 px-2.5 py-1 text-[10px] font-semibold text-primary/80 backdrop-blur-md">
+            <span className="flex items-center gap-1 rounded-full bg-white/85 px-2.5 py-1 text-xs font-semibold text-primary/80 backdrop-blur-md">
               <DeliveryIcon className="h-3 w-3 text-accent-strong" />
               {delivery.label}
             </span>
             {typeof distanceKm === 'number' && (
-              <span className="flex items-center gap-1 rounded-full bg-white/85 px-2.5 py-1 text-[10px] font-semibold text-primary/80 backdrop-blur-md">
+              <span className="flex items-center gap-1 rounded-full bg-white/85 px-2.5 py-1 text-xs font-semibold text-primary/80 backdrop-blur-md">
                 <MapPin className="h-3 w-3 text-accent-strong" />
                 {distanceKm} ק״מ
               </span>
@@ -249,7 +249,7 @@ export function ProductCard({
             {specChips.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
                 {specChips.map((chip) => (
-                  <span key={chip} className="rounded-full bg-[#F8F9FA] px-2.5 py-1 text-[10px] font-semibold text-primary/60">
+                  <span key={chip} className="rounded-full bg-secondary/50 px-2.5 py-1 text-xs font-semibold text-primary/60">
                     {chip}
                   </span>
                 ))}
@@ -263,9 +263,9 @@ export function ProductCard({
                 <span className="text-xl font-black tracking-tight tabular-nums sm:text-2xl">{finalPrice}</span>
                 <span className="text-sm font-bold text-primary/50">₪</span>
               </div>
-              <p className="text-[10px] font-medium text-primary/35">כולל מע״מ</p>
+              <p className="text-xs font-medium text-primary/35">כולל מע״מ</p>
             </div>
-            <span className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-primary px-4 text-[11px] font-bold text-primary-foreground transition-colors group-hover:bg-accent group-hover:text-primary">
+            <span className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-primary px-4 text-xs font-bold text-primary-foreground transition-colors group-hover:bg-accent group-hover:text-primary">
               לפרטים
               <ArrowLeft className="h-3.5 w-3.5" />
             </span>

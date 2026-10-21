@@ -98,7 +98,7 @@ export default function SmartImage({
         style={!props.fill ? { width: props.width, height: props.height } : undefined}
       >
         <ImageOff className="h-6 w-6 opacity-60" aria-hidden="true" />
-        <span className="text-[11px] font-medium px-2 text-center">לא ניתן להציג תמונה</span>
+        <span className="text-xs font-medium px-2 text-center">לא ניתן להציג תמונה</span>
       </div>
     );
   }

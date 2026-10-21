@@ -28,7 +28,7 @@ const typeHref = (type: string) => `/search?view=results&product=${encodeURIComp
 
 function SectionEyebrow({ children }: { children: string }) {
   return (
-    <div className="flex items-center gap-3 text-[11px] font-black tracking-[0.2em] text-accent-strong md:text-xs">
+    <div className="flex items-center gap-3 text-xs font-black tracking-wider text-accent-strong md:text-xs">
       <span className="h-px w-6 bg-accent md:w-9" aria-hidden="true" />
       {children}
     </div>
@@ -63,8 +63,8 @@ function SeasonBanner({ season, compact, tone }: { season: Season; compact: bool
       </svg>
       <div className="relative z-10 flex flex-1 flex-col justify-center gap-3 p-6 pl-32 md:gap-4 md:py-0 md:pr-14 md:pl-8">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-full bg-accent px-3 py-1 text-[11px] font-black text-primary md:text-xs">עונתי · {season.until}</span>
-          <span className="flex items-center gap-1.5 rounded-full border border-[#E2B35B]/45 px-3 py-1 text-[11px] font-bold text-[#E2B35B] md:text-xs">
+          <span className="rounded-full bg-accent px-3 py-1 text-xs font-black text-primary md:text-xs">עונתי · {season.until}</span>
+          <span className="flex items-center gap-1.5 rounded-full border border-[#E2B35B]/45 px-3 py-1 text-xs font-bold text-[#E2B35B] md:text-xs">
             <Clock className="h-3.5 w-3.5" aria-hidden="true" />
             {daysLeftLabel(days)}
           </span>
@@ -106,7 +106,7 @@ function TileProductThumb({ product }: { product: any }) {
           <span className="absolute inset-0 flex items-center justify-center text-white/25" aria-hidden="true"><ImageIcon className="h-6 w-6" /></span>
         )}
       </span>
-      <span className="truncate text-[11px] font-semibold text-white/70">{productTitle(product)}</span>
+      <span className="truncate text-xs font-semibold text-white/70">{productTitle(product)}</span>
       <span className="-mt-1 text-xs font-black text-[#E2B35B]">₪{price}</span>
     </Link>
   );
@@ -145,7 +145,7 @@ function CategoryTile({ group, products }: { group: ProductGroup & { key: TileKe
         <Link href={groupHref(group.key)} aria-label={group.label} className="absolute inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-3 p-5 md:p-6">
           {products.length > 0 && (
-            <span className="text-[11px] font-black tracking-[0.18em] text-[#E2B35B]">{products.length === 1 ? 'מוצר אחד באתר' : `${products.length} מוצרים באתר`}</span>
+            <span className="text-xs font-black tracking-wider text-[#E2B35B]">{products.length === 1 ? 'מוצר אחד באתר' : `${products.length} מוצרים באתר`}</span>
           )}
           <div className="flex items-end justify-between gap-3">
             <h3 className="font-headline text-[1.9rem] font-black leading-none text-white md:text-[2.2rem]">{group.label}</h3>
@@ -168,7 +168,7 @@ function CategoryTile({ group, products }: { group: ProductGroup & { key: TileKe
       {shown.length > 0 && (
         <div className="border-t border-white/10 px-5 pb-5 pt-4 md:px-6" data-tile-products={group.key}>
           <div className="mb-3 flex items-center justify-between">
-            <span className="text-[11px] font-black tracking-[0.18em] text-white/55">מבחר מהקטגוריה</span>
+            <span className="text-xs font-black tracking-wider text-white/55">מבחר מהקטגוריה</span>
             {products.length > shown.length && (
               <Link href={groupHref(group.key)} className="text-xs font-black text-[#E2B35B] hover:text-white">לכל {products.length} המוצרים ←</Link>
             )}

@@ -620,16 +620,16 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
             <WizardSmallCard value="ספר תורה" selected={selectedProduct === 'ספר תורה'} icon={<BookOpen className="w-5 h-5" />} label="ספר תורה" />
             <WizardSmallCard value="מוצרי יודאיקה שונים" selected={selectedProduct === 'מוצרי יודאיקה שונים'} icon={<Palette className="w-5 h-5" />} label="מוצרי קלף" />
           </div>
-          <p className="pt-4 pb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">יודאיקה</p>
+          <p className="pt-4 pb-1 text-xs font-black uppercase tracking-widest text-muted-foreground">יודאיקה</p>
           {groupJudaicaCategories().map(({ section, categories }) => (
           <div key={section} className="pt-2" data-judaica-filter-section={section}>
-          <p className="pb-1.5 text-[10px] font-bold text-primary/45">{section}</p>
+          <p className="pb-1.5 text-xs font-bold text-primary/45">{section}</p>
           <div className="flex flex-wrap gap-2">
             {categories.map((category) => (
               <Label
                 key={category.value}
                 className={cn(
-                  "flex cursor-pointer items-center gap-1.5 rounded-full border-2 px-3.5 py-2 text-[11px] font-black transition-all",
+                  "flex cursor-pointer items-center gap-1.5 rounded-full border-2 px-3.5 py-2 text-xs font-black transition-all",
                   selectedProduct === category.value
                     ? "border-primary bg-primary/5 text-primary shadow-md"
                     : "border-primary/5 bg-white text-primary/60 hover:border-accent/30 hover:text-primary"
@@ -637,7 +637,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
               >
                 {category.value}
                 {shouldShowSeasonalBadge(category.value, activeSeasons) && (
-                  <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-800">{seasonalBadgeLabel(category.value)}</span>
+                  <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-2xs font-bold text-amber-800">{seasonalBadgeLabel(category.value)}</span>
                 )}
                 <RadioGroupItem value={category.value} className="hidden" />
               </Label>
@@ -651,7 +651,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
       <FilterSection title="מאפייני כתיבה" icon={<Scroll className="w-3.5 h-3.5 text-accent" />} defaultOpen>
         <div className="space-y-4 pt-2">
           <div className="space-y-2">
-            <Label className="font-black text-muted-foreground text-[10px] uppercase tracking-widest">סוג כתב ומסורת</Label>
+            <Label className="font-black text-muted-foreground text-xs uppercase tracking-widest">סוג כתב ומסורת</Label>
             <RadioGroup value={scriptType} onValueChange={setScriptType} className="grid grid-cols-1 gap-1.5">
               {[
                 { v: 'all', l: 'כל המסורות' },
@@ -667,7 +667,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
 
           {getParchmentSizes(selectedProduct, scriptType).length > 0 && (
             <div className="space-y-2 animate-in fade-in">
-              <Label className="font-black text-muted-foreground text-[10px] uppercase tracking-widest">גודל (ס"מ)</Label>
+              <Label className="font-black text-muted-foreground text-xs uppercase tracking-widest">גודל (ס"מ)</Label>
               <RadioGroup value={scrollSize} onValueChange={setScrollSize} className="grid grid-cols-2 gap-1.5">
                 <CustomFilterTile value="other" label="שאר הגדלים" active={scrollSize === 'other'} />
                 {getParchmentSizes(selectedProduct, scriptType).map((size) => (
@@ -683,7 +683,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
         <div className="space-y-4 pt-2">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-primary/30">מחיר מינימום</Label>
+              <Label className="text-xs font-black uppercase tracking-widest text-primary/30">מחיר מינימום</Label>
               <Input
                 inputMode="numeric"
                 value={String(activePriceRange[0])}
@@ -695,7 +695,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-primary/30">מחיר מקסימום</Label>
+              <Label className="text-xs font-black uppercase tracking-widest text-primary/30">מחיר מקסימום</Label>
               <Input
                 inputMode="numeric"
                 value={String(activePriceRange[1])}
@@ -733,7 +733,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
 
       <FilterSection title="מיקום, משלוח ואיסוף" icon={<MapPin className="w-3.5 h-3.5 text-accent" />} defaultOpen>
         <div className="flex flex-col gap-3 pt-2">
-          <Button onClick={detectLocation} disabled={isDetecting} variant="outline" className={cn("h-11 w-full gap-3 rounded-2xl text-[11px] font-bold border-2 transition-all", userCoords ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'hover:border-primary/20')}>
+          <Button onClick={detectLocation} disabled={isDetecting} variant="outline" className={cn("h-11 w-full gap-3 rounded-2xl text-xs font-bold border-2 transition-all", userCoords ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'hover:border-primary/20')}>
             {isDetecting ? <Loader2 className="w-3 h-3 animate-spin" /> : <LocateFixed className="w-3 h-3" />}
             {detectedCity ? `זוהית ב: ${detectedCity}` : 'זהה מיקום נוכחי'}
           </Button>
@@ -747,7 +747,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
           <Label className="flex items-center justify-between rounded-2xl border border-primary/10 bg-white px-4 py-4 transition-all cursor-pointer hover:border-primary/20">
             <div className="space-y-1 text-right">
               <span className="block text-sm font-bold text-primary">חפש גם בערים קרובות</span>
-              <span className="block text-[11px] font-medium text-primary/45">מוצרים מערים עד {NEARBY_RADIUS_KM} ק״מ</span>
+              <span className="block text-xs font-medium text-primary/45">מוצרים מערים עד {NEARBY_RADIUS_KM} ק״מ</span>
             </div>
             <Checkbox checked={includeNearbyCities} onCheckedChange={(value) => setIncludeNearbyCities(!!value)} />
           </Label>
@@ -762,7 +762,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
       <FilterSection title="מסנני סופר" icon={<GraduationCap className="w-3.5 h-3.5 text-accent" />}>
         <div className="grid grid-cols-1 gap-4 pt-2">
           <div className="space-y-2">
-            <Label className="text-[9px] font-black text-primary/30">הסמכת הסופר</Label>
+            <Label className="text-2xs font-black text-primary/30">הסמכת הסופר</Label>
             <div className="grid gap-1.5">
               <CustomFilterTile value="valid" label="תעודה בתוקף" active={certStatus === 'valid'} onClick={() => setCertStatus(certStatus === 'valid' ? '' : 'valid')} />
               <CustomFilterTile value="expired" label="תעודה בעבר" active={certStatus === 'expired'} onClick={() => setCertStatus(certStatus === 'expired' ? '' : 'expired')} />
@@ -770,7 +770,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
             </div>
           </div>
           <div className="space-y-2">
-            <Label className="text-[9px] font-black text-primary/30">לימוד תורה</Label>
+            <Label className="text-2xs font-black text-primary/30">לימוד תורה</Label>
             <div className="grid gap-1.5">
               <CustomFilterTile value="fixed" label="קובע עיתים" active={studyFreq === 'fixed'} onClick={() => setStudyFreq(studyFreq === 'fixed' ? '' : 'fixed')} />
               <CustomFilterTile value="half-day" label="אברך חצי יום" active={studyFreq === 'half-day'} onClick={() => setStudyFreq(studyFreq === 'half-day' ? '' : 'half-day')} />
@@ -778,7 +778,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
             </div>
           </div>
           <div className="space-y-2">
-            <Label className="text-[9px] font-black text-primary/30">מנהג טבילה</Label>
+            <Label className="text-2xs font-black text-primary/30">מנהג טבילה</Label>
             <div className="grid gap-1.5">
               <CustomFilterTile value="daily" label="טובל יומיום" active={mikvehFreq === 'daily'} onClick={() => setMikvehFreq(mikvehFreq === 'daily' ? '' : 'daily')} />
               <CustomFilterTile value="never" label="ללא טבילה" active={mikvehFreq === 'never'} onClick={() => setMikvehFreq(mikvehFreq === 'never' ? '' : 'never')} />
@@ -863,7 +863,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
               <p className="text-primary/60 text-lg md:text-xl mb-12 font-medium max-w-2xl mx-auto leading-relaxed">הגדירו את המפרט המדויק וקבלו את כלי הקודש המושלם עבורכם ישירות מהסופר המאומת.</p>
               
               <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
-                <Button onClick={() => setIsFilterPanelOpen(true)} size="lg" className="w-full sm:w-auto rounded-full px-10 sm:px-16 h-16 sm:h-20 font-black text-base sm:text-lg uppercase tracking-[0.2em] shadow-2xl hover:scale-105 active:scale-95 focus:ring-4 focus:ring-accent/30 transition-all duration-300 group">
+                <Button onClick={() => setIsFilterPanelOpen(true)} size="lg" className="w-full sm:w-auto rounded-full px-10 sm:px-16 h-16 sm:h-20 font-black text-base sm:text-lg uppercase tracking-wider shadow-2xl hover:scale-105 active:scale-95 focus:ring-4 focus:ring-accent/30 transition-all duration-300 group">
                   <SearchIcon className="ml-4 w-6 h-6 group-hover:rotate-12 transition-transform" /> התחל חיפוש מותאם
                 </Button>
                 <Button onClick={() => setShowResults(true)} variant="outline" size="lg" className="w-full sm:w-auto rounded-full px-8 sm:px-12 h-14 sm:h-20 font-black uppercase text-sm tracking-widest border-primary/10 bg-white shadow-premium hover:border-primary/20 hover:shadow-lg active:scale-95 transition-all duration-300">צפה בכל הקטלוג</Button>
@@ -891,14 +891,14 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                         </ToolbarChoiceButton>
                       </div>
                       <Select value={sortOrder} onValueChange={setSortOrder}>
-                        <SelectTrigger className="h-11 w-[196px] shrink-0 snap-start rounded-full border border-primary/10 bg-white px-3 text-[11px] font-black text-primary shadow-sm transition-all duration-300 hover:border-primary/20 hover:bg-primary/[0.03] hover:shadow-md focus:ring-0 focus:ring-offset-0 data-[state=open]:border-accent/30 data-[state=open]:bg-accent/5 data-[state=open]:shadow-lg md:h-10">
+                        <SelectTrigger className="h-11 w-[196px] shrink-0 snap-start rounded-full border border-primary/10 bg-white px-3 text-xs font-black text-primary shadow-sm transition-all duration-300 hover:border-primary/20 hover:bg-primary/[0.03] hover:shadow-md focus:ring-0 focus:ring-offset-0 data-[state=open]:border-accent/30 data-[state=open]:bg-accent/5 data-[state=open]:shadow-lg md:h-10">
                           <div className="flex min-w-0 items-center gap-2">
                             <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent">
                               <ArrowUpNarrowWide className="h-3.5 w-3.5" />
                             </span>
                             <div className="flex min-w-0 flex-col items-start leading-none">
-                              <span className="text-[9px] font-black uppercase tracking-[0.22em] text-primary/40">מיון</span>
-                              <span className="min-w-0 truncate text-[11px] text-primary">
+                              <span className="text-2xs font-black uppercase tracking-wider text-primary/40">מיון</span>
+                              <span className="min-w-0 truncate text-xs text-primary">
                                 <SelectValue placeholder="מוצרים חדשים" />
                               </span>
                             </div>
@@ -917,7 +917,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                         </SelectContent>
                       </Select>
 
-                      <Button variant="ghost" onClick={resetFilters} className="h-11 shrink-0 snap-start rounded-full px-4 text-[11px] font-black text-primary/40 transition-all hover:bg-destructive/5 hover:text-destructive md:h-10">
+                      <Button variant="ghost" onClick={resetFilters} className="h-11 shrink-0 snap-start rounded-full px-4 text-xs font-black text-primary/40 transition-all hover:bg-destructive/5 hover:text-destructive md:h-10">
                         <RotateCcw className="ml-2 h-4 w-4" /> איפוס
                       </Button>
                     </div>
@@ -962,11 +962,11 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                     <Rows3 className="h-4 w-4" />
                   </button>
                 </div>
-                <Button variant="outline" onClick={() => setIsFilterPanelOpen(true)} className="group h-11 rounded-full border border-primary/10 bg-white px-4 text-[11px] font-black text-primary shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:bg-primary/[0.03] hover:text-primary hover:shadow-md active:scale-95">
+                <Button variant="outline" onClick={() => setIsFilterPanelOpen(true)} className="group h-11 rounded-full border border-primary/10 bg-white px-4 text-xs font-black text-primary shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:bg-primary/[0.03] hover:text-primary hover:shadow-md active:scale-95">
                   <SlidersHorizontal className="ml-1.5 h-3 w-3 text-accent transition-transform duration-300 group-hover:rotate-6" />
                   <span>סינון</span>
                   {activeFiltersCount > 0 && (
-                    <span className="mr-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[9px] text-primary">
+                    <span className="mr-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-2xs text-primary">
                       {activeFiltersCount}
                     </span>
                   )}
@@ -975,7 +975,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
 
               <div className="mt-4 flex flex-wrap items-center justify-end gap-2.5">
                 {selectedGroup && (
-                  <div data-search-group-chip className="flex items-center gap-1 rounded-full bg-primary px-2 py-1 pr-4 text-[11px] font-black text-primary-foreground">
+                  <div data-search-group-chip className="flex items-center gap-1 rounded-full bg-primary px-2 py-1 pr-4 text-xs font-black text-primary-foreground">
                     {selectedGroup.label}
                     <button
                       type="button"
@@ -988,18 +988,18 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                   </div>
                 )}
                 {detectedCity && (
-                  <div className="animate-in fade-in flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-[11px] font-black text-emerald-600">
+                  <div className="animate-in fade-in flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-xs font-black text-emerald-600">
                     <CheckCircle2 className="w-3.5 h-3.5" /> זיהינו: {detectedCity}
                   </div>
                 )}
                 {selectedCity && (
-                  <div className="flex items-center gap-2 rounded-full bg-primary/5 px-4 py-2 text-[11px] font-black text-primary">
+                  <div className="flex items-center gap-2 rounded-full bg-primary/5 px-4 py-2 text-xs font-black text-primary">
                     <MapPin className="h-3.5 w-3.5 text-accent" />
                     מחפש ב{selectedCity}
                   </div>
                 )}
                 {includeNearbyCities && selectedCity && (
-                  <div className="rounded-full bg-amber-50 px-4 py-2 text-[11px] font-black text-amber-700">
+                  <div className="rounded-full bg-amber-50 px-4 py-2 text-xs font-black text-amber-700">
                     כולל ערים קרובות עד {NEARBY_RADIUS_KM} ק״מ
                   </div>
                 )}
@@ -1099,7 +1099,7 @@ function WizardSmallCard({ value, selected, icon, label }: any) {
         {React.cloneElement(icon as React.ReactElement<{ className?: string }>, { className: "w-5 h-5" })}
       </div>
       <div className="text-center">
-        <p className={cn("font-black text-[10px] tracking-tight transition-colors", selected ? "text-primary" : "text-primary/60 group-hover:text-primary/80")}>
+        <p className={cn("font-black text-xs tracking-tight transition-colors", selected ? "text-primary" : "text-primary/60 group-hover:text-primary/80")}>
           {label}
         </p>
       </div>
@@ -1111,12 +1111,12 @@ function WizardSmallCard({ value, selected, icon, label }: any) {
 function CustomFilterTile({ value, label, active, onClick }: any) {
   const className = cn(
     "group flex min-h-11 cursor-pointer items-center justify-between rounded-xl border-2 px-4 py-3 transition-all duration-200",
-    active ? "border-primary bg-primary/5 shadow-sm scale-[1.01]" : "border-primary/5 bg-white hover:bg-slate-50 hover:border-primary/15"
+    active ? "border-primary bg-primary/5 shadow-sm scale-[1.01]" : "border-primary/5 bg-white hover:bg-secondary/40 hover:border-primary/15"
   );
   const content = (
     <>
       {!onClick && <RadioGroupItem value={value} className="hidden" />}
-      <span className={cn("font-bold text-[10px] transition-colors", active ? "text-primary" : "text-primary/50 group-hover:text-primary/70")}>{label}</span>
+      <span className={cn("font-bold text-xs transition-colors", active ? "text-primary" : "text-primary/50 group-hover:text-primary/70")}>{label}</span>
       <div className={cn(
         "w-3 h-3 rounded-full border-2 transition-all duration-200",
         active ? "bg-accent border-accent scale-110 shadow-sm" : "border-primary/10 group-hover:border-primary/30"
@@ -1153,7 +1153,7 @@ function ToolbarChoiceButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex h-11 min-w-[74px] touch-manipulation items-center justify-center rounded-full px-3 text-[11px] font-black transition-all md:h-8 md:min-w-0 md:text-[10px]",
+        "flex h-11 min-w-[74px] touch-manipulation items-center justify-center rounded-full px-3 text-xs font-black transition-all md:h-8 md:min-w-0 md:text-xs",
         active ? "bg-accent text-primary shadow-sm" : "text-primary/55 hover:text-primary",
       )}
     >
@@ -1169,11 +1169,11 @@ function FilterSection({ title, icon, children, defaultOpen = false }: { title: 
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
-        className="flex min-h-12 w-full touch-manipulation items-center justify-between px-4 py-3 text-right transition-colors hover:bg-slate-50"
+        className="flex min-h-12 w-full touch-manipulation items-center justify-between px-4 py-3 text-right transition-colors hover:bg-secondary/40"
       >
         <div className="flex items-center gap-2">
           {icon}
-          <span className="font-black text-[10px] uppercase tracking-widest text-primary/70">{title}</span>
+          <span className="font-black text-xs uppercase tracking-widest text-primary/70">{title}</span>
         </div>
         <ChevronRight className={cn("w-3.5 h-3.5 text-primary/30 transition-transform duration-200", open ? "rotate-90" : "rotate-0")} />
       </button>

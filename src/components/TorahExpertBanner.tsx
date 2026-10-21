@@ -36,11 +36,11 @@ export function TorahExpertBanner() {
                   initial={{ opacity: 0, y: 4 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, ease: 'easeOut' }}
-                  className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-[10px] font-semibold tracking-[0.22em] text-white/80"
+                  className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-xs font-semibold tracking-[0.22em] text-white/80"
                 >
                   TORAH CONCIERGE
                 </motion.div>
-                <div className="flex items-center gap-3 text-[10px] font-semibold tracking-widest text-white/55">
+                <div className="flex items-center gap-3 text-xs font-semibold tracking-widest text-white/55">
                    <div className="flex items-center gap-1">
                      <CheckCircle2 className="h-3.5 w-3.5 text-white/75" /> ליווי אישי
                     </div>

@@ -126,7 +126,7 @@ function isPdfUrl(url: string): boolean {
 function FieldError({ message }: { message?: string }) {
   if (!message) return null;
   return (
-    <p className="flex items-center gap-1 text-[11px] font-bold text-destructive">
+    <p className="flex items-center gap-1 text-xs font-bold text-destructive">
       <AlertCircle className="w-3 h-3 shrink-0" />{message}
     </p>
   );
@@ -956,7 +956,7 @@ export default function SellerOnboarding() {
                   <StepIcon className="w-8 h-8 text-accent" />
                   {currentStepMeta.title}
                 </CardTitle>
-                <CardDescription className="text-white/60 font-medium italic relative z-10 mt-1">
+                <CardDescription className="text-white/60 font-medium relative z-10 mt-1">
                   {currentStepMeta.description}
                 </CardDescription>
               </motion.div>
@@ -970,12 +970,12 @@ export default function SellerOnboarding() {
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>שם פרטי *</Label>
-                      <Input value={formData.firstName} onChange={(e) => updateFieldWithValidation('firstName', e.target.value)} onBlur={() => handleFieldBlur('firstName')} autoComplete="given-name" required className={cn("text-slate-900 rounded-xl h-12", fieldErrors.firstName && "border-destructive")} />
+                      <Input value={formData.firstName} onChange={(e) => updateFieldWithValidation('firstName', e.target.value)} onBlur={() => handleFieldBlur('firstName')} autoComplete="given-name" required className={cn("text-primary rounded-xl h-12", fieldErrors.firstName && "border-destructive")} />
                       <FieldError message={fieldErrors.firstName} />
                     </div>
                     <div className="space-y-2">
                       <Label>שם משפחה *</Label>
-                      <Input value={formData.lastName} onChange={(e) => updateFieldWithValidation('lastName', e.target.value)} onBlur={() => handleFieldBlur('lastName')} autoComplete="family-name" required className={cn("text-slate-900 rounded-xl h-12", fieldErrors.lastName && "border-destructive")} />
+                      <Input value={formData.lastName} onChange={(e) => updateFieldWithValidation('lastName', e.target.value)} onBlur={() => handleFieldBlur('lastName')} autoComplete="family-name" required className={cn("text-primary rounded-xl h-12", fieldErrors.lastName && "border-destructive")} />
                       <FieldError message={fieldErrors.lastName} />
                     </div>
                   </div>
@@ -983,13 +983,13 @@ export default function SellerOnboarding() {
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>טלפון *</Label>
-                      <Input type="tel" inputMode="tel" autoComplete="tel" value={formData.phone} onChange={(e) => updateFieldWithValidation('phone', e.target.value)} onBlur={() => handleFieldBlur('phone')} placeholder="05X-XXXXXXX" required className={cn("text-slate-900 rounded-xl h-12", fieldErrors.phone && "border-destructive")} />
+                      <Input type="tel" inputMode="tel" autoComplete="tel" value={formData.phone} onChange={(e) => updateFieldWithValidation('phone', e.target.value)} onBlur={() => handleFieldBlur('phone')} placeholder="05X-XXXXXXX" required className={cn("text-primary rounded-xl h-12", fieldErrors.phone && "border-destructive")} />
                       <FieldError message={fieldErrors.phone} />
                     </div>
                     {path === 'stam_scribe' && (
                       <div className="space-y-2">
                         <Label>גיל *</Label>
-                        <Input type="number" inputMode="numeric" value={formData.age} onChange={(e) => updateFieldWithValidation('age', e.target.value)} onBlur={() => handleFieldBlur('age')} required className={cn("text-slate-900 rounded-xl h-12", fieldErrors.age && "border-destructive")} />
+                        <Input type="number" inputMode="numeric" value={formData.age} onChange={(e) => updateFieldWithValidation('age', e.target.value)} onBlur={() => handleFieldBlur('age')} required className={cn("text-primary rounded-xl h-12", fieldErrors.age && "border-destructive")} />
                         <FieldError message={fieldErrors.age} />
                       </div>
                     )}
@@ -997,12 +997,12 @@ export default function SellerOnboarding() {
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>עיר *</Label>
-                      <Input ref={cityInputRef} value={formData.city} onChange={(e) => updateFieldWithValidation('city', e.target.value)} onBlur={() => handleFieldBlur('city')} autoComplete="address-level2" required className={cn("text-slate-900 rounded-xl h-12", fieldErrors.city && "border-destructive")} />
+                      <Input ref={cityInputRef} value={formData.city} onChange={(e) => updateFieldWithValidation('city', e.target.value)} onBlur={() => handleFieldBlur('city')} autoComplete="address-level2" required className={cn("text-primary rounded-xl h-12", fieldErrors.city && "border-destructive")} />
                       <FieldError message={fieldErrors.city} />
                     </div>
                     <div className="space-y-2">
                       <Label>{path === 'judaica_seller' ? 'כתובת העסק *' : 'כתובת *'}</Label>
-                      <Input ref={addressInputRef} value={formData.address} onChange={(e) => updateFieldWithValidation('address', e.target.value)} onBlur={() => handleFieldBlur('address')} autoComplete="street-address" required className={cn("text-slate-900 rounded-xl h-12", fieldErrors.address && "border-destructive")} />
+                      <Input ref={addressInputRef} value={formData.address} onChange={(e) => updateFieldWithValidation('address', e.target.value)} onBlur={() => handleFieldBlur('address')} autoComplete="street-address" required className={cn("text-primary rounded-xl h-12", fieldErrors.address && "border-destructive")} />
                       <FieldError message={fieldErrors.address} />
                     </div>
                   </div>
@@ -1013,12 +1013,12 @@ export default function SellerOnboarding() {
                 <motion.div key="step-2" {...stepMotionProps} className="grid gap-6">
                   <div className="space-y-4 p-6 bg-primary/5 rounded-2xl border border-primary/10">
                     <div className="flex items-center justify-between mb-2">
-                      <Label className="font-black text-primary text-[10px] uppercase tracking-widest">סטטוס עסק *</Label>
+                      <Label className="font-black text-primary text-xs uppercase tracking-widest">סטטוס עסק *</Label>
                       <Dialog open={isGuideOpen} onOpenChange={setIsGuideOpen}>
                         <DialogTrigger asChild>
-                          <Button variant="link" className="p-0 h-auto text-accent font-black text-[10px] uppercase tracking-tighter">אין לך עדיין עוסק? לחץ כאן ←</Button>
+                          <Button variant="link" className="p-0 h-auto text-accent font-black text-xs uppercase tracking-tighter">אין לך עדיין עוסק? לחץ כאן ←</Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white text-slate-900" dir="rtl">
+                        <DialogContent className="max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white text-primary" dir="rtl">
                           <div className="bg-primary p-6 text-white text-right">
                             <DialogTitle className="text-xl font-headline font-black flex items-center gap-3">
                               <BookOpen className="w-6 h-6 text-accent" /> מדריך לפתיחת עוסק פטור
@@ -1033,7 +1033,7 @@ export default function SellerOnboarding() {
                             </div>
                             <div className="bg-accent/5 p-4 rounded-xl flex items-start gap-3 border border-accent/20">
                               <Info className="w-5 h-5 text-accent shrink-0 mt-0.5" />
-                              <p className="text-[10px] font-bold text-primary/70 leading-relaxed">שימו לב: פתיחת עוסק פטור אינה כרוכה בתשלום אגרה והיא מיועדת למי שהכנסותיו אינן עולות על התקרה השנתית (כ-120,000 ש"ח נכון ל-2024).</p>
+                              <p className="text-xs font-bold text-primary/70 leading-relaxed">שימו לב: פתיחת עוסק פטור אינה כרוכה בתשלום אגרה והיא מיועדת למי שהכנסותיו אינן עולות על התקרה השנתית (כ-120,000 ש"ח נכון ל-2024).</p>
                             </div>
                           </div>
                         </DialogContent>
@@ -1054,24 +1054,24 @@ export default function SellerOnboarding() {
                     <div className="grid md:grid-cols-2 gap-4 pt-2">
                       <div className="space-y-2">
                         <Label className="text-xs font-bold">מספר עוסק / ח.פ *</Label>
-                        <Input value={formData.businessId} onChange={(e) => updateFieldWithValidation('businessId', e.target.value)} onBlur={() => handleFieldBlur('businessId')} placeholder="מספר זיהוי עסק..." inputMode="numeric" className={cn("text-slate-900 rounded-xl h-12", fieldErrors.businessId && "border-destructive")} />
+                        <Input value={formData.businessId} onChange={(e) => updateFieldWithValidation('businessId', e.target.value)} onBlur={() => handleFieldBlur('businessId')} placeholder="מספר זיהוי עסק..." inputMode="numeric" className={cn("text-primary rounded-xl h-12", fieldErrors.businessId && "border-destructive")} />
                         <FieldError message={fieldErrors.businessId} />
                       </div>
                       <div className="space-y-2">
                         <Label className="text-xs font-bold">שם העסק הרשום *</Label>
-                        <Input value={formData.businessName} onChange={(e) => updateFieldWithValidation('businessName', e.target.value)} onBlur={() => handleFieldBlur('businessName')} placeholder="שם העסק..." className={cn("text-slate-900 rounded-xl h-12", fieldErrors.businessName && "border-destructive")} />
+                        <Input value={formData.businessName} onChange={(e) => updateFieldWithValidation('businessName', e.target.value)} onBlur={() => handleFieldBlur('businessName')} placeholder="שם העסק..." className={cn("text-primary rounded-xl h-12", fieldErrors.businessName && "border-destructive")} />
                         <FieldError message={fieldErrors.businessName} />
                       </div>
                     </div>
                   </div>
 
                   <div className="space-y-4 p-6 bg-emerald-50/30 rounded-2xl border border-emerald-100">
-                    <Label className="font-black text-emerald-700 text-[10px] uppercase tracking-widest flex items-center gap-2">
+                    <Label className="font-black text-emerald-700 text-xs uppercase tracking-widest flex items-center gap-2">
                       <Landmark className="w-4 h-4" /> פרטי חשבון בנק לקבלת תשלומים *
                     </Label>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="space-y-2">
-                        <Label className="text-[10px] font-bold">שם הבנק</Label>
+                        <Label className="text-xs font-bold">שם הבנק</Label>
                         <Select
                           value={showCustomBankInput ? OTHER_BANK_VALUE : formData.bankName}
                           onValueChange={(v) => {
@@ -1084,7 +1084,7 @@ export default function SellerOnboarding() {
                             }
                           }}
                         >
-                          <SelectTrigger className={cn("text-slate-900 rounded-xl h-12", fieldErrors.bankName && "border-destructive")}>
+                          <SelectTrigger className={cn("text-primary rounded-xl h-12", fieldErrors.bankName && "border-destructive")}>
                             <SelectValue placeholder="בחר/י בנק..." />
                           </SelectTrigger>
                           <SelectContent>
@@ -1100,19 +1100,19 @@ export default function SellerOnboarding() {
                             onChange={(e) => updateFieldWithValidation('bankName', e.target.value)}
                             onBlur={() => handleFieldBlur('bankName')}
                             placeholder="שם הבנק..."
-                            className={cn("text-slate-900 rounded-xl h-12 mt-2", fieldErrors.bankName && "border-destructive")}
+                            className={cn("text-primary rounded-xl h-12 mt-2", fieldErrors.bankName && "border-destructive")}
                           />
                         )}
                         <FieldError message={fieldErrors.bankName} />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-[10px] font-bold">מספר סניף</Label>
-                        <Input value={formData.bankBranch} onChange={(e) => updateFieldWithValidation('bankBranch', e.target.value)} onBlur={() => handleFieldBlur('bankBranch')} placeholder="3 ספרות" inputMode="numeric" className={cn("text-slate-900 rounded-xl h-12", fieldErrors.bankBranch && "border-destructive")} />
+                        <Label className="text-xs font-bold">מספר סניף</Label>
+                        <Input value={formData.bankBranch} onChange={(e) => updateFieldWithValidation('bankBranch', e.target.value)} onBlur={() => handleFieldBlur('bankBranch')} placeholder="3 ספרות" inputMode="numeric" className={cn("text-primary rounded-xl h-12", fieldErrors.bankBranch && "border-destructive")} />
                         <FieldError message={fieldErrors.bankBranch} />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-[10px] font-bold">מספר חשבון</Label>
-                        <Input value={formData.bankAccountNumber} onChange={(e) => updateFieldWithValidation('bankAccountNumber', e.target.value)} onBlur={() => handleFieldBlur('bankAccountNumber')} placeholder="מספר חשבון" inputMode="numeric" className={cn("text-slate-900 rounded-xl h-12", fieldErrors.bankAccountNumber && "border-destructive")} />
+                        <Label className="text-xs font-bold">מספר חשבון</Label>
+                        <Input value={formData.bankAccountNumber} onChange={(e) => updateFieldWithValidation('bankAccountNumber', e.target.value)} onBlur={() => handleFieldBlur('bankAccountNumber')} placeholder="מספר חשבון" inputMode="numeric" className={cn("text-primary rounded-xl h-12", fieldErrors.bankAccountNumber && "border-destructive")} />
                         <FieldError message={fieldErrors.bankAccountNumber} />
                       </div>
                     </div>
@@ -1121,14 +1121,14 @@ export default function SellerOnboarding() {
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>אימייל *</Label>
-                      <Input type="email" inputMode="email" autoComplete="email" value={formData.email} onChange={(e) => updateFieldWithValidation('email', e.target.value)} onBlur={() => handleFieldBlur('email')} readOnly={isExistingCustomer} required className={cn("text-slate-900 rounded-xl h-12", isExistingCustomer && "bg-muted/50", fieldErrors.email && "border-destructive")} />
+                      <Input type="email" inputMode="email" autoComplete="email" value={formData.email} onChange={(e) => updateFieldWithValidation('email', e.target.value)} onBlur={() => handleFieldBlur('email')} readOnly={isExistingCustomer} required className={cn("text-primary rounded-xl h-12", isExistingCustomer && "bg-muted/50", fieldErrors.email && "border-destructive")} />
                       <FieldError message={fieldErrors.email} />
                     </div>
                     {!isExistingCustomer && (
                       <div className="space-y-2">
                         <Label>סיסמה (לפחות 6 תווים) *</Label>
                         <div className="relative">
-                          <Input type={showPassword ? "text" : "password"} autoComplete="new-password" value={formData.password} onChange={(e) => updateFieldWithValidation('password', e.target.value)} onBlur={() => handleFieldBlur('password')} required className={cn("text-slate-900 rounded-xl h-12", fieldErrors.password && "border-destructive")} />
+                          <Input type={showPassword ? "text" : "password"} autoComplete="new-password" value={formData.password} onChange={(e) => updateFieldWithValidation('password', e.target.value)} onBlur={() => handleFieldBlur('password')} required className={cn("text-primary rounded-xl h-12", fieldErrors.password && "border-destructive")} />
                           <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "הסתר סיסמה" : "הצג סיסמה"} className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground p-2">{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button>
                         </div>
                         <FieldError message={fieldErrors.password} />
@@ -1139,7 +1139,7 @@ export default function SellerOnboarding() {
                   {path === 'judaica_seller' && (
                     <div className="flex items-start gap-3 p-5 bg-primary/5 rounded-2xl border border-primary/10 min-h-[48px]">
                       <Checkbox id="terms-judaica" checked={termsAccepted} onCheckedChange={(v) => setTermsAccepted(!!v)} className="mt-1 h-5 w-5" />
-                      <Label htmlFor="terms-judaica" className="text-[11px] font-bold leading-relaxed cursor-pointer">
+                      <Label htmlFor="terms-judaica" className="text-xs font-bold leading-relaxed cursor-pointer">
                         אני מצהיר כי כל הפרטים שהזנתי נכונים, וידוע לי שכמוכר יודאיקה אינני רשאי למכור כתבי קודש (מזוזה, תפילין, ספר תורה, מגילה). אני מאשר את <Link href="/terms" target="_blank" className="underline font-black text-primary hover:text-primary/70">תנאי השימוש ומדיניות הפרטיות</Link> של הפלטפורמה.
                       </Label>
                     </div>
@@ -1171,7 +1171,7 @@ export default function SellerOnboarding() {
                       ))}
                     </RadioGroup>
                     {(formData.hasScribeCertificate === 'valid' || formData.hasScribeCertificate === 'expired') && (
-                      <p className="text-[11px] font-bold text-primary/50 flex items-center gap-1.5">
+                      <p className="text-xs font-bold text-primary/50 flex items-center gap-1.5">
                         <Info className="w-3.5 h-3.5 text-accent shrink-0" /> תעלה את צילום התעודה בשלב הבא (העלאת קבצים).
                       </p>
                     )}
@@ -1228,14 +1228,14 @@ export default function SellerOnboarding() {
 
                   <div className="space-y-2">
                     <Label className="font-bold">פרט על ההסמכה ואורח החיים הרוחני שלך *</Label>
-                    <Textarea placeholder="למדתי אצל הרב..., אני נוהג לטבול ב..., סדר היום שלי כולל..." value={formData.notes} onChange={(e) => updateFieldWithValidation('notes', e.target.value)} onBlur={() => handleFieldBlur('notes')} required className={cn("text-slate-900 rounded-2xl min-h-[120px]", fieldErrors.notes && "border-destructive")} />
+                    <Textarea placeholder="למדתי אצל הרב..., אני נוהג לטבול ב..., סדר היום שלי כולל..." value={formData.notes} onChange={(e) => updateFieldWithValidation('notes', e.target.value)} onBlur={() => handleFieldBlur('notes')} required className={cn("text-primary rounded-2xl min-h-[120px]", fieldErrors.notes && "border-destructive")} />
                     <FieldError message={fieldErrors.notes} />
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-8">
                     <div className="space-y-2">
                       <Label className="font-bold">שנות ניסיון במלאכת הקודש *</Label>
-                      <Input type="number" inputMode="numeric" step={1} min={0} value={formData.experienceYears} onChange={(e) => updateFieldWithValidation('experienceYears', e.target.value)} onBlur={() => handleFieldBlur('experienceYears')} required className={cn("text-slate-900 rounded-xl h-12", fieldErrors.experienceYears && "border-destructive")} />
+                      <Input type="number" inputMode="numeric" step={1} min={0} value={formData.experienceYears} onChange={(e) => updateFieldWithValidation('experienceYears', e.target.value)} onBlur={() => handleFieldBlur('experienceYears')} required className={cn("text-primary rounded-xl h-12", fieldErrors.experienceYears && "border-destructive")} />
                       <FieldError message={fieldErrors.experienceYears} />
                     </div>
                     <div className="space-y-2">
@@ -1327,7 +1327,7 @@ export default function SellerOnboarding() {
                                 <Loader2 className="w-6 h-6 text-white animate-spin" />
                                 <Progress value={uploadProgress.cert} className="h-1.5 w-full max-w-[180px]" />
                                 {/* 0% = still compressing on the device, which can take a while on a budget phone. */}
-                                <span className="text-[10px] font-black text-white uppercase tracking-widest">{uploadProgress.cert > 0 ? `מעלה תעודה... ${uploadProgress.cert}%` : 'מכין את הקובץ להעלאה...'}</span>
+                                <span className="text-xs font-black text-white uppercase tracking-widest">{uploadProgress.cert > 0 ? `מעלה תעודה... ${uploadProgress.cert}%` : 'מכין את הקובץ להעלאה...'}</span>
                               </div>
                             ) : (
                               <button onClick={() => { if (formData.certificateUrl) void cleanupImages([formData.certificateUrl]); updateField('certificateUrl', ''); }} className="absolute top-2 right-2 bg-destructive text-white rounded-full p-1 shadow-lg hover:scale-110 transition-transform"><X className="w-4 h-4" /></button>
@@ -1356,7 +1356,7 @@ export default function SellerOnboarding() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <Label className="font-bold">דוגמאות כתיבה חיות (מינימום 2) *</Label>
-                      <span className="text-[10px] text-muted-foreground font-bold">העלה צילומים ברורים של כתב ידך</span>
+                      <span className="text-xs text-muted-foreground font-bold">העלה צילומים ברורים של כתב ידך</span>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                       {formData.writingSamples.map((img, idx) => (
@@ -1371,14 +1371,14 @@ export default function SellerOnboarding() {
                           <div className="absolute inset-0 bg-black/45 flex flex-col items-center justify-center gap-2 px-3">
                             <Loader2 className="w-5 h-5 text-white animate-spin" />
                             <Progress value={uploadProgress.samples ?? 0} className="h-1 w-full" />
-                            <span className="text-[9px] font-black text-white">{uploadProgress.samples ? `${uploadProgress.samples}%` : 'מכין...'}</span>
+                            <span className="text-2xs font-black text-white">{uploadProgress.samples ? `${uploadProgress.samples}%` : 'מכין...'}</span>
                           </div>
                         </div>
                       ))}
                       {formData.writingSamples.length < 8 && samplesLocalPreviews.length === 0 && (
                         <button onClick={() => samplesInputRef.current?.click()} className="aspect-square border-2 border-dashed border-primary/10 rounded-2xl flex flex-col items-center justify-center text-primary/30 hover:bg-primary/5 transition-all duration-200">
                           <ImageIcon className="w-6 h-6 mb-1" />
-                          <span className="text-[9px] font-black uppercase">הוסף דוגמה</span>
+                          <span className="text-2xs font-black uppercase">הוסף דוגמה</span>
                         </button>
                       )}
                     </div>
@@ -1387,7 +1387,7 @@ export default function SellerOnboarding() {
 
                   <div className="flex items-start space-x-reverse space-x-3 p-5 bg-primary/5 rounded-2xl border border-primary/10 min-h-[48px]">
                     <Checkbox id="terms" checked={termsAccepted} onCheckedChange={(v) => setTermsAccepted(!!v)} className="mt-1 h-5 w-5" />
-                    <Label htmlFor="terms" className="text-[11px] font-bold leading-relaxed cursor-pointer">אני מצהיר כי כל הפרטים שהזנתי נכונים, ומתחייב לעסוק במלאכת הקודש בקדושה, טהרה ויראת שמיים. אני מאשר את <Link href="/terms" target="_blank" className="underline font-black text-primary hover:text-primary/70">תנאי השימוש ומדיניות הפרטיות</Link> של הפלטפורמה.</Label>
+                    <Label htmlFor="terms" className="text-xs font-bold leading-relaxed cursor-pointer">אני מצהיר כי כל הפרטים שהזנתי נכונים, ומתחייב לעסוק במלאכת הקודש בקדושה, טהרה ויראת שמיים. אני מאשר את <Link href="/terms" target="_blank" className="underline font-black text-primary hover:text-primary/70">תנאי השימוש ומדיניות הפרטיות</Link> של הפלטפורמה.</Label>
                   </div>
                 </motion.div>
               )}
@@ -1403,7 +1403,7 @@ export default function SellerOnboarding() {
               ) : <div />}
               <Button
                 onClick={isLastStep ? (isUpgradeMode ? handleUpgradeSubmit : handleFinalSubmit) : nextStep}
-                className="bg-accent hover:bg-accent/90 px-8 md:px-12 h-14 rounded-full font-black text-xs uppercase tracking-[0.2em] shadow-lg transition-all active:scale-95"
+                className="bg-accent hover:bg-accent/90 px-8 md:px-12 h-14 rounded-full font-black text-xs uppercase tracking-wider shadow-lg transition-all active:scale-95"
                 disabled={loading}
               >
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (isLastStep ? (isUpgradeMode ? "שלח בקשת שדרוג" : "שלח הרשמה לאישור") : "המשך לשלב הבא")}
@@ -1464,7 +1464,7 @@ function SellerTypeChoice({ onChoose }: { onChoose: (type: SellerType) => void }
                 <p className="mt-3 flex-1 text-sm font-medium leading-relaxed text-primary/70">{option.text}</p>
                 <ul className="mt-5 flex flex-wrap gap-2">
                   {option.highlights.map((h) => (
-                    <li key={h} className="flex items-center gap-1 rounded-full bg-[#F8F9FA] px-3 py-1 text-[11px] font-bold text-primary/70">
+                    <li key={h} className="flex items-center gap-1 rounded-full bg-secondary/50 px-3 py-1 text-xs font-bold text-primary/70">
                       <Check className="h-3 w-3 text-accent-strong" /> {h}
                     </li>
                   ))}
@@ -1488,7 +1488,7 @@ function GuideStep({ number, title, desc, link }: { number: string, title: strin
       <div className="space-y-1 text-right">
         <p className="font-black text-sm text-primary">{title}</p>
         <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
-        <a href={link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-accent font-black text-[10px] uppercase tracking-tighter hover:underline mt-1">
+        <a href={link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-accent font-black text-xs uppercase tracking-tighter hover:underline mt-1">
           לכניסה לשירות הממשלתי <ExternalLink className="w-2.5 h-2.5" />
         </a>
       </div>

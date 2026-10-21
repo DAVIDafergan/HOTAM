@@ -98,15 +98,15 @@ export default function ResetPasswordPageClient() {
                   <p className="text-white/70 font-black text-xs md:text-lg leading-relaxed">בחר סיסמה חדשה וחזק את אבטחת חשבונך.</p>
                 </div>
                 <div className="flex flex-wrap justify-end gap-x-3 gap-y-1.5 pt-2 border-t border-white/10 md:gap-x-6 md:gap-y-3 md:pt-4">
-                  <div className="flex items-center gap-1.5 md:gap-2 text-[10px] md:text-xs font-black">
+                  <div className="flex items-center gap-1.5 md:gap-2 text-xs md:text-xs font-black">
                     <span>פיקוח הלכתי קפדני</span>
                     <CheckCircle2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-accent" />
                   </div>
-                  <div className="flex items-center gap-1.5 md:gap-2 text-[10px] md:text-xs font-black">
+                  <div className="flex items-center gap-1.5 md:gap-2 text-xs md:text-xs font-black">
                     <span>סופרים מאומתים בלבד</span>
                     <CheckCircle2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-accent" />
                   </div>
-                  <div className="flex items-center gap-1.5 md:gap-2 text-[10px] md:text-xs font-black">
+                  <div className="flex items-center gap-1.5 md:gap-2 text-xs md:text-xs font-black">
                     <span>תשלום מאובטח בנאמנות</span>
                     <CheckCircle2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-accent" />
                   </div>
@@ -147,7 +147,7 @@ export default function ResetPasswordPageClient() {
                   <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="space-y-4">
                       <div className="space-y-1.5">
-                        <Label htmlFor="password" className="font-black text-[10px] uppercase text-primary/60 tracking-wider">סיסמה חדשה</Label>
+                        <Label htmlFor="password" className="font-black text-xs uppercase text-primary/60 tracking-wider">סיסמה חדשה</Label>
                         <Input
                           id="password"
                           type="password"
@@ -159,7 +159,7 @@ export default function ResetPasswordPageClient() {
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <Label htmlFor="confirmPassword" className="font-black text-[10px] uppercase text-primary/60 tracking-wider">אימות סיסמה</Label>
+                        <Label htmlFor="confirmPassword" className="font-black text-xs uppercase text-primary/60 tracking-wider">אימות סיסמה</Label>
                         <Input
                           id="confirmPassword"
                           type="password"

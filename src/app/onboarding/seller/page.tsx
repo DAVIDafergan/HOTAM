@@ -126,8 +126,8 @@ function isPdfUrl(url: string): boolean {
 function FieldError({ message }: { message?: string }) {
   if (!message) return null;
   return (
-    <p className="flex items-center gap-1 text-xs font-bold text-destructive">
-      <AlertCircle className="w-3 h-3 shrink-0" />{message}
+    <p className="flex items-center gap-1.5 text-[13px] font-semibold text-destructive">
+      <AlertCircle className="w-3.5 h-3.5 shrink-0" />{message}
     </p>
   );
 }
@@ -863,17 +863,17 @@ export default function SellerOnboarding() {
       <div className="min-h-screen bg-background" dir="rtl">
         <Navbar />
         <div className="container mx-auto px-4 py-12 max-w-lg pt-28">
-          <Card className="shadow-premium border-none rounded-[2.5rem] overflow-hidden bg-white p-10 text-center space-y-6">
+          <Card className="shadow-premium-lg border-border/70 rounded-[2.5rem] overflow-hidden bg-card p-10 text-center space-y-6">
             <SuccessCheck className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-accent mx-auto" />
             <div className="space-y-3">
-              <h1 className="text-2xl font-headline font-black text-primary">{isUpgradeMode ? 'בקשת השדרוג נשלחה!' : 'ההרשמה נשלחה בהצלחה!'}</h1>
+              <h1 className="text-2xl font-headline font-medium text-primary">{isUpgradeMode ? 'בקשת השדרוג נשלחה!' : 'ההרשמה נשלחה בהצלחה!'}</h1>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 {isUpgradeMode
                   ? 'הפרטים והקבצים שלך הועברו לאימות צוות "חותם". בזמן הבדיקה מוצרי היודאיקה שלך ממשיכים להימכר כרגיל, ולאחר האישור תוכל להוסיף גם כתבי קודש.'
                   : 'הפרטים שלך התקבלו ועברו לבדיקת צוות "חותם". נבדוק את הפרופיל שלך ונחזור אליך בהקדם האפשרי בהתאם לפרטי הקשר שהזנת.'}
               </p>
             </div>
-            <Button onClick={() => router.push(completedRedirectTo)} className="w-full h-12 rounded-full font-black text-base">
+            <Button onClick={() => router.push(completedRedirectTo)} className="w-full h-12 rounded-full font-bold text-base">
               {completedRedirectTo === '/login' ? 'המשך להתחברות' : 'המשך לאזור האישי'}
             </Button>
           </Card>
@@ -892,11 +892,11 @@ export default function SellerOnboarding() {
       <div className="min-h-screen bg-background" dir="rtl">
         <Navbar />
         <div className="container mx-auto px-4 py-12 max-w-lg pt-28">
-          <Card className="shadow-premium border-none rounded-[2.5rem] bg-white p-10 text-center space-y-5">
+          <Card className="shadow-premium-lg border-border/70 rounded-[2.5rem] bg-card p-10 text-center space-y-5">
             <Info className="mx-auto h-12 w-12 text-accent-strong" />
-            <h1 className="text-2xl font-headline font-black text-primary">{blocked.title}</h1>
+            <h1 className="text-2xl font-headline font-bold text-primary">{blocked.title}</h1>
             <p className="text-sm text-muted-foreground leading-relaxed">{blocked.text}</p>
-            <Button asChild className="w-full h-12 rounded-full font-black"><Link href={blocked.href}>{blocked.cta}</Link></Button>
+            <Button asChild className="w-full h-12 rounded-full font-bold"><Link href={blocked.href}>{blocked.cta}</Link></Button>
           </Card>
         </div>
       </div>
@@ -913,22 +913,23 @@ export default function SellerOnboarding() {
   return (
     <div className="min-h-screen bg-background" dir="rtl">
       <Navbar />
-      <div className="container mx-auto px-4 py-12 max-w-3xl pt-28">
-        <div className="mb-12 text-center space-y-4">
-          <h1 className="text-3xl md:text-4xl font-headline font-black text-primary">{PATH_TITLES[path]}</h1>
+      <div className="container mx-auto px-4 pb-16 max-w-3xl pt-28 md:pt-32">
+        <div className="mb-10 text-center space-y-5">
+          <p className="eyebrow eyebrow-center">הצטרפות למוכרים</p>
+          <h1 className="text-[32px] md:text-[44px] font-headline font-medium text-primary leading-tight">{PATH_TITLES[path]}</h1>
           <div className="flex items-center justify-center gap-2 max-w-md mx-auto">
             {activeSteps.map((stepId, idx) => (
               <div key={stepId} className={cn("flex items-center gap-2", idx < totalSteps - 1 && "flex-1")}>
                 <div
                   className={cn(
-                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-black transition-all duration-300",
-                    stepIndex > idx ? "bg-accent text-primary" : stepIndex === idx ? "bg-accent text-primary ring-4 ring-accent/25" : "bg-primary/10 text-primary/40"
+                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-all duration-300 num",
+                    stepIndex > idx ? "bg-accent/15 text-accent-strong ring-1 ring-accent/40" : stepIndex === idx ? "bg-primary text-primary-foreground ring-4 ring-primary/10" : "bg-card text-primary/55 ring-1 ring-border"
                   )}
                 >
                   {stepIndex > idx ? '✓' : idx + 1}
                 </div>
                 {idx < totalSteps - 1 && (
-                  <div className="h-1.5 flex-1 rounded-full bg-primary/10 overflow-hidden">
+                  <div className="h-1 flex-1 rounded-full bg-primary/10 overflow-hidden">
                     <div
                       className="h-full bg-accent transition-all duration-500 ease-out"
                       style={{ width: stepIndex > idx ? '100%' : '0%' }}
@@ -938,12 +939,12 @@ export default function SellerOnboarding() {
               </div>
             ))}
           </div>
-          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">שלב {stepIndex + 1} מתוך {totalSteps}</p>
+          <p className="text-sm font-medium text-muted-foreground num">שלב {stepIndex + 1} מתוך {totalSteps}</p>
         </div>
 
-        <Card className="shadow-premium border-none rounded-[2.5rem] overflow-hidden bg-white">
-          <CardHeader className="bg-primary text-white text-right p-8 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl" />
+        <Card className="shadow-premium-lg border-border/70 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden bg-card">
+          <CardHeader className="bg-primary text-white text-right p-6 md:p-8 relative overflow-hidden">
+            <div className="pointer-events-none absolute inset-x-8 bottom-0 h-px bg-gradient-to-l from-transparent via-[#E2B35B]/60 to-transparent" />
             <AnimatePresence mode="wait">
               <motion.div
                 key={`title-${step}`}
@@ -952,11 +953,11 @@ export default function SellerOnboarding() {
                 exit={{ opacity: 0, y: 8 }}
                 transition={{ duration: 0.2 }}
               >
-                <CardTitle className="text-2xl font-headline font-black flex items-center justify-start gap-3 relative z-10">
-                  <StepIcon className="w-8 h-8 text-accent" />
+                <CardTitle className="text-[24px] md:text-[28px] font-headline font-bold text-white flex items-center justify-start gap-3 relative z-10">
+                  <StepIcon className="w-7 h-7 text-[#E2B35B]" strokeWidth={1.6} />
                   {currentStepMeta.title}
                 </CardTitle>
-                <CardDescription className="text-white/60 font-medium relative z-10 mt-1">
+                <CardDescription className="text-white/75 text-[15px] relative z-10 mt-1">
                   {currentStepMeta.description}
                 </CardDescription>
               </motion.div>
@@ -1013,14 +1014,14 @@ export default function SellerOnboarding() {
                 <motion.div key="step-2" {...stepMotionProps} className="grid gap-6">
                   <div className="space-y-4 p-6 bg-primary/5 rounded-2xl border border-primary/10">
                     <div className="flex items-center justify-between mb-2">
-                      <Label className="font-black text-primary text-xs uppercase tracking-widest">סטטוס עסק *</Label>
+                      <Label>סטטוס עסק *</Label>
                       <Dialog open={isGuideOpen} onOpenChange={setIsGuideOpen}>
                         <DialogTrigger asChild>
-                          <Button variant="link" className="p-0 h-auto text-accent font-black text-xs uppercase tracking-tighter">אין לך עדיין עוסק? לחץ כאן ←</Button>
+                          <Button variant="link" className="p-0 h-auto text-accent font-bold text-xs tracking-tighter">אין לך עדיין עוסק? לחץ כאן ←</Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white text-primary" dir="rtl">
+                        <DialogContent className="max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-card text-primary" dir="rtl">
                           <div className="bg-primary p-6 text-white text-right">
-                            <DialogTitle className="text-xl font-headline font-black flex items-center gap-3">
+                            <DialogTitle className="text-xl font-headline font-bold flex items-center gap-3">
                               <BookOpen className="w-6 h-6 text-accent" /> מדריך לפתיחת עוסק פטור
                             </DialogTitle>
                             <DialogDescription className="text-white/60 text-xs mt-1">תהליך פשוט שניתן לבצע אונליין תוך דקות</DialogDescription>
@@ -1041,24 +1042,24 @@ export default function SellerOnboarding() {
                     </div>
 
                     <RadioGroup value={formData.businessType} onValueChange={(v) => updateField('businessType', v)} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className={cn("flex min-h-[48px] items-center space-x-reverse space-x-2 p-3 border rounded-xl bg-white transition-all duration-200 cursor-pointer hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98]", formData.businessType === 'osek_patur' ? 'border-primary ring-2 ring-primary/5' : 'border-input/60')} onClick={() => updateField('businessType', 'osek_patur')}>
+                      <div className={cn("flex min-h-[48px] items-center space-x-reverse space-x-2 p-3 border rounded-xl bg-card transition-all duration-200 cursor-pointer hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98]", formData.businessType === 'osek_patur' ? 'border-primary ring-2 ring-primary/5' : 'border-input/60')} onClick={() => updateField('businessType', 'osek_patur')}>
                         <RadioGroupItem value="osek_patur" id="bp1" />
-                        <Label htmlFor="bp1" className="flex-1 text-xs font-bold cursor-pointer">עוסק פטור</Label>
+                        <Label htmlFor="bp1" className="flex-1 text-[15px] font-semibold cursor-pointer">עוסק פטור</Label>
                       </div>
-                      <div className={cn("flex min-h-[48px] items-center space-x-reverse space-x-2 p-3 border rounded-xl bg-white transition-all duration-200 cursor-pointer hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98]", formData.businessType === 'business' ? 'border-primary ring-2 ring-primary/5' : 'border-input/60')} onClick={() => updateField('businessType', 'business')}>
+                      <div className={cn("flex min-h-[48px] items-center space-x-reverse space-x-2 p-3 border rounded-xl bg-card transition-all duration-200 cursor-pointer hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98]", formData.businessType === 'business' ? 'border-primary ring-2 ring-primary/5' : 'border-input/60')} onClick={() => updateField('businessType', 'business')}>
                         <RadioGroupItem value="business" id="bp2" />
-                        <Label htmlFor="bp2" className="flex-1 text-xs font-bold cursor-pointer">עוסק מורשה / חברה</Label>
+                        <Label htmlFor="bp2" className="flex-1 text-[15px] font-semibold cursor-pointer">עוסק מורשה / חברה</Label>
                       </div>
                     </RadioGroup>
 
                     <div className="grid md:grid-cols-2 gap-4 pt-2">
                       <div className="space-y-2">
-                        <Label className="text-xs font-bold">מספר עוסק / ח.פ *</Label>
+                        <Label>מספר עוסק / ח.פ *</Label>
                         <Input value={formData.businessId} onChange={(e) => updateFieldWithValidation('businessId', e.target.value)} onBlur={() => handleFieldBlur('businessId')} placeholder="מספר זיהוי עסק..." inputMode="numeric" className={cn("text-primary rounded-xl h-12", fieldErrors.businessId && "border-destructive")} />
                         <FieldError message={fieldErrors.businessId} />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-xs font-bold">שם העסק הרשום *</Label>
+                        <Label>שם העסק הרשום *</Label>
                         <Input value={formData.businessName} onChange={(e) => updateFieldWithValidation('businessName', e.target.value)} onBlur={() => handleFieldBlur('businessName')} placeholder="שם העסק..." className={cn("text-primary rounded-xl h-12", fieldErrors.businessName && "border-destructive")} />
                         <FieldError message={fieldErrors.businessName} />
                       </div>
@@ -1066,12 +1067,12 @@ export default function SellerOnboarding() {
                   </div>
 
                   <div className="space-y-4 p-6 bg-emerald-50/30 rounded-2xl border border-emerald-100">
-                    <Label className="font-black text-emerald-700 text-xs uppercase tracking-widest flex items-center gap-2">
+                    <Label className="font-bold text-emerald-700 text-xs flex items-center gap-2">
                       <Landmark className="w-4 h-4" /> פרטי חשבון בנק לקבלת תשלומים *
                     </Label>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="space-y-2">
-                        <Label className="text-xs font-bold">שם הבנק</Label>
+                        <Label>שם הבנק</Label>
                         <Select
                           value={showCustomBankInput ? OTHER_BANK_VALUE : formData.bankName}
                           onValueChange={(v) => {
@@ -1106,12 +1107,12 @@ export default function SellerOnboarding() {
                         <FieldError message={fieldErrors.bankName} />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-xs font-bold">מספר סניף</Label>
+                        <Label>מספר סניף</Label>
                         <Input value={formData.bankBranch} onChange={(e) => updateFieldWithValidation('bankBranch', e.target.value)} onBlur={() => handleFieldBlur('bankBranch')} placeholder="3 ספרות" inputMode="numeric" className={cn("text-primary rounded-xl h-12", fieldErrors.bankBranch && "border-destructive")} />
                         <FieldError message={fieldErrors.bankBranch} />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-xs font-bold">מספר חשבון</Label>
+                        <Label>מספר חשבון</Label>
                         <Input value={formData.bankAccountNumber} onChange={(e) => updateFieldWithValidation('bankAccountNumber', e.target.value)} onBlur={() => handleFieldBlur('bankAccountNumber')} placeholder="מספר חשבון" inputMode="numeric" className={cn("text-primary rounded-xl h-12", fieldErrors.bankAccountNumber && "border-destructive")} />
                         <FieldError message={fieldErrors.bankAccountNumber} />
                       </div>
@@ -1140,7 +1141,7 @@ export default function SellerOnboarding() {
                     <div className="flex items-start gap-3 p-5 bg-primary/5 rounded-2xl border border-primary/10 min-h-[48px]">
                       <Checkbox id="terms-judaica" checked={termsAccepted} onCheckedChange={(v) => setTermsAccepted(!!v)} className="mt-1 h-5 w-5" />
                       <Label htmlFor="terms-judaica" className="text-xs font-bold leading-relaxed cursor-pointer">
-                        אני מצהיר כי כל הפרטים שהזנתי נכונים, וידוע לי שכמוכר יודאיקה אינני רשאי למכור כתבי קודש (מזוזה, תפילין, ספר תורה, מגילה). אני מאשר את <Link href="/terms" target="_blank" className="underline font-black text-primary hover:text-primary/70">תנאי השימוש ומדיניות הפרטיות</Link> של הפלטפורמה.
+                        אני מצהיר כי כל הפרטים שהזנתי נכונים, וידוע לי שכמוכר יודאיקה אינני רשאי למכור כתבי קודש (מזוזה, תפילין, ספר תורה, מגילה). אני מאשר את <Link href="/terms" target="_blank" className="underline font-bold text-primary hover:text-primary/70">תנאי השימוש ומדיניות הפרטיות</Link> של הפלטפורמה.
                       </Label>
                     </div>
                   )}
@@ -1291,7 +1292,7 @@ export default function SellerOnboarding() {
                       <Label className="font-bold block">צילום תעודת הסופר *</Label>
                       <div className="p-6 bg-accent/5 rounded-2xl border-2 border-dashed border-accent/20 text-center space-y-4">
                         {(formData.certificateUrl || certLocalPreview) ? (
-                          <div className="relative w-full h-40 rounded-xl overflow-hidden border bg-white shadow-sm">
+                          <div className="relative w-full h-40 rounded-xl overflow-hidden border bg-card shadow-sm">
                             {formData.certificateUrl ? (
                               isPdfUrl(formData.certificateUrl) ? (
                                 <a
@@ -1301,7 +1302,7 @@ export default function SellerOnboarding() {
                                   className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-primary hover:bg-primary/5 transition-colors"
                                 >
                                   <FileText className="w-10 h-10 text-accent-strong" />
-                                  <span className="text-xs font-black">קובץ PDF הועלה — לחץ/י לצפייה</span>
+                                  <span className="text-xs font-bold">קובץ PDF הועלה — לחץ/י לצפייה</span>
                                 </a>
                               ) : (
                                 <Image src={formData.certificateUrl} alt="תעודת הסופר" fill kind="certificate" sizes="(max-width: 768px) 100vw, 720px" className="object-contain" />
@@ -1309,7 +1310,7 @@ export default function SellerOnboarding() {
                             ) : certLocalIsPdf ? (
                               <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-primary">
                                 <FileText className="w-10 h-10 text-accent-strong" />
-                                <span className="text-xs font-black">מעלה קובץ PDF...</span>
+                                <span className="text-xs font-bold">מעלה קובץ PDF...</span>
                               </div>
                             ) : certLocalIsHeic ? (
                               // Browsers can't decode HEIC/HEIF in an <img>, so the raw blob: URL would
@@ -1317,7 +1318,7 @@ export default function SellerOnboarding() {
                               // instead until the server hands back a converted, displayable URL.
                               <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-primary">
                                 <ImageIcon className="w-10 h-10 text-accent-strong" />
-                                <span className="text-xs font-black">ממיר תמונה לתצוגה...</span>
+                                <span className="text-xs font-bold">ממיר תמונה לתצוגה...</span>
                               </div>
                             ) : (
                               <Image src={certLocalPreview!} alt="תעודת הסופר" fill kind="certificate" sizes="(max-width: 768px) 100vw, 720px" className="object-contain" unoptimized />
@@ -1327,7 +1328,7 @@ export default function SellerOnboarding() {
                                 <Loader2 className="w-6 h-6 text-white animate-spin" />
                                 <Progress value={uploadProgress.cert} className="h-1.5 w-full max-w-[180px]" />
                                 {/* 0% = still compressing on the device, which can take a while on a budget phone. */}
-                                <span className="text-xs font-black text-white uppercase tracking-widest">{uploadProgress.cert > 0 ? `מעלה תעודה... ${uploadProgress.cert}%` : 'מכין את הקובץ להעלאה...'}</span>
+                                <span className="text-xs font-bold text-white">{uploadProgress.cert > 0 ? `מעלה תעודה... ${uploadProgress.cert}%` : 'מכין את הקובץ להעלאה...'}</span>
                               </div>
                             ) : (
                               <button onClick={() => { if (formData.certificateUrl) void cleanupImages([formData.certificateUrl]); updateField('certificateUrl', ''); }} className="absolute top-2 right-2 bg-destructive text-white rounded-full p-1 shadow-lg hover:scale-110 transition-transform"><X className="w-4 h-4" /></button>
@@ -1335,13 +1336,13 @@ export default function SellerOnboarding() {
                           </div>
                         ) : (
                           <div className="w-full py-6 flex flex-col sm:flex-row items-stretch justify-center gap-3">
-                            <button type="button" onClick={() => certCameraInputRef.current?.click()} className="flex-1 cursor-pointer rounded-2xl border-2 border-accent/30 bg-white py-6 flex flex-col items-center gap-2 text-accent-strong hover:bg-accent/5 transition-colors">
+                            <button type="button" onClick={() => certCameraInputRef.current?.click()} className="flex-1 cursor-pointer rounded-2xl border-2 border-accent/30 bg-card py-6 flex flex-col items-center gap-2 text-accent-strong hover:bg-accent/5 transition-colors">
                               <Camera className="w-8 h-8" />
-                              <span className="font-black text-xs uppercase tracking-widest">צלם עכשיו</span>
+                              <span className="font-bold text-xs">צלם עכשיו</span>
                             </button>
-                            <button type="button" onClick={() => certInputRef.current?.click()} className="flex-1 cursor-pointer rounded-2xl border-2 border-accent/30 bg-white py-6 flex flex-col items-center gap-2 text-accent-strong hover:bg-accent/5 transition-colors">
+                            <button type="button" onClick={() => certInputRef.current?.click()} className="flex-1 cursor-pointer rounded-2xl border-2 border-accent/30 bg-card py-6 flex flex-col items-center gap-2 text-accent-strong hover:bg-accent/5 transition-colors">
                               <ImageIcon className="w-8 h-8" />
-                              <span className="font-black text-xs uppercase tracking-widest">העלה תמונה או PDF</span>
+                              <span className="font-bold text-xs">העלה תמונה או PDF</span>
                             </button>
                           </div>
                         )}
@@ -1371,14 +1372,14 @@ export default function SellerOnboarding() {
                           <div className="absolute inset-0 bg-black/45 flex flex-col items-center justify-center gap-2 px-3">
                             <Loader2 className="w-5 h-5 text-white animate-spin" />
                             <Progress value={uploadProgress.samples ?? 0} className="h-1 w-full" />
-                            <span className="text-2xs font-black text-white">{uploadProgress.samples ? `${uploadProgress.samples}%` : 'מכין...'}</span>
+                            <span className="text-xs font-bold text-white">{uploadProgress.samples ? `${uploadProgress.samples}%` : 'מכין...'}</span>
                           </div>
                         </div>
                       ))}
                       {formData.writingSamples.length < 8 && samplesLocalPreviews.length === 0 && (
                         <button onClick={() => samplesInputRef.current?.click()} className="aspect-square border-2 border-dashed border-primary/10 rounded-2xl flex flex-col items-center justify-center text-primary/30 hover:bg-primary/5 transition-all duration-200">
                           <ImageIcon className="w-6 h-6 mb-1" />
-                          <span className="text-2xs font-black uppercase">הוסף דוגמה</span>
+                          <span className="text-xs font-bold">הוסף דוגמה</span>
                         </button>
                       )}
                     </div>
@@ -1387,23 +1388,23 @@ export default function SellerOnboarding() {
 
                   <div className="flex items-start space-x-reverse space-x-3 p-5 bg-primary/5 rounded-2xl border border-primary/10 min-h-[48px]">
                     <Checkbox id="terms" checked={termsAccepted} onCheckedChange={(v) => setTermsAccepted(!!v)} className="mt-1 h-5 w-5" />
-                    <Label htmlFor="terms" className="text-xs font-bold leading-relaxed cursor-pointer">אני מצהיר כי כל הפרטים שהזנתי נכונים, ומתחייב לעסוק במלאכת הקודש בקדושה, טהרה ויראת שמיים. אני מאשר את <Link href="/terms" target="_blank" className="underline font-black text-primary hover:text-primary/70">תנאי השימוש ומדיניות הפרטיות</Link> של הפלטפורמה.</Label>
+                    <Label htmlFor="terms" className="text-xs font-bold leading-relaxed cursor-pointer">אני מצהיר כי כל הפרטים שהזנתי נכונים, ומתחייב לעסוק במלאכת הקודש בקדושה, טהרה ויראת שמיים. אני מאשר את <Link href="/terms" target="_blank" className="underline font-bold text-primary hover:text-primary/70">תנאי השימוש ומדיניות הפרטיות</Link> של הפלטפורמה.</Label>
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            <div className="flex justify-between gap-3 pt-8 border-t mt-8">
+            <div className="flex justify-between gap-3 pt-7 border-t border-border mt-8">
               {stepIndex > 0 ? (
-                <Button variant="ghost" onClick={prevStep} disabled={loading} className="rounded-xl px-8 h-12 font-black text-xs uppercase tracking-widest">חזור</Button>
+                <Button variant="outline" onClick={prevStep} disabled={loading} className="px-8 h-12">חזור</Button>
               ) : !isUpgradeMode ? (
-                <Button variant="ghost" onClick={() => setSellerType(null)} disabled={loading} className="rounded-xl px-4 h-12 font-bold text-xs gap-1.5">
+                <Button variant="ghost" onClick={() => setSellerType(null)} disabled={loading} className="px-4 h-12 text-sm gap-1.5">
                   <ArrowRight className="w-4 h-4" /> שינוי סוג מוכר
                 </Button>
               ) : <div />}
               <Button
                 onClick={isLastStep ? (isUpgradeMode ? handleUpgradeSubmit : handleFinalSubmit) : nextStep}
-                className="bg-accent hover:bg-accent/90 px-8 md:px-12 h-14 rounded-full font-black text-xs uppercase tracking-wider shadow-lg transition-all active:scale-95"
+                className="px-8 md:px-12 h-14 text-base"
                 disabled={loading}
               >
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (isLastStep ? (isUpgradeMode ? "שלח בקשת שדרוג" : "שלח הרשמה לאישור") : "המשך לשלב הבא")}
@@ -1441,10 +1442,11 @@ function SellerTypeChoice({ onChoose }: { onChoose: (type: SellerType) => void }
   return (
     <div className="min-h-screen bg-background" dir="rtl">
       <Navbar />
-      <div className="container mx-auto max-w-4xl px-4 pb-16 pt-28">
-        <div className="mb-10 space-y-3 text-center">
-          <h1 className="font-headline text-3xl font-black text-primary md:text-4xl">הצטרפות כמוכר בחותם</h1>
-          <p className="text-sm font-medium text-muted-foreground md:text-base">בחר את סוג החשבון שמתאים לך — אפשר לשדרג מיודאיקה לסופר סת״ם בהמשך.</p>
+      <div className="container mx-auto max-w-4xl px-4 pb-16 pt-28 md:pt-32">
+        <div className="mb-10 space-y-4 text-center">
+          <p className="eyebrow eyebrow-center">הצטרפות למוכרים</p>
+          <h1 className="font-headline text-[34px] font-medium leading-tight text-primary md:text-[46px]">הצטרפות כמוכר בחותם</h1>
+          <p className="lead mx-auto max-w-xl">בחר את סוג החשבון שמתאים לך — אפשר לשדרג מיודאיקה לסופר סת״ם בהמשך.</p>
         </div>
         <div className="grid gap-5 md:grid-cols-2">
           {SELLER_TYPE_OPTIONS.map((option) => {
@@ -1455,21 +1457,21 @@ function SellerTypeChoice({ onChoose }: { onChoose: (type: SellerType) => void }
                 type="button"
                 onClick={() => onChoose(option.type)}
                 data-seller-type={option.type}
-                className="group flex h-full flex-col rounded-[2rem] border-2 border-primary/5 bg-white p-6 text-right shadow-premium transition-all duration-300 hover:-translate-y-1 hover:border-accent hover:shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent md:p-8"
+                className="group flex h-full flex-col rounded-[2rem] border border-border/70 bg-card p-6 md:p-8 text-right shadow-premium transition-[border-color,box-shadow] duration-300 hover:border-accent/60 hover:shadow-premium-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent md:p-8"
               >
-                <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/15 text-accent-strong transition-colors group-hover:bg-accent group-hover:text-primary">
-                  <Icon className="h-7 w-7" />
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-accent/15 text-accent-strong">
+                  <Icon className="h-7 w-7" strokeWidth={1.6} />
                 </span>
-                <h2 className="mt-5 font-headline text-2xl font-black text-primary">{option.title}</h2>
-                <p className="mt-3 flex-1 text-sm font-medium leading-relaxed text-primary/70">{option.text}</p>
+                <h2 className="mt-5 font-headline text-2xl font-bold text-primary">{option.title}</h2>
+                <p className="mt-3 flex-1 text-[15px] leading-relaxed text-primary/75">{option.text}</p>
                 <ul className="mt-5 flex flex-wrap gap-2">
                   {option.highlights.map((h) => (
-                    <li key={h} className="flex items-center gap-1 rounded-full bg-secondary/50 px-3 py-1 text-xs font-bold text-primary/70">
-                      <Check className="h-3 w-3 text-accent-strong" /> {h}
+                    <li key={h} className="flex items-center gap-1.5 rounded-full bg-secondary/60 px-3 py-1.5 text-[13px] font-semibold text-primary/80">
+                      <Check className="h-3.5 w-3.5 text-accent-strong" /> {h}
                     </li>
                   ))}
                 </ul>
-                <span className="mt-6 inline-flex h-12 items-center justify-center rounded-full bg-primary px-6 text-sm font-bold text-primary-foreground transition-colors group-hover:bg-accent group-hover:text-primary">
+                <span className="mt-6 inline-flex h-12 items-center justify-center rounded-full bg-primary px-6 text-[15px] font-semibold text-primary-foreground transition-colors group-hover:bg-primary/90">
                   {option.cta}
                 </span>
               </button>
@@ -1484,12 +1486,12 @@ function SellerTypeChoice({ onChoose }: { onChoose: (type: SellerType) => void }
 function GuideStep({ number, title, desc, link }: { number: string, title: string, desc: string, link: string }) {
   return (
     <div className="flex gap-4">
-      <div className="w-8 h-8 rounded-full bg-accent text-primary flex items-center justify-center font-black shrink-0 text-sm">{number}</div>
+      <div className="w-8 h-8 rounded-full bg-accent text-primary flex items-center justify-center font-bold shrink-0 text-sm">{number}</div>
       <div className="space-y-1 text-right">
-        <p className="font-black text-sm text-primary">{title}</p>
-        <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
-        <a href={link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-accent font-black text-xs uppercase tracking-tighter hover:underline mt-1">
-          לכניסה לשירות הממשלתי <ExternalLink className="w-2.5 h-2.5" />
+        <p className="font-bold text-[15px] text-primary">{title}</p>
+        <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+        <a href={link} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-[36px] items-center gap-1.5 text-accent-strong font-semibold text-sm underline-offset-4 hover:underline">
+          לכניסה לשירות הממשלתי <ExternalLink className="w-3.5 h-3.5" />
         </a>
       </div>
     </div>

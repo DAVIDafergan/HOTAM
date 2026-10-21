@@ -84,43 +84,43 @@ export default function ResetPasswordPageClient() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      <main className="flex-1 flex items-center justify-center p-4 pt-20 sm:pt-28 pb-8 sm:pb-12">
-        <Card className="w-full max-w-5xl shadow-premium border-none rounded-[2.5rem] overflow-hidden bg-white">
-          <div className="grid md:grid-cols-5 min-h-[500px]">
+      <main className="flex-1 flex items-start justify-center px-4 pt-[calc(6.5rem+env(safe-area-inset-top))] sm:items-center sm:pt-28 pb-10">
+        <Card className="w-full max-w-4xl shadow-premium-lg border-border/70 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden bg-card">
+          <div className="grid md:grid-cols-5 md:min-h-[460px]">
             {/* Left/Info Side */}
-            <div className="order-1 md:col-span-2 bg-primary text-white px-5 py-5 sm:p-8 md:p-10 flex flex-col justify-center text-right relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl hidden md:block" />
-              <div className="relative z-10 space-y-3 md:space-y-6">
-                <div className="space-y-2 md:space-y-4">
-                  <h1 className="text-2xl md:text-5xl font-headline font-black tracking-tight leading-tight bg-clip-text text-transparent bg-gradient-to-r from-accent via-white to-accent/80">
+            <div className="order-1 md:col-span-2 bg-primary text-white px-6 py-7 md:p-10 flex flex-col justify-center text-right relative overflow-hidden">
+              <div className="pointer-events-none absolute inset-y-10 left-0 hidden w-px bg-gradient-to-b from-transparent via-[#E2B35B]/50 to-transparent md:block" />
+              <div className="relative z-10 space-y-4 md:space-y-6">
+                <div className="space-y-2 md:space-y-3">
+                  <h1 className="text-[30px] md:text-[38px] font-headline font-medium leading-tight text-white">
                     חותם
                   </h1>
-                  <p className="text-white/70 font-black text-xs md:text-lg leading-relaxed">בחר סיסמה חדשה וחזק את אבטחת חשבונך.</p>
+                  <p className="text-white/75 text-[15px] md:text-base leading-relaxed">בחר סיסמה חדשה וחזק את אבטחת חשבונך.</p>
                 </div>
-                <div className="flex flex-wrap justify-end gap-x-3 gap-y-1.5 pt-2 border-t border-white/10 md:gap-x-6 md:gap-y-3 md:pt-4">
-                  <div className="flex items-center gap-1.5 md:gap-2 text-xs md:text-xs font-black">
+                <div className="flex flex-col items-start gap-2.5 pt-4 border-t border-white/15 md:pt-5">
+                  <div className="flex items-center gap-2.5 text-[15px] font-medium text-white/90">
+                    <CheckCircle2 className="w-4 h-4 shrink-0 text-[#E2B35B]" />
                     <span>פיקוח הלכתי קפדני</span>
-                    <CheckCircle2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-accent" />
                   </div>
-                  <div className="flex items-center gap-1.5 md:gap-2 text-xs md:text-xs font-black">
+                  <div className="flex items-center gap-2.5 text-[15px] font-medium text-white/90">
+                    <CheckCircle2 className="w-4 h-4 shrink-0 text-[#E2B35B]" />
                     <span>סופרים מאומתים בלבד</span>
-                    <CheckCircle2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-accent" />
                   </div>
-                  <div className="flex items-center gap-1.5 md:gap-2 text-xs md:text-xs font-black">
+                  <div className="flex items-center gap-2.5 text-[15px] font-medium text-white/90">
+                    <CheckCircle2 className="w-4 h-4 shrink-0 text-[#E2B35B]" />
                     <span>תשלום מאובטח בנאמנות</span>
-                    <CheckCircle2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-accent" />
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Right/Form Side */}
-            <CardContent className="order-2 md:col-span-3 p-6 sm:p-8 md:p-14 space-y-8 text-right flex flex-col justify-center">
+            <CardContent className="order-2 md:col-span-3 p-6 sm:p-8 md:p-12 space-y-7 text-right flex flex-col justify-center">
 
               {pageState === 'loading' && (
                 <div className="flex flex-col items-center justify-center gap-4 py-12">
                   <Loader2 className="w-10 h-10 animate-spin text-primary" />
-                  <p className="text-muted-foreground font-bold text-sm">מאמת את הקישור…</p>
+                  <p className="text-muted-foreground text-[15px]">מאמת את הקישור…</p>
                 </div>
               )}
 
@@ -128,10 +128,10 @@ export default function ResetPasswordPageClient() {
                 <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
                   <AlertCircle className="w-12 h-12 text-destructive" />
                   <div className="space-y-2">
-                    <h2 className="text-xl font-black text-primary">קישור לא תקף</h2>
-                    <p className="text-muted-foreground text-sm font-bold">הקישור לאיפוס הסיסמה פג תוקפו או שאינו תקין.<br />אנא בקש קישור חדש דרך דף ההתחברות.</p>
+                    <h2 className="font-headline text-2xl font-bold text-primary">קישור לא תקף</h2>
+                    <p className="text-primary/75 text-[15px] leading-relaxed">הקישור לאיפוס הסיסמה פג תוקפו או שאינו תקין.<br />אנא בקש קישור חדש דרך דף ההתחברות.</p>
                   </div>
-                  <Button onClick={() => router.push('/login')} className="mt-4 bg-accent text-primary h-12 px-8 rounded-xl font-black">
+                  <Button onClick={() => router.push('/login')} className="mt-4 h-12 px-8">
                     חזרה להתחברות
                   </Button>
                 </div>
@@ -140,33 +140,33 @@ export default function ResetPasswordPageClient() {
               {pageState === 'ready' && (
                 <>
                   <div className="space-y-2">
-                    <h2 className="text-2xl md:text-3xl font-black text-primary">הגדרת סיסמה חדשה</h2>
-                    <p className="text-muted-foreground text-sm font-black">הזן את הסיסמה החדשה שתרצה להשתמש בה</p>
+                    <h2 className="text-[26px] md:text-[32px] font-headline font-medium text-primary">הגדרת סיסמה חדשה</h2>
+                    <p className="text-muted-foreground text-[15px]">הזן את הסיסמה החדשה שתרצה להשתמש בה</p>
                   </div>
 
                   <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="space-y-4">
                       <div className="space-y-1.5">
-                        <Label htmlFor="password" className="font-black text-xs uppercase text-primary/65 tracking-wider">סיסמה חדשה</Label>
+                        <Label htmlFor="password">סיסמה חדשה</Label>
                         <Input
                           id="password"
                           type="password"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           placeholder="לפחות 6 תווים"
-                          className="rounded-xl h-12 text-right border-muted-foreground/20 focus:ring-primary/10 font-bold"
+                          className="text-right"
                           required
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <Label htmlFor="confirmPassword" className="font-black text-xs uppercase text-primary/65 tracking-wider">אימות סיסמה</Label>
+                        <Label htmlFor="confirmPassword">אימות סיסמה</Label>
                         <Input
                           id="confirmPassword"
                           type="password"
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
                           placeholder="הזן שוב את הסיסמה"
-                          className="rounded-xl h-12 text-right border-muted-foreground/20 focus:ring-primary/10 font-bold"
+                          className="text-right"
                           required
                         />
                       </div>
@@ -174,7 +174,7 @@ export default function ResetPasswordPageClient() {
                     <Button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full bg-accent hover:bg-accent/90 h-16 text-base font-black uppercase tracking-widest rounded-full shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3"
+                      size="lg" className="w-full gap-2.5"
                     >
                       {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <><KeyRound size={18} /> עדכון סיסמה</>}
                     </Button>
@@ -184,12 +184,12 @@ export default function ResetPasswordPageClient() {
 
               {pageState === 'success' && (
                 <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
-                  <CheckCircle2 className="w-12 h-12 text-green-500" />
+                  <CheckCircle2 className="w-12 h-12 text-emerald-700" strokeWidth={1.6} />
                   <div className="space-y-2">
-                    <h2 className="text-xl font-black text-primary">הסיסמה עודכנה בהצלחה!</h2>
-                    <p className="text-muted-foreground text-sm font-bold">כעת תוכל להתחבר עם הסיסמה החדשה.</p>
+                    <h2 className="font-headline text-2xl font-bold text-primary">הסיסמה עודכנה בהצלחה!</h2>
+                    <p className="text-primary/75 text-[15px]">כעת תוכל להתחבר עם הסיסמה החדשה.</p>
                   </div>
-                  <Button onClick={() => router.push('/login')} className="mt-4 bg-accent text-primary h-12 px-8 rounded-xl font-black">
+                  <Button onClick={() => router.push('/login')} className="mt-4 h-12 px-8">
                     מעבר להתחברות
                   </Button>
                 </div>

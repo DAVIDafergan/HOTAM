@@ -130,45 +130,46 @@ function LoginContent() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      <main className="flex-1 flex items-start justify-center p-3 sm:p-4 pt-[calc(7.5rem+env(safe-area-inset-top))] sm:items-center sm:pt-24 pb-6 sm:pb-10">
-        <Card className="w-full max-w-3xl shadow-premium border-none rounded-3xl md:rounded-[2.25rem] overflow-hidden bg-white">
-          <div className="grid md:grid-cols-5 md:min-h-[410px]">
+      <main className="flex-1 flex items-start justify-center px-4 pt-[calc(6.5rem+env(safe-area-inset-top))] sm:items-center sm:pt-28 pb-10">
+        <Card className="w-full max-w-4xl shadow-premium-lg border-border/70 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden bg-card">
+          <div className="grid md:grid-cols-5 md:min-h-[460px]">
             {/* Left/Info Side — top on mobile, left panel on desktop */}
-            <div className="hidden md:flex md:col-span-2 bg-primary text-white px-5 py-4 sm:p-7 md:p-9 flex-col justify-center text-right relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl hidden md:block" />
-              <div className="relative z-10 space-y-3 md:space-y-5 text-center sm:text-right">
+            <div className="hidden md:flex md:col-span-2 bg-primary text-white p-10 flex-col justify-center text-right relative overflow-hidden">
+              <div className="pointer-events-none absolute inset-y-10 left-0 w-px bg-gradient-to-b from-transparent via-[#E2B35B]/50 to-transparent" />
+              <div className="relative z-10 space-y-6 text-right">
                 <div className="space-y-2 md:space-y-3">
-                  <h1 className="text-xl sm:text-2xl md:text-4xl font-headline font-black tracking-tight leading-tight bg-clip-text text-transparent bg-gradient-to-r from-accent via-white to-accent/80">
+                  <p className="font-headline text-xs font-bold uppercase tracking-[0.3em] text-[#E2B35B]">HOTAM</p>
+                  <h1 className="text-[38px] font-headline font-medium leading-tight text-white">
                     ברוכים השבים לחותם
                   </h1>
-                  <p className="text-white/75 font-black text-xs sm:text-xs md:text-base leading-relaxed">זירת מסחר מאובטחת ונוחה לכלי קודש וסת"ם מהודרים.</p>
+                  <p className="text-white/75 text-base leading-relaxed">זירת מסחר מאובטחת ונוחה לכלי קודש וסת"ם מהודרים.</p>
                 </div>
-                <div className="flex flex-wrap justify-center sm:justify-end gap-x-3 gap-y-1.5 pt-2 border-t border-white/10 md:gap-x-5 md:gap-y-2.5 md:pt-4">
-                  <div className="flex items-center gap-1.5 md:gap-2 text-xs md:text-xs font-black">
+                <div className="flex flex-col items-start gap-3 pt-5 border-t border-white/15">
+                  <div className="flex items-center gap-2.5 text-[15px] font-medium text-white/90">
+                    <CheckCircle2 className="w-4 h-4 shrink-0 text-[#E2B35B]" />
                     <span>פיקוח הלכתי קפדני</span>
-                    <CheckCircle2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-accent" />
                   </div>
-                  <div className="flex items-center gap-1.5 md:gap-2 text-xs md:text-xs font-black">
+                  <div className="flex items-center gap-2.5 text-[15px] font-medium text-white/90">
+                    <CheckCircle2 className="w-4 h-4 shrink-0 text-[#E2B35B]" />
                     <span>סופרים מאומתים בלבד</span>
-                    <CheckCircle2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-accent" />
                   </div>
-                  <div className="flex items-center gap-1.5 md:gap-2 text-xs md:text-xs font-black">
+                  <div className="flex items-center gap-2.5 text-[15px] font-medium text-white/90">
+                    <CheckCircle2 className="w-4 h-4 shrink-0 text-[#E2B35B]" />
                     <span>תשלום מאובטח בנאמנות</span>
-                    <CheckCircle2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-accent" />
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Right/Form Side */}
-            <CardContent className="order-2 md:col-span-3 p-4 sm:p-6 md:p-8 space-y-5 text-right flex flex-col justify-center">
-              <div className="md:hidden rounded-[2rem] bg-gradient-to-br from-primary via-primary to-primary/90 px-5 py-6 text-center text-white shadow-premium">
-                <p className="text-xs font-black uppercase tracking-[0.35em] text-white/70">HOTAM</p>
-                <h1 className="mt-2 text-2xl font-headline font-black tracking-tight">ברוכים הבאים לחותם</h1>
+            <CardContent className="order-2 md:col-span-3 p-6 sm:p-8 md:p-10 space-y-6 text-right flex flex-col justify-center">
+              <div className="md:hidden text-center">
+                <p className="font-headline text-xs font-bold uppercase tracking-[0.3em] text-accent-strong">HOTAM</p>
+                <h1 className="mt-1 text-[30px] font-headline font-medium text-primary leading-tight">ברוכים הבאים לחותם</h1>
               </div>
-              <div className="space-y-1.5">
-                <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-primary">כניסה למערכת</h2>
-                <p className="text-muted-foreground text-xs sm:text-sm font-black">הזינו את הפרטים כדי להמשיך</p>
+              <div className="space-y-1.5 text-center md:text-right">
+                <h2 className="text-[22px] md:text-[30px] font-headline font-bold md:font-medium text-primary">כניסה למערכת</h2>
+                <p className="text-muted-foreground text-[15px]">הזינו את הפרטים כדי להמשיך</p>
               </div>
 
               <div className="space-y-3.5">
@@ -176,44 +177,45 @@ function LoginContent() {
                   variant="outline" 
                   onClick={handleGoogleLogin}
                   disabled={loading || isUserLoading}
-                  className="w-full rounded-xl h-12 sm:h-13 border-muted-foreground/20 font-black gap-3 text-xs sm:text-sm tracking-tight hover:bg-muted/50 transition-all shadow-sm"
+                  className="w-full h-12 gap-3"
                 >
                   <GoogleIcon /> המשך עם חשבון Google
                 </Button>
                 
                 <div className="relative flex items-center gap-4">
-                  <div className="flex-1 h-px bg-muted" />
-                  <span className="text-xs font-black text-primary/65 uppercase tracking-widest">או באמצעות אימייל</span>
-                  <div className="flex-1 h-px bg-muted" />
+                  <div className="flex-1 h-px bg-border" />
+                  <span className="text-[13px] font-medium text-muted-foreground">או באמצעות אימייל</span>
+                  <div className="flex-1 h-px bg-border" />
                 </div>
 
                 <form onSubmit={handleLogin} className="space-y-5">
                   <div className="space-y-3.5">
                     <div className="space-y-1.5">
-                      <Label htmlFor="email" className="font-black text-xs uppercase text-primary/65 tracking-wider">דואר אלקטרוני</Label>
+                      <Label htmlFor="email">דואר אלקטרוני</Label>
                       <Input 
                         id="email" 
                         type="email" 
                         placeholder="your@email.com" 
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="rounded-xl h-11 sm:h-12 text-right border-muted-foreground/20 focus:ring-primary/10 font-bold"
+                        dir="ltr"
+                        className="text-left"
                         required 
                       />
                     </div>
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between">
+                        <Label htmlFor="password">סיסמה</Label>
                         <button 
                           type="button" 
                           onClick={() => {
                             setResetEmail(email);
                             setIsResetDialogOpen(true);
                           }}
-                          className="text-xs text-muted-foreground hover:text-primary underline font-black"
+                          className="min-h-[36px] text-[13px] font-medium text-primary/70 underline underline-offset-4 hover:text-primary"
                         >
                           שכחת סיסמה?
                         </button>
-                        <Label htmlFor="password" className="font-black text-xs uppercase text-primary/65 tracking-wider">סיסמה</Label>
                       </div>
                       <div className="relative">
                         <Input 
@@ -221,13 +223,13 @@ function LoginContent() {
                           type={showPassword ? "text" : "password"}
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
-                          className="rounded-xl h-11 sm:h-12 text-right border-muted-foreground/20 focus:ring-primary/10 font-bold pl-12" 
+                          className="text-right pl-12" 
                           required 
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword((prev) => !prev)}
-                          className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
+                          className="absolute left-1 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground hover:text-primary transition-colors"
                           aria-label={showPassword ? 'הסתר סיסמה' : 'הצג סיסמה'}
                         >
                           {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -238,19 +240,19 @@ function LoginContent() {
                   <Button 
                     type="submit" 
                     disabled={loading || isUserLoading}
-                    className="w-full bg-accent hover:bg-accent/90 h-12 sm:h-14 text-sm sm:text-base font-black rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2.5"
+                    size="lg" className="w-full gap-2.5"
                   >
                     {loading || isUserLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>התחברות <LogInIcon size={18} /></>}
                   </Button>
                 </form>
               </div>
 
-              <div className="pt-4 border-t border-muted space-y-3 text-right">
-                <p className="text-sm font-black text-primary">
+              <div className="pt-5 border-t border-border space-y-3 text-center md:text-right">
+                <p className="text-[15px] text-primary/80">
                   אין לך חשבון עדיין?{' '}
-                  <Link href="/register" className="text-accent hover:underline font-black">הירשם</Link>
+                  <Link href="/register" className="font-bold text-accent-strong underline underline-offset-4 hover:text-primary">הירשם</Link>
                 </p>
-                <Button asChild variant="outline" className="w-full h-11 rounded-xl border-accent/40 text-accent hover:bg-accent/10 font-black">
+                <Button asChild variant="outline" className="w-full h-12">
                   <Link href="/onboarding/seller">הרשמה כמוכר</Link>
                 </Button>
               </div>
@@ -261,39 +263,40 @@ function LoginContent() {
 
       {/* Password Reset Dialog */}
       <Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
-        <DialogContent className="max-w-sm sm:max-w-md rounded-3xl sm:rounded-[2.25rem] p-0 overflow-hidden border-none shadow-2xl bg-white max-h-[90vh] flex flex-col" dir="rtl">
+        <DialogContent className="w-[calc(100%-2rem)] max-w-md rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl bg-card max-h-[90vh] flex flex-col" dir="rtl">
           <div className="flex-1 overflow-y-auto min-h-0">
-            <div className="bg-primary p-6 sm:p-8 text-white text-right">
+            <div className="bg-primary p-6 pl-16 sm:p-8 sm:pl-16 text-white text-right">
               <DialogHeader>
-                <DialogTitle className="text-xl sm:text-2xl font-headline font-black flex items-center gap-3">
+                <DialogTitle className="text-2xl font-headline font-bold flex items-center gap-3">
                   <Mail className="w-5 h-5 sm:w-6 sm:h-6 text-accent" /> איפוס סיסמה
                 </DialogTitle>
-                <DialogDescription className="text-white/60 text-sm mt-1 font-bold">
+                <DialogDescription className="text-white/75 text-[15px] mt-1">
                   נשלח אליך קישור לאימייל שיאפשר לך לבחור סיסמה חדשה.
                 </DialogDescription>
               </DialogHeader>
             </div>
             <div className="p-5 sm:p-8 space-y-5 text-right">
-              <p className="text-xs sm:text-sm text-muted-foreground font-bold">
+              <p className="text-[15px] text-muted-foreground">
                 הזן את כתובת האימייל של החשבון שלך ונשלח אליך קישור מאובטח לאיפוס סיסמה.
               </p>
               <div className="space-y-2">
-                <Label className="text-xs font-black uppercase tracking-widest text-primary/65">כתובת אימייל</Label>
+                <Label>כתובת אימייל</Label>
                 <Input
                   type="email"
                   value={resetEmail}
                   onChange={(e) => setResetEmail(e.target.value)}
                   placeholder="your@email.com"
-                  className="h-11 sm:h-12 rounded-xl text-right font-bold"
+                  dir="ltr"
+                  className="text-left"
                 />
               </div>
             </div>
           </div>
-          <DialogFooter className="p-4 sm:p-6 bg-muted/30 border-t flex flex-col-reverse sm:flex-row gap-3 shrink-0">
-            <Button onClick={handlePasswordReset} disabled={isResetting} className="flex-1 bg-accent text-primary h-11 sm:h-12 rounded-xl font-black shadow-lg">
+          <DialogFooter className="p-5 sm:p-6 bg-secondary/40 border-t border-border flex flex-col-reverse sm:flex-row gap-3 shrink-0">
+            <Button onClick={handlePasswordReset} disabled={isResetting} className="flex-1 h-12">
               {isResetting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'שלח קישור לאיפוס'}
             </Button>
-            <Button variant="outline" onClick={() => setIsResetDialogOpen(false)} className="h-11 sm:h-12 rounded-xl font-black">ביטול</Button>
+            <Button variant="outline" onClick={() => setIsResetDialogOpen(false)} className="h-12">ביטול</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

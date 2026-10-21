@@ -1171,7 +1171,7 @@ export default function SellerOnboarding() {
                       ))}
                     </RadioGroup>
                     {(formData.hasScribeCertificate === 'valid' || formData.hasScribeCertificate === 'expired') && (
-                      <p className="text-xs font-bold text-primary/50 flex items-center gap-1.5">
+                      <p className="text-xs font-bold text-primary/65 flex items-center gap-1.5">
                         <Info className="w-3.5 h-3.5 text-accent shrink-0" /> תעלה את צילום התעודה בשלב הבא (העלאת קבצים).
                       </p>
                     )}

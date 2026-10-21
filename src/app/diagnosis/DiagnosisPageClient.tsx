@@ -103,7 +103,7 @@ export default function DiagnosisPageClient() {
                     <Skeleton className="absolute inset-0" />
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
                       <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                      <p className="text-xs font-bold text-primary/60">מעבד תמונה...</p>
+                      <p className="text-xs font-bold text-primary/65">מעבד תמונה...</p>
                     </div>
                   </div>
                 ) : preview ? (

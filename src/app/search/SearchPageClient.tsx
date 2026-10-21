@@ -895,7 +895,7 @@ function SearchContent({ initialProducts, initialSellers }: { initialProducts?: 
                               <ArrowUpNarrowWide className="h-3.5 w-3.5" />
                             </span>
                             <div className="flex min-w-0 flex-col items-start leading-none">
-                              <span className="text-xs font-medium text-primary/60">מיון</span>
+                              <span className="text-xs font-medium text-primary/65">מיון</span>
                               <span className="min-w-0 truncate text-sm font-semibold text-primary">
                                 <SelectValue placeholder="מוצרים חדשים" />
                               </span>
@@ -1094,7 +1094,7 @@ function WizardSmallCard({ value, selected, icon, label }: any) {
         {React.cloneElement(icon as React.ReactElement<{ className?: string }>, { className: "w-5 h-5" })}
       </div>
       <div className="text-center">
-        <p className={cn("font-black text-xs tracking-tight transition-colors", selected ? "text-primary" : "text-primary/60 group-hover:text-primary/80")}>
+        <p className={cn("font-black text-xs tracking-tight transition-colors", selected ? "text-primary" : "text-primary/65 group-hover:text-primary/80")}>
           {label}
         </p>
       </div>

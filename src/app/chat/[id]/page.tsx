@@ -489,7 +489,7 @@ function ChatContent() {
                     <div className="flex items-center justify-end gap-1 mt-1.5">
                       <p className="text-2xs opacity-40 font-bold">{timeString}</p>
                       {isMine && (
-                        <p className={`text-2xs font-black leading-none ${msg.is_read ? 'text-blue-300 opacity-100' : 'text-white/40'}`}>
+                        <p className={`text-2xs font-black leading-none ${msg.is_read ? 'text-blue-300 opacity-100' : 'text-white/70'}`}>
                           {msg.is_read ? '✓✓' : '✓'}
                         </p>
                       )}
@@ -503,7 +503,7 @@ function ChatContent() {
                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/5">
                    <Send className="h-5 w-5 text-primary/25" />
                  </div>
-                 <p className="text-muted-foreground/40 text-xs">תחילת התכתבות עם {displayName}...</p>
+                 <p className="text-muted-foreground text-xs">תחילת התכתבות עם {displayName}...</p>
                </div>
             )}
           </CardContent>

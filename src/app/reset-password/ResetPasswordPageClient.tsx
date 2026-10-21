@@ -147,7 +147,7 @@ export default function ResetPasswordPageClient() {
                   <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="space-y-4">
                       <div className="space-y-1.5">
-                        <Label htmlFor="password" className="font-black text-xs uppercase text-primary/60 tracking-wider">סיסמה חדשה</Label>
+                        <Label htmlFor="password" className="font-black text-xs uppercase text-primary/65 tracking-wider">סיסמה חדשה</Label>
                         <Input
                           id="password"
                           type="password"
@@ -159,7 +159,7 @@ export default function ResetPasswordPageClient() {
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <Label htmlFor="confirmPassword" className="font-black text-xs uppercase text-primary/60 tracking-wider">אימות סיסמה</Label>
+                        <Label htmlFor="confirmPassword" className="font-black text-xs uppercase text-primary/65 tracking-wider">אימות סיסמה</Label>
                         <Input
                           id="confirmPassword"
                           type="password"

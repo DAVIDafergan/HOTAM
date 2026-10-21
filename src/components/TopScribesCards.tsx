@@ -108,7 +108,7 @@ function ScribeProfileCard({ scribe }: { scribe: TopScribeCard }) {
             <BadgeCheck className="h-4 w-4 shrink-0 fill-accent text-white" aria-label="סופר מאומת" />
           </h3>
           {scribe.script_level && (
-            <p className="mt-0.5 truncate text-xs sm:text-xs font-semibold text-primary/60">כתב {scribe.script_level}</p>
+            <p className="mt-0.5 truncate text-xs sm:text-xs font-semibold text-primary/65">כתב {scribe.script_level}</p>
           )}
           <p className="mt-1 flex items-center justify-center gap-1 text-xs sm:text-xs font-bold text-muted-foreground">
             <MapPin className="h-3 w-3 shrink-0 text-accent" />

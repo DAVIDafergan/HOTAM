@@ -187,7 +187,7 @@ function ChannelCard({
         {icon}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-bold tracking-widest text-primary/45">{title}</p>
+        <p className="text-xs font-bold tracking-widest text-primary/65">{title}</p>
         <p className="mt-0.5 truncate text-base font-black text-primary" dir={valueDir}>{value}</p>
         <p className={cn("mt-1 text-xs font-semibold", highlight ? "text-accent-strong" : "text-muted-foreground")}>{note}</p>
       </div>
@@ -382,7 +382,7 @@ function ContactForm() {
             href={WHATSAPP_HREF}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-1.5 text-xs font-bold text-primary/60 transition-colors hover:text-primary"
+            className="flex items-center justify-center gap-1.5 text-xs font-bold text-primary/65 transition-colors hover:text-primary"
           >
             <MessageCircle className="h-4 w-4 text-emerald-600" /> דחוף? כתבו לנו בוואטסאפ
           </a>

@@ -272,10 +272,7 @@ export function Navbar() {
                         {isSuperAdmin && (
                           <MobileNavLink href="/admin" icon={<LayoutDashboard className="w-5 h-5" />} label="ניהול" onClick={() => setIsOpen(false)} active={pathname === '/admin'} />
                         )}
-                        
-                        <div className="my-3 border-t border-primary/5 relative">
-                           <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-[7px] font-semibold text-primary/20 tracking-wider uppercase">MEMBER</span>
-                        </div>
+                        <div className="my-3 border-t border-border/70" />
 
                         {user ? (
                           <>

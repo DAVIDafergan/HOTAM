@@ -163,7 +163,7 @@ function LoginContent() {
             {/* Right/Form Side */}
             <CardContent className="order-2 md:col-span-3 p-4 sm:p-6 md:p-8 space-y-5 text-right flex flex-col justify-center">
               <div className="md:hidden rounded-[2rem] bg-gradient-to-br from-primary via-primary to-primary/90 px-5 py-6 text-center text-white shadow-premium">
-                <p className="text-xs font-black uppercase tracking-[0.35em] text-white/55">HOTAM</p>
+                <p className="text-xs font-black uppercase tracking-[0.35em] text-white/70">HOTAM</p>
                 <h1 className="mt-2 text-2xl font-headline font-black tracking-tight">ברוכים הבאים לחותם</h1>
               </div>
               <div className="space-y-1.5">
@@ -183,14 +183,14 @@ function LoginContent() {
                 
                 <div className="relative flex items-center gap-4">
                   <div className="flex-1 h-px bg-muted" />
-                  <span className="text-xs font-black text-primary/30 uppercase tracking-widest">או באמצעות אימייל</span>
+                  <span className="text-xs font-black text-primary/65 uppercase tracking-widest">או באמצעות אימייל</span>
                   <div className="flex-1 h-px bg-muted" />
                 </div>
 
                 <form onSubmit={handleLogin} className="space-y-5">
                   <div className="space-y-3.5">
                     <div className="space-y-1.5">
-                      <Label htmlFor="email" className="font-black text-xs uppercase text-primary/60 tracking-wider">דואר אלקטרוני</Label>
+                      <Label htmlFor="email" className="font-black text-xs uppercase text-primary/65 tracking-wider">דואר אלקטרוני</Label>
                       <Input 
                         id="email" 
                         type="email" 
@@ -213,7 +213,7 @@ function LoginContent() {
                         >
                           שכחת סיסמה?
                         </button>
-                        <Label htmlFor="password" className="font-black text-xs uppercase text-primary/60 tracking-wider">סיסמה</Label>
+                        <Label htmlFor="password" className="font-black text-xs uppercase text-primary/65 tracking-wider">סיסמה</Label>
                       </div>
                       <div className="relative">
                         <Input 
@@ -278,7 +278,7 @@ function LoginContent() {
                 הזן את כתובת האימייל של החשבון שלך ונשלח אליך קישור מאובטח לאיפוס סיסמה.
               </p>
               <div className="space-y-2">
-                <Label className="text-xs font-black uppercase tracking-widest text-primary/60">כתובת אימייל</Label>
+                <Label className="text-xs font-black uppercase tracking-widest text-primary/65">כתובת אימייל</Label>
                 <Input
                   type="email"
                   value={resetEmail}

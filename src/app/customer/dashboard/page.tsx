@@ -487,7 +487,7 @@ export default function CustomerDashboard() {
               <UserRound className="w-10 h-10 md:w-12 md:h-12 text-white/70" />
             </div>
             <div className="flex-1 text-right">
-              <p className="text-white/50 text-xs font-black uppercase tracking-wider mb-1">אזור אישי</p>
+              <p className="text-white/70 text-xs font-black uppercase tracking-wider mb-1">אזור אישי</p>
               <h1 className="text-3xl md:text-4xl font-headline font-black text-white tracking-tight leading-tight">
                 שלום, {customer?.first_name || (user?._raw?.user_metadata?.first_name as string | undefined) || 'לקוח'} {customer?.last_name || (user?._raw?.user_metadata?.last_name as string | undefined) || ''}
               </h1>
@@ -560,7 +560,7 @@ export default function CustomerDashboard() {
                               <span className="text-xs font-black text-blue-500 uppercase tracking-widest">קוד אימות:</span>
                               <span className="text-xl font-black text-primary tracking-[0.2em] tabular-nums">{order.verification_code}</span>
                             </div>
-                            <p className="text-2xs font-bold text-primary/50 leading-tight">
+                            <p className="text-2xs font-bold text-primary/65 leading-tight">
                               <Info className="w-3 h-3 inline ml-1" /> מסור לסופר רק לאחר קבלת המוצר.
                             </p>
                           </div>
@@ -604,7 +604,7 @@ export default function CustomerDashboard() {
                 {totalChatPages > 1 && (
                   <div className="flex items-center justify-center gap-3 pt-4">
                     <Button variant="outline" size="sm" onClick={() => setChatsPage(p => Math.max(1, p - 1))} disabled={chatsPage === 1} className="rounded-xl h-9 px-4 font-bold border-primary/10 bg-white text-xs"><ArrowRight className="w-3.5 h-3.5 ml-1.5" /> הקודם</Button>
-                    <span className="text-xs font-black text-primary/40 uppercase tracking-widest">עמוד {chatsPage} / {totalChatPages}</span>
+                    <span className="text-xs font-black text-primary/65 uppercase tracking-widest">עמוד {chatsPage} / {totalChatPages}</span>
                     <Button variant="outline" size="sm" onClick={() => setChatsPage(p => Math.min(totalChatPages, p + 1))} disabled={chatsPage === totalChatPages} className="rounded-xl h-9 px-4 font-bold border-primary/10 bg-white text-xs">הבא <ArrowRight className="w-3.5 h-3.5 mr-1.5 rotate-180" /></Button>
                   </div>
                 )}
@@ -720,7 +720,7 @@ export default function CustomerDashboard() {
             </div>
             <div className="p-8 space-y-5 text-right">
               <div className="space-y-2">
-                <Label className="text-xs font-black uppercase tracking-widest text-primary/50">למה אתה רוצה למחוק את החשבון? (אופציונלי)</Label>
+                <Label className="text-xs font-black uppercase tracking-widest text-primary/65">למה אתה רוצה למחוק את החשבון? (אופציונלי)</Label>
                 <Textarea
                   placeholder="ספר לנו את הסיבה..."
                   value={deleteReason}

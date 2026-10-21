@@ -373,7 +373,7 @@ export default function RegisterPageClient() {
             {/* Right/Form Side */}
             <CardContent className="order-1 md:order-2 md:col-span-3 p-5 sm:p-7 md:p-10 space-y-5 text-right flex flex-col justify-center">
               <div className="md:hidden rounded-[2rem] bg-gradient-to-br from-primary via-primary to-primary/90 px-5 py-6 text-center text-white shadow-premium">
-                <p className="text-xs font-black uppercase tracking-[0.35em] text-white/55">HOTAM</p>
+                <p className="text-xs font-black uppercase tracking-[0.35em] text-white/70">HOTAM</p>
                 <h1 className="mt-2 text-2xl font-headline font-black tracking-tight">ברוכים הבאים לחותם</h1>
               </div>
               <div className="space-y-1">
@@ -393,14 +393,14 @@ export default function RegisterPageClient() {
 
                 <div className="relative flex items-center gap-4 py-2">
                   <div className="flex-1 h-px bg-muted" />
-                  <span className="text-xs font-black text-primary/30 uppercase tracking-widest">או הרשמה ידנית</span>
+                  <span className="text-xs font-black text-primary/65 uppercase tracking-widest">או הרשמה ידנית</span>
                   <div className="flex-1 h-px bg-muted" />
                 </div>
 
                 <form onSubmit={handleRegister} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label htmlFor="firstName" className="font-black text-xs uppercase text-primary/60 tracking-wider">שם פרטי</Label>
+                      <Label htmlFor="firstName" className="font-black text-xs uppercase text-primary/65 tracking-wider">שם פרטי</Label>
                       <Input
                         id="firstName"
                         placeholder="ישראל"
@@ -417,7 +417,7 @@ export default function RegisterPageClient() {
                       )}
                     </div>
                     <div className="space-y-1.5">
-                      <Label htmlFor="lastName" className="font-black text-xs uppercase text-primary/60 tracking-wider">שם משפחה</Label>
+                      <Label htmlFor="lastName" className="font-black text-xs uppercase text-primary/65 tracking-wider">שם משפחה</Label>
                       <Input
                         id="lastName"
                         placeholder="ישראלי"
@@ -436,7 +436,7 @@ export default function RegisterPageClient() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="email" className="font-black text-xs uppercase text-primary/60 tracking-wider">דואר אלקטרוני</Label>
+                    <Label htmlFor="email" className="font-black text-xs uppercase text-primary/65 tracking-wider">דואר אלקטרוני</Label>
                     <Input
                       id="email"
                       type="email"
@@ -467,7 +467,7 @@ export default function RegisterPageClient() {
                       >
                         שכחת סיסמה?
                       </button>
-                      <Label htmlFor="password" className="font-black text-xs uppercase text-primary/60 tracking-wider">סיסמה</Label>
+                      <Label htmlFor="password" className="font-black text-xs uppercase text-primary/65 tracking-wider">סיסמה</Label>
                     </div>
                     <Input
                       id="password"
@@ -548,7 +548,7 @@ export default function RegisterPageClient() {
               הזן את כתובת האימייל של החשבון שלך ונשלח אליך קישור מאובטח לאיפוס סיסמה.
             </p>
             <div className="space-y-2">
-              <Label className="text-xs font-black uppercase tracking-widest text-primary/60">כתובת אימייל</Label>
+              <Label className="text-xs font-black uppercase tracking-widest text-primary/65">כתובת אימייל</Label>
               <Input 
                 type="email"
                 value={resetEmail} 

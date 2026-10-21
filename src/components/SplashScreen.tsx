@@ -127,7 +127,7 @@ export function SplashScreen() {
                 transition={{ duration: 0.56, delay: 0.94, ease: "easeInOut" }}
                 className="h-1 bg-accent rounded-full"
               />
-              <p className="text-xs md:text-sm font-black text-primary/60 mt-6 tracking-wider uppercase">
+              <p className="text-xs md:text-sm font-black text-primary/65 mt-6 tracking-wider uppercase">
                 מלאכת שמיים וקדושה
               </p>
             </motion.div>

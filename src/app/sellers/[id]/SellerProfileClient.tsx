@@ -7,8 +7,6 @@ import { fromPublicView } from '@/lib/public-views';
 import { SellerProfileSkeleton } from '@/components/SellerProfileSkeleton';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Dialog, 
@@ -24,17 +22,20 @@ import {
   Star, 
   CheckCircle2, 
   BookOpen, 
-  Quote,
   Award,
   Loader2,
   Package,
-  UserRound,
   FileText,
   Flag,
   ArrowLeft,
   Trash2,
-  ZoomIn
+  ZoomIn,
+  MessageCircle
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { AmbientBackdrop } from '@/components/motion/AmbientBackdrop';
+import { CountUp } from '@/components/motion/CountUp';
+import { Reveal } from '@/components/motion/Reveal';
 import Image from '@/components/SmartImage';
 import Link from 'next/link';
 import { resolveSellerType } from '@/lib/product-catalog';
@@ -104,6 +105,8 @@ export default function SellerProfile({
   const [sampleZoomLevel, setSampleZoomLevel] = useState(1);
   const [samplePan, setSamplePan] = useState({ x: 0, y: 0 });
   const sampleDragOriginRef = useRef<{ x: number; y: number } | null>(null);
+  const [activeTab, setActiveTab] = useState('products');
+  const tabsRef = useRef<HTMLElement>(null);
 
   // Fetch Seller Info
   const [seller, setSeller] = useState<any>(initialSeller);
@@ -417,201 +420,177 @@ export default function SellerProfile({
       ? 'grabbing'
       : 'grab';
 
+  // ── Presentation helpers (UI only) ───────────────────────────────────────────────────
+  const productCount = (products || []).length;
+  const reviewCount = (reviews || []).length;
+  const ratingDisplay = averageRating > 0 ? averageRating.toFixed(1) : '—';
+  const ratingBuckets = [5, 4, 3, 2, 1].map((star) => {
+    const n = (reviews || []).filter((r: any) => Math.round(Number(r.rating) || 0) === star).length;
+    return { star, n, pct: reviewCount > 0 ? Math.round((n / reviewCount) * 100) : 0 };
+  });
+  const bioText: string = seller.notes || (isJudaicaSeller
+    ? 'מוכר מוצרי יודאיקה באתר חותם.'
+    : 'מלאכת שמיים ושליחות קודש. כל תג נכתב מתוך כוונה טהורה על קלף איכותי, בחרדת קודש ובהתאם לכל כללי ההלכה.');
+  const bioParagraphs = bioText.split(/\n+/).map((t) => t.trim()).filter(Boolean);
+  const scriptTypes: string[] = isJudaicaSeller ? [] : (seller.script_types || []).filter(Boolean);
+  const isOwnProfile = Boolean(user && user.uid === id);
+  const heroStats = [
+    ...(!isJudaicaSeller ? [{ label: 'שנות ניסיון', value: Number(seller.experience_years) || 0 }] : []),
+    { label: 'מוצרים', value: productCount },
+    { label: 'ביקורות', value: reviewCount },
+    { label: 'דירוג', value: ratingDisplay },
+  ];
+  const openTab = (tab: string) => {
+    setActiveTab(tab);
+    tabsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  const emptyState = (icon: React.ReactNode, title: string, text?: string, action?: React.ReactNode) => (
+    <div className="flex flex-col items-center rounded-[2rem] border border-dashed border-primary/20 bg-card/60 px-6 py-14 text-center md:py-20">
+      <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-secondary text-primary/55">{icon}</div>
+      <p className="font-body text-[19px] font-semibold text-primary">{title}</p>
+      {text && <p className="mt-2 max-w-sm text-[15px] text-muted-foreground">{text}</p>}
+      {action && <div className="mt-6">{action}</div>}
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-background" dir="rtl">
       <Navbar />
-      
-      <main className="container mx-auto px-4 pt-24 pb-16 md:pt-32 md:pb-24 max-w-6xl">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-          
-          <div className="lg:col-span-4 space-y-6">
-            <Card className="border-border/70 shadow-premium rounded-[2.5rem] bg-card overflow-hidden text-center p-7 md:p-9 relative lg:sticky lg:top-28">
-              <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-secondary/80 to-secondary/0" />
-              <div className="relative w-32 h-32 md:w-40 md:h-40 mx-auto mb-6 z-10">
-                <div className="absolute -inset-1.5 rounded-full border border-accent/40" />
-                <div className="w-full h-full rounded-full border-[5px] border-card shadow-premium overflow-hidden relative bg-secondary flex items-center justify-center">
+
+      <main>
+        {/* ── Header: who this is, how they are rated, the two main actions ── */}
+        <section className="relative overflow-hidden border-b border-border/70 pt-[calc(7rem+env(safe-area-inset-top))] pb-10 md:pt-36 md:pb-14" aria-labelledby="seller-name">
+          <AmbientBackdrop />
+          <div className="container relative z-10 mx-auto max-w-6xl px-5 md:px-8">
+            <div className="flex flex-col items-center gap-6 text-center md:flex-row md:items-start md:gap-10 md:text-right">
+              <div className="relative h-28 w-28 shrink-0 md:h-40 md:w-40 fade-up">
+                <div className="absolute -inset-2 rounded-full border border-accent/35" aria-hidden="true" />
+                <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-full border-4 border-card bg-secondary shadow-premium">
                   {seller.profile_image ? (
-                    <Image src={seller.profile_image} alt={`${seller.first_name} ${seller.last_name}`} fill kind="avatar" sizes="(max-width: 768px) 160px, 192px" className="object-cover" />
+                    <Image src={seller.profile_image} alt={sellerFullName} fill kind="avatar" sizes="(max-width: 768px) 112px, 160px" className="object-cover" priority />
                   ) : (
-                    <UserRound className="w-16 h-16 text-primary/20" />
+                    <span className="font-headline text-[40px] font-semibold text-primary/50 md:text-[56px]" aria-hidden="true">{(seller.first_name || sellerNoun).replace(/^הרב\s+/, '').charAt(0)}</span>
                   )}
                 </div>
                 {seller.is_approved && (
-                  <div className="absolute bottom-1 right-1 bg-accent text-primary p-2 rounded-full shadow-md border-2 border-card" title="פרופיל מאומת">
-                    <ShieldCheck className="w-5 h-5" />
-                  </div>
+                  <span className="absolute bottom-1 left-1 flex h-9 w-9 items-center justify-center rounded-full border-[3px] border-card bg-gold-deep text-white shadow-md md:h-11 md:w-11" title="פרופיל מאומת">
+                    <ShieldCheck className="h-4 w-4 md:h-5 md:w-5" aria-hidden="true" />
+                  </span>
                 )}
               </div>
-              
-              <h1 className="text-[34px] md:text-[40px] font-headline font-semibold text-primary mb-2 leading-[1.1]">
-                {seller.first_name} {seller.last_name}
-              </h1>
-              <p className="text-muted-foreground flex items-center justify-center gap-1.5 mb-5 font-medium text-sm">
-                <MapPin className="w-3.5 h-3.5 text-accent-strong" /> {sellerCity || 'לא צוין'}
-              </p>
-              
-              <div className="flex flex-col items-center gap-1.5 mb-7">
-                {reviews && reviews.length > 0 ? (
-                  <div className="flex items-center gap-1">
-                    {[1, 2, 3, 4, 5].map(s => (
-                      <Star key={s} className={`w-4 h-4 ${s <= averageRating ? 'text-accent fill-accent' : 'text-primary/15'}`} />
-                    ))}
-                    <span className="text-sm font-semibold text-primary/80 mr-2 num">({reviews.length} ביקורות)</span>
-                  </div>
-                ) : (
-                  <span className="text-sm font-medium text-muted-foreground">אין דירוגים עדיין</span>
-                )}
-                {seller.is_approved && <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-accent-strong"><ShieldCheck className="w-3.5 h-3.5" /> פרופיל מאומת</span>}
-              </div>
 
-              {!isJudaicaSeller && (
-              <div className="grid grid-cols-1 gap-2 text-right">
-                {stats.map((stat, i) => (
-                  <div key={i} className="flex items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-secondary/45 border border-border/50">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <span className="text-accent-strong">{stat.icon}</span>
-                      <span className="text-[13px] font-medium">{stat.label}</span>
-                    </div>
-                    <span className="text-sm font-bold text-primary">{stat.value}</span>
-                  </div>
-                ))}
-              </div>
-              )}
-
-              <div className="pt-7 space-y-2">
-                {seller.certificate_url && !isJudaicaSeller && (
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" className="w-full h-12 gap-2">
-                        <FileText className="w-4 h-4" /> הצג תעודת סופר
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-2xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-card" dir="rtl">
-                      <div className="bg-primary p-6 pl-16 text-white text-right relative">
-                        <DialogHeader>
-                          <DialogTitle className="text-xl font-body font-semibold flex items-center gap-3 text-white">
-                            <ShieldCheck className="w-6 h-6 text-accent" /> תעודת הסמכה - {seller.first_name} {seller.last_name}
-                          </DialogTitle>
-                        </DialogHeader>
-                      </div>
-                      <div className="p-4 bg-card flex justify-center items-center min-h-[400px]">
-                        <div className="relative w-full aspect-[1/1.4] max-h-[70vh]">
-                           <Image 
-                             src={seller.certificate_url} 
-                             alt={`תעודת סופר - ${sellerFullName}`}
-                             fill 
-                             className="object-contain"
-                           />
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                )}
-
-                <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="ghost" className="w-full text-destructive hover:bg-destructive/5 gap-2 text-sm font-semibold h-11">
-                      <Flag className="w-3.5 h-3.5" /> דיווח על {sellerNoun} זה
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-lg rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-card text-right" dir="rtl">
-                    <div className="bg-destructive p-6 pl-16 text-white text-right">
-                       <DialogHeader>
-                          <DialogTitle className="text-xl font-body font-semibold flex items-center gap-3 text-white">
-                            <Flag className="w-6 h-6 text-white" /> דיווח למנהל המערכת
-                          </DialogTitle>
-                       </DialogHeader>
-                    </div>
-                    <div className="p-6 md:p-8 space-y-5 bg-card text-primary">
-                        <div className="rounded-2xl bg-red-50 border border-red-100 p-4 text-right">
-                          <p className="text-sm font-bold text-red-800">מתי כדאי לדווח?</p>
-                          <p className="text-sm text-red-800/85 mt-1 leading-relaxed">
-                            השתמש בדיווח במקרה של חשש להטעיה, תוכן פוגעני, התנהלות לא תקינה או מידע שגוי בפרופיל.
-                          </p>
-                        </div>
-                        <div className="space-y-2">
-                           <Label>פרט את סיבת הדיווח</Label>
-                           <Textarea 
-                              value={reportReason} 
-                              onChange={e => setReportReason(e.target.value)} 
-                              placeholder="כתוב כאן מה קרה, מתי, ומה נדרש לבדיקה..." 
-                              className="min-h-[120px] rounded-2xl" 
-                            />
-                        </div>
-                        <p className="text-sm text-muted-foreground leading-relaxed">
-                         הדיווח יישלח בצורה דיסקרטית למנהלי 'חותם'. נבדוק כל פנייה במהירות וברצינות.
-                        </p>
-                    </div>
-                      <DialogFooter className="p-6 bg-secondary/40 border-t border-border flex gap-3">
-                        <Button variant="destructive" onClick={handleSendReport} disabled={isReporting || !reportReason.trim()} className="flex-1 h-12">
-                          {isReporting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'שלח דיווח'}
-                        </Button>
-                        <Button variant="outline" onClick={() => setIsReportDialogOpen(false)} className="h-12">ביטול</Button>
-                     </DialogFooter>
-                   </DialogContent>
-                 </Dialog>
-              </div>
-            </Card>
-          </div>
-
-          <div className="lg:col-span-8 space-y-6">
-            <Card className="border-border/70 shadow-premium rounded-[2.5rem] bg-card p-6 md:p-10 text-right">
-              <div className="mb-8 space-y-4">
-                <div className="flex items-center justify-start gap-2 mb-1">
-                   <Quote className="w-6 h-6 text-accent/50 rotate-180" aria-hidden="true" />
-                   <h2 className="text-[30px] md:text-[40px] font-headline font-semibold text-primary">על ה{sellerNoun}</h2>
-                </div>
-                <p className="font-body font-semibold text-[20px] md:text-[24px] leading-[1.65] text-primary/85">
-                  "{seller.notes || (isJudaicaSeller ? 'מוכר מוצרי יודאיקה באתר חותם.' : 'מלאכת שמיים ושליחות קודש. כל תג נכתב מתוך כוונה טהורה על קלף איכותי, בחרדת קודש ובהתאם לכל כללי ההלכה.')}"
+              <div className="min-w-0 flex-1 space-y-4">
+                <p className={cn('eyebrow fade-up fade-up-1', 'justify-center md:justify-start')}>
+                  {isJudaicaSeller ? 'מוכר יודאיקה' : 'סופר סת״ם'}{seller.is_approved ? ' · פרופיל מאומת' : ''}
                 </p>
-                <div className="flex flex-wrap justify-start gap-2">
-                  {(isJudaicaSeller ? [] : (seller.script_types || [])).map((type: string) => (
-                    <Badge key={type} variant="gold" className="text-[13px] px-3.5 py-1.5">
-                      מומחה לכתב {type}
-                    </Badge>
+                <h1 id="seller-name" className="fade-up fade-up-1 font-headline text-[36px] font-semibold leading-[1.1] text-primary md:text-[56px]">
+                  {sellerFullName}
+                </h1>
+                <div className="fade-up fade-up-2 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[15px] text-primary/80 md:justify-start">
+                  <span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4 text-accent-strong" aria-hidden="true" />{sellerCity || 'ישראל'}</span>
+                  <button type="button" onClick={() => openTab('reviews')} className="inline-flex min-h-[32px] items-center gap-1.5 rounded-full underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+                    <span className="flex items-center gap-0.5" aria-hidden="true">
+                      {[1, 2, 3, 4, 5].map((n) => <Star key={n} className={cn('h-4 w-4', n <= Math.round(averageRating) ? 'fill-accent text-accent' : 'text-primary/15')} />)}
+                    </span>
+                    {reviewCount > 0 ? <span><span className="num">{ratingDisplay}</span> · <span className="num">{reviewCount}</span> ביקורות</span> : <span>אין דירוגים עדיין</span>}
+                  </button>
+                </div>
+                {scriptTypes.length > 0 && (
+                  <ul className="fade-up fade-up-2 flex flex-wrap justify-center gap-2 md:justify-start" aria-label="סוגי כתב">
+                    {scriptTypes.map((type) => (
+                      <li key={type} className="rounded-full border border-accent/35 bg-card/80 px-3.5 py-1.5 text-[13px] font-semibold text-accent-strong">כתב {type}</li>
+                    ))}
+                    {seller.script_level && <li className="rounded-full border border-border bg-card/80 px-3.5 py-1.5 text-[13px] font-semibold text-primary/80">{seller.script_level}</li>}
+                  </ul>
+                )}
+                <p className="fade-up fade-up-3 mx-auto max-w-2xl text-[17px] leading-[1.75] text-primary/85 line-clamp-3 md:mx-0 md:text-[18px]">
+                  {bioParagraphs[0]}
+                </p>
+                {(bioParagraphs.length > 1 || bioParagraphs[0]?.length > 160) && (
+                  <button type="button" onClick={() => openTab('about')} className="fade-up fade-up-3 inline-flex min-h-[44px] items-center gap-1.5 text-[15px] font-semibold text-accent-strong underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+                    המשך לקרוא על ה{sellerNoun} <ArrowLeft className="h-4 w-4" />
+                  </button>
+                )}
+                <div className="fade-up fade-up-3 flex flex-col gap-3 pt-2 sm:flex-row sm:justify-center md:justify-start">
+                  <Button variant="gold" size="lg" onClick={() => openTab('products')} className="h-14 w-full gap-2 sm:w-auto">
+                    <Package className="!h-[18px] !w-[18px]" /> {productCount > 0 ? `לכל המוצרים (${productCount})` : 'למוצרים'}
+                  </Button>
+                  {!isOwnProfile && (
+                    <Button variant="outline" size="lg" asChild className="h-14 w-full gap-2 sm:w-auto">
+                      <Link href={`/chat/${id}`}>
+                        <MessageCircle className="!h-[18px] !w-[18px] text-accent-strong" /> שליחת הודעה ל{sellerNoun}
+                      </Link>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Key numbers as a ledger: elegant numerals, hairline dividers */}
+            <dl className={cn('mt-10 grid divide-x divide-x-reverse divide-border/80 rounded-[1.75rem] border border-border/70 bg-card/80 py-5 shadow-premium md:mt-12 md:py-7', heroStats.length === 4 ? 'grid-cols-4' : 'grid-cols-3')}>
+              {heroStats.map((stat) => (
+                <div key={stat.label} className="flex min-w-0 flex-col items-center gap-1.5 px-1 text-center">
+                  <dd className="order-1 font-numbers text-[30px] leading-none text-primary md:text-[44px]">
+                    <CountUp value={stat.value} />
+                  </dd>
+                  <dt className="order-2 text-[12px] font-semibold text-muted-foreground md:text-[14px]">{stat.label}</dt>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </section>
+
+        {/* ── Tabs: products · samples · reviews · about ── */}
+        <section ref={tabsRef} className="container mx-auto max-w-6xl scroll-mt-24 px-5 py-10 md:px-8 md:py-16" aria-label={`תוכן הפרופיל של ${sellerFullName}`}>
+          <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl" className="w-full">
+            <TabsList indicatorClassName="bg-primary shadow-none" className="no-scrollbar mb-8 flex h-auto w-full max-w-full justify-start gap-1 overflow-x-auto rounded-full border border-border/70 bg-card p-1.5 shadow-premium sm:w-auto md:mb-10">
+              {[
+                { v: 'products', l: 'מוצרים', n: productCount },
+                ...(!isJudaicaSeller ? [{ v: 'samples', l: 'דוגמאות כתיבה', n: (seller.writing_samples || []).length }] : []),
+                { v: 'reviews', l: 'ביקורות', n: reviewCount },
+                { v: 'about', l: `על ה${sellerNoun}`, n: null as number | null },
+              ].map((t) => (
+                <TabsTrigger key={t.v} value={t.v} className="min-h-11 flex-none gap-1.5 px-4 text-[15px] font-semibold text-primary/70 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:px-5">
+                  {t.l}{typeof t.n === 'number' && <span className="num text-[13px] opacity-70">{t.n}</span>}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
+            <TabsContent value="products" className="mt-0">
+              {isProductsLoading ? (
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-6">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="overflow-hidden rounded-[1.25rem] border border-border/70 bg-card">
+                      <Skeleton className="aspect-square w-full rounded-none md:aspect-[4/5]" />
+                      <div className="space-y-2 p-3 md:p-5">
+                        <Skeleton className="h-4 w-3/4 rounded" />
+                        <Skeleton className="h-5 w-1/3 rounded" />
+                      </div>
+                    </div>
                   ))}
                 </div>
-              </div>
+              ) : productCount > 0 ? (
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-6">
+                  {products.map((p: any, i: number) => (
+                    <Reveal key={p.id} delay={(i % 3) * 80}>
+                      <ProductCard product={p} density="compact" />
+                    </Reveal>
+                  ))}
+                </div>
+              ) : (
+                emptyState(
+                  <Package className="h-7 w-7" strokeWidth={1.5} />,
+                  `ה${sellerNoun} עדיין לא העלה מוצרים`,
+                  'בינתיים אפשר לעיין בכל כלי הקודש באתר, או לשלוח הודעה ולשאול על הזמנה.',
+                  <Button variant="outline" asChild className="gap-2"><Link href="/search?view=all">לכל כלי הקודש <ArrowLeft className="h-4 w-4" /></Link></Button>,
+                )
+              )}
+            </TabsContent>
 
-              <Tabs defaultValue="products" dir="rtl" className="w-full">
-                <TabsList className="mb-8 flex h-auto w-full overflow-x-auto no-scrollbar justify-start p-1.5">
-                  <TabsTrigger value="products" className="flex-1 sm:flex-none">מוצרים למכירה</TabsTrigger>
-                  {!isJudaicaSeller && (
-                    <TabsTrigger value="samples" className="flex-1 sm:flex-none">דוגמאות כתיבה</TabsTrigger>
-                  )}
-                  <TabsTrigger value="reviews" className="flex-1 sm:flex-none">ביקורות ({(reviews || []).length})</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="products" className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-                   {isProductsLoading ? (
-                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-                       {Array.from({ length: 4 }).map((_, i) => (
-                         <div key={i} className="overflow-hidden rounded-[1.75rem] border border-border/70 bg-card">
-                           <Skeleton className="h-40 md:h-44 w-full rounded-none" />
-                           <div className="p-5 space-y-2">
-                             <Skeleton className="h-4 w-3/4 rounded" />
-                             <Skeleton className="h-5 w-1/3 rounded" />
-                           </div>
-                         </div>
-                       ))}
-                     </div>
-                   ) : products && products.length > 0 ? (
-                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-                       {products.map((p: any) => (
-                         <ProductCard key={p.id} product={p} />
-                       ))}
-                     </div>
-                   ) : (
-                     <div className="text-center py-16 bg-secondary/30 rounded-3xl border border-dashed border-primary/20">
-                        <Package className="w-10 h-10 mx-auto mb-3 text-primary/30" strokeWidth={1.5} />
-                        <p className="text-primary/85 font-semibold text-[15px]">ה{sellerNoun} טרם העלה מוצרים למכירה</p>
-                     </div>
-                   )}
-                </TabsContent>
-
-                {!isJudaicaSeller && (
-                <TabsContent value="samples" className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-                  <div className="grid grid-cols-2 gap-4">
+            {!isJudaicaSeller && (
+              <TabsContent value="samples" className="mt-0">
+                {(seller.writing_samples || []).length > 0 ? (
+                  <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-6">
                     {(seller.writing_samples || []).map((sample: string, i: number) => (
                       <button
                         key={i}
@@ -623,153 +602,264 @@ export default function SellerProfile({
                           sampleDragOriginRef.current = null;
                           setIsSampleDialogOpen(true);
                         }}
-                        className="group relative aspect-square overflow-hidden rounded-2xl border border-border/70 shadow-premium"
+                        className="group relative aspect-square overflow-hidden rounded-[1.25rem] border border-border/70 bg-secondary shadow-premium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 md:rounded-[1.5rem]"
+                        aria-label={`הגדלת דוגמת כתיבה ${i + 1}`}
                       >
-                        <Image src={sample} alt={sellerFullName === 'הסופר' ? `דוגמת כתיבה ${i + 1}` : `דוגמת כתיבה ${i + 1} של ${sellerFullName}`} fill kind="writing_sample" sizes="(max-width: 768px) 50vw, 300px" className="object-cover transition-transform duration-1000 group-hover:scale-110" />
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
-                          <div className="inline-flex items-center gap-2 rounded-full bg-card/95 px-4 py-2 text-sm font-semibold text-primary shadow-lg">
-                            <ZoomIn className="h-4 w-4 text-accent" />
-                            הגדל דוגמה
-                          </div>
-                        </div>
+                        <span className="media-rise absolute inset-0">
+                          <Image src={sample} alt={sellerFullName === 'הסופר' ? `דוגמת כתיבה ${i + 1}` : `דוגמת כתיבה ${i + 1} של ${sellerFullName}`} fill kind="writing_sample" sizes="(max-width: 768px) 50vw, 360px" className="object-cover zoom-on-hover" />
+                        </span>
+                        <span className="absolute bottom-2.5 left-2.5 inline-flex items-center gap-1.5 rounded-full bg-card/95 px-3 py-1.5 text-[13px] font-semibold text-primary shadow-md">
+                          <ZoomIn className="h-3.5 w-3.5 text-accent-strong" /> הגדלה
+                        </span>
                       </button>
                     ))}
-                    {(!seller.writing_samples || seller.writing_samples.length === 0) && (
-                      <div className="col-span-full py-16 text-center bg-secondary/30 rounded-3xl border border-dashed border-primary/20">
-                        <PenToolIcon className="w-10 h-10 mx-auto mb-3 text-primary/30" />
-                        <p className="text-primary/85 font-semibold text-[15px]">אין דוגמאות כתיבה זמינות מההרשמה</p>
-                      </div>
-                    )}
                   </div>
-                </TabsContent>
+                ) : (
+                  emptyState(<PenToolIcon className="h-7 w-7" />, 'אין עדיין דוגמאות כתיבה', `ה${sellerNoun} יוכל להוסיף דוגמאות מהאזור האישי.`)
                 )}
+              </TabsContent>
+            )}
 
-                <TabsContent value="reviews" className="animate-in fade-in slide-in-from-bottom-2 space-y-4">
-                  <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
-                    <h3 className="font-body text-xl font-semibold text-primary">ביקורות לקוחות</h3>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        type="button"
-                        variant={reviewSortOrder === 'newest' ? 'default' : 'outline'}
-                        onClick={() => setReviewSortOrder('newest')}
-                        size="sm" className="text-[13px] h-10 px-4"
-                      >
-                        החדשות ביותר
-                      </Button>
-                      <Button
-                        type="button"
-                        variant={reviewSortOrder === 'oldest' ? 'default' : 'outline'}
-                        onClick={() => setReviewSortOrder('oldest')}
-                        size="sm" className="text-[13px] h-10 px-4"
-                      >
-                        הוותיקות ביותר
-                      </Button>
+            <TabsContent value="reviews" className="mt-0">
+              <div className="grid gap-8 lg:grid-cols-[minmax(0,340px)_1fr] lg:gap-12">
+                {/* Summary */}
+                <div className="space-y-6 lg:sticky lg:top-28 lg:self-start">
+                  <div className="rounded-[1.75rem] border border-border/70 bg-card p-6 shadow-premium">
+                    <div className="flex items-center gap-5">
+                      <p className="font-numbers text-[56px] leading-none text-primary num">{ratingDisplay}</p>
+                      <div className="space-y-1.5">
+                        <div className="flex gap-0.5" aria-hidden="true">
+                          {[1, 2, 3, 4, 5].map((n) => <Star key={n} className={cn('h-5 w-5', n <= Math.round(averageRating) ? 'fill-accent text-accent' : 'text-primary/15')} />)}
+                        </div>
+                        <p className="text-[14px] text-muted-foreground">{reviewCount > 0 ? <><span className="num">{reviewCount}</span> ביקורות</> : 'אין דירוגים עדיין'}</p>
+                      </div>
                     </div>
+                    {reviewCount > 0 && (
+                      <ul className="mt-5 space-y-2" aria-label="התפלגות הדירוגים">
+                        {ratingBuckets.map((b) => (
+                          <li key={b.star} className="flex items-center gap-3 text-[13px] text-primary/75">
+                            <span className="w-3 num">{b.star}</span>
+                            <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-secondary">
+                              <span className="block h-full rounded-full bg-gold-deep" style={{ width: `${b.pct}%` }} />
+                            </span>
+                            <span className="w-6 text-left num">{b.n}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
 
                   {shouldHideSellerReviewComposer ? (
-                    <div className="mb-2 rounded-3xl border border-border/70 bg-card/70 px-5 py-3 text-right">
-                      <p className="text-sm text-primary/85">ניתן לדרג פעם אחת בלבד</p>
-                    </div>
+                    <p className="rounded-2xl border border-border/70 bg-card/70 px-5 py-3 text-[14px] text-primary/80">ניתן לדרג פעם אחת בלבד</p>
                   ) : (
-                    <div className="mb-2 rounded-3xl border border-border/70 bg-card/70 p-5 md:p-7 space-y-5 text-right">
+                    <div className="space-y-5 rounded-[1.75rem] border border-border/70 bg-card p-6 text-right">
                       <div className="space-y-1">
-                        <h4 className="font-body text-lg font-semibold text-primary">פרסום ביקורת</h4>
-                        <p className="text-sm text-muted-foreground">כתיבה קצרה וברורה תעזור ללקוחות אחרים לבחור נכון.</p>
+                        <h3 className="font-body text-lg font-semibold text-primary">כתבו ביקורת</h3>
+                        <p className="text-sm text-muted-foreground">כמה מילים על השירות וה{isJudaicaSeller ? 'מוצרים' : 'כתיבה'} יעזרו ללקוחות אחרים.</p>
                       </div>
                       {!user && (
-                        <p className="text-xs font-bold text-muted-foreground">
-                          כדי לפרסם ביקורת צריך <Link href={`/login?redirect=${encodeURIComponent(pathname)}`} className="underline text-primary">להתחבר לחשבון</Link>.
+                        <p className="text-sm font-semibold text-muted-foreground">
+                          כדי לפרסם ביקורת צריך <Link href={`/login?redirect=${encodeURIComponent(pathname)}`} className="text-primary underline">להתחבר לחשבון</Link>.
                         </p>
                       )}
                       <div className="space-y-2">
-                        <Label>ביקורת</Label>
-                        <Textarea
-                          placeholder={isJudaicaSeller ? 'שתף את חווית השירות והמוצרים...' : 'שתף את חווית השירות והכתיבה...'}
-                          value={reviewComment}
-                          onChange={e => setReviewComment(e.target.value)}
-                          className="rounded-2xl min-h-[100px]"
-                          disabled={!user || isReviewSubmitting}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>דירוג כוכבים</Label>
-                        <div className="flex justify-center gap-1.5 rounded-2xl border border-border bg-card p-2">
-                          {[1, 2, 3, 4, 5].map(s => (
-                            <button key={s} type="button" onClick={() => setReviewRating(s)} disabled={!user || isReviewSubmitting} aria-label={`${s} כוכבים`} className="rounded-full p-2.5 transition-colors hover:bg-accent/10 disabled:cursor-not-allowed">
-                              <Star className={`w-5 h-5 transition-colors ${s <= reviewRating ? 'fill-accent text-accent' : 'text-muted-foreground/30'}`} />
+                        <Label>דירוג</Label>
+                        <div className="flex justify-between gap-1 rounded-2xl border border-border bg-background/60 p-1.5">
+                          {[1, 2, 3, 4, 5].map(sv => (
+                            <button key={sv} type="button" onClick={() => setReviewRating(sv)} disabled={!user || isReviewSubmitting} aria-label={`${sv} כוכבים`} aria-pressed={sv <= reviewRating} className="flex h-11 flex-1 items-center justify-center rounded-xl transition-colors hover:bg-accent/10 disabled:cursor-not-allowed">
+                              <Star className={`h-5 w-5 transition-colors ${sv <= reviewRating ? 'fill-accent text-accent' : 'text-muted-foreground/30'}`} />
                             </button>
                           ))}
                         </div>
                       </div>
-                      <div className="flex items-center justify-between p-4 rounded-2xl bg-card border border-border">
-                        <Switch
-                          id="seller-review-anon"
-                          checked={reviewIsAnonymous}
-                          onCheckedChange={setReviewIsAnonymous}
+                      <div className="space-y-2">
+                        <Label htmlFor="seller-review-text">ביקורת</Label>
+                        <Textarea
+                          id="seller-review-text"
+                          placeholder={isJudaicaSeller ? 'שתפו את חוויית השירות והמוצרים...' : 'שתפו את חוויית השירות והכתיבה...'}
+                          value={reviewComment}
+                          onChange={e => setReviewComment(e.target.value)}
+                          className="min-h-[100px] rounded-2xl"
                           disabled={!user || isReviewSubmitting}
                         />
-                        <Label htmlFor="seller-review-anon" className="text-sm font-bold text-primary cursor-pointer">פרסם כאנונימי</Label>
                       </div>
-                      <Button
-                        onClick={handleSubmitSellerReview}
-                        disabled={!user || isReviewSubmitting}
-                        className="w-full h-12"
-                      >
-                        {isReviewSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : getSellerReviewSubmitLabel()}
+                      <div className="flex items-center justify-between rounded-2xl border border-border bg-background/60 p-4">
+                        <Label htmlFor="seller-review-anon" className="cursor-pointer text-sm font-semibold text-primary">פרסם כאנונימי</Label>
+                        <Switch id="seller-review-anon" checked={reviewIsAnonymous} onCheckedChange={setReviewIsAnonymous} disabled={!user || isReviewSubmitting} />
+                      </div>
+                      <Button onClick={handleSubmitSellerReview} disabled={!user || isReviewSubmitting} className="h-12 w-full">
+                        {isReviewSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : getSellerReviewSubmitLabel()}
                       </Button>
                     </div>
                   )}
+                </div>
 
-                  {sortedSellerReviews.length > 0 ? (
-                    sortedSellerReviews.map((rev: any) => (
-                      <div key={rev.id} className="flex items-start gap-3">
-                        <Avatar className="h-8 w-8 border border-primary/10 flex-shrink-0">
-                          {!rev.is_anonymous && <AvatarImage src={rev.reviewer_image || undefined} />}
-                          <AvatarFallback className="bg-primary/5 text-primary font-black text-xs">
-                            {rev.is_anonymous ? 'א' : (rev.buyer_name || 'מ').charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-baseline justify-between mb-1">
-                            <p className="font-semibold text-primary text-sm">{rev.is_anonymous ? 'אנונימי' : (rev.buyer_name || 'משתמש')}</p>
-                            <span className="text-xs font-medium text-muted-foreground num">{rev.created_at ? new Date(rev.created_at).toLocaleDateString('he-IL') : 'היום'}</span>
-                          </div>
-                          <div className="rounded-2xl border border-border/70 bg-card px-4 py-3.5 text-right">
-                            <div className="flex items-center justify-start gap-0.5 mb-2">
-                              {[1, 2, 3, 4, 5].map(s => <Star key={s} className={`w-3 h-3 ${s <= (Number(rev.rating) || 0) ? 'fill-accent text-accent' : 'text-muted-foreground/20'}`} />)}
-                            </div>
-                            <p className="text-base text-primary/80 leading-relaxed">{rev.comment}</p>
-                          </div>
-                          {user?.uid === rev.buyer_id && (
-                            <div className="flex justify-start mt-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDeleteSellerReview(rev.id, rev.source)}
-                                disabled={deletingReviewId === rev.id}
-                                className="h-9 px-3 text-xs text-destructive/80 hover:text-destructive hover:bg-destructive/5 gap-1 rounded-full"
-                              >
-                                {deletingReviewId === rev.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
-                                מחק
-                              </Button>
-                            </div>
-                          )}
-                        </div>
+                {/* List */}
+                <div className="min-w-0 space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <h3 className="font-body text-xl font-semibold text-primary">מה הלקוחות אומרים</h3>
+                    {reviewCount > 1 && (
+                      <div className="inline-flex rounded-full border border-border/70 bg-card p-1" role="group" aria-label="מיון ביקורות">
+                        {([['newest', 'החדשות'], ['oldest', 'הוותיקות']] as const).map(([v, l]) => (
+                          <button key={v} type="button" onClick={() => setReviewSortOrder(v)} aria-pressed={reviewSortOrder === v} className={cn('min-h-10 rounded-full px-4 text-[13px] font-semibold transition-colors duration-300', reviewSortOrder === v ? 'bg-primary text-primary-foreground' : 'text-primary/70 hover:text-primary')}>{l}</button>
+                        ))}
                       </div>
-                    ))
+                    )}
+                  </div>
+                  {sortedSellerReviews.length > 0 ? (
+                    <div className="space-y-4">
+                      {sortedSellerReviews.map((rev: any) => (
+                        <Reveal key={rev.id}>
+                          <article className="rounded-[1.5rem] border border-border/70 bg-card p-5 text-right shadow-premium md:p-6">
+                            <header className="flex items-center gap-3">
+                              <Avatar className="h-10 w-10 shrink-0 border border-accent/30">
+                                {!rev.is_anonymous && <AvatarImage src={rev.reviewer_image || undefined} />}
+                                <AvatarFallback className="bg-secondary font-headline text-base font-semibold text-primary/70">
+                                  {rev.is_anonymous ? 'א' : (rev.buyer_name || 'מ').charAt(0)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate text-[15px] font-semibold text-primary">{rev.is_anonymous ? 'אנונימי' : (rev.buyer_name || 'משתמש')}</p>
+                                <p className="text-[13px] text-muted-foreground num">{rev.created_at ? new Date(rev.created_at).toLocaleDateString('he-IL') : 'היום'}{rev.source === 'order' ? ' · לאחר רכישה' : ''}</p>
+                              </div>
+                              <div className="flex shrink-0 gap-0.5" aria-label={`${Number(rev.rating) || 0} מתוך 5`}>
+                                {[1, 2, 3, 4, 5].map(sv => <Star key={sv} className={`h-3.5 w-3.5 ${sv <= (Number(rev.rating) || 0) ? 'fill-accent text-accent' : 'text-muted-foreground/20'}`} />)}
+                              </div>
+                            </header>
+                            {rev.comment && <p className="mt-4 max-w-none text-[16px] leading-[1.75] text-primary/85">{rev.comment}</p>}
+                            {user?.uid === rev.buyer_id && (
+                              <div className="mt-3 flex justify-start">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDeleteSellerReview(rev.id, rev.source)}
+                                  disabled={deletingReviewId === rev.id}
+                                  className="h-10 gap-1 rounded-full px-3 text-xs text-destructive/80 hover:bg-destructive/5 hover:text-destructive"
+                                >
+                                  {deletingReviewId === rev.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+                                  מחק
+                                </Button>
+                              </div>
+                            )}
+                          </article>
+                        </Reveal>
+                      ))}
+                    </div>
                   ) : (
-                    <div className="text-center py-12 bg-secondary/30 rounded-3xl border border-dashed border-primary/20">
-                      <Star className="w-10 h-10 mx-auto mb-3 text-primary/30" strokeWidth={1.5} />
-                      <p className="text-primary/85 font-semibold text-[15px]">אין דירוגים עדיין</p>
+                    emptyState(<Star className="h-7 w-7" strokeWidth={1.5} />, 'עדיין אין ביקורות', `לקוחות שרכשו מה${sellerNoun} יוכלו לשתף כאן את החוויה שלהם.`)
+                  )}
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="about" className="mt-0">
+              <div className="grid gap-10 lg:grid-cols-[1fr_minmax(0,380px)] lg:gap-14">
+                <Reveal as="article" className="min-w-0">
+                  <p className="eyebrow mb-4">על ה{sellerNoun}</p>
+                  <div className="space-y-5">
+                    {bioParagraphs.map((para, i) => (
+                      <p key={i} className={cn('max-w-[62ch] text-primary/85', i === 0 ? 'font-headline text-[22px] font-semibold leading-[1.6] text-primary md:text-[26px]' : 'text-[17px] leading-[1.85] md:text-[18px]')}>
+                        {para}
+                      </p>
+                    ))}
+                  </div>
+                  {scriptTypes.length > 0 && (
+                    <div className="mt-8">
+                      <p className="mb-3 text-[15px] font-semibold text-primary">מתמחה בכתב</p>
+                      <ul className="flex flex-wrap gap-2">
+                        {scriptTypes.map((type) => (
+                          <li key={type} className="rounded-full border border-accent/35 bg-accent/[0.06] px-4 py-2 text-[14px] font-semibold text-accent-strong">{type}</li>
+                        ))}
+                      </ul>
                     </div>
                   )}
-                </TabsContent>
-              </Tabs>
-            </Card>
-          </div>
+                </Reveal>
 
-        </div>
+                <Reveal delay={120} className="space-y-4 lg:sticky lg:top-28 lg:self-start">
+                  {!isJudaicaSeller && (
+                    <div className="rounded-[1.75rem] border border-border/70 bg-card p-6 shadow-premium">
+                      <h3 className="mb-4 font-body text-lg font-semibold text-primary">הנהגה והסמכה</h3>
+                      <dl className="divide-y divide-border/70">
+                        {stats.map((stat) => (
+                          <div key={stat.label} className="flex items-center justify-between gap-3 py-3">
+                            <dt className="flex items-center gap-2 text-[14px] text-muted-foreground"><span className="text-accent-strong">{stat.icon}</span>{stat.label}</dt>
+                            <dd className="text-[15px] font-semibold text-primary">{stat.value}</dd>
+                          </div>
+                        ))}
+                      </dl>
+                      {seller.certificate_url && (
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" className="mt-5 h-12 w-full gap-2">
+                              <FileText className="h-4 w-4" /> הצגת תעודת הסופר
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-2xl overflow-hidden rounded-[2rem] border-none bg-card p-0 shadow-2xl" dir="rtl">
+                            <div className="relative bg-primary p-6 pl-16 text-right text-white">
+                              <DialogHeader>
+                                <DialogTitle className="flex items-center gap-3 font-body text-xl font-semibold text-white">
+                                  <ShieldCheck className="h-6 w-6 text-accent" /> תעודת הסמכה - {seller.first_name} {seller.last_name}
+                                </DialogTitle>
+                              </DialogHeader>
+                            </div>
+                            <div className="flex min-h-[400px] items-center justify-center bg-card p-4">
+                              <div className="relative aspect-[1/1.4] max-h-[70vh] w-full">
+                                <Image src={seller.certificate_url} alt={`תעודת סופר - ${sellerFullName}`} fill className="object-contain" />
+                              </div>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      )}
+                    </div>
+                  )}
+
+                  <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="ghost" className="h-11 w-full gap-2 text-sm font-semibold text-destructive hover:bg-destructive/5">
+                        <Flag className="h-3.5 w-3.5" /> דיווח על {sellerNoun} זה
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-lg overflow-hidden rounded-[2rem] border-none bg-card p-0 text-right shadow-2xl" dir="rtl">
+                      <div className="bg-destructive p-6 pl-16 text-right text-white">
+                        <DialogHeader>
+                          <DialogTitle className="flex items-center gap-3 font-body text-xl font-semibold text-white">
+                            <Flag className="h-6 w-6 text-white" /> דיווח למנהל המערכת
+                          </DialogTitle>
+                        </DialogHeader>
+                      </div>
+                      <div className="space-y-5 bg-card p-6 text-primary md:p-8">
+                        <div className="rounded-2xl border border-red-100 bg-red-50 p-4 text-right">
+                          <p className="text-sm font-bold text-red-800">מתי כדאי לדווח?</p>
+                          <p className="mt-1 text-sm leading-relaxed text-red-800/85">
+                            השתמש בדיווח במקרה של חשש להטעיה, תוכן פוגעני, התנהלות לא תקינה או מידע שגוי בפרופיל.
+                          </p>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>פרט את סיבת הדיווח</Label>
+                          <Textarea
+                            value={reportReason}
+                            onChange={e => setReportReason(e.target.value)}
+                            placeholder="כתוב כאן מה קרה, מתי, ומה נדרש לבדיקה..."
+                            className="min-h-[120px] rounded-2xl"
+                          />
+                        </div>
+                        <p className="text-sm leading-relaxed text-muted-foreground">
+                          הדיווח יישלח בצורה דיסקרטית למנהלי &apos;חותם&apos;. נבדוק כל פנייה במהירות וברצינות.
+                        </p>
+                      </div>
+                      <DialogFooter className="flex gap-3 border-t border-border bg-secondary/40 p-6">
+                        <Button variant="destructive" onClick={handleSendReport} disabled={isReporting || !reportReason.trim()} className="h-12 flex-1">
+                          {isReporting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'שלח דיווח'}
+                        </Button>
+                        <Button variant="outline" onClick={() => setIsReportDialogOpen(false)} className="h-12">ביטול</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </Reveal>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </section>
       </main>
 
       <Dialog

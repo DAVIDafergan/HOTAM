@@ -29,10 +29,12 @@ export async function HomeProductsCarousel() {
           }
         />
 
-        <StaggerGrid className="flex flex-row overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-4 md:gap-6 pb-4 -mx-5 px-5 md:mx-0 md:px-0 [-webkit-overflow-scrolling:touch] scroll-smooth">
+        {/* Phones: two compact cards side by side plus a peek of the third, so the newest
+            products are visible within one screen instead of one tall card per screen. */}
+        <StaggerGrid className="flex flex-row overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-3 md:gap-6 pb-4 -mx-5 px-5 scroll-px-5 md:mx-0 md:px-0 md:scroll-px-0 [-webkit-overflow-scrolling:touch] scroll-smooth">
           {products.map((product, i) => (
-            <StaggerItem key={product.id} className="w-[76%] sm:w-[46%] md:w-[31%] lg:w-[23%] shrink-0 snap-start">
-              <ProductCard product={product} priority={i === 0} />
+            <StaggerItem key={product.id} className="w-[44%] sm:w-[31%] md:w-[31%] lg:w-[23%] shrink-0 snap-start">
+              <ProductCard product={product} priority={i === 0} density="compact" />
             </StaggerItem>
           ))}
         </StaggerGrid>

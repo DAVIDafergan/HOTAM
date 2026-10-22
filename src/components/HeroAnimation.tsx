@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useLayoutEffect, useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { 
@@ -19,8 +19,6 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
@@ -29,11 +27,10 @@ import { cn } from '@/lib/utils';
 import { CitySelect } from '@/components/CitySelect';
 import { COMMON_CITY_OPTIONS, NEARBY_RADIUS_KM } from '@/lib/location-utils';
 import { AmbientBackdrop } from '@/components/motion/AmbientBackdrop';
+import { FinderProgress, FinderQuestion, FinderStepFrame, OptionTile } from '@/components/finder/FinderParts';
 
 type ProductType = 'מזוזה' | 'תפילין' | 'מגילה' | 'ספר תורה' | 'מוצרי יודאיקה שונים' | '';
 type ShippingPreference = 'all' | 'shipping' | 'pickup';
-
-const MotionButton = motion.create(Button);
 
 const DESKTOP_MEDIA_QUERY = '(min-width: 768px)';
 
@@ -176,7 +173,6 @@ export function HeroAnimation() {
     return [];
   };
   const hasSubTypes = getSubTypesForProduct(selectedProduct).length > 0;
-  const finalSearchButtonClass = "w-full max-w-3xl inline-flex items-center justify-center bg-accent text-primary hover:bg-[hsl(38_62%_42%)] rounded-full px-10 md:px-16 h-16 font-bold text-[17px] md:text-lg shadow-premium gap-3 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/30 transition-colors duration-300 group";
 
   const handleFinalSearch = () => {
     const params = new URLSearchParams();
@@ -221,351 +217,331 @@ export function HeroAnimation() {
     return 'לילה טוב';
   };
 
-  // Shared step content, reused by both the always-visible desktop card and the
-  // on-demand mobile overlay (Sheet) so the two surfaces never drift out of sync.
-  const wizardSteps = (
-    <>
-      {/* Step indicator */}
-      <div className="flex flex-col items-center mb-3 md:mb-10 gap-4">
-        <div className="flex items-center gap-0">
-          {[
-            { n: 1, label: 'בחירת מוצר' },
-            { n: 2, label: 'מפרט הלכתי' },
-            { n: 3, label: 'התאמה אישית' },
-          ].map(({ n, label }, i) => (
-            <React.Fragment key={n}>
-              <div className="flex flex-col items-center gap-1.5">
-                <div className={cn(
-                  "w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm border transition-all duration-500 num",
-                  step === n
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : step > n
-                    ? "bg-accent/15 text-accent-strong border-accent/40"
-                    : "bg-card text-primary/45 border-border"
-                )}>
-                {step > n ? <span aria-label="שלב הושלם" className="text-accent-strong text-base leading-none">✓</span> : n}
-                </div>
-                <span className={cn(
-                  "text-[13px] font-semibold transition-colors hidden sm:block",
-                  step === n ? "text-primary" : "text-primary/60"
-                )}>{label}</span>
-              </div>
-              {i < 2 && (
-                <div className={cn(
-                  "w-12 md:w-20 h-0.5 mb-5 transition-all duration-500",
-                  step > n ? "bg-accent/40" : "bg-primary/10"
-                )} />
-              )}
-            </React.Fragment>
-          ))}
-        </div>
-      </div>
+  // ── Product finder: 4 short steps, one question each ─────────────────────────────────
+  // The state and the URL built by handleFinalSearch are unchanged; only the presentation
+  // is split differently (product → type & script → hiddur & size → where & how).
+  const TOTAL_STEPS = 4;
+  const [direction, setDirection] = useState(1);
+  // Options only stagger in after the visitor starts using the finder — never on first paint.
+  const [hasInteracted, setHasInteracted] = useState(false);
+  const goToStep = (next: number) => {
+    setHasInteracted(true);
+    setDirection(next > step ? 1 : -1);
+    setStep(next);
+  };
+  const isLastStep = step === TOTAL_STEPS;
+  const canContinue = step !== 1 || Boolean(selectedProduct);
 
-      {/* Persistent selection summary — stays visible across every step so the
-          customer never loses track of what they've already chosen. */}
-      <AnimatePresence>
-        {selectedProduct && (
-          <motion.div
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="flex flex-wrap items-center justify-center gap-2 mb-4 md:mb-8"
-          >
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/10 bg-primary/5 px-3 py-1.5 text-xs font-bold text-primary">
-              {selectedProduct}
-            </span>
-            {quantity > 1 && (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/10 bg-primary/5 px-3 py-1.5 text-xs font-bold text-primary">
-                {quantity} יח'
-              </span>
-            )}
-            {selectedCity && (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/10 bg-primary/5 px-3 py-1.5 text-xs font-bold text-primary">
-                {selectedCity}
-              </span>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+  const STEP_TITLES: Record<number, { title: string; lead: string }> = {
+    1: { title: 'מה אתם מחפשים?', lead: 'בחרו סוג מוצר. יודאיקה מובילה ישר לכל הפריטים.' },
+    2: { title: 'סוג וכתב', lead: 'אפשר לדלג — נציג את כל המסורות.' },
+    3: { title: 'רמת הידור וגודל', lead: 'אפשר לדלג — נציג את כל הרמות והגדלים.' },
+    4: { title: 'איפה ואיך לקבל?', lead: 'לא חובה. אפשר לדלג ולראות את כל התוצאות.' },
+  };
 
-      <AnimatePresence mode="wait">
-        {step === 1 && (
-          <motion.div key="step1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }} className="space-y-4 md:space-y-10">
-            <div className="flex flex-col items-center gap-4">
-              <h2 className="text-2xl md:text-[2rem] font-body font-semibold text-primary">מה אתם מחפשים?</h2>
-            </div>
+  const summary = [
+    selectedProduct,
+    quantity > 1 ? `${quantity} יח׳` : '',
+    subType !== 'all' ? subType : '',
+    scriptType !== 'all' ? scriptType : '',
+    qualityLevel !== 'all' ? qualityLevel : '',
+    selectedCity,
+  ].filter(Boolean).join(' · ');
 
-            {/* Category cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 md:gap-4">
-              <CategoryCard icon={<Scroll />} label="מזוזה" onClick={() => handleCategorySelect('מזוזה')} color="indigo" active={selectedProduct === 'מזוזה'} />
-              <CategoryCard icon={<Package />} label="תפילין" onClick={() => handleCategorySelect('תפילין')} color="blue" active={selectedProduct === 'תפילין'} />
-              <CategoryCard icon={<Crown />} label="מגילה" onClick={() => handleCategorySelect('מגילה')} color="amber" active={selectedProduct === 'מגילה'} />
-              <CategoryCard icon={<BookOpen />} label="ספר תורה" onClick={() => handleCategorySelect('ספר תורה')} color="emerald" active={selectedProduct === 'ספר תורה'} />
+  const SCRIPT_OPTIONS = [
+    { v: 'all', l: 'כל המסורות', d: 'ללא סינון לפי כתב' },
+    { v: 'ספרדי', l: 'ספרדי', d: 'עדות המזרח' },
+    { v: 'אשכנזי - בית יוסף', l: 'בית יוסף', d: 'אשכנזי' },
+    { v: 'אשכנזי - האר"י', l: 'האר"י', d: 'אשכנזי · חסידי' },
+    { v: 'אשכנזי - אדמו"ר הזקן', l: 'אדמו"ר הזקן', d: 'אשכנזי · חב"ד' },
+  ];
+
+  const stepBody = (n: number, compact: boolean) => {
+    const animateIn = hasInteracted;
+    const twoCol = 'grid-cols-2';
+    switch (n) {
+      case 1:
+        return (
+          <div className="space-y-6">
+            <FinderQuestion animateIn={animateIn} gridClassName={compact ? 'grid-cols-2' : 'grid-cols-3'}>
+              {([
+                ['מזוזה', <Scroll key="i" />],
+                ['תפילין', <Package key="i" />],
+                ['מגילה', <Crown key="i" />],
+                ['ספר תורה', <BookOpen key="i" />],
+              ] as const).map(([type, icon]) => (
+                <OptionTile
+                  key={type}
+                  size="lg"
+                  icon={React.cloneElement(icon, { className: 'h-6 w-6', strokeWidth: 1.6 } as any)}
+                  label={type}
+                  active={selectedProduct === type}
+                  onSelect={() => { setHasInteracted(true); handleCategorySelect(type as ProductType); }}
+                />
+              ))}
               {/* Judaica isn't part of the scribal spec wizard — straight to all Judaica results. */}
-              <CategoryCard icon={<Palette />} label="יודאיקה" onClick={() => router.push('/search?view=results&group=judaica')} color="purple" />
-            </div>
+              <OptionTile
+                size="lg"
+                cellClassName={compact ? 'col-span-2' : undefined}
+                icon={<Palette className="h-6 w-6" strokeWidth={1.6} />}
+                label="יודאיקה"
+                description={compact ? 'מעבר ישיר לכל הפריטים' : undefined}
+                active={false}
+                onSelect={() => router.push('/search?view=results&group=judaica')}
+              />
+            </FinderQuestion>
 
-            <AnimatePresence>
-              {selectedProduct && (
-                <motion.div
-                  initial={{ opacity: 0, y: 16, scale: 0.96 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ type: "spring", stiffness: 260, damping: 22 }}
-                  className="flex flex-col items-center gap-4 pt-2"
-                >
-                  <div className="flex items-center gap-3 bg-card p-1.5 rounded-full border border-border">
-                    <button type="button" onClick={() => setQuantity(Math.max(1, quantity - 1))} aria-label="הפחת כמות" className="w-11 h-11 rounded-full border border-border font-bold hover:bg-secondary/60 active:scale-95 transition-all text-primary flex items-center justify-center text-lg bg-card">−</button>
-                    <div className="flex items-center gap-2 px-4">
-                      <span className="text-2xl font-black text-primary tabular-nums leading-none">{quantity}</span>
-                      <span className="text-sm font-semibold text-primary/70">יח'</span>
-                    </div>
-                    <button type="button" onClick={() => setQuantity(quantity + 1)} aria-label="הוסף כמות" className="w-11 h-11 rounded-full border border-border font-bold hover:bg-secondary/60 active:scale-95 transition-all text-primary flex items-center justify-center text-lg bg-card">+</button>
-                  </div>
-                  <Button onClick={() => setStep(2)} variant="gold" className="px-10 group gap-2">
-                    המשך למפרט <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                  </Button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <div className="flex justify-center pt-2">
-              <Button
-                variant="ghost"
-                onClick={() => router.push('/search?view=all')}
-                className="h-11 px-6 rounded-full text-sm font-semibold text-primary/75 hover:text-primary hover:bg-primary/5 border border-border hover:border-primary/25 gap-2"
-              >
-                <Search className="w-3.5 h-3.5" />
-                צפה בכל המוצרים ללא פילטר
-                <ArrowLeft className="w-3 h-3" />
-              </Button>
-            </div>
-          </motion.div>
-        )}
-
-        {step === 2 && (
-          <motion.div key="step2" initial={{ opacity: 0, x: 28 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ type: "spring", stiffness: 300, damping: 28 }} className="space-y-4 md:space-y-7 text-right">
-            <div className="flex justify-between items-center border-b border-primary/5 pb-4">
-              <Button variant="ghost" onClick={() => setStep(1)} className="font-semibold text-sm h-11 px-4 rounded-full hover:bg-primary/5 gap-1"><ChevronRight className="w-4 h-4" /> חזור</Button>
-              <div className="text-right">
-                <h2 className="text-xl md:text-2xl font-body font-semibold text-primary">איזה סוג בדיוק?</h2>
-                <p className="text-[13px] text-primary/65 font-medium mt-0.5">עבור {selectedProduct} · שלב 2 מתוך 3</p>
+            {/* Always rendered (dimmed until a product is chosen) so nothing jumps in. */}
+            <div className={cn('flex items-center gap-5 rounded-2xl border border-border/80 bg-card px-4 py-3 transition-opacity duration-300', !selectedProduct && 'opacity-45')}>
+              <span className="text-[15px] font-semibold text-primary">כמות</span>
+              <div className="flex items-center gap-1">
+                <button type="button" disabled={!selectedProduct} onClick={() => setQuantity(Math.max(1, quantity - 1))} aria-label="הפחת כמות" className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-lg font-semibold text-primary transition-colors hover:bg-secondary/60 active:scale-95 disabled:cursor-not-allowed">−</button>
+                <span className="w-12 text-center font-numbers text-[26px] leading-none text-primary num" aria-live="polite">{quantity}</span>
+                <button type="button" disabled={!selectedProduct} onClick={() => setQuantity(quantity + 1)} aria-label="הוסף כמות" className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-lg font-semibold text-primary transition-colors hover:bg-secondary/60 active:scale-95 disabled:cursor-not-allowed">+</button>
               </div>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-              {hasSubTypes && (
-                <div className="space-y-4 rounded-2xl md:rounded-3xl bg-secondary/40 md:bg-card border-0 md:border md:border-border/70 p-4 md:p-5 shadow-none md:shadow-sm">
-                  <Label className="text-sm font-bold text-primary/85 mr-1">תת-סוג המוצר</Label>
-                  <RadioGroup value={subType} onValueChange={setSubType} className="grid grid-cols-2 gap-3">
-                    {selectedProduct !== 'מזוזה' && <CustomTile value="all" label="כל הסוגים" active={subType === 'all'} />}
-                    {getSubTypesForProduct(selectedProduct).map(opt => <CustomTile key={opt} value={opt} label={opt} active={subType === opt} />)}
-                  </RadioGroup>
-                </div>
-              )}
-
-              <div className="space-y-4 rounded-2xl md:rounded-3xl bg-secondary/40 md:bg-card border-0 md:border md:border-border/70 p-4 md:p-5 shadow-none md:shadow-sm">
-                <Label className="text-sm font-bold text-primary/85 mr-1">סוג הכתב (מסורת)</Label>
-                <RadioGroup value={scriptType} onValueChange={setScriptType} className="grid grid-cols-1 gap-2">
-                  {[
-                    {v: 'all', l: 'כל המסורות'},
-                    {v: 'ספרדי', l: 'ספרדי (עדות המזרח)'},
-                    {v: 'אשכנזי - בית יוסף', l: 'אשכנזי - בית יוסף'},
-                    {v: 'אשכנזי - האר"י', l: 'אשכנזי - האר"י (חסידי)'},
-                    {v: 'אשכנזי - אדמו"ר הזקן', l: 'אשכנזי - אדמו"ר הזקן (חב"ד)'}
-                  ].map(s => (
-                    <CustomTile key={s.v} value={s.v} label={s.l} active={scriptType === s.v} compact />
+          </div>
+        );
+      case 2:
+        return (
+          <div className="space-y-7">
+            {hasSubTypes && (
+              <FinderQuestion label="סוג המוצר" animateIn={animateIn} gridClassName={twoCol}>
+                {selectedProduct !== 'מזוזה' && <OptionTile label="כל הסוגים" active={subType === 'all'} onSelect={() => setSubType('all')} />}
+                {getSubTypesForProduct(selectedProduct).map((opt) => (
+                  <OptionTile key={opt} label={opt} active={subType === opt} onSelect={() => setSubType(opt)} />
+                ))}
+              </FinderQuestion>
+            )}
+            <FinderQuestion label="סוג הכתב (מסורת)" animateIn={animateIn} gridClassName={twoCol}>
+              {SCRIPT_OPTIONS.map((o) => (
+                <OptionTile key={o.v} label={o.l} description={o.d} active={scriptType === o.v} onSelect={() => setScriptType(o.v)} cellClassName={o.v === 'all' ? 'col-span-2' : undefined} />
+              ))}
+            </FinderQuestion>
+          </div>
+        );
+      case 3:
+        return (
+          <div className="space-y-7">
+            <FinderQuestion label="רמת הידור" animateIn={animateIn} gridClassName={twoCol}>
+              {getQualityLevels(selectedProduct).map((q) => (
+                <OptionTile key={q.v} label={q.l} active={qualityLevel === q.v} onSelect={() => setQualityLevel(q.v)} />
+              ))}
+            </FinderQuestion>
+            {selectedProduct === 'מגילה' ? (
+              <>
+                <FinderQuestion label="מספר שורות" animateIn={animateIn} gridClassName="grid-cols-3">
+                  {['all', '11', '21', '28', '42'].map((r) => (
+                    <OptionTile
+                      key={r}
+                      size="sm"
+                      label={r === 'all' ? 'הכל' : r === '42' ? '42 (האר"י)' : r}
+                      active={megillahRows === r}
+                      onSelect={() => { setMegillahRows(r); setMegillahHeight('all'); }}
+                    />
                   ))}
-                </RadioGroup>
-              </div>
-
-              <div className="space-y-4 rounded-2xl md:rounded-3xl bg-secondary/40 md:bg-card border-0 md:border md:border-border/70 p-4 md:p-5 shadow-none md:shadow-sm">
-                <Label className="text-sm font-bold text-primary/85 mr-1">רמת הידור מבוקשת</Label>
-                <RadioGroup value={qualityLevel} onValueChange={setQualityLevel} className="grid grid-cols-2 gap-3">
-                  {getQualityLevels(selectedProduct).map(q => <CustomTile key={q.v} value={q.v} label={q.l} active={qualityLevel === q.v} compact />)}
-                </RadioGroup>
-              </div>
-
-              <div className="space-y-4 rounded-2xl md:rounded-3xl bg-secondary/40 md:bg-card border-0 md:border md:border-border/70 p-4 md:p-5 shadow-none md:shadow-sm">
-                {selectedProduct === 'מגילה' ? (
-                  <div className="space-y-4">
-                    <div className="space-y-3">
-                      <Label className="text-sm font-bold text-primary/85 mr-1">מספר שורות</Label>
-                      <div className="grid grid-cols-4 gap-2">
-                        {['all', '11', '21', '28', '42'].map(r => (
-                          <button
-                            type="button"
-                            key={r}
-                            onClick={() => {
-                              setMegillahRows(r);
-                              setMegillahHeight('all');
-                            }}
-                            className={cn(
-                              "h-14 rounded-2xl border font-bold text-sm transition-all",
-                              megillahRows === r ? "border-primary bg-primary text-primary-foreground" : "bg-card border-border text-primary hover:border-primary/40"
-                            )}
-                          >
-                            {r === 'all' ? 'הכל' : r === '42' ? '42 (האר"י)' : r}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="space-y-3">
-                      <Label className="text-sm font-bold text-primary/85 mr-1">גובה קלף (ס"מ)</Label>
-                      <Select value={megillahHeight} onValueChange={setMegillahHeight}>
-                        <SelectTrigger className="h-14 rounded-2xl text-right font-bold text-base sm:text-sm bg-white/50 border-2 border-transparent">
-                          <SelectValue placeholder="בחר גובה..." />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-2xl shadow-2xl p-1">
-                          <SelectItem value="all" className="font-bold py-3 rounded-xl">כל הגבהים</SelectItem>
-                          {megillahRows === '11' ? (
-                            <>
-                              <SelectItem value={"8-10 ס\"מ"} className="font-bold py-3 rounded-xl">{'8-10 ס"מ (סטנדרט)'}</SelectItem>
-                              <SelectItem value={"15-20 ס\"מ (הרב עובדיה)"} className="font-bold py-3 rounded-xl">{'15-20 ס"מ (הרב עובדיה)'}</SelectItem>
-                            </>
-                          ) : (
-                            ['12', '15', '20', '25', '30', '35', '40', '45', '50', '55'].map(h => (
-                              <SelectItem key={h} value={`${h} ס"מ`} className="font-bold py-3 rounded-xl">{h} ס"מ</SelectItem>
-                            ))
-                          )}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <Label className="text-sm font-bold text-primary/85 mr-1">גודל הקלף (ס"מ)</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {[...getSizesForProduct(selectedProduct, scriptType), 'other'].map(sz => (
-                        <button type="button" key={sz} onClick={() => setScrollSize(sz)} className={cn("h-12 rounded-xl border font-bold text-sm transition-all", scrollSize === sz ? "border-primary bg-primary text-primary-foreground" : "bg-card border-border text-primary hover:border-primary/40")}>{sz === 'other' ? 'שאר הגדלים' : sz}</button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="flex justify-center pt-4 md:pt-8">
-               <Button onClick={() => setStep(3)} variant="gold" size="lg" className="px-14 group gap-2">
-                 המשך למיקום וקבלה <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-               </Button>
-             </div>
-          </motion.div>
-        )}
-
-        {step === 3 && (
-          <motion.div key="step3" initial={{ opacity: 0, x: 28 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ type: "spring", stiffness: 300, damping: 28 }} className="space-y-4 md:space-y-7 text-right">
-            <div className="flex justify-between items-center border-b border-primary/5 pb-4">
-              <Button variant="ghost" onClick={() => setStep(2)} className="font-semibold text-sm h-11 px-4 rounded-full hover:bg-primary/5 gap-1"><ChevronRight className="w-4 h-4" /> חזור</Button>
-              <div className="text-right">
-                <h2 className="text-xl md:text-2xl font-body font-semibold text-primary">איפה ואיך תרצו לקבל?</h2>
-                <p className="text-[13px] text-primary/65 font-medium mt-0.5">שלב 3 מתוך 3</p>
-              </div>
-            </div>
-
-            <div className="max-w-2xl mx-auto w-full space-y-6 rounded-2xl md:rounded-3xl bg-secondary/40 md:bg-card border-0 md:border md:border-border/70 p-4 md:p-6 shadow-none md:shadow-sm">
-              <div className="space-y-4 pb-5 border-b border-primary/5">
-                <div className="flex items-center justify-between gap-3">
-                  <Label className="text-sm font-bold text-primary/85 mr-1">באיזה אזור לחפש? (לא חובה)</Label>
-                  <Button variant="ghost" onClick={handleFinalSearch} className="shrink-0 h-10 px-3 rounded-full font-semibold text-sm text-primary/70 hover:text-primary hover:bg-primary/5">
-                    דלג, הצג הכל
-                  </Button>
-                </div>
-                <div className="flex flex-col gap-3">
-                  <Button variant="outline" onClick={detectLocation} disabled={isDetectingLocation} className={cn("h-12 md:h-14 rounded-2xl gap-3 font-semibold text-sm border transition-all", userCoords ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'hover:border-primary/30')}>
-                    {isDetectingLocation ? <Loader2 className="w-5 h-5 animate-spin" /> : <LocateFixed className="w-5 h-5" />}
-                    {userCoords ? (detectedCity ? `המיקום שלך: ${detectedCity}` : 'המיקום שלך זוהה בהצלחה') : 'זהה את המיקום הנוכחי שלי'}
-                  </Button>
-                  <CitySelect
-                    value={selectedCity}
-                    options={[...COMMON_CITY_OPTIONS]}
-                    placeholder="בחר עיר"
-                    onChange={(city) => { setSelectedCity(city); if (city) setIncludeNearbyCities(true); }}
-                    triggerClassName="h-12 md:h-14 rounded-2xl text-base sm:text-sm border-2 border-transparent bg-white/50 focus:border-primary/20"
-                  />
-                  <Label className="flex items-center justify-between rounded-2xl border-2 border-primary/5 bg-white/80 px-4 py-4 shadow-sm transition-all hover:border-primary/10">
-                    <div className="space-y-1 text-right">
-                      <span className="block text-sm font-bold text-primary">חפש גם בערים קרובות</span>
-                      <span className="block text-[13px] font-medium text-primary/65">עד {NEARBY_RADIUS_KM} ק״מ מהעיר שנבחרה</span>
-                    </div>
-                    <Checkbox checked={includeNearbyCities} onCheckedChange={(value) => setIncludeNearbyCities(!!value)} className="w-5 h-5 rounded-md" />
-                  </Label>
-                </div>
-              </div>
-
-              <div className="pt-2">
+                </FinderQuestion>
                 <div className="space-y-3">
-                  <Label className="text-sm font-bold text-primary/85 mr-1">אופן קבלת המוצר</Label>
-                  <RadioGroup value={shippingPreference} onValueChange={(v) => setShippingPreference(v as ShippingPreference)} className="grid grid-cols-3 gap-2">
-                    <CustomTile value="all" label="הכל" active={shippingPreference === 'all'} compact />
-                    <CustomTile value="shipping" label="משלוח בלבד" active={shippingPreference === 'shipping'} compact />
-                    <CustomTile value="pickup" label="איסוף עצמי בלבד" active={shippingPreference === 'pickup'} compact />
-                  </RadioGroup>
+                  <p className="text-[15px] font-semibold text-primary">גובה קלף (ס"מ)</p>
+                  <Select value={megillahHeight} onValueChange={setMegillahHeight}>
+                    <SelectTrigger className="h-14 rounded-2xl border-border/80 bg-card text-right text-base font-semibold">
+                      <SelectValue placeholder="בחר גובה..." />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-2xl p-1 shadow-2xl">
+                      <SelectItem value="all" className="rounded-xl py-3 font-semibold">כל הגבהים</SelectItem>
+                      {megillahRows === '11' ? (
+                        <>
+                          <SelectItem value={"8-10 ס\"מ"} className="rounded-xl py-3 font-semibold">{'8-10 ס"מ (סטנדרט)'}</SelectItem>
+                          <SelectItem value={"15-20 ס\"מ (הרב עובדיה)"} className="rounded-xl py-3 font-semibold">{'15-20 ס"מ (הרב עובדיה)'}</SelectItem>
+                        </>
+                      ) : (
+                        ['12', '15', '20', '25', '30', '35', '40', '45', '50', '55'].map((h) => (
+                          <SelectItem key={h} value={`${h} ס"מ`} className="rounded-xl py-3 font-semibold">{h} ס"מ</SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div className="pt-5">
-                  <Button variant="ghost" onClick={() => setShowAdvanced(!showAdvanced)} className="w-full h-12 md:h-14 rounded-2xl border border-dashed border-primary/20 gap-3 font-semibold text-sm text-primary/75 hover:bg-primary/5 hover:border-primary/30 transition-all">
-                    <Settings2 className="w-5 h-5 text-accent" /> {showAdvanced ? 'הסתר הגדרות סופר מתקדמות' : 'מסנני קדושה והנהגת הסופר'}
-                  </Button>
-                </div>
-                  <AnimatePresence>
-                    {showAdvanced && (
-                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden pt-5 px-1">
-                        <div className="grid md:grid-cols-2 gap-4">
-                          <div className="space-y-3">
-                            <Label className="text-sm font-bold text-primary/85 mr-1">הסמכת הסופר</Label>
-                            <div className="grid grid-cols-2 gap-2">
-                              <CustomTile value="valid" label="תעודה בתוקף" active={certStatus === 'valid'} compact onClick={() => setCertStatus(certStatus === 'valid' ? '' : 'valid')} />
-                              <CustomTile value="expired" label="תעודה בעבר" active={certStatus === 'expired'} compact onClick={() => setCertStatus(certStatus === 'expired' ? '' : 'expired')} />
-                              <CustomTile value="none" label="ללא תעודה" active={certStatus === 'none'} compact onClick={() => setCertStatus(certStatus === 'none' ? '' : 'none')} />
-                            </div>
-                          </div>
+              </>
+            ) : getSizesForProduct(selectedProduct, scriptType).length > 0 ? (
+              <FinderQuestion label='גודל הקלף (ס"מ)' animateIn={animateIn} gridClassName={twoCol}>
+                {['all', ...getSizesForProduct(selectedProduct, scriptType), 'other'].map((sz) => (
+                  <OptionTile key={sz} label={sz === 'all' ? 'כל הגדלים' : sz === 'other' ? 'שאר הגדלים' : sz} active={scrollSize === sz} onSelect={() => setScrollSize(sz)} />
+                ))}
+              </FinderQuestion>
+            ) : null}
+          </div>
+        );
+      default:
+        return (
+          <div className="space-y-7">
+            <fieldset className="space-y-3">
+              <legend className="mb-3 text-[15px] font-semibold text-primary">באיזה אזור לחפש?</legend>
+              <Button variant="outline" onClick={detectLocation} disabled={isDetectingLocation} className={cn('h-14 w-full gap-3 rounded-2xl text-[15px] font-semibold', userCoords ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : '')}>
+                {isDetectingLocation ? <Loader2 className="h-5 w-5 animate-spin" /> : <LocateFixed className="h-5 w-5" />}
+                {userCoords ? (detectedCity ? `המיקום שלך: ${detectedCity}` : 'המיקום שלך זוהה בהצלחה') : 'זהה את המיקום הנוכחי שלי'}
+              </Button>
+              <CitySelect
+                value={selectedCity}
+                options={[...COMMON_CITY_OPTIONS]}
+                placeholder="או בחרו עיר"
+                onChange={(city) => { setSelectedCity(city); if (city) setIncludeNearbyCities(true); }}
+                triggerClassName="h-14 rounded-2xl border border-border/80 bg-card text-base"
+              />
+              <label className="flex min-h-[56px] cursor-pointer items-center justify-between gap-3 rounded-2xl border border-border/80 bg-card px-4 py-3">
+                <span className="text-right">
+                  <span className="block text-[15px] font-semibold text-primary">חפש גם בערים קרובות</span>
+                  <span className="block text-[13px] text-muted-foreground">עד {NEARBY_RADIUS_KM} ק״מ מהעיר שנבחרה</span>
+                </span>
+                <Checkbox checked={includeNearbyCities} onCheckedChange={(value) => setIncludeNearbyCities(!!value)} className="h-5 w-5 rounded-md" />
+              </label>
+            </fieldset>
 
-                          <div className="space-y-3">
-                            <Label className="text-sm font-bold text-primary/85 mr-1">לימוד תורה יומיומי</Label>
-                            <div className="grid grid-cols-2 gap-2">
-                              <CustomTile value="fixed" label="קובע עיתים" active={studyFreq === 'fixed'} compact onClick={() => setStudyFreq(studyFreq === 'fixed' ? '' : 'fixed')} />
-                              <CustomTile value="half-day" label="אברך חצי יום" active={studyFreq === 'half-day'} compact onClick={() => setStudyFreq(studyFreq === 'half-day' ? '' : 'half-day')} />
-                              <CustomTile value="full-day" label="אברך יום שלם" active={studyFreq === 'full-day'} compact onClick={() => setStudyFreq(studyFreq === 'full-day' ? '' : 'full-day')} />
-                            </div>
-                          </div>
+            <FinderQuestion label="אופן קבלת המוצר" animateIn={animateIn} gridClassName="grid-cols-3">
+              <OptionTile size="sm" label="הכל" active={shippingPreference === 'all'} onSelect={() => setShippingPreference('all')} />
+              <OptionTile size="sm" label="משלוח" active={shippingPreference === 'shipping'} onSelect={() => setShippingPreference('shipping')} />
+              <OptionTile size="sm" label="איסוף עצמי" active={shippingPreference === 'pickup'} onSelect={() => setShippingPreference('pickup')} />
+            </FinderQuestion>
 
-                          <div className="space-y-3 md:col-span-2">
-                            <Label className="text-sm font-bold text-primary/85 mr-1">מנהג טבילה</Label>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                              <CustomTile value="daily" label="כל יום" active={mikvehFreq === 'daily'} compact onClick={() => setMikvehFreq(mikvehFreq === 'daily' ? '' : 'daily')} />
-                              <CustomTile value="before" label="לפני כתיבה" active={mikvehFreq === 'before'} compact onClick={() => setMikvehFreq(mikvehFreq === 'before' ? '' : 'before')} />
-                              <CustomTile value="ezra" label="טבילת עזרא" active={mikvehFreq === 'ezra'} compact onClick={() => setMikvehFreq(mikvehFreq === 'ezra' ? '' : 'ezra')} />
-                              <CustomTile value="never" label="ללא טבילה" active={mikvehFreq === 'never'} compact onClick={() => setMikvehFreq(mikvehFreq === 'never' ? '' : 'never')} />
-                            </div>
-                          </div>
-
-                          <Label className="md:col-span-2 flex items-center justify-between p-4 bg-white/80 border-2 border-primary/5 rounded-2xl cursor-pointer hover:bg-white hover:border-primary/10 transition-all shadow-sm">
-                            <div className="flex items-center gap-3"><UserCheck className="w-5 h-5 text-accent" /><span className="text-sm font-bold text-primary">הצג סופרים נשואים בלבד</span></div>
-                            <Checkbox checked={marriedOnly} onCheckedChange={(v) => setMarriedOnly(!!v)} className="w-6 h-6 rounded-lg" />
-                          </Label>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-               </div>
+            <div className="rounded-2xl border border-dashed border-primary/20">
+              <button
+                type="button"
+                onClick={() => setShowAdvanced(!showAdvanced)}
+                aria-expanded={showAdvanced}
+                className="flex min-h-[56px] w-full items-center justify-between gap-3 rounded-2xl px-4 text-[15px] font-semibold text-primary transition-colors hover:bg-primary/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                <span className="flex items-center gap-2.5"><Settings2 className="h-5 w-5 text-accent-strong" /> מסנני קדושה והנהגת הסופר</span>
+                <ChevronLeft className={cn('h-4 w-4 text-primary/60 transition-transform duration-300 ease-lux', showAdvanced && '-rotate-90')} />
+              </button>
+              <AnimatePresence initial={false}>
+                {showAdvanced && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: shouldReduceMotion ? 0 : 0.3, ease: [0.22, 1, 0.36, 1] }}
+                    className="overflow-hidden"
+                  >
+                    <div className="space-y-6 px-4 pb-5 pt-2">
+                      <FinderQuestion label="הסמכת הסופר" gridClassName={twoCol}>
+                        <OptionTile label="תעודה בתוקף" active={certStatus === 'valid'} onSelect={() => setCertStatus(certStatus === 'valid' ? '' : 'valid')} />
+                        <OptionTile label="תעודה בעבר" active={certStatus === 'expired'} onSelect={() => setCertStatus(certStatus === 'expired' ? '' : 'expired')} />
+                        <OptionTile label="ללא תעודה" active={certStatus === 'none'} onSelect={() => setCertStatus(certStatus === 'none' ? '' : 'none')} />
+                      </FinderQuestion>
+                      <FinderQuestion label="לימוד תורה יומיומי" gridClassName={twoCol}>
+                        <OptionTile label="קובע עיתים" active={studyFreq === 'fixed'} onSelect={() => setStudyFreq(studyFreq === 'fixed' ? '' : 'fixed')} />
+                        <OptionTile label="אברך חצי יום" active={studyFreq === 'half-day'} onSelect={() => setStudyFreq(studyFreq === 'half-day' ? '' : 'half-day')} />
+                        <OptionTile label="אברך יום שלם" active={studyFreq === 'full-day'} onSelect={() => setStudyFreq(studyFreq === 'full-day' ? '' : 'full-day')} />
+                      </FinderQuestion>
+                      <FinderQuestion label="מנהג טבילה" gridClassName={twoCol}>
+                        <OptionTile label="כל יום" active={mikvehFreq === 'daily'} onSelect={() => setMikvehFreq(mikvehFreq === 'daily' ? '' : 'daily')} />
+                        <OptionTile label="לפני כתיבה" active={mikvehFreq === 'before'} onSelect={() => setMikvehFreq(mikvehFreq === 'before' ? '' : 'before')} />
+                        <OptionTile label="טבילת עזרא" active={mikvehFreq === 'ezra'} onSelect={() => setMikvehFreq(mikvehFreq === 'ezra' ? '' : 'ezra')} />
+                        <OptionTile label="ללא טבילה" active={mikvehFreq === 'never'} onSelect={() => setMikvehFreq(mikvehFreq === 'never' ? '' : 'never')} />
+                      </FinderQuestion>
+                      <label className="flex min-h-[56px] cursor-pointer items-center justify-between gap-3 rounded-2xl border border-border/80 bg-card px-4 py-3">
+                        <span className="flex items-center gap-2.5 text-[15px] font-semibold text-primary"><UserCheck className="h-5 w-5 text-accent-strong" /> הצג סופרים נשואים בלבד</span>
+                        <Checkbox checked={marriedOnly} onCheckedChange={(v) => setMarriedOnly(!!v)} className="h-5 w-5 rounded-md" />
+                      </label>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
+          </div>
+        );
+    }
+  };
 
-            <div className="flex justify-center pt-4 md:pt-8">
-               <MotionButton
-                 onClick={handleFinalSearch}
-                 className={finalSearchButtonClass}
-                 whileHover={shouldReduceMotion ? undefined : { scale: 1.02 }}
-                 whileTap={shouldReduceMotion ? undefined : { scale: 0.96 }}
-               >
-                 <Search className="w-6 h-6 group-hover:rotate-12 transition-transform" /> הצג כלי קודש מתאימים
-               </MotionButton>
-             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+  const skipAction = step > 1 ? (
+    <button
+      type="button"
+      onClick={() => (isLastStep ? handleFinalSearch() : goToStep(step + 1))}
+      className="-my-2 inline-flex min-h-[44px] items-center rounded-full px-3 text-[14px] font-semibold text-primary/70 underline-offset-4 transition-colors hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+    >
+      {isLastStep ? 'דלג והצג תוצאות' : 'דלג'}
+    </button>
+  ) : null;
+
+  const viewAllLink = (
+    <button
+      type="button"
+      onClick={() => router.push('/search?view=all')}
+      className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full text-[14px] font-semibold text-accent-strong underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+    >
+      צפה בכל המוצרים
+      <ArrowLeft className="h-3.5 w-3.5" />
+    </button>
   );
+
+  const finderNav = (
+    <div className="flex items-center gap-3">
+      {step > 1 && (
+        <Button variant="outline" size="lg" onClick={() => goToStep(step - 1)} className="h-14 shrink-0 gap-1.5 px-5">
+          <ChevronRight className="h-4 w-4" /> הקודם
+        </Button>
+      )}
+      <Button
+        variant="gold"
+        size="lg"
+        disabled={!canContinue}
+        onClick={() => (isLastStep ? handleFinalSearch() : goToStep(step + 1))}
+        className="h-14 flex-1 gap-2 text-base"
+      >
+        {isLastStep ? (<><Search className="h-[18px] w-[18px]" /> הצג כלי קודש מתאימים</>) : (<>{step === 1 && !selectedProduct ? 'בחרו מוצר כדי להמשיך' : 'המשך'} {canContinue && <ChevronLeft className="h-4 w-4" />}</>)}
+      </Button>
+    </div>
+  );
+
+  const stepHeading = (
+    <div className="mb-5 space-y-1 text-right">
+      <h2 className="font-body text-[24px] font-semibold leading-tight text-primary md:text-[26px]">{STEP_TITLES[step].title}</h2>
+      <p className="text-[14px] text-muted-foreground">{STEP_TITLES[step].lead}</p>
+    </div>
+  );
+
+  // Desktop card: progress → animated step (height eases between steps) → nav.
+  const desktopFinder = (
+    <div className="text-right">
+      <FinderProgress step={step} total={TOTAL_STEPS} summary={summary} action={skipAction} />
+      <FinderStepFrame stepKey={step} direction={direction} animateHeight className="-mx-1 mt-4">
+        {stepHeading}
+        {stepBody(step, false)}
+      </FinderStepFrame>
+      <div className="mt-6 space-y-3 border-t border-border/70 pt-5">
+        {finderNav}
+        <div className="flex justify-center">{viewAllLink}</div>
+      </div>
+    </div>
+  );
+
+  // Mobile sheet: swipe the header down to close (pointer events; X / Esc / overlay still work).
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const sheetDragRef = useRef<{ y: number; dy: number } | null>(null);
+  const onSheetDragStart = (e: React.PointerEvent<HTMLDivElement>) => {
+    if ((e.target as HTMLElement).closest('button, a, input, [role="combobox"]')) return;
+    sheetDragRef.current = { y: e.clientY, dy: 0 };
+    e.currentTarget.setPointerCapture(e.pointerId);
+    if (sheetRef.current) sheetRef.current.style.transition = 'none';
+  };
+  const onSheetDragMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const drag = sheetDragRef.current;
+    if (!drag) return;
+    drag.dy = Math.max(0, e.clientY - drag.y);
+    if (sheetRef.current) sheetRef.current.style.transform = `translate3d(0, ${drag.dy}px, 0)`;
+  };
+  const onSheetDragEnd = () => {
+    const drag = sheetDragRef.current;
+    sheetDragRef.current = null;
+    const el = sheetRef.current;
+    if (!drag || !el) return;
+    if (drag.dy > 110) {
+      setIsMobileSearchOpen(false);
+      return;
+    }
+    el.style.transition = 'transform 280ms cubic-bezier(0.22, 1, 0.36, 1)';
+    el.style.transform = '';
+  };
 
   // Product search CTA: on desktop the wizard is already on screen, so bring it into view and
   // move focus to its first choice; on phones the same wizard opens as a bottom sheet.
@@ -616,90 +592,49 @@ export function HeroAnimation() {
         </div>
 
         {/* Desktop: the spec wizard sits beside the headline. */}
-        <div id="hero-finder" className="hidden md:block fade-up fade-up-2 w-full max-w-2xl justify-self-center lg:justify-self-start bg-card border border-border/80 rounded-[2rem] p-8 lg:p-10 shadow-premium-lg">
+        <div id="hero-finder" className="hidden md:block fade-up fade-up-2 w-full max-w-2xl justify-self-center lg:justify-self-start bg-card border border-border/80 rounded-[2rem] p-7 lg:p-9 shadow-premium-lg">
           {/* isDesktop resolves (useLayoutEffect, pre-paint) before this can ever be seen —
               on mobile it stays a cheap empty shell instead of mounting/hydrating the full
               wizard behind `hidden`. The `hidden md:block` above is what controls visibility. */}
-          {isDesktop === true ? wizardSteps : <div className="min-h-[420px]" aria-hidden="true" />}
+          {isDesktop === true ? desktopFinder : <div className="min-h-[520px]" aria-hidden="true" />}
         </div>
       </div>
 
       <Sheet open={isMobileSearchOpen} onOpenChange={setIsMobileSearchOpen}>
         <SheetContent
+          ref={sheetRef}
           side="bottom"
-          className="flex h-[92dvh] max-h-[92dvh] flex-col gap-0 rounded-t-[2rem] border-0 bg-background p-0 shadow-2xl md:hidden"
+          className="flex h-[94dvh] max-h-[94dvh] flex-col gap-0 rounded-t-[2rem] border-0 bg-background p-0 shadow-2xl md:hidden"
         >
           <SheetHeader className="sr-only">
-            <SheetTitle>חיפוש כלי קודש</SheetTitle>
-            <SheetDescription>בחרו קטגוריה, מפרט הלכתי והתאמה אישית כדי למצוא את המוצר המתאים</SheetDescription>
+            <SheetTitle>חיפוש מוצר מותאם אישית</SheetTitle>
+            <SheetDescription>ארבעה שלבים קצרים: סוג מוצר, כתב, רמת הידור וגודל, ואופן הקבלה</SheetDescription>
           </SheetHeader>
-          <div className="mx-auto mt-3 h-1 w-10 shrink-0 rounded-full bg-primary/15" aria-hidden="true" />
-          <div className="flex-1 overflow-y-auto px-4 pb-10 pt-5" dir="rtl">
-            {wizardSteps}
+          {/* Drag handle + header: swipe down to close (the X stays for everyone else). */}
+          <div
+            className="shrink-0 touch-none select-none px-5 pb-3 pt-3"
+            onPointerDown={onSheetDragStart}
+            onPointerMove={onSheetDragMove}
+            onPointerUp={onSheetDragEnd}
+            onPointerCancel={onSheetDragEnd}
+          >
+            <div className="mx-auto mb-3 h-1.5 w-11 rounded-full bg-primary/15" aria-hidden="true" />
+            <div className="pl-14">
+              <FinderProgress step={step} total={TOTAL_STEPS} summary={summary} action={skipAction} />
+            </div>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-5 pb-16 pt-2" data-lenis-prevent>
+            <FinderStepFrame stepKey={step} direction={direction}>
+              {stepHeading}
+              {stepBody(step, true)}
+              <div className="mt-6 flex justify-center">{viewAllLink}</div>
+            </FinderStepFrame>
+          </div>
+          <div data-sticky-footer className="shrink-0 border-t border-border/70 bg-background/95 px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] backdrop-blur">
+            {finderNav}
           </div>
         </SheetContent>
       </Sheet>
     </section>
-  );
-}
-
-interface CategoryCardProps {
-  icon: React.ReactElement;
-  label: string;
-  onClick: () => void;
-  color?: 'indigo' | 'blue' | 'amber' | 'emerald' | 'purple' | 'primary';
-  active?: boolean;
-}
-
-function CategoryCard({ icon, label, onClick, active = false }: CategoryCardProps) {
-  // One brand treatment for every category (was five unrelated pastel colours).
-  return (
-    <button 
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      aria-pressed={active}
-      className={cn(
-        "group flex flex-col items-center gap-3 px-2 py-4 md:py-5 rounded-3xl bg-card border transition-[border-color,box-shadow,transform] duration-300 ease-lux active:scale-[0.97] w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
-        active ? "border-primary shadow-premium" : "border-border/70 hover:border-primary/30 hover:shadow-premium"
-      )}
-    >
-      <div className={cn(
-        "w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center transition-colors duration-300",
-        active ? "bg-primary text-primary-foreground" : "bg-secondary/70 text-primary group-hover:bg-primary group-hover:text-primary-foreground"
-      )}>
-        {React.cloneElement(icon as React.ReactElement<{ className?: string }>, { className: "w-6 h-6 md:w-7 md:h-7", strokeWidth: 1.6 } as any)}
-      </div>
-      <span className="font-medium text-primary text-[14px] whitespace-nowrap">{label}</span>
-    </button>
-  );
-}
-
-function CustomTile({ value, label, active, compact = false, onClick }: any) {
-  const className = cn(
-    "flex items-center justify-between gap-2 rounded-2xl border transition-colors duration-200 cursor-pointer group px-4 min-h-[48px]",
-    compact ? "py-2.5" : "py-3.5",
-    active ? "border-primary bg-primary/[0.04] ring-1 ring-primary" : "border-border bg-card hover:border-primary/30"
-  );
-  const content = (
-    <>
-      {!onClick && <RadioGroupItem value={value} className="hidden" />}
-      <span className={cn("text-right leading-snug transition-colors", compact ? "text-sm" : "text-[15px]", active ? "font-bold text-primary" : "font-semibold text-primary/80 group-hover:text-primary")}>{label}</span>
-      <div className={cn("w-4 h-4 shrink-0 rounded-full border transition-all duration-200", active ? "border-[5px] border-primary" : "border-primary/30 group-hover:border-primary/50")} />
-    </>
-  );
-
-  if (onClick) {
-    return (
-      <button type="button" onClick={onClick} className={className} aria-pressed={active}>
-        {content}
-      </button>
-    );
-  }
-
-  return (
-    <Label className={className}>
-      {content}
-    </Label>
   );
 }

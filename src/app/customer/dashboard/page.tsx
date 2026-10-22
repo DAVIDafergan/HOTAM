@@ -625,8 +625,8 @@ export default function CustomerDashboard() {
             {isFavoritesLoading ? (
               <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
             ) : favoriteProducts && favoriteProducts.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {favoriteProducts.map((p: any) => <ProductCard key={p.id} product={p} />)}
+              <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
+                {favoriteProducts.map((p: any) => <ProductCard key={p.id} product={p} density="compact" />)}
               </div>
             ) : (
               <div className="py-16 px-6 text-center bg-card/60 rounded-[2rem] border border-dashed border-primary/20">

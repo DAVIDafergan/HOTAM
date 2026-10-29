@@ -16,7 +16,8 @@ import {
   LocateFixed,
   Loader2,
   Settings2,
-  ArrowLeft
+  ArrowLeft,
+  ScrollText
 } from 'lucide-react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -233,7 +234,7 @@ export function HeroAnimation() {
   const canContinue = step !== 1 || Boolean(selectedProduct);
 
   const STEP_TITLES: Record<number, { title: string; lead: string }> = {
-    1: { title: 'מה אתם מחפשים?', lead: 'בחרו סוג מוצר. יודאיקה מובילה ישר לכל הפריטים.' },
+    1: { title: 'מה אתם מחפשים?', lead: 'בחרו סוג מוצר. מוצרי קלף – עם סינון לפי סוג; יודאיקה – ישר לכל הפריטים.' },
     2: { title: 'סוג וכתב', lead: 'אפשר לדלג — נציג את כל המסורות.' },
     3: { title: 'רמת הידור וגודל', lead: 'אפשר לדלג — נציג את כל הרמות והגדלים.' },
     4: { title: 'איפה ואיך לקבל?', lead: 'לא חובה. אפשר לדלג ולראות את כל התוצאות.' },
@@ -279,13 +280,21 @@ export function HeroAnimation() {
                   onSelect={() => { setHasInteracted(true); handleCategorySelect(type as ProductType); }}
                 />
               ))}
+              {/* Written-on-parchment items (פיטום הקטורת, אשת חיל, למנצח, הפטרות) — through the wizard, with their sub-type filter. */}
+              <OptionTile
+                size="lg"
+                icon={<ScrollText className="h-6 w-6" strokeWidth={1.6} />}
+                label="מוצרי קלף"
+                description={compact ? 'פיטום הקטורת ועוד' : 'פיטום הקטורת, אשת חיל, למנצח, הפטרות'}
+                active={selectedProduct === 'מוצרי יודאיקה שונים'}
+                onSelect={() => { setHasInteracted(true); handleCategorySelect('מוצרי יודאיקה שונים'); }}
+              />
               {/* Judaica isn't part of the scribal spec wizard — straight to all Judaica results. */}
               <OptionTile
                 size="lg"
-                cellClassName={compact ? 'col-span-2' : undefined}
                 icon={<Palette className="h-6 w-6" strokeWidth={1.6} />}
                 label="יודאיקה"
-                description={compact ? 'מעבר ישיר לכל הפריטים' : undefined}
+                description="מעבר ישיר לכל הפריטים"
                 active={false}
                 onSelect={() => router.push('/search?view=results&group=judaica')}
               />
